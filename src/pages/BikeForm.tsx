@@ -442,340 +442,163 @@ export default function BikeForm() {
             />
           </div>
 
-          {/* ── Main Layout ───────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* ── Identidade + Financeiro (side by side) ─────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            {/* Left Column */}
-            <div className="lg:col-span-8 space-y-8">
+            {/* Identidade */}
+            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+              <SectionHeader
+                title="Identidade do Modelo"
+                icon={Tag}
+                subtitle="Configure como o produto será exibido para o cliente final."
+              />
 
-              {/* Identidade */}
-              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
-                <SectionHeader
-                  title="Identidade do Modelo"
-                  icon={Tag}
-                  subtitle="Configure como o produto será exibido para o cliente final."
-                />
-
-                <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2 space-y-2 group">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
-                        Nome Comercial *
-                      </label>
-                      <input
-                        {...form.register("name")}
-                        className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                        placeholder="Ex: Trail X Pro"
-                      />
-                      {form.formState.errors.name && (
-                        <p className="text-xs text-red-400 ml-1">
-                          {form.formState.errors.name.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2 group">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
-                        Categoria
-                      </label>
-                      <div className="relative">
-                        <select
-                          value={form.watch("category") || ""}
-                          onChange={(e) => form.setValue("category", e.target.value)}
-                          className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 outline-none focus:border-[#2952FF] appearance-none text-sm font-bold text-zinc-300 cursor-pointer"
-                        >
-                          <option value="">Selecione...</option>
-                          {["MTB", "Speed / Road", "Gravel", "Urban / Cidade", "BMX", "Elétrica", "Infantil", "Dobrável", "Cargo", "Touring"].map((cat) => (
-                            <option key={cat} value={cat}>{cat}</option>
-                          ))}
-                        </select>
-                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 rotate-90 pointer-events-none" size={16} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {isEditing && (
-                    <SmallInput
-                      label="SKU — editável após criação"
-                      placeholder="Gerado automaticamente"
-                      {...form.register("sku")}
-                    />
-                  )}
-
-                  <div className="space-y-2 group">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
-                      Descrição da Oferta
-                    </label>
-                    <textarea
-                      {...form.register("description")}
-                      className="w-full h-40 bg-[#1C1C1E] border border-zinc-800 rounded-[28px] p-6 text-sm text-zinc-400 outline-none focus:border-[#2952FF] transition-all resize-none leading-relaxed"
-                      placeholder="Conte sobre a performance, estado de conservação e upgrades..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Build & Componentes */}
-              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
-                <SectionHeader
-                  title="Build & Componentes"
-                  icon={Wrench}
-                  subtitle="Mapeie as peças vinculadas para obter o custo de inventário preciso."
-                />
-
-                {/* Cost mode toggle */}
-                <div className="flex p-1 bg-[#0A0A0B] border border-zinc-800 rounded-2xl mb-8">
-                  <button
-                    type="button"
-                    onClick={() => form.setValue("cost_mode", "fixed")}
-                    className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                      costMode === "fixed"
-                        ? "bg-[#2C2C2E] text-white shadow-xl"
-                        : "text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    Custo Direto (Fixo)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => form.setValue("cost_mode", "manual")}
-                    className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                      costMode === "manual"
-                        ? "bg-[#2C2C2E] text-white shadow-xl"
-                        : "text-zinc-500 hover:text-zinc-300"
-                    }`}
-                  >
-                    Custo Composto (Peças)
-                  </button>
-                </div>
-
-                {/* Fixed cost */}
-                {costMode === "fixed" && (
-                  <div className="space-y-2 group">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
-                      Preço de Custo (R$)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      value={costPrice || ""}
-                      onChange={(e) =>
-                        form.setValue("cost_price", parseFloat(e.target.value) || 0)
-                      }
-                      className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                      placeholder="0,00"
-                    />
-                  </div>
-                )}
-
-                {/* Manual parts */}
-                {costMode === "manual" && (
-                  <div className="space-y-4">
-                    {templateParts.length === 0 ? (
-                      <p className="text-sm text-zinc-500 py-8 text-center">
-                        Nenhuma peça adicionada
-                      </p>
-                    ) : (
-                      templateParts.map((tp) => (
-                        <div
-                          key={tp.key}
-                          className="group flex items-start gap-4 p-6 bg-[#0A0A0B] border border-zinc-800 rounded-[32px] hover:border-zinc-700 transition-all"
-                        >
-                          <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-600 border border-zinc-800 shrink-0">
-                            <Layers size={20} />
-                          </div>
-                          <div className="flex-1 space-y-3 min-w-0">
-                            <PartSelector
-                              parts={allParts}
-                              selectedPartId={tp.part_id}
-                              customName={tp.part_name_override}
-                              onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
-                              onCustomName={(name) =>
-                                updateRow(tp.key, {
-                                  part_id: null,
-                                  part_name_override: name,
-                                })
-                              }
-                            />
-                            <div className="flex gap-3">
-                              <div className="w-20">
-                                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                                  Qtd
-                                </label>
-                                <input
-                                  type="number"
-                                  min={1}
-                                  value={tp.quantity}
-                                  onChange={(e) =>
-                                    updateRow(tp.key, {
-                                      quantity: parseInt(e.target.value) || 1,
-                                    })
-                                  }
-                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                                />
-                              </div>
-                              <div className="w-36">
-                                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                                  Custo unit. (R$)
-                                </label>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  min={0}
-                                  value={tp.unit_cost || ""}
-                                  onChange={(e) =>
-                                    updateRow(tp.key, {
-                                      unit_cost: parseFloat(e.target.value) || 0,
-                                    })
-                                  }
-                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                                  Subtotal
-                                </label>
-                                <div className="h-10 flex items-center text-sm font-bold text-[#2952FF]">
-                                  {formatBRL(tp.unit_cost * tp.quantity)}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeRow(tp.key)}
-                            className="w-10 h-10 rounded-xl bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center shrink-0 mt-1"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))
-                    )}
-
-                    {/* Total */}
-                    {templateParts.length > 0 && (
-                      <div className="flex justify-between items-center px-6 py-4 bg-[#0A0A0B] border border-zinc-800 rounded-[28px]">
-                        <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">
-                          Custo Total das Peças
-                        </span>
-                        <span className="text-xl font-black text-white">
-                          {formatBRL(manualCost)}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Add row */}
-                    <button
-                      type="button"
-                      onClick={addRow}
-                      className="w-full rounded-[32px] border-dashed border-2 border-zinc-800 py-10 flex flex-col items-center justify-center gap-3 hover:bg-[#2952FF]/5 hover:border-[#2952FF]/50 transition-all group"
-                    >
-                      <Plus
-                        size={24}
-                        className="text-[#2952FF] group-hover:scale-110 transition-transform"
-                      />
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 group-hover:text-zinc-300">
-                        Vincular Novo Componente
-                      </span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="lg:col-span-4 space-y-8">
-
-              {/* Financeiro */}
-              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
-                <SectionHeader title="Financeiro" icon={DollarSign} />
-
-                {/* PIX price */}
-                <div className="p-8 bg-[#0A0A0B] border border-zinc-800 rounded-[32px] relative overflow-hidden group">
-                  <div className="absolute -right-4 -top-4 opacity-[0.05] text-zinc-600 group-hover:rotate-12 transition-transform duration-700">
-                    <DollarSign size={120} />
-                  </div>
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">
-                    Preço PIX / Dinheiro
+              <div className="space-y-6">
+                <div className="space-y-2 group">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                    Nome Comercial *
                   </label>
-                  <div className="flex items-baseline gap-2 relative z-10">
-                    <span className="text-xl font-bold text-[#2952FF]">R$</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      className="bg-transparent border-none outline-none text-4xl font-black text-white w-full tracking-tighter"
-                      value={pixPrice || ""}
-                      onChange={(e) =>
-                        form.setValue("pix_price", parseFloat(e.target.value) || 0)
-                      }
-                      placeholder="0"
-                    />
-                  </div>
-                  <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
-                    Preço com desconto para pagamento à vista
-                  </p>
-                </div>
-
-                {/* Installment */}
-                <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-[28px] space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CreditCard size={14} className="text-indigo-400" />
-                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
-                      Parcelamento no Cartão
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                        Valor da Parcela
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min={0}
-                        value={installmentPrice || ""}
-                        onChange={(e) =>
-                          form.setValue(
-                            "installment_price",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
-                        placeholder="0,00"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                        Nº Parcelas
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={24}
-                        value={installmentCount}
-                        onChange={(e) =>
-                          form.setValue(
-                            "installment_count",
-                            parseInt(e.target.value) || 1
-                          )
-                        }
-                        className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
-                      />
-                    </div>
-                  </div>
-                  {installmentPrice > 0 && (
-                    <p className="text-2xl font-black text-white">
-                      {installmentCount}x{" "}
-                      <span className="text-sm font-bold text-zinc-500">de</span>{" "}
-                      {formatBRL(installmentPrice)}
+                  <input
+                    {...form.register("name")}
+                    className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
+                    placeholder="Ex: Trail X Pro"
+                  />
+                  {form.formState.errors.name && (
+                    <p className="text-xs text-red-400 ml-1">
+                      {form.formState.errors.name.message}
                     </p>
                   )}
                 </div>
+
+                <div className="space-y-2 group">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                    Categoria
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={form.watch("category") || ""}
+                      onChange={(e) => form.setValue("category", e.target.value)}
+                      className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 outline-none focus:border-[#2952FF] appearance-none text-sm font-bold text-zinc-300 cursor-pointer"
+                    >
+                      <option value="">Selecione...</option>
+                      {["MTB", "Speed / Road", "Gravel", "Urban / Cidade", "BMX", "Elétrica", "Infantil", "Dobrável", "Cargo", "Touring"].map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                    <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 rotate-90 pointer-events-none" size={16} />
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <SmallInput
+                    label="SKU — editável após criação"
+                    placeholder="Gerado automaticamente"
+                    {...form.register("sku")}
+                  />
+                )}
+
+                <div className="space-y-2 group">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                    Descrição da Oferta
+                  </label>
+                  <textarea
+                    {...form.register("description")}
+                    className="w-full h-40 bg-[#1C1C1E] border border-zinc-800 rounded-[28px] p-6 text-sm text-zinc-400 outline-none focus:border-[#2952FF] transition-all resize-none leading-relaxed"
+                    placeholder="Conte sobre a performance, estado de conservação e upgrades..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Financeiro */}
+            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl space-y-6">
+              <SectionHeader title="Financeiro" icon={DollarSign} />
+
+              {/* PIX price */}
+              <div className="p-8 bg-[#0A0A0B] border border-zinc-800 rounded-[32px] relative overflow-hidden group">
+                <div className="absolute -right-4 -top-4 opacity-[0.05] text-zinc-600 group-hover:rotate-12 transition-transform duration-700">
+                  <DollarSign size={120} />
+                </div>
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">
+                  Preço PIX / Dinheiro
+                </label>
+                <div className="flex items-baseline gap-2 relative z-10">
+                  <span className="text-xl font-bold text-[#2952FF]">R$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    className="bg-transparent border-none outline-none text-4xl font-black text-white w-full tracking-tighter"
+                    value={pixPrice || ""}
+                    onChange={(e) =>
+                      form.setValue("pix_price", parseFloat(e.target.value) || 0)
+                    }
+                    placeholder="0"
+                  />
+                </div>
+                <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
+                  Preço com desconto para pagamento à vista
+                </p>
               </div>
 
-              {/* Estoque & Visibilidade */}
-              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
+              {/* Installment */}
+              <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-[28px] space-y-4">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={14} className="text-indigo-400" />
+                  <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                    Parcelamento no Cartão
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                      Valor da Parcela
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={installmentPrice || ""}
+                      onChange={(e) =>
+                        form.setValue(
+                          "installment_price",
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
+                      className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                      Nº Parcelas
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={24}
+                      value={installmentCount}
+                      onChange={(e) =>
+                        form.setValue(
+                          "installment_count",
+                          parseInt(e.target.value) || 1
+                        )
+                      }
+                      className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
+                    />
+                  </div>
+                </div>
+                {installmentPrice > 0 && (
+                  <p className="text-2xl font-black text-white">
+                    {installmentCount}x{" "}
+                    <span className="text-sm font-bold text-zinc-500">de</span>{" "}
+                    {formatBRL(installmentPrice)}
+                  </p>
+                )}
+              </div>
+
+              {/* Logística */}
+              <div className="space-y-4 pt-2">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-[#2952FF]/10 flex items-center justify-center text-[#2952FF]">
                     <Box size={16} />
@@ -837,8 +660,175 @@ export default function BikeForm() {
                   />
                 </div>
               </div>
-
             </div>
+          </div>
+
+          {/* ── Build & Componentes (full width) ──────────────────────────── */}
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+            <SectionHeader
+              title="Build & Componentes"
+              icon={Wrench}
+              subtitle="Mapeie as peças vinculadas para obter o custo de inventário preciso."
+            />
+
+            {/* Cost mode toggle */}
+            <div className="flex p-1 bg-[#0A0A0B] border border-zinc-800 rounded-2xl mb-8">
+              <button
+                type="button"
+                onClick={() => form.setValue("cost_mode", "fixed")}
+                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  costMode === "fixed"
+                    ? "bg-[#2C2C2E] text-white shadow-xl"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                Custo Direto (Fixo)
+              </button>
+              <button
+                type="button"
+                onClick={() => form.setValue("cost_mode", "manual")}
+                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  costMode === "manual"
+                    ? "bg-[#2C2C2E] text-white shadow-xl"
+                    : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                Custo Composto (Peças)
+              </button>
+            </div>
+
+            {/* Fixed cost */}
+            {costMode === "fixed" && (
+              <div className="space-y-2 group">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                  Preço de Custo (R$)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={costPrice || ""}
+                  onChange={(e) =>
+                    form.setValue("cost_price", parseFloat(e.target.value) || 0)
+                  }
+                  className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
+                  placeholder="0,00"
+                />
+              </div>
+            )}
+
+            {/* Manual parts */}
+            {costMode === "manual" && (
+              <div className="space-y-4">
+                {templateParts.length === 0 ? (
+                  <p className="text-sm text-zinc-500 py-8 text-center">
+                    Nenhuma peça adicionada
+                  </p>
+                ) : (
+                  templateParts.map((tp) => (
+                    <div
+                      key={tp.key}
+                      className="group flex items-start gap-4 p-6 bg-[#0A0A0B] border border-zinc-800 rounded-[32px] hover:border-zinc-700 transition-all"
+                    >
+                      <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-600 border border-zinc-800 shrink-0">
+                        <Layers size={20} />
+                      </div>
+                      <div className="flex-1 space-y-3 min-w-0">
+                        <PartSelector
+                          parts={allParts}
+                          selectedPartId={tp.part_id}
+                          customName={tp.part_name_override}
+                          onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
+                          onCustomName={(name) =>
+                            updateRow(tp.key, {
+                              part_id: null,
+                              part_name_override: name,
+                            })
+                          }
+                        />
+                        <div className="flex gap-3">
+                          <div className="w-20">
+                            <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                              Qtd
+                            </label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={tp.quantity}
+                              onChange={(e) =>
+                                updateRow(tp.key, {
+                                  quantity: parseInt(e.target.value) || 1,
+                                })
+                              }
+                              className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
+                            />
+                          </div>
+                          <div className="w-36">
+                            <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                              Custo unit. (R$)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min={0}
+                              value={tp.unit_cost || ""}
+                              onChange={(e) =>
+                                updateRow(tp.key, {
+                                  unit_cost: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                              className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                              Subtotal
+                            </label>
+                            <div className="h-10 flex items-center text-sm font-bold text-[#2952FF]">
+                              {formatBRL(tp.unit_cost * tp.quantity)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeRow(tp.key)}
+                        className="w-10 h-10 rounded-xl bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center shrink-0 mt-1"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))
+                )}
+
+                {/* Total */}
+                {templateParts.length > 0 && (
+                  <div className="flex justify-between items-center px-6 py-4 bg-[#0A0A0B] border border-zinc-800 rounded-[28px]">
+                    <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">
+                      Custo Total das Peças
+                    </span>
+                    <span className="text-xl font-black text-white">
+                      {formatBRL(manualCost)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Add row */}
+                <button
+                  type="button"
+                  onClick={addRow}
+                  className="w-full rounded-[32px] border-dashed border-2 border-zinc-800 py-10 flex flex-col items-center justify-center gap-3 hover:bg-[#2952FF]/5 hover:border-[#2952FF]/50 transition-all group"
+                >
+                  <Plus
+                    size={24}
+                    className="text-[#2952FF] group-hover:scale-110 transition-transform"
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 group-hover:text-zinc-300">
+                    Vincular Novo Componente
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
 
         </div>
