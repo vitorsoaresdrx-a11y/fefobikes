@@ -517,7 +517,7 @@ export default function PDV() {
             {/* Footer do catálogo */}
             <div className="p-6 bg-[#1C1C1E] border border-zinc-800 rounded-[32px] flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#820AD1]/10 text-[#820AD1] rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-[#2952FF]/10 text-[#2952FF] rounded-2xl flex items-center justify-center">
                   <ShoppingCart size={20} />
                 </div>
                 <div>
