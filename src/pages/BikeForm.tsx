@@ -432,14 +432,14 @@ export default function BikeForm() {
                       )}
                     </div>
                     <div className="space-y-2 group">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                         Categoria
                       </label>
                       <div className="relative">
                         <select
                           value={form.watch("category") || ""}
                           onChange={(e) => form.setValue("category", e.target.value)}
-                          className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 outline-none focus:border-[#820AD1] appearance-none text-sm font-bold text-zinc-300 cursor-pointer"
+                          className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 outline-none focus:border-[#2952FF] appearance-none text-sm font-bold text-zinc-300 cursor-pointer"
                         >
                           <option value="">Selecione...</option>
                           {["MTB", "Speed / Road", "Gravel", "Urban / Cidade", "BMX", "Elétrica", "Infantil", "Dobrável", "Cargo", "Touring"].map((cat) => (
