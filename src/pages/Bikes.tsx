@@ -190,7 +190,7 @@ export default function Bikes() {
             title="Total de Peças"
             value={totalParts}
             icon={<TrendingUp className="w-5 h-5" />}
-            color="text-[#820AD1]"
+            color="text-[#2952FF]"
           />
         </div>
 
