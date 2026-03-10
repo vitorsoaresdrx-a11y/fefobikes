@@ -87,7 +87,7 @@ export default function Login() {
       </div>
 
       {/* Formulário — direita */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-12 lg:pr-24 relative z-10 bg-[#0A0A0B]">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 lg:pr-40 relative z-10 bg-[#0A0A0B]">
         <div className="w-full max-w-md space-y-10">
 
           {/* Header */}
