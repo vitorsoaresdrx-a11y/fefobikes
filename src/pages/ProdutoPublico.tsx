@@ -174,12 +174,12 @@ export default function ProdutoPublico() {
         {/* Specs */}
         {specs.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Especificações</h2>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Especificações</h2>
+            <div className="grid grid-cols-1 gap-y-0">
               {specs.map((s) => (
-                <div key={s.label} className="flex justify-between py-1.5 border-b border-border/50">
-                  <span className="text-xs text-muted-foreground">{s.label}</span>
-                  <span className="text-xs text-foreground font-medium">{s.value}</span>
+                <div key={s.label} className="flex justify-between py-2 border-b border-border/50">
+                  <span className="text-sm text-muted-foreground">{s.label}</span>
+                  <span className="text-sm text-foreground font-medium">{s.value}</span>
                 </div>
               ))}
             </div>
