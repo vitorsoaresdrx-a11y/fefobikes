@@ -75,7 +75,10 @@ export type Database = {
           frame_size: string | null
           id: string
           images: string[] | null
+          installment_count: number | null
+          installment_price: number | null
           name: string
+          pix_price: number | null
           rim_size: string | null
           sale_price: number | null
           sku: string | null
@@ -96,7 +99,10 @@ export type Database = {
           frame_size?: string | null
           id?: string
           images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
           name: string
+          pix_price?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -117,7 +123,10 @@ export type Database = {
           frame_size?: string | null
           id?: string
           images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
           name?: string
+          pix_price?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -217,9 +226,12 @@ export type Database = {
           hub_style: string | null
           id: string
           images: string[] | null
+          installment_count: number | null
+          installment_price: number | null
           material: string | null
           name: string
           notes: string | null
+          pix_price: number | null
           rim_size: string | null
           sale_price: number | null
           sku: string | null
@@ -239,9 +251,12 @@ export type Database = {
           hub_style?: string | null
           id?: string
           images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
           material?: string | null
           name: string
           notes?: string | null
+          pix_price?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -261,9 +276,12 @@ export type Database = {
           hub_style?: string | null
           id?: string
           images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
           material?: string | null
           name?: string
           notes?: string | null
+          pix_price?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
