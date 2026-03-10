@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, DollarSign, TrendingUp } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -33,16 +33,25 @@ const bikeSchema = z.object({
   category: z.string().optional(),
   description: z.string().optional(),
   visible_on_storefront: z.boolean().default(false),
+  cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
+  cost_price: z.number().min(0).default(0),
+  sale_price: z.number().min(0).default(0),
 });
 
 type BikeFormValues = z.infer<typeof bikeSchema>;
 
 interface TemplatePart {
-  key: string; // client-side key for React
+  key: string;
   part_id: string | null;
   part_name_override: string | null;
   quantity: number;
   notes: string | null;
+  unit_cost: number;
+}
+
+/** Formats a number as BRL currency */
+function formatBRL(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 export default function BikeForm() {
@@ -63,8 +72,29 @@ export default function BikeForm() {
 
   const form = useForm<BikeFormValues>({
     resolver: zodResolver(bikeSchema),
-    defaultValues: { name: "", category: "", description: "", visible_on_storefront: false },
+    defaultValues: {
+      name: "",
+      category: "",
+      description: "",
+      visible_on_storefront: false,
+      cost_mode: "fixed",
+      cost_price: 0,
+      sale_price: 0,
+    },
   });
+
+  const costMode = form.watch("cost_mode");
+  const costPrice = form.watch("cost_price");
+  const salePrice = form.watch("sale_price");
+
+  // For manual mode, sum up part costs * quantities
+  const manualCost = useMemo(() => {
+    return templateParts.reduce((sum, p) => sum + p.unit_cost * p.quantity, 0);
+  }, [templateParts]);
+
+  const effectiveCost = costMode === "fixed" ? costPrice : manualCost;
+  const profitValue = salePrice - effectiveCost;
+  const profitPercent = effectiveCost > 0 ? (profitValue / effectiveCost) * 100 : 0;
 
   // Load existing data
   useEffect(() => {
@@ -74,6 +104,9 @@ export default function BikeForm() {
         category: bike.category || "",
         description: bike.description || "",
         visible_on_storefront: bike.visible_on_storefront,
+        cost_mode: (bike as any).cost_mode || "fixed",
+        cost_price: Number((bike as any).cost_price) || 0,
+        sale_price: Number((bike as any).sale_price) || 0,
       });
     }
   }, [bike]);
@@ -87,6 +120,7 @@ export default function BikeForm() {
           part_name_override: p.part_name_override,
           quantity: p.quantity,
           notes: p.notes,
+          unit_cost: Number((p as any).unit_cost) || 0,
         }))
       );
     }
@@ -95,7 +129,7 @@ export default function BikeForm() {
   const addRow = () => {
     setTemplateParts((prev) => [
       ...prev,
-      { key: crypto.randomUUID(), part_id: null, part_name_override: null, quantity: 1, notes: null },
+      { key: crypto.randomUUID(), part_id: null, part_name_override: null, quantity: 1, notes: null, unit_cost: 0 },
     ]);
   };
 
@@ -109,6 +143,16 @@ export default function BikeForm() {
     );
   };
 
+  /** When selecting a part from catalog, auto-fill its unit_cost */
+  const handleSelectPart = (key: string, partId: string) => {
+    const catalogPart = allParts.find((p) => p.id === partId);
+    updateRow(key, {
+      part_id: partId,
+      part_name_override: null,
+      unit_cost: Number((catalogPart as any)?.unit_cost) || 0,
+    });
+  };
+
   const onSubmit = async (values: BikeFormValues) => {
     try {
       const payload = {
@@ -116,6 +160,9 @@ export default function BikeForm() {
         category: values.category || null,
         description: values.description || null,
         visible_on_storefront: values.visible_on_storefront,
+        cost_mode: values.cost_mode,
+        cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
+        sale_price: values.sale_price,
       };
 
       let bikeId: string;
@@ -128,17 +175,20 @@ export default function BikeForm() {
         bikeId = created.id;
       }
 
-      // Save template parts
-      await saveParts.mutateAsync({
-        bikeModelId: bikeId,
-        parts: templateParts.map((p) => ({
-          part_id: p.part_id,
-          part_name_override: p.part_name_override,
-          quantity: p.quantity,
-          notes: p.notes,
-          sort_order: 0,
-        })),
-      });
+      // Save template parts (only in manual mode they matter, but save anyway)
+      if (values.cost_mode === "manual") {
+        await saveParts.mutateAsync({
+          bikeModelId: bikeId,
+          parts: templateParts.map((p) => ({
+            part_id: p.part_id,
+            part_name_override: p.part_name_override,
+            quantity: p.quantity,
+            notes: p.notes,
+            sort_order: 0,
+            unit_cost: p.unit_cost,
+          })),
+        });
+      }
 
       toast({ title: isEditing ? "Bike atualizada" : "Bike criada com sucesso" });
       navigate("/bikes");
@@ -222,67 +272,171 @@ export default function BikeForm() {
 
         <Separator className="bg-border" />
 
-        {/* Template de Peças */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Template de Peças
-            </h3>
-            <Button type="button" variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={addRow}>
-              <Plus className="h-3 w-3" />
-              Adicionar
-            </Button>
+        {/* Modo de Custo */}
+        <section className="space-y-4">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Precificação
+          </h3>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => form.setValue("cost_mode", "fixed")}
+              className={`p-3 rounded-md border text-left transition-colors ${
+                costMode === "fixed"
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
+              }`}
+            >
+              <p className="text-sm font-medium">Bike pronta</p>
+              <p className="text-xs mt-0.5 opacity-70">Preço de custo fixo</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => form.setValue("cost_mode", "manual")}
+              className={`p-3 rounded-md border text-left transition-colors ${
+                costMode === "manual"
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
+              }`}
+            >
+              <p className="text-sm font-medium">Montagem manual</p>
+              <p className="text-xs mt-0.5 opacity-70">Custo calculado pelas peças</p>
+            </button>
           </div>
 
-          {templateParts.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              Nenhuma peça adicionada ao template
-            </p>
-          ) : (
+          {/* Fixed cost mode */}
+          {costMode === "fixed" && (
             <div className="space-y-2">
-              {templateParts.map((tp) => (
-                <div key={tp.key} className="flex items-start gap-2 p-3 border border-border rounded-md bg-card">
-                  <div className="flex-1 space-y-2">
-                    <PartSelector
-                      parts={allParts}
-                      selectedPartId={tp.part_id}
-                      customName={tp.part_name_override}
-                      onSelectPart={(partId) => updateRow(tp.key, { part_id: partId, part_name_override: null })}
-                      onCustomName={(name) => updateRow(tp.key, { part_id: null, part_name_override: name })}
-                    />
-                    <div className="flex gap-2">
-                      <div className="w-20">
-                        <Label className="text-xs text-muted-foreground">Qtd</Label>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={tp.quantity}
-                          onChange={(e) => updateRow(tp.key, { quantity: parseInt(e.target.value) || 1 })}
-                          className="bg-background border-border h-8 text-xs"
+              <Label className="text-sm">Preço de custo (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min={0}
+                value={costPrice || ""}
+                onChange={(e) => form.setValue("cost_price", parseFloat(e.target.value) || 0)}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="0,00"
+              />
+            </div>
+          )}
+
+          {/* Manual cost mode — Template de Peças */}
+          {costMode === "manual" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Peças da bike
+                </h4>
+                <Button type="button" variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={addRow}>
+                  <Plus className="h-3 w-3" />
+                  Adicionar
+                </Button>
+              </div>
+
+              {templateParts.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  Nenhuma peça adicionada
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {templateParts.map((tp) => (
+                    <div key={tp.key} className="flex items-start gap-2 p-3 border border-border rounded-md bg-card">
+                      <div className="flex-1 space-y-2">
+                        <PartSelector
+                          parts={allParts}
+                          selectedPartId={tp.part_id}
+                          customName={tp.part_name_override}
+                          onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
+                          onCustomName={(name) => updateRow(tp.key, { part_id: null, part_name_override: name })}
                         />
+                        <div className="flex gap-2">
+                          <div className="w-16">
+                            <Label className="text-xs text-muted-foreground">Qtd</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={tp.quantity}
+                              onChange={(e) => updateRow(tp.key, { quantity: parseInt(e.target.value) || 1 })}
+                              className="bg-background border-border h-8 text-xs"
+                            />
+                          </div>
+                          <div className="w-28">
+                            <Label className="text-xs text-muted-foreground">Custo unit. (R$)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min={0}
+                              value={tp.unit_cost || ""}
+                              onChange={(e) => updateRow(tp.key, { unit_cost: parseFloat(e.target.value) || 0 })}
+                              className="bg-background border-border h-8 text-xs"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <Label className="text-xs text-muted-foreground">Subtotal</Label>
+                            <div className="h-8 flex items-center text-xs text-muted-foreground">
+                              {formatBRL(tp.unit_cost * tp.quantity)}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <Label className="text-xs text-muted-foreground">Notas</Label>
-                        <Input
-                          value={tp.notes || ""}
-                          onChange={(e) => updateRow(tp.key, { notes: e.target.value || null })}
-                          className="bg-background border-border h-8 text-xs"
-                          placeholder="Opcional"
-                        />
-                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0 mt-1"
+                        onClick={() => removeRow(tp.key)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
+                  ))}
+
+                  {/* Manual cost total */}
+                  <div className="flex justify-between items-center px-3 py-2 bg-card border border-border rounded-md">
+                    <span className="text-xs font-medium text-muted-foreground">Custo total das peças</span>
+                    <span className="text-sm font-semibold text-foreground">{formatBRL(manualCost)}</span>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0 mt-1"
-                    onClick={() => removeRow(tp.key)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
-              ))}
+              )}
+            </div>
+          )}
+
+          {/* Sale price — always shown */}
+          <div className="space-y-2">
+            <Label className="text-sm">Preço de venda (R$)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              min={0}
+              value={salePrice || ""}
+              onChange={(e) => form.setValue("sale_price", parseFloat(e.target.value) || 0)}
+              className="bg-card border-border h-9 text-sm"
+              placeholder="0,00"
+            />
+          </div>
+
+          {/* Margin display */}
+          {(effectiveCost > 0 || salePrice > 0) && (
+            <div className="flex gap-3">
+              <div className="flex-1 p-3 rounded-md border border-border bg-card">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Margem (R$)</span>
+                </div>
+                <p className={`text-base font-semibold ${profitValue >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                  {formatBRL(profitValue)}
+                </p>
+              </div>
+              <div className="flex-1 p-3 rounded-md border border-border bg-card">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Margem (%)</span>
+                </div>
+                <p className={`text-base font-semibold ${profitPercent >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                  {profitPercent.toFixed(1)}%
+                </p>
+              </div>
             </div>
           )}
         </section>
