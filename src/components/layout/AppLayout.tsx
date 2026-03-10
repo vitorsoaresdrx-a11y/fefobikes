@@ -12,7 +12,7 @@ import {
 /** Maps route paths to pt-BR labels */
 const routeLabels: Record<string, string> = {
   "/": "Dashboard",
-  "/pecas": "Peças",
+  "/produtos": "Produtos",
   "/bikes": "Bikes",
   "/bikes/nova": "Nova Bike",
   "/estoque": "Estoque",

@@ -116,11 +116,17 @@ export default function Pecas() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold text-foreground">Peças</h1>
-        <Button size="sm" onClick={handleNew} className="gap-1.5 w-full sm:w-auto">
-          <Plus className="h-4 w-4" />
-          Nova Peça
-        </Button>
+        <h1 className="text-lg font-semibold text-foreground">Produtos</h1>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button size="sm" variant="outline" onClick={() => setCategoriesOpen(true)} className="gap-1.5">
+            <Tags className="h-4 w-4" />
+            Categorias
+          </Button>
+          <Button size="sm" onClick={handleNew} className="gap-1.5 flex-1 sm:flex-initial">
+            <Plus className="h-4 w-4" />
+            Novo Produto
+          </Button>
+        </div>
       </div>
 
       {/* Search + Sort */}
