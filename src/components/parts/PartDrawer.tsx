@@ -253,7 +253,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           {/* Actions */}
           <div className="flex gap-2 pt-2">
             <Button type="submit" size="sm" className="flex-1">
-              {isEditing ? "Salvar" : "Criar peça"}
+              {isEditing ? "Salvar" : "Criar produto"}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Cancelar
