@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Plus, Trash2, Pencil, ArrowUpDown, ArrowDown, ArrowUp, QrCode } from "lucide-react";
+import { Search, Plus, Trash2, Pencil, ArrowUpDown, ArrowDown, ArrowUp, QrCode, Tags, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
