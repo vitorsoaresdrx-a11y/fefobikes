@@ -339,7 +339,7 @@ export default function Estoque() {
           <div className="overflow-x-auto">
             {isLoading ? (
               <div className="p-20 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-[#820AD1] border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
               <div className="p-20 text-center text-zinc-600 text-sm">
