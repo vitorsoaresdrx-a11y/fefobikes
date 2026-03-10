@@ -186,6 +186,7 @@ export default function BikeForm() {
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
         sale_price: values.sale_price,
+        images: bikeImages,
       };
 
       let bikeId: string;
