@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SaleItem {
@@ -15,6 +15,8 @@ export interface CreateSalePayload {
   payment_method: string | null;
   notes: string | null;
   items: SaleItem[];
+  card_fee: number;
+  card_tax_percent: number;
 }
 
 export function useCreateSale() {
@@ -39,7 +41,21 @@ export function useCreateSale() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["customers"] });
-      qc.invalidateQueries({ queryKey: ["customer_sales"] });
+      qc.invalidateQueries({ queryKey: ["sales"] });
+    },
+  });
+}
+
+export function useSales() {
+  return useQuery({
+    queryKey: ["sales"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sales")
+        .select("*, sale_items(*), customers(*)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
     },
   });
 }
