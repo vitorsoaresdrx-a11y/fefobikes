@@ -46,6 +46,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
     resolver: zodResolver(partSchema),
     defaultValues: {
       name: "",
+      sku: "",
       category: "",
       stock_qty: 0,
       alert_stock: 0,
