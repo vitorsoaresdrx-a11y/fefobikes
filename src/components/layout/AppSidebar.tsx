@@ -4,6 +4,7 @@ import {
   Bike,
   Package,
   ShoppingCart,
+  ClipboardList,
   Users,
   Settings,
 } from "lucide-react";
