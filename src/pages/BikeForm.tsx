@@ -84,7 +84,7 @@ const SectionHeader = ({
 }) => (
   <div className="flex flex-col gap-1 mb-8">
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-xl bg-[#820AD1]/10 flex items-center justify-center text-[#820AD1]">
+      <div className="w-10 h-10 rounded-xl bg-[#2952FF]/10 flex items-center justify-center text-[#2952FF]">
         <Icon size={20} />
       </div>
       <h3 className="text-xl font-black text-white tracking-tight italic uppercase">{title}</h3>
@@ -119,11 +119,11 @@ const SmallInput = ({
   ...props
 }: { label: string; placeholder?: string } & React.InputHTMLAttributes<HTMLInputElement>) => (
   <div className="space-y-1.5 group">
-    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
       {label}
     </label>
     <input
-      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
       placeholder={placeholder}
       {...props}
     />
@@ -330,8 +330,8 @@ export default function BikeForm() {
               >
                 <ArrowLeft size={20} />
               </button>
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#820AD1]">
+            <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2952FF]">
                   Oficina & Vitrine
                 </span>
                 <h1 className="text-2xl font-black text-white tracking-tight uppercase italic leading-none">
@@ -349,7 +349,7 @@ export default function BikeForm() {
               </button>
               <button
                 type="submit"
-                className="h-12 px-10 rounded-2xl bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+                className="h-12 px-10 rounded-2xl bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
               >
                 <Save size={16} />
                 {isEditing ? "Salvar" : "Criar Bike"}
@@ -361,7 +361,7 @@ export default function BikeForm() {
           <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
             <div className="flex items-center justify-between px-2">
               <div className="flex items-center gap-3">
-                <ImageIcon className="text-[#820AD1]" size={20} />
+                <ImageIcon className="text-[#2952FF]" size={20} />
                 <h3 className="text-sm font-black uppercase tracking-widest text-white italic">
                   Galeria do Marketplace
                 </h3>
@@ -384,7 +384,7 @@ export default function BikeForm() {
               title="Valor PIX"
               value={formatBRL(pixPrice)}
               icon={<DollarSign size={14} />}
-              color="text-[#820AD1]"
+              color="text-[#2952FF]"
             />
             <StatBox
               title="Margem Bruta"
@@ -415,14 +415,14 @@ export default function BikeForm() {
                 />
 
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2 space-y-2 group">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                         Nome Comercial *
                       </label>
                       <input
                         {...form.register("name")}
-                        className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                        className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                         placeholder="Ex: Trail X Pro"
                       />
                       {form.formState.errors.name && (
@@ -432,14 +432,14 @@ export default function BikeForm() {
                       )}
                     </div>
                     <div className="space-y-2 group">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                         Categoria
                       </label>
                       <div className="relative">
                         <select
                           value={form.watch("category") || ""}
                           onChange={(e) => form.setValue("category", e.target.value)}
-                          className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 outline-none focus:border-[#820AD1] appearance-none text-sm font-bold text-zinc-300 cursor-pointer"
+                          className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 outline-none focus:border-[#2952FF] appearance-none text-sm font-bold text-zinc-300 cursor-pointer"
                         >
                           <option value="">Selecione...</option>
                           {["MTB", "Speed / Road", "Gravel", "Urban / Cidade", "BMX", "Elétrica", "Infantil", "Dobrável", "Cargo", "Touring"].map((cat) => (
@@ -460,12 +460,12 @@ export default function BikeForm() {
                   )}
 
                   <div className="space-y-2 group">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                       Descrição da Oferta
                     </label>
                     <textarea
                       {...form.register("description")}
-                      className="w-full h-40 bg-[#1C1C1E] border border-zinc-800 rounded-[28px] p-6 text-sm text-zinc-400 outline-none focus:border-[#820AD1] transition-all resize-none leading-relaxed"
+                      className="w-full h-40 bg-[#1C1C1E] border border-zinc-800 rounded-[28px] p-6 text-sm text-zinc-400 outline-none focus:border-[#2952FF] transition-all resize-none leading-relaxed"
                       placeholder="Conte sobre a performance, estado de conservação e upgrades..."
                     />
                   </div>
@@ -509,7 +509,7 @@ export default function BikeForm() {
                 {/* Fixed cost */}
                 {costMode === "fixed" && (
                   <div className="space-y-2 group">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                       Preço de Custo (R$)
                     </label>
                     <input
@@ -520,7 +520,7 @@ export default function BikeForm() {
                       onChange={(e) =>
                         form.setValue("cost_price", parseFloat(e.target.value) || 0)
                       }
-                      className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                      className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                       placeholder="0,00"
                     />
                   </div>
@@ -569,7 +569,7 @@ export default function BikeForm() {
                                       quantity: parseInt(e.target.value) || 1,
                                     })
                                   }
-                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                                 />
                               </div>
                               <div className="w-36">
@@ -586,14 +586,14 @@ export default function BikeForm() {
                                       unit_cost: parseFloat(e.target.value) || 0,
                                     })
                                   }
-                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                                 />
                               </div>
                               <div className="flex-1">
                                 <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
                                   Subtotal
                                 </label>
-                                <div className="h-10 flex items-center text-sm font-bold text-[#820AD1]">
+                                <div className="h-10 flex items-center text-sm font-bold text-[#2952FF]">
                                   {formatBRL(tp.unit_cost * tp.quantity)}
                                 </div>
                               </div>
@@ -626,11 +626,11 @@ export default function BikeForm() {
                     <button
                       type="button"
                       onClick={addRow}
-                      className="w-full rounded-[32px] border-dashed border-2 border-zinc-800 py-10 flex flex-col items-center justify-center gap-3 hover:bg-[#820AD1]/5 hover:border-[#820AD1]/50 transition-all group"
+                      className="w-full rounded-[32px] border-dashed border-2 border-zinc-800 py-10 flex flex-col items-center justify-center gap-3 hover:bg-[#2952FF]/5 hover:border-[#2952FF]/50 transition-all group"
                     >
                       <Plus
                         size={24}
-                        className="text-[#820AD1] group-hover:scale-110 transition-transform"
+                        className="text-[#2952FF] group-hover:scale-110 transition-transform"
                       />
                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 group-hover:text-zinc-300">
                         Vincular Novo Componente
@@ -657,7 +657,7 @@ export default function BikeForm() {
                     Preço PIX / Dinheiro
                   </label>
                   <div className="flex items-baseline gap-2 relative z-10">
-                    <span className="text-xl font-bold text-[#820AD1]">R$</span>
+                    <span className="text-xl font-bold text-[#2952FF]">R$</span>
                     <input
                       type="number"
                       step="0.01"
@@ -759,7 +759,7 @@ export default function BikeForm() {
                     {...form.register("color")}
                   />
                   <div className="space-y-1.5 group">
-                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                       Peso (kg)
                     </label>
                     <input
@@ -770,7 +770,7 @@ export default function BikeForm() {
                       onChange={(e) =>
                         form.setValue("weight_kg", parseFloat(e.target.value) || undefined)
                       }
-                      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                       placeholder="Ex: 12.5"
                     />
                   </div>
@@ -781,7 +781,7 @@ export default function BikeForm() {
                 {/* Estoque */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#820AD1]/10 flex items-center justify-center text-[#820AD1]">
+                    <div className="w-8 h-8 rounded-xl bg-[#2952FF]/10 flex items-center justify-center text-[#2952FF]">
                       <Box size={16} />
                     </div>
                     <h4 className="text-sm font-black text-white tracking-tight italic uppercase">
@@ -800,7 +800,7 @@ export default function BikeForm() {
                         onChange={(e) =>
                           form.setValue("stock_qty", parseInt(e.target.value) || 0)
                         }
-                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -814,14 +814,14 @@ export default function BikeForm() {
                         onChange={(e) =>
                           form.setValue("alert_stock", parseInt(e.target.value) || 0)
                         }
-                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                         placeholder="Ex: 2"
                       />
                     </div>
                   </div>
 
                   {/* Visibilidade toggle */}
-                  <div className="flex items-center justify-between p-5 bg-[#0A0A0B] border border-zinc-800 rounded-[28px] hover:border-[#820AD1]/50 transition-all">
+                  <div className="flex items-center justify-between p-5 bg-[#0A0A0B] border border-zinc-800 rounded-[28px] hover:border-[#2952FF]/50 transition-all">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                         <Eye size={16} />
