@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface Part {
   id: string;
   name: string;
+  sku: string | null;
   category: string | null;
   weight_capacity_kg: number | null;
   material: string | null;

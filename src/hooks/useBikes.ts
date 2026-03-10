@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface BikeModel {
   id: string;
   name: string;
+  sku: string | null;
   category: string | null;
   description: string | null;
   visible_on_storefront: boolean;
