@@ -192,7 +192,7 @@ export default function Pecas() {
   const totalProfit = filtered.reduce((s, p) => s + getProfit(p) * p.stock_qty, 0);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
 
         {/* Header */}
