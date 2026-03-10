@@ -119,11 +119,11 @@ const SmallInput = ({
   ...props
 }: { label: string; placeholder?: string } & React.InputHTMLAttributes<HTMLInputElement>) => (
   <div className="space-y-1.5 group">
-    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
       {label}
     </label>
     <input
-      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
       placeholder={placeholder}
       {...props}
     />
