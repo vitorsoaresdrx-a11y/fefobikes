@@ -593,7 +593,7 @@ export default function BikeForm() {
                                 <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
                                   Subtotal
                                 </label>
-                                <div className="h-10 flex items-center text-sm font-bold text-[#820AD1]">
+                                <div className="h-10 flex items-center text-sm font-bold text-[#2952FF]">
                                   {formatBRL(tp.unit_cost * tp.quantity)}
                                 </div>
                               </div>
