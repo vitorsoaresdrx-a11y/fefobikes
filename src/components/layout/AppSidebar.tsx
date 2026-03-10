@@ -32,7 +32,7 @@ const navItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
 
@@ -74,6 +74,7 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end={item.url === "/"}
+                        onClick={() => isMobile && setOpenMobile(false)}
                       >
                         <item.icon className="h-4 w-4 shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
