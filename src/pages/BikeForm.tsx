@@ -112,6 +112,11 @@ export default function BikeForm() {
       form.reset({
         name: bike.name,
         category: bike.category || "",
+        brand: (bike as any).brand || "",
+        frame_size: (bike as any).frame_size || "",
+        rim_size: (bike as any).rim_size || "",
+        color: (bike as any).color || "",
+        weight_kg: Number((bike as any).weight_kg) || undefined,
         description: bike.description || "",
         visible_on_storefront: bike.visible_on_storefront,
         cost_mode: (bike as any).cost_mode || "fixed",
