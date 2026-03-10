@@ -445,7 +445,7 @@ export default function Estoque() {
                   <p className="font-bold text-white">{selectedItem.name}</p>
                   <p className="text-xs text-zinc-500">
                     Estoque atual:{" "}
-                    <span className="text-[#820AD1] font-black">{selectedItem.stock_qty}</span>
+                    <span className="text-[#2952FF] font-black">{selectedItem.stock_qty}</span>
                   </p>
                 </div>
               </div>
