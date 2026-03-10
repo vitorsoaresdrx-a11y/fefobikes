@@ -529,6 +529,39 @@ export default function BikeForm() {
 
         <Separator className="bg-border" />
 
+        {/* Estoque */}
+        <section className="space-y-3">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Estoque
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-sm">Estoque atual</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.watch("stock_qty")}
+                onChange={(e) => form.setValue("stock_qty", parseInt(e.target.value) || 0)}
+                className="bg-card border-border h-9 text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Estoque de alerta</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.watch("alert_stock")}
+                onChange={(e) => form.setValue("alert_stock", parseInt(e.target.value) || 0)}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 2"
+              />
+              <p className="text-[10px] text-muted-foreground">Avisa quando chegar nessa quantidade</p>
+            </div>
+          </div>
+        </section>
+
+        <Separator className="bg-border" />
+
         {/* Visibilidade */}
         <section className="space-y-3">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
