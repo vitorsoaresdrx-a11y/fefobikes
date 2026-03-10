@@ -439,7 +439,7 @@ export default function PDV() {
                     onClick={() => setCatalogCategory(cat)}
                     className={`shrink-0 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all border ${
                       catalogCategory === cat
-                        ? "bg-[#820AD1]/10 border-[#820AD1] text-white"
+                        ? "bg-[#2952FF]/10 border-[#2952FF] text-white"
                         : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
                     }`}
                   >
