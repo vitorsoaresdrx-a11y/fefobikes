@@ -74,7 +74,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
           unit_cost: Number((part as any).unit_cost) || 0,
-          sale_price: Number((part as any).sale_price) || 0,
           pix_price: Number((part as any).pix_price) || 0,
           installment_price: Number((part as any).installment_price) || 0,
           installment_count: Number((part as any).installment_count) || 1,
