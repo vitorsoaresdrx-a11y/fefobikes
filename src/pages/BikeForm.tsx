@@ -45,6 +45,9 @@ const bikeSchema = z.object({
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
   cost_price: z.number().min(0).default(0),
   sale_price: z.number().min(0).default(0),
+  pix_price: z.number().min(0).default(0),
+  installment_price: z.number().min(0).default(0),
+  installment_count: z.number().int().min(1).default(1),
 });
 
 type BikeFormValues = z.infer<typeof bikeSchema>;
