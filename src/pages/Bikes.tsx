@@ -78,7 +78,7 @@ function StatCard({
   title,
   value,
   icon,
-  color = "text-[#820AD1]",
+  color = "text-[#2952FF]",
 }: {
   title: string;
   value: number;
