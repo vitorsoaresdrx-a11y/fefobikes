@@ -176,7 +176,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                   className="bg-card border-border h-9 text-sm"
                   placeholder="Ex: 3"
                 />
-                <p className="text-[10px] text-muted-foreground">Avisa quando chegar nessa quantidade</p>
+                
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
