@@ -384,7 +384,7 @@ export default function BikeForm() {
               title="Valor PIX"
               value={formatBRL(pixPrice)}
               icon={<DollarSign size={14} />}
-              color="text-[#820AD1]"
+              color="text-[#2952FF]"
             />
             <StatBox
               title="Margem Bruta"
