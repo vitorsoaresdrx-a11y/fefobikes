@@ -21,6 +21,7 @@ const partSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   category: z.string().optional(),
   stock_qty: z.coerce.number().int().min(0).default(0),
+  alert_stock: z.coerce.number().int().min(0).default(0),
   unit_cost: z.coerce.number().min(0).default(0),
   sale_price: z.coerce.number().min(0).default(0),
   notes: z.string().optional(),
