@@ -67,7 +67,7 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className={
                         active
-                          ? "shadow-[0_0_14px_hsl(225_100%_60%/0.3)]"
+                          ? "!bg-[linear-gradient(to_left,hsl(225_100%_60%/0.12),transparent_70%)] border-r-2 !border-r-primary"
                           : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
                       }
                     >
