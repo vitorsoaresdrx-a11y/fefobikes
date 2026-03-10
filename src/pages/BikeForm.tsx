@@ -460,12 +460,12 @@ export default function BikeForm() {
                   )}
 
                   <div className="space-y-2 group">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                       Descrição da Oferta
                     </label>
                     <textarea
                       {...form.register("description")}
-                      className="w-full h-40 bg-[#1C1C1E] border border-zinc-800 rounded-[28px] p-6 text-sm text-zinc-400 outline-none focus:border-[#820AD1] transition-all resize-none leading-relaxed"
+                      className="w-full h-40 bg-[#1C1C1E] border border-zinc-800 rounded-[28px] p-6 text-sm text-zinc-400 outline-none focus:border-[#2952FF] transition-all resize-none leading-relaxed"
                       placeholder="Conte sobre a performance, estado de conservação e upgrades..."
                     />
                   </div>
