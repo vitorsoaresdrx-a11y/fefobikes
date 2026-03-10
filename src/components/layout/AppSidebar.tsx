@@ -94,6 +94,24 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Logout */}
+        <SidebarGroup className="mt-auto pb-4">
+          <SidebarGroupContent>
+            <SidebarMenu className="px-2">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Sair"
+                  className="text-sidebar-foreground/40 hover:text-destructive"
+                  onClick={() => supabase.auth.signOut()}
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                  {!collapsed && <span>Sair</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
