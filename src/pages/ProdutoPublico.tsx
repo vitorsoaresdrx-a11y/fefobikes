@@ -213,19 +213,18 @@ export default function ProdutoPublico() {
           if (!hasAnyPrice) return null;
 
           return (
-            <section className="py-4 space-y-3">
+            <section className="py-4 space-y-2">
               {pixPrice > 0 && (
-                <div className="p-3 rounded-md border border-primary/20 bg-primary/5">
-                  <p className="text-xs text-muted-foreground mb-0.5">No PIX / Dinheiro</p>
+                <div className="p-4 rounded-md border border-primary/20 bg-primary/5 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Por apenas</p>
                   <p className="text-3xl font-bold text-primary tracking-tight">{formatBRL(pixPrice)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">no PIX ou dinheiro</p>
                 </div>
               )}
               {installmentPrice > 0 && installmentCount > 1 && (
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    ou <span className="text-sm font-semibold text-foreground">{installmentCount}x de {formatBRL(installmentPrice)}</span> no cartão
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  Ou em <span className="font-semibold text-foreground">{installmentCount}x de {formatBRL(installmentPrice)}</span> no cartão
+                </p>
               )}
             </section>
           );
