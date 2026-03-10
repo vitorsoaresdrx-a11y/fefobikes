@@ -29,7 +29,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.2)]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.2)]",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
     outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
@@ -144,7 +144,7 @@ function SummaryCard({
       onClick={onClick}
       className={`relative group p-8 rounded-[32px] border transition-all duration-500 text-left overflow-hidden ${
         active
-          ? "bg-[#161618] border-[#820AD1] shadow-[0_0_30px_rgba(130,10,209,0.1)]"
+          ? "bg-[#161618] border-[#2952FF] shadow-[0_0_30px_rgba(41,82,255,0.1)]"
           : "bg-[#161618] border-zinc-800 hover:border-zinc-700"
       }`}
     >
@@ -261,17 +261,17 @@ export default function Estoque() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Layers className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#820AD1]">HUB DE OPERAÇÕES</span>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">HUB DE OPERAÇÕES</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
@@ -309,7 +309,7 @@ export default function Estoque() {
               placeholder="Buscar por nome ou categoria..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600"
+              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
             />
           </div>
           <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
@@ -339,7 +339,7 @@ export default function Estoque() {
           <div className="overflow-x-auto">
             {isLoading ? (
               <div className="p-20 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-[#820AD1] border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
               <div className="p-20 text-center text-zinc-600 text-sm">
@@ -370,7 +370,7 @@ export default function Estoque() {
                       >
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#820AD1]/50 transition-colors overflow-hidden shrink-0">
+                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors overflow-hidden shrink-0">
                               {item.image ? (
                                 <img src={item.image} alt="" className="w-full h-full object-cover" />
                               ) : item.type === "Bike" ? (
@@ -445,7 +445,7 @@ export default function Estoque() {
                   <p className="font-bold text-white">{selectedItem.name}</p>
                   <p className="text-xs text-zinc-500">
                     Estoque atual:{" "}
-                    <span className="text-[#820AD1] font-black">{selectedItem.stock_qty}</span>
+                    <span className="text-[#2952FF] font-black">{selectedItem.stock_qty}</span>
                   </p>
                 </div>
               </div>
@@ -480,7 +480,7 @@ export default function Estoque() {
                       value={qty}
                       onChange={(e) => setQty(e.target.value)}
                       placeholder="0"
-                      className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-[#820AD1] transition-all"
+                      className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-[#2952FF] transition-all"
                     />
                   </div>
 
