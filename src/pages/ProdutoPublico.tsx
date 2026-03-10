@@ -96,7 +96,6 @@ export default function ProdutoPublico() {
   }
 
   const images: string[] = (product as any).images || [];
-  const salePrice = Number((product as any).sale_price) || 0;
   const category = product.category;
 
   // Build specs
