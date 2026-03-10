@@ -80,6 +80,11 @@ export default function BikeForm() {
     defaultValues: {
       name: "",
       category: "",
+      brand: "",
+      frame_size: "",
+      rim_size: "",
+      color: "",
+      weight_kg: undefined,
       description: "",
       visible_on_storefront: false,
       cost_mode: "fixed",
