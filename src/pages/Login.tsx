@@ -13,7 +13,7 @@ const Btn = ({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button
     disabled={disabled}
-    className={`inline-flex items-center justify-center rounded-2xl bg-[#820AD1] hover:bg-[#9D3BE1] text-white font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(130,10,209,0.3)] transition-all active:scale-95 disabled:opacity-70 ${className}`}
+    className={`inline-flex items-center justify-center rounded-2xl bg-[#2952FF] hover:bg-[#4A6FFF] text-white font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(41,82,255,0.3)] transition-all active:scale-95 disabled:opacity-70 ${className}`}
     {...props}
   >
     {children}
