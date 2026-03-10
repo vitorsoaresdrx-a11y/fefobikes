@@ -154,7 +154,7 @@ export default function Bikes() {
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Bike className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#820AD1]">CATÁLOGO</span>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">CATÁLOGO</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Modelos de Bikes</h1>
           </div>
