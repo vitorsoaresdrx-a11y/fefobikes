@@ -157,14 +157,27 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Estoque & Preços
             </h3>
-            <div className="space-y-2">
-              <Label className="text-sm">Quantidade em estoque</Label>
-              <Input
-                type="number"
-                min={0}
-                {...form.register("stock_qty")}
-                className="bg-card border-border h-9 text-sm w-32"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm">Estoque atual</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  {...form.register("stock_qty")}
+                  className="bg-card border-border h-9 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Estoque de alerta</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  {...form.register("alert_stock")}
+                  className="bg-card border-border h-9 text-sm"
+                  placeholder="Ex: 3"
+                />
+                <p className="text-[10px] text-muted-foreground">Avisa quando chegar nessa quantidade</p>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
