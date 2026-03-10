@@ -62,7 +62,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[#2952FF]/30">
 
       {/* Imagem — esquerda no desktop, topo no mobile */}
       <div className="relative w-full lg:w-[60%] h-[40vh] lg:h-screen overflow-hidden">
