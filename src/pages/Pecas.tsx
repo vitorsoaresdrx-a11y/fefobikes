@@ -33,7 +33,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.2)]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.2)]",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
     outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
@@ -192,17 +192,17 @@ export default function Pecas() {
   const totalProfit = filtered.reduce((s, p) => s + getProfit(p) * p.stock_qty, 0);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+            <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Box className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#820AD1]">INVENTORY MASTER</span>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">INVENTORY MASTER</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Produtos & Peças</h1>
           </div>
@@ -234,7 +234,7 @@ export default function Pecas() {
               placeholder="Buscar por nome, SKU ou categoria..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600"
+              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
             />
           </div>
           <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
@@ -250,7 +250,7 @@ export default function Pecas() {
           <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
             <h3 className="font-bold text-lg">Catálogo de Produtos</h3>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#820AD1] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estoque Atualizado</span>
             </div>
           </div>
@@ -309,14 +309,14 @@ export default function Pecas() {
                       <tr key={part.id} className="group hover:bg-white/[0.02] transition-colors">
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#820AD1]/50 transition-colors shrink-0">
+                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors shrink-0">
                               <Box className="w-6 h-6" />
                             </div>
                             <div>
                               <p className="font-bold text-zinc-100">{part.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 {part.category && (
-                                  <span className="text-[10px] font-bold text-[#820AD1] uppercase tracking-wider">
+                                  <span className="text-[10px] font-bold text-[#2952FF] uppercase tracking-wider">
                                     {part.category}
                                   </span>
                                 )}
@@ -455,7 +455,7 @@ export default function Pecas() {
                   onChange={(e) => setNewCatName(e.target.value)}
                   placeholder="Nova categoria..."
                   maxLength={60}
-                  className="flex-1 h-12 bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-sm text-zinc-100 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600"
+                  className="flex-1 h-12 bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
                 />
                 <Btn
                   type="submit"
