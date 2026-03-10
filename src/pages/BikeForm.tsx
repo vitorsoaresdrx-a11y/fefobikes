@@ -99,7 +99,6 @@ export default function BikeForm() {
       alert_stock: 0,
       cost_mode: "fixed",
       cost_price: 0,
-      sale_price: 0,
       pix_price: 0,
       installment_price: 0,
       installment_count: 1,
