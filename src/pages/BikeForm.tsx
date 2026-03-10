@@ -330,8 +330,8 @@ export default function BikeForm() {
               >
                 <ArrowLeft size={20} />
               </button>
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#820AD1]">
+            <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2952FF]">
                   Oficina & Vitrine
                 </span>
                 <h1 className="text-2xl font-black text-white tracking-tight uppercase italic leading-none">
@@ -349,7 +349,7 @@ export default function BikeForm() {
               </button>
               <button
                 type="submit"
-                className="h-12 px-10 rounded-2xl bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+                className="h-12 px-10 rounded-2xl bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
               >
                 <Save size={16} />
                 {isEditing ? "Salvar" : "Criar Bike"}
