@@ -24,7 +24,6 @@ const partSchema = z.object({
   stock_qty: z.coerce.number().int().min(0).default(0),
   alert_stock: z.coerce.number().int().min(0).default(0),
   unit_cost: z.coerce.number().min(0).default(0),
-  sale_price: z.coerce.number().min(0).default(0),
   pix_price: z.coerce.number().min(0).default(0),
   installment_price: z.coerce.number().min(0).default(0),
   installment_count: z.coerce.number().int().min(1).default(1),
@@ -54,7 +53,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: 0,
       alert_stock: 0,
       unit_cost: 0,
-      sale_price: 0,
       pix_price: 0,
       installment_price: 0,
       installment_count: 1,
@@ -63,8 +61,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   });
 
   const unitCost = form.watch("unit_cost");
-  const salePrice = form.watch("sale_price");
-  const profit = salePrice - unitCost;
+  const pixPrice = form.watch("pix_price");
+  const profit = pixPrice - unitCost;
 
   useEffect(() => {
     if (open) {
@@ -76,7 +74,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
           unit_cost: Number((part as any).unit_cost) || 0,
-          sale_price: Number((part as any).sale_price) || 0,
           pix_price: Number((part as any).pix_price) || 0,
           installment_price: Number((part as any).installment_price) || 0,
           installment_count: Number((part as any).installment_count) || 1,
@@ -97,7 +94,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: values.stock_qty,
       alert_stock: values.alert_stock,
       unit_cost: values.unit_cost,
-      sale_price: values.sale_price,
+      sale_price: values.pix_price,
       pix_price: values.pix_price,
       installment_price: values.installment_price,
       installment_count: values.installment_count,
@@ -220,22 +217,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                   placeholder="0,00"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Preço de venda (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={salePrice || ""}
-                  onChange={(e) => form.setValue("sale_price", parseFloat(e.target.value) || 0)}
-                  className="bg-card border-border h-9 text-sm"
-                  placeholder="0,00"
-                />
-              </div>
             </div>
 
             {/* Lucro preview */}
-            {(unitCost > 0 || salePrice > 0) && (
+            {(unitCost > 0 || pixPrice > 0) && (
               <div className="p-3 rounded-md border border-border bg-card">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">Lucro por unidade</span>

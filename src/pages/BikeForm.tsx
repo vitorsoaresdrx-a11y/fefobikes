@@ -44,7 +44,6 @@ const bikeSchema = z.object({
   alert_stock: z.number().int().min(0).default(0),
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
   cost_price: z.number().min(0).default(0),
-  sale_price: z.number().min(0).default(0),
   pix_price: z.number().min(0).default(0),
   installment_price: z.number().min(0).default(0),
   installment_count: z.number().int().min(1).default(1),
@@ -100,7 +99,6 @@ export default function BikeForm() {
       alert_stock: 0,
       cost_mode: "fixed",
       cost_price: 0,
-      sale_price: 0,
       pix_price: 0,
       installment_price: 0,
       installment_count: 1,
@@ -109,7 +107,7 @@ export default function BikeForm() {
 
   const costMode = form.watch("cost_mode");
   const costPrice = form.watch("cost_price");
-  const salePrice = form.watch("sale_price");
+  const pixPrice = form.watch("pix_price");
 
   // For manual mode, sum up part costs * quantities
   const manualCost = useMemo(() => {
@@ -117,7 +115,7 @@ export default function BikeForm() {
   }, [templateParts]);
 
   const effectiveCost = costMode === "fixed" ? costPrice : manualCost;
-  const profitValue = salePrice - effectiveCost;
+  const profitValue = pixPrice - effectiveCost;
   const profitPercent = effectiveCost > 0 ? (profitValue / effectiveCost) * 100 : 0;
 
   // Load existing data
@@ -138,7 +136,6 @@ export default function BikeForm() {
         alert_stock: Number((bike as any).alert_stock) || 0,
         cost_mode: (bike as any).cost_mode || "fixed",
         cost_price: Number((bike as any).cost_price) || 0,
-        sale_price: Number((bike as any).sale_price) || 0,
         pix_price: Number((bike as any).pix_price) || 0,
         installment_price: Number((bike as any).installment_price) || 0,
         installment_count: Number((bike as any).installment_count) || 1,
@@ -205,7 +202,7 @@ export default function BikeForm() {
         alert_stock: values.alert_stock,
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
-        sale_price: values.sale_price,
+        sale_price: values.pix_price,
         pix_price: values.pix_price,
         installment_price: values.installment_price,
         installment_count: values.installment_count,
@@ -517,19 +514,7 @@ export default function BikeForm() {
             </div>
           )}
 
-          {/* Sale price — always shown */}
-          <div className="space-y-2">
-            <Label className="text-sm">Preço de venda (R$)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              min={0}
-              value={salePrice || ""}
-              onChange={(e) => form.setValue("sale_price", parseFloat(e.target.value) || 0)}
-              className="bg-card border-border h-9 text-sm"
-              placeholder="0,00"
-            />
-          </div>
+          
 
           {/* PIX / Dinheiro price */}
           <div className="space-y-2">
@@ -578,7 +563,7 @@ export default function BikeForm() {
           </div>
 
           {/* Margin display */}
-          {(effectiveCost > 0 || salePrice > 0) && (
+          {(effectiveCost > 0 || pixPrice > 0) && (
             <div className="flex gap-3">
               <div className="flex-1 p-3 rounded-md border border-border bg-card">
                 <div className="flex items-center gap-1.5 mb-1">

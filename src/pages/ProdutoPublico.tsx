@@ -96,7 +96,6 @@ export default function ProdutoPublico() {
   }
 
   const images: string[] = (product as any).images || [];
-  const salePrice = Number((product as any).sale_price) || 0;
   const category = product.category;
 
   // Build specs
@@ -206,22 +205,16 @@ export default function ProdutoPublico() {
           const pixPrice = Number((product as any).pix_price) || 0;
           const installmentPrice = Number((product as any).installment_price) || 0;
           const installmentCount = Number((product as any).installment_count) || 1;
-          const hasAnyPrice = salePrice > 0 || pixPrice > 0 || installmentPrice > 0;
+          const hasAnyPrice = pixPrice > 0 || installmentPrice > 0;
 
           if (!hasAnyPrice) return null;
 
           return (
             <section className="py-4 space-y-3">
-              {salePrice > 0 && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Preço</p>
-                  <p className="text-3xl font-bold text-foreground tracking-tight">{formatBRL(salePrice)}</p>
-                </div>
-              )}
               {pixPrice > 0 && (
                 <div className="p-3 rounded-md border border-primary/20 bg-primary/5">
                   <p className="text-xs text-muted-foreground mb-0.5">No PIX / Dinheiro</p>
-                  <p className="text-xl font-bold text-primary tracking-tight">{formatBRL(pixPrice)}</p>
+                  <p className="text-3xl font-bold text-primary tracking-tight">{formatBRL(pixPrice)}</p>
                 </div>
               )}
               {installmentPrice > 0 && installmentCount > 1 && (
