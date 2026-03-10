@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, QrCode } from "lucide-react";
+import { Plus, Trash2, QrCode, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -42,59 +42,71 @@ export default function Bikes() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {bikes.map((bike) => (
-            <div
-              key={bike.id}
-              className="border border-border rounded-md p-4 bg-card hover:bg-accent/30 transition-colors cursor-pointer"
-              onClick={() => navigate(`/bikes/${bike.id}`)}
-            >
-              <div className="flex items-start justify-between mb-1">
-                <div className="min-w-0">
-                  <h3 className="text-sm font-medium text-foreground truncate">{bike.name}</h3>
-                  {bike.sku && (
-                    <p className="text-[10px] font-mono text-muted-foreground/70">{bike.sku}</p>
+          {bikes.map((bike) => {
+            const firstImage = (bike as any).images?.[0];
+            return (
+              <div
+                key={bike.id}
+                className="border border-border rounded-md bg-card hover:bg-accent/30 transition-colors cursor-pointer overflow-hidden"
+                onClick={() => navigate(`/bikes/${bike.id}`)}
+              >
+                <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
+                  {firstImage ? (
+                    <img src={firstImage} alt={bike.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Package className="h-10 w-10 text-muted-foreground/20" />
                   )}
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {bike.category || "Sem categoria"} · {partsCounts[bike.id] || 0} peças
-                  </p>
                 </div>
-                <div className="flex items-center gap-0.5 shrink-0">
-                  {bike.sku && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setQrBike(bike);
-                      }}
-                    >
-                      <QrCode className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteBike.mutate(bike.id);
-                    }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                <div className="p-3 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-medium text-foreground truncate">{bike.name}</h3>
+                      {bike.sku && (
+                        <p className="text-[10px] font-mono text-muted-foreground/70">{bike.sku}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {bike.category || "Sem categoria"} · {partsCounts[bike.id] || 0} peças
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {bike.sku && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setQrBike(bike);
+                          }}
+                        >
+                          <QrCode className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteBike.mutate(bike.id);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Visível na loja</span>
+                    <Switch
+                      checked={bike.visible_on_storefront}
+                      onCheckedChange={() => handleToggle(bike.id, bike.visible_on_storefront)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs text-muted-foreground">Visível na loja</span>
-                <Switch
-                  checked={bike.visible_on_storefront}
-                  onCheckedChange={() => handleToggle(bike.id, bike.visible_on_storefront)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
