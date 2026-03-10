@@ -75,7 +75,7 @@ export default function Login() {
         {/* Branding (só desktop) */}
         <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.4)]">
+            <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.4)]">
               <Bike className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-black tracking-widest text-white">FEFO BIKES</span>
