@@ -107,7 +107,7 @@ export default function BikeForm() {
 
   const costMode = form.watch("cost_mode");
   const costPrice = form.watch("cost_price");
-  const salePrice = form.watch("sale_price");
+  const pixPrice = form.watch("pix_price");
 
   // For manual mode, sum up part costs * quantities
   const manualCost = useMemo(() => {
