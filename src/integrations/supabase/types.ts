@@ -116,6 +116,36 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       parts: {
         Row: {
           category: string | null
@@ -172,6 +202,93 @@ export type Database = {
           weight_capacity_kg?: number | null
         }
         Relationships: []
+      }
+      sale_items: {
+        Row: {
+          bike_model_id: string | null
+          description: string
+          id: string
+          part_id: string | null
+          quantity: number
+          sale_id: string
+          unit_price: number
+        }
+        Insert: {
+          bike_model_id?: string | null
+          description: string
+          id?: string
+          part_id?: string | null
+          quantity?: number
+          sale_id: string
+          unit_price?: number
+        }
+        Update: {
+          bike_model_id?: string | null
+          description?: string
+          id?: string
+          part_id?: string | null
+          quantity?: number
+          sale_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
