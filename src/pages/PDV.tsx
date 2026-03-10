@@ -662,7 +662,7 @@ export default function PDV() {
                           <p className="font-bold text-white">{c.name}</p>
                           <p className="text-[10px] uppercase tracking-widest">{c.whatsapp}</p>
                         </div>
-                        {selectedCustomerId === c.id && <CheckCircle2 className="text-[#820AD1]" />}
+                        {selectedCustomerId === c.id && <CheckCircle2 className="text-[#2952FF]" />}
                       </button>
                     ))}
                   </div>
