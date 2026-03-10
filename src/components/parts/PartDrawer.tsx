@@ -47,6 +47,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       name: "",
       category: "",
       stock_qty: 0,
+      alert_stock: 0,
       unit_cost: 0,
       sale_price: 0,
       notes: "",
