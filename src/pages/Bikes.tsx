@@ -34,7 +34,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.2)]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.2)]",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
     outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
@@ -78,7 +78,7 @@ function StatCard({
   title,
   value,
   icon,
-  color = "text-[#820AD1]",
+  color = "text-[#2952FF]",
 }: {
   title: string;
   value: number;
@@ -144,23 +144,23 @@ export default function Bikes() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Bike className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#820AD1]">CATÁLOGO</span>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">CATÁLOGO</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Modelos de Bikes</h1>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center bg-[#161618] border border-zinc-800 rounded-2xl px-4 py-2 text-zinc-500 focus-within:border-[#820AD1]/50 transition-colors">
+            <div className="hidden md:flex items-center bg-[#161618] border border-zinc-800 rounded-2xl px-4 py-2 text-zinc-500 focus-within:border-[#2952FF]/50 transition-colors">
               <Search className="w-4 h-4 mr-2 shrink-0" />
               <input
                 type="text"
@@ -190,14 +190,14 @@ export default function Bikes() {
             title="Total de Peças"
             value={totalParts}
             icon={<TrendingUp className="w-5 h-5" />}
-            color="text-[#820AD1]"
+            color="text-[#2952FF]"
           />
         </div>
 
         {/* Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-[#820AD1] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 && search === "" ? (
           <EmptyState onNew={() => navigate("/bikes/nova")} />
@@ -212,7 +212,7 @@ export default function Bikes() {
               return (
                 <div
                   key={bike.id}
-                  className="group relative bg-[#161618] border border-zinc-800 rounded-[40px] overflow-hidden hover:border-[#820AD1]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
+                  className="group relative bg-[#161618] border border-zinc-800 rounded-[40px] overflow-hidden hover:border-[#2952FF]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
                   onClick={() => navigate(`/bikes/${bike.id}`)}
                 >
                   {/* Imagem */}
@@ -280,7 +280,7 @@ export default function Bikes() {
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-[#820AD1] uppercase tracking-[0.2em]">
+                        <span className="text-[10px] font-bold text-[#2952FF] uppercase tracking-[0.2em]">
                           {bike.category || "Sem categoria"}
                         </span>
                         {bike.sku && (
