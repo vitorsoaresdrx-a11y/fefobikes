@@ -759,7 +759,7 @@ export default function BikeForm() {
                     {...form.register("color")}
                   />
                   <div className="space-y-1.5 group">
-                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                       Peso (kg)
                     </label>
                     <input
@@ -770,7 +770,7 @@ export default function BikeForm() {
                       onChange={(e) =>
                         form.setValue("weight_kg", parseFloat(e.target.value) || undefined)
                       }
-                      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                       placeholder="Ex: 12.5"
                     />
                   </div>
