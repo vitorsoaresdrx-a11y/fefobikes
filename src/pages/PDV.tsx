@@ -69,7 +69,7 @@ const Btn = ({
 
 const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`w-full bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-zinc-100 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600 ${className}`}
+    className={`w-full bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600 ${className}`}
     {...props}
   />
 );
