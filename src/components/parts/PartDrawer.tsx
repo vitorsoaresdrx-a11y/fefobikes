@@ -65,6 +65,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       if (part) {
         form.reset({
           name: part.name,
+          sku: part.sku || "",
           category: part.category || "",
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
