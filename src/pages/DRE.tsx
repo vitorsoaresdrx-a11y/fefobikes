@@ -62,6 +62,7 @@ export default function DRE() {
   const isLoading = salesLoading || fixedLoading || varLoading;
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
 
   // Monthly fixed cost (sum of active fixed expenses)
   const monthlyFixedCost = useMemo(
