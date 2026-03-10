@@ -91,6 +91,8 @@ export default function BikeForm() {
       weight_kg: undefined,
       description: "",
       visible_on_storefront: false,
+      stock_qty: 0,
+      alert_stock: 0,
       cost_mode: "fixed",
       cost_price: 0,
       sale_price: 0,
