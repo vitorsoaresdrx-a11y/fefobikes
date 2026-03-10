@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, AlertTriangle, AlertCircle, CheckCircle2, Package } from "lucide-react";
+import { Search, AlertTriangle, AlertCircle, CheckCircle2, Package, Plus, Minus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,8 +17,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useParts } from "@/hooks/useParts";
-import { useBikeModels } from "@/hooks/useBikes";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { useParts, useUpdatePart } from "@/hooks/useParts";
+import { useBikeModels, useUpdateBikeModel } from "@/hooks/useBikes";
+import { useToast } from "@/hooks/use-toast";
 
 type StockStatus = "critical" | "warning" | "ok";
 type FilterStatus = "all" | StockStatus;
@@ -71,9 +80,17 @@ const statusConfig = {
 export default function Estoque() {
   const { data: parts = [], isLoading: partsLoading } = useParts();
   const { data: bikes = [], isLoading: bikesLoading } = useBikeModels();
+  const updatePart = useUpdatePart();
+  const updateBike = useUpdateBikeModel();
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterType, setFilterType] = useState<"all" | "Peça" | "Bike">("all");
+
+  // Modal state
+  const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
+  const [mode, setMode] = useState<"add" | "subtract" | null>(null);
+  const [qty, setQty] = useState("");
 
   const isLoading = partsLoading || bikesLoading;
 
@@ -121,7 +138,6 @@ export default function Estoque() {
       list = list.filter((i) => i.type === filterType);
     }
 
-    // Sort: critical first, then warning, then ok
     const order = { critical: 0, warning: 1, ok: 2 };
     list.sort((a, b) => order[a.status] - order[b.status]);
 
@@ -133,6 +149,43 @@ export default function Estoque() {
     warning: items.filter((i) => i.status === "warning").length,
     ok: items.filter((i) => i.status === "ok").length,
   }), [items]);
+
+  const openModal = (item: StockItem) => {
+    setSelectedItem(item);
+    setMode(null);
+    setQty("");
+  };
+
+  const closeModal = () => {
+    setSelectedItem(null);
+    setMode(null);
+    setQty("");
+  };
+
+  const handleConfirm = () => {
+    if (!selectedItem || !mode) return;
+    const value = parseInt(qty) || 0;
+    if (value <= 0) {
+      toast({ title: "Insira uma quantidade válida", variant: "destructive" });
+      return;
+    }
+
+    const newQty = mode === "add"
+      ? selectedItem.stock_qty + value
+      : Math.max(0, selectedItem.stock_qty - value);
+
+    if (selectedItem.type === "Peça") {
+      updatePart.mutate({ id: selectedItem.id, stock_qty: newQty } as any);
+    } else {
+      updateBike.mutate({ id: selectedItem.id, stock_qty: newQty });
+    }
+
+    toast({
+      title: mode === "add" ? "Estoque adicionado" : "Estoque subtraído",
+      description: `${selectedItem.name}: ${selectedItem.stock_qty} → ${newQty}`,
+    });
+    closeModal();
+  };
 
   return (
     <div className="space-y-4">
@@ -220,7 +273,11 @@ export default function Estoque() {
                 const Icon = cfg.icon;
 
                 return (
-                  <TableRow key={`${item.type}-${item.id}`} className="border-border">
+                  <TableRow
+                    key={`${item.type}-${item.id}`}
+                    className="border-border cursor-pointer hover:bg-accent/30"
+                    onClick={() => openModal(item)}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {item.image ? (
@@ -268,6 +325,107 @@ export default function Estoque() {
       <p className="text-xs text-muted-foreground text-right">
         {filtered.length} ite{filtered.length !== 1 ? "ns" : "m"}
       </p>
+
+      {/* Stock adjustment modal */}
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && closeModal()}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground text-base">
+              Ajustar estoque
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedItem && (
+            <div className="space-y-4">
+              {/* Item info */}
+              <div className="flex items-center gap-3 p-3 rounded-md border border-border bg-card">
+                {selectedItem.image ? (
+                  <img src={selectedItem.image} alt="" className="h-10 w-10 rounded object-cover border border-border" />
+                ) : (
+                  <div className="h-10 w-10 rounded bg-muted/30 flex items-center justify-center border border-border">
+                    <Package className="h-4 w-4 text-muted-foreground/50" />
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-foreground">{selectedItem.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Estoque atual: <span className="font-semibold text-foreground">{selectedItem.stock_qty}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Mode selection */}
+              {!mode ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2 border-emerald-500/30 hover:bg-emerald-500/10 hover:border-emerald-500/50"
+                    onClick={() => setMode("add")}
+                  >
+                    <Plus className="h-6 w-6 text-emerald-500" />
+                    <span className="text-sm font-medium text-foreground">Adicionar</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex-col gap-2 border-destructive/30 hover:bg-destructive/10 hover:border-destructive/50"
+                    onClick={() => setMode("subtract")}
+                  >
+                    <Minus className="h-6 w-6 text-destructive" />
+                    <span className="text-sm font-medium text-foreground">Subtrair</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                      mode === "add" ? "bg-emerald-500/10" : "bg-destructive/10"
+                    }`}>
+                      {mode === "add" ? (
+                        <Plus className="h-4 w-4 text-emerald-500" />
+                      ) : (
+                        <Minus className="h-4 w-4 text-destructive" />
+                      )}
+                    </div>
+                    <Label className="text-sm text-foreground">
+                      {mode === "add" ? "Quantidade a adicionar" : "Quantidade a subtrair"}
+                    </Label>
+                  </div>
+
+                  <Input
+                    type="number"
+                    min={1}
+                    value={qty}
+                    onChange={(e) => setQty(e.target.value)}
+                    placeholder="Ex: 5"
+                    className="bg-card border-border h-10 text-sm"
+                    autoFocus
+                  />
+
+                  {qty && parseInt(qty) > 0 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      {selectedItem.stock_qty} → {" "}
+                      <span className="font-semibold text-foreground">
+                        {mode === "add"
+                          ? selectedItem.stock_qty + (parseInt(qty) || 0)
+                          : Math.max(0, selectedItem.stock_qty - (parseInt(qty) || 0))}
+                      </span>
+                    </p>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button size="sm" className="flex-1" onClick={handleConfirm}>
+                      Confirmar
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => { setMode(null); setQty(""); }}>
+                      Voltar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
