@@ -324,6 +324,56 @@ export default function Pecas() {
           productName={qrPart.name}
         />
       )}
+
+      {/* Categories Dialog */}
+      <Dialog open={categoriesOpen} onOpenChange={setCategoriesOpen}>
+        <DialogContent className="sm:max-w-md bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Gerenciar Categorias</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const trimmed = newCatName.trim();
+                if (!trimmed) return;
+                createCategory.mutate(trimmed, { onSuccess: () => setNewCatName("") });
+              }}
+              className="flex gap-2"
+            >
+              <Input
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                placeholder="Nome da categoria..."
+                className="h-9 text-sm bg-card border-border flex-1"
+                maxLength={60}
+              />
+              <Button type="submit" size="sm" disabled={!newCatName.trim() || createCategory.isPending}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </form>
+            <div className="space-y-1 max-h-[300px] overflow-y-auto">
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma categoria cadastrada</p>
+              ) : (
+                categories.map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-muted/50 group">
+                    <span className="text-sm text-foreground">{cat.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                      onClick={() => deleteCategory.mutate(cat.id)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
