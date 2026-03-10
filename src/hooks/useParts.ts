@@ -58,6 +58,7 @@ export function useCreatePart() {
       const previous = queryClient.getQueryData<Part[]>(PARTS_KEY);
       const optimistic: Part = {
         id: crypto.randomUUID(),
+        sku: null,
         ...newPart,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
