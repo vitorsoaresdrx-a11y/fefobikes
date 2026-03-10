@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
+import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
 import {
   AreaChart,
   Area,
