@@ -25,9 +25,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const MONTHS = [
+const MONTHS_SHORT = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
   "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+
+const MONTHS_FULL = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
 const TAX_RATE = 0.08;
@@ -57,6 +62,7 @@ export default function DRE() {
   const isLoading = salesLoading || fixedLoading || varLoading;
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
 
   // Monthly fixed cost (sum of active fixed expenses)
   const monthlyFixedCost = useMemo(
@@ -68,7 +74,7 @@ export default function DRE() {
   const monthlyData = useMemo(() => {
     const months = Array.from({ length: 12 }, (_, i) => ({
       month: i,
-      label: MONTHS[i],
+      label: MONTHS_SHORT[i],
       revenue: 0,
       cardFees: 0,
       variableExpenses: 0,
@@ -126,16 +132,40 @@ export default function DRE() {
     { label: "= Lucro Líquido", value: totals.netProfit, type: "total", icon: TrendingUp },
   ];
 
-  // Chart data (only months with data or up to current month)
-  const chartData = monthlyData.filter(
-    (m) => m.month <= (selectedYear === currentYear ? new Date().getMonth() : 11)
-  );
+  // Daily chart data for selected month
+  const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+  const dailyChartData = useMemo(() => {
+    const days = Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      label: String(i + 1),
+      revenue: 0,
+      netProfit: 0,
+    }));
+
+    sales.forEach((sale: any) => {
+      const date = new Date(sale.created_at);
+      if (date.getFullYear() !== selectedYear || date.getMonth() !== selectedMonth) return;
+      const d = date.getDate() - 1;
+      const rev = Number(sale.total) || 0;
+      const cardFee = Number(sale.card_fee) || 0;
+      days[d].revenue += rev;
+      days[d].netProfit += rev - rev * TAX_RATE - cardFee;
+    });
+
+    // Only show up to today if current month/year
+    const isCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
+    const limit = isCurrentMonth ? new Date().getDate() : daysInMonth;
+    return days.slice(0, limit);
+  }, [sales, selectedYear, selectedMonth, daysInMonth, currentYear]);
+
+  // Show every Nth day tick to avoid clutter
+  const dayTickInterval = daysInMonth <= 15 ? 1 : daysInMonth <= 22 ? 2 : 4;
 
   const customTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
       <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg">
-        <p className="text-xs font-medium text-foreground mb-1">{label}</p>
+        <p className="text-xs font-medium text-foreground mb-1">Dia {label}</p>
         {payload.map((entry: any, i: number) => (
           <p key={i} className="text-xs text-muted-foreground">
             {entry.name}: <span className="font-medium text-foreground">{formatBRL(entry.value)}</span>
@@ -144,6 +174,18 @@ export default function DRE() {
       </div>
     );
   };
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear((y) => y - 1); }
+    else setSelectedMonth((m) => m - 1);
+  };
+  const nextMonth = () => {
+    const isCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
+    if (isCurrentMonth) return;
+    if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear((y) => y + 1); }
+    else setSelectedMonth((m) => m + 1);
+  };
+  const isAtCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
 
   if (isLoading) {
     return (
@@ -206,15 +248,32 @@ export default function DRE() {
           accent={totals.netProfit >= 0 ? "emerald" : "destructive"}
         />
 
+        {/* Month selector for charts */}
+        <div className="md:col-span-2 lg:col-span-4 flex items-center gap-2 bg-card border border-border rounded-lg px-1 w-fit">
+          <button onClick={prevMonth} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm font-medium text-foreground min-w-[140px] text-center">
+            {MONTHS_FULL[selectedMonth]} {selectedYear}
+          </span>
+          <button
+            onClick={nextMonth}
+            disabled={isAtCurrentMonth}
+            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+
         {/* Revenue Chart - spans 2 cols */}
         <div className="md:col-span-2 bg-card border border-border rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                Faturamento Mensal
+                Faturamento Diário
               </p>
               <p className="text-xl font-semibold text-foreground mt-1">
-                {formatBRL(totals.revenue)}
+                {formatBRL(dailyChartData.reduce((s, d) => s + d.revenue, 0))}
               </p>
             </div>
             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -223,7 +282,7 @@ export default function DRE() {
           </div>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart data={dailyChartData}>
                 <defs>
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(225, 100%, 60%)" stopOpacity={0.3} />
@@ -232,17 +291,18 @@ export default function DRE() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 12%)" />
                 <XAxis
-                  dataKey="label"
+                  dataKey="day"
                   tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
+                  interval={dayTickInterval}
                 />
                 <YAxis
-                  tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
+                  tick={false}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => formatCompact(v)}
-                  width={60}
+                  width={20}
+                  label={{ value: "R$", position: "insideTopLeft", offset: -5, fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                 />
                 <Tooltip content={customTooltip} />
                 <Area
@@ -263,11 +323,16 @@ export default function DRE() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                Lucro Líquido Mensal
+                Lucro Líquido Diário
               </p>
-              <p className={`text-xl font-semibold mt-1 ${totals.netProfit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
-                {formatBRL(totals.netProfit)}
-              </p>
+              {(() => {
+                const monthProfit = dailyChartData.reduce((s, d) => s + d.netProfit, 0);
+                return (
+                  <p className={`text-xl font-semibold mt-1 ${monthProfit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                    {formatBRL(monthProfit)}
+                  </p>
+                );
+              })()}
             </div>
             <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
               totals.netProfit >= 0 ? "bg-emerald-500/10" : "bg-destructive/10"
@@ -281,20 +346,21 @@ export default function DRE() {
           </div>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
+              <BarChart data={dailyChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 12%)" />
                 <XAxis
-                  dataKey="label"
+                  dataKey="day"
                   tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
+                  interval={dayTickInterval}
                 />
                 <YAxis
-                  tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
+                  tick={false}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => formatCompact(v)}
-                  width={60}
+                  width={20}
+                  label={{ value: "R$", position: "insideTopLeft", offset: -5, fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                 />
                 <Tooltip content={customTooltip} />
                 <Bar
