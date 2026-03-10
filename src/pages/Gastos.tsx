@@ -39,7 +39,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.2)]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.2)]",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
     destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
@@ -62,7 +62,7 @@ const Btn = ({
 
 const Input = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`flex h-12 w-full rounded-xl border border-zinc-800 bg-[#161618] px-4 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#820AD1] transition-all ${className}`}
+    className={`flex h-12 w-full rounded-xl border border-zinc-800 bg-[#161618] px-4 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2952FF] transition-all ${className}`}
     {...props}
   />
 );
@@ -180,17 +180,17 @@ export default function Gastos() {
   const activeList = tab === "fixed" ? fixedExpenses : filteredVariable;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Wallet className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#820AD1]">GESTÃO</span>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">GESTÃO</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Finanças</h1>
           </div>
@@ -202,13 +202,13 @@ export default function Gastos() {
 
         {/* Cards Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-[#820AD1]/50 transition-all duration-500 overflow-hidden">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
               <Repeat size={180} />
             </div>
             <div className="relative z-10 flex flex-col justify-between h-full space-y-12">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#820AD1]">
+                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#2952FF]">
                   <Repeat className="w-6 h-6" />
                 </div>
                 <Badge>CUSTO FIXO</Badge>
@@ -283,7 +283,7 @@ export default function Gastos() {
           <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
             <h3 className="font-bold text-lg">Histórico de Lançamentos</h3>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#820AD1] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tempo Real</span>
             </div>
           </div>
