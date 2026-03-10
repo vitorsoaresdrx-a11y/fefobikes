@@ -814,14 +814,14 @@ export default function BikeForm() {
                         onChange={(e) =>
                           form.setValue("alert_stock", parseInt(e.target.value) || 0)
                         }
-                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                         placeholder="Ex: 2"
                       />
                     </div>
                   </div>
 
                   {/* Visibilidade toggle */}
-                  <div className="flex items-center justify-between p-5 bg-[#0A0A0B] border border-zinc-800 rounded-[28px] hover:border-[#820AD1]/50 transition-all">
+                  <div className="flex items-center justify-between p-5 bg-[#0A0A0B] border border-zinc-800 rounded-[28px] hover:border-[#2952FF]/50 transition-all">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                         <Eye size={16} />
