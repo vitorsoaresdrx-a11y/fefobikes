@@ -25,6 +25,9 @@ const partSchema = z.object({
   alert_stock: z.coerce.number().int().min(0).default(0),
   unit_cost: z.coerce.number().min(0).default(0),
   sale_price: z.coerce.number().min(0).default(0),
+  pix_price: z.coerce.number().min(0).default(0),
+  installment_price: z.coerce.number().min(0).default(0),
+  installment_count: z.coerce.number().int().min(1).default(1),
   notes: z.string().optional(),
 });
 
@@ -52,6 +55,9 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       alert_stock: 0,
       unit_cost: 0,
       sale_price: 0,
+      pix_price: 0,
+      installment_price: 0,
+      installment_count: 1,
       notes: "",
     },
   });
@@ -71,6 +77,9 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           alert_stock: Number((part as any).alert_stock) || 0,
           unit_cost: Number((part as any).unit_cost) || 0,
           sale_price: Number((part as any).sale_price) || 0,
+          pix_price: Number((part as any).pix_price) || 0,
+          installment_price: Number((part as any).installment_price) || 0,
+          installment_count: Number((part as any).installment_count) || 1,
           notes: part.notes || "",
         });
         setPartImages((part as any).images || []);
@@ -89,6 +98,9 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       alert_stock: values.alert_stock,
       unit_cost: values.unit_cost,
       sale_price: values.sale_price,
+      pix_price: values.pix_price,
+      installment_price: values.installment_price,
+      installment_count: values.installment_count,
       notes: values.notes || null,
       weight_capacity_kg: null,
       material: null,
@@ -233,6 +245,52 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 </div>
               </div>
             )}
+
+            {/* PIX / Dinheiro price */}
+            <div className="space-y-2">
+              <Label className="text-sm">Preço no PIX / Dinheiro (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min={0}
+                value={form.watch("pix_price") || ""}
+                onChange={(e) => form.setValue("pix_price", parseFloat(e.target.value) || 0)}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="0,00"
+              />
+              <p className="text-[10px] text-muted-foreground">Preço com desconto para pagamento à vista</p>
+            </div>
+
+            {/* Installment */}
+            <div className="space-y-2">
+              <Label className="text-sm">Parcelamento no cartão</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Valor da parcela (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    value={form.watch("installment_price") || ""}
+                    onChange={(e) => form.setValue("installment_price", parseFloat(e.target.value) || 0)}
+                    className="bg-card border-border h-9 text-sm"
+                    placeholder="0,00"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Nº de parcelas</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={24}
+                    value={form.watch("installment_count") || 1}
+                    onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
+                    className="bg-card border-border h-9 text-sm"
+                    placeholder="12"
+                  />
+                </div>
+              </div>
+            </div>
           </section>
 
           <Separator className="bg-border" />

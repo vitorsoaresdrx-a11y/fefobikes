@@ -45,6 +45,9 @@ const bikeSchema = z.object({
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
   cost_price: z.number().min(0).default(0),
   sale_price: z.number().min(0).default(0),
+  pix_price: z.number().min(0).default(0),
+  installment_price: z.number().min(0).default(0),
+  installment_count: z.number().int().min(1).default(1),
 });
 
 type BikeFormValues = z.infer<typeof bikeSchema>;
@@ -98,6 +101,9 @@ export default function BikeForm() {
       cost_mode: "fixed",
       cost_price: 0,
       sale_price: 0,
+      pix_price: 0,
+      installment_price: 0,
+      installment_count: 1,
     },
   });
 
@@ -133,6 +139,9 @@ export default function BikeForm() {
         cost_mode: (bike as any).cost_mode || "fixed",
         cost_price: Number((bike as any).cost_price) || 0,
         sale_price: Number((bike as any).sale_price) || 0,
+        pix_price: Number((bike as any).pix_price) || 0,
+        installment_price: Number((bike as any).installment_price) || 0,
+        installment_count: Number((bike as any).installment_count) || 1,
       });
       setBikeImages((bike as any).images || []);
     }
@@ -197,6 +206,9 @@ export default function BikeForm() {
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
         sale_price: values.sale_price,
+        pix_price: values.pix_price,
+        installment_price: values.installment_price,
+        installment_count: values.installment_count,
         images: bikeImages,
       };
       if (isEditing && values.sku) {
@@ -517,6 +529,52 @@ export default function BikeForm() {
               className="bg-card border-border h-9 text-sm"
               placeholder="0,00"
             />
+          </div>
+
+          {/* PIX / Dinheiro price */}
+          <div className="space-y-2">
+            <Label className="text-sm">Preço no PIX / Dinheiro (R$)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              min={0}
+              value={form.watch("pix_price") || ""}
+              onChange={(e) => form.setValue("pix_price", parseFloat(e.target.value) || 0)}
+              className="bg-card border-border h-9 text-sm"
+              placeholder="0,00"
+            />
+            <p className="text-[10px] text-muted-foreground">Preço com desconto para pagamento à vista</p>
+          </div>
+
+          {/* Installment */}
+          <div className="space-y-2">
+            <Label className="text-sm">Parcelamento no cartão</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor da parcela (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={form.watch("installment_price") || ""}
+                  onChange={(e) => form.setValue("installment_price", parseFloat(e.target.value) || 0)}
+                  className="bg-card border-border h-9 text-sm"
+                  placeholder="0,00"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Nº de parcelas</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={form.watch("installment_count") || 1}
+                  onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
+                  className="bg-card border-border h-9 text-sm"
+                  placeholder="12"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Margin display */}
