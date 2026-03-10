@@ -65,16 +65,15 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.title}
+                      className={
+                        active
+                          ? "shadow-[0_0_14px_hsl(225_100%_60%/0.3)]"
+                          : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
+                      }
                     >
                       <NavLink
                         to={item.url}
                         end={item.url === "/"}
-                        className={
-                          active
-                            ? "bg-primary/10 text-primary font-medium shadow-[0_0_12px_hsl(var(--primary)/0.35)] border border-primary/20 rounded-md"
-                            : "text-muted-foreground/60 hover:text-foreground hover:bg-accent/30 rounded-md"
-                        }
-                        activeClassName=""
                       >
                         <item.icon className="h-4 w-4 shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
