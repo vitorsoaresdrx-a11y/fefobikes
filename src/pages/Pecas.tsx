@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Plus, Trash2, Pencil, ArrowUpDown, ArrowDown, ArrowUp, QrCode } from "lucide-react";
+import { Search, Plus, Trash2, Pencil, ArrowUpDown, ArrowDown, ArrowUp, QrCode, Tags, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,8 +18,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useParts, useDeletePart, type Part } from "@/hooks/useParts";
+import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { PartDrawer } from "@/components/parts/PartDrawer";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -37,6 +44,11 @@ export default function Pecas() {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [qrPart, setQrPart] = useState<Part | null>(null);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const { data: categories = [] } = useCategories();
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
 
   const getProfit = (p: Part) => (Number((p as any).sale_price) || 0) - (Number((p as any).unit_cost) || 0);
 
@@ -116,11 +128,17 @@ export default function Pecas() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold text-foreground">Peças</h1>
-        <Button size="sm" onClick={handleNew} className="gap-1.5 w-full sm:w-auto">
-          <Plus className="h-4 w-4" />
-          Nova Peça
-        </Button>
+        <h1 className="text-lg font-semibold text-foreground">Produtos</h1>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button size="sm" variant="outline" onClick={() => setCategoriesOpen(true)} className="gap-1.5">
+            <Tags className="h-4 w-4" />
+            Categorias
+          </Button>
+          <Button size="sm" onClick={handleNew} className="gap-1.5 flex-1 sm:flex-initial">
+            <Plus className="h-4 w-4" />
+            Novo Produto
+          </Button>
+        </div>
       </div>
 
       {/* Search + Sort */}
@@ -284,7 +302,7 @@ export default function Pecas() {
       {/* Summary */}
       {filtered.length > 0 && (
         <div className="flex gap-4 text-xs text-muted-foreground">
-          <span>{filtered.length} peça{filtered.length !== 1 ? "s" : ""}</span>
+          <span>{filtered.length} produto{filtered.length !== 1 ? "s" : ""}</span>
           <span>•</span>
           <span>{totalStock} un. em estoque</span>
           <span>•</span>
@@ -306,6 +324,56 @@ export default function Pecas() {
           productName={qrPart.name}
         />
       )}
+
+      {/* Categories Dialog */}
+      <Dialog open={categoriesOpen} onOpenChange={setCategoriesOpen}>
+        <DialogContent className="sm:max-w-md bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Gerenciar Categorias</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const trimmed = newCatName.trim();
+                if (!trimmed) return;
+                createCategory.mutate(trimmed, { onSuccess: () => setNewCatName("") });
+              }}
+              className="flex gap-2"
+            >
+              <Input
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                placeholder="Nome da categoria..."
+                className="h-9 text-sm bg-card border-border flex-1"
+                maxLength={60}
+              />
+              <Button type="submit" size="sm" disabled={!newCatName.trim() || createCategory.isPending}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </form>
+            <div className="space-y-1 max-h-[300px] overflow-y-auto">
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma categoria cadastrada</p>
+              ) : (
+                categories.map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-muted/50 group">
+                    <span className="text-sm text-foreground">{cat.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                      onClick={() => deleteCategory.mutate(cat.id)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

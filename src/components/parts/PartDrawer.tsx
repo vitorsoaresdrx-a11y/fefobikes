@@ -120,7 +120,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-background border-border">
         <SheetHeader>
           <SheetTitle className="text-foreground">
-            {isEditing ? "Editar Peça" : "Nova Peça"}
+            {isEditing ? "Editar Produto" : "Novo Produto"}
           </SheetTitle>
         </SheetHeader>
 
@@ -253,7 +253,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           {/* Actions */}
           <div className="flex gap-2 pt-2">
             <Button type="submit" size="sm" className="flex-1">
-              {isEditing ? "Salvar" : "Criar peça"}
+              {isEditing ? "Salvar" : "Criar produto"}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Cancelar

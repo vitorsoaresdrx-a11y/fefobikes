@@ -15,27 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-const presets = [
-  "Guidão",
-  "Cubo",
-  "Câmbio",
-  "Pneu",
-  "Quadro",
-  "Garfo",
-  "Pedal",
-  "Selim",
-  "Corrente",
-  "Freio",
-  "Roda",
-  "Aro",
-  "Raio",
-  "Mesa",
-  "Canote",
-  "Movimento Central",
-  "Cassete",
-  "Coroa",
-];
+import { useCategories } from "@/hooks/useCategories";
 
 interface CategoryComboboxProps {
   value: string;
@@ -45,10 +25,10 @@ interface CategoryComboboxProps {
 export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const { data: categories = [] } = useCategories();
 
-  const options = presets.map((p) => ({ label: p, value: p }));
+  const options = categories.map((c) => ({ label: c.name, value: c.name }));
 
-  // Allow free-text: if input doesn't match any preset, user can still use it
   const handleSelect = (selected: string) => {
     onChange(selected === value ? "" : selected);
     setOpen(false);
@@ -70,7 +50,7 @@ export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border" align="start">
         <Command>
           <CommandInput
-            placeholder="Buscar ou digitar..."
+            placeholder="Buscar categoria..."
             value={inputValue}
             onValueChange={setInputValue}
             className="text-sm"
