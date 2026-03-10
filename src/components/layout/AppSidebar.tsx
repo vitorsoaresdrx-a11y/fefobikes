@@ -28,6 +28,7 @@ const navItems = [
   { title: "Bikes", url: "/bikes", icon: Bike },
   { title: "Estoque", url: "/estoque", icon: Package },
   { title: "PDV", url: "/pdv", icon: ShoppingCart },
+  { title: "Histórico", url: "/historico", icon: ClipboardList },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];

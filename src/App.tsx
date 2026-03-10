@@ -9,7 +9,9 @@ import Pecas from "@/pages/Pecas";
 import Bikes from "@/pages/Bikes";
 import BikeForm from "@/pages/BikeForm";
 import PDV from "@/pages/PDV";
+import Historico from "@/pages/Historico";
 import Clientes from "@/pages/Clientes";
+import Configuracoes from "@/pages/Configuracoes";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -31,8 +33,9 @@ const App = () => (
               <Route path="/bikes/:id" element={<BikeForm />} />
               <Route path="/estoque" element={<Placeholder title="Estoque" />} />
               <Route path="/pdv" element={<PDV />} />
+              <Route path="/historico" element={<Historico />} />
               <Route path="/clientes" element={<Clientes />} />
-              <Route path="/configuracoes" element={<Placeholder title="Configurações" />} />
+              <Route path="/configuracoes" element={<Configuracoes />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
