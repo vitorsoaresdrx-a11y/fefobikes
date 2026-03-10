@@ -146,6 +146,17 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
               )}
             </div>
+            {isEditing && (
+              <div className="space-y-2">
+                <Label className="text-sm">SKU</Label>
+                <Input
+                  {...form.register("sku")}
+                  className="bg-card border-border h-9 text-sm font-mono"
+                  placeholder="Gerado automaticamente"
+                />
+                <p className="text-[10px] text-muted-foreground">Código interno — editável</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label className="text-sm">Categoria</Label>
               <CategoryCombobox
