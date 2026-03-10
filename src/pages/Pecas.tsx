@@ -455,7 +455,7 @@ export default function Pecas() {
                   onChange={(e) => setNewCatName(e.target.value)}
                   placeholder="Nova categoria..."
                   maxLength={60}
-                  className="flex-1 h-12 bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-sm text-zinc-100 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600"
+                  className="flex-1 h-12 bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
                 />
                 <Btn
                   type="submit"
