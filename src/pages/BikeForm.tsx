@@ -84,6 +84,7 @@ export default function BikeForm() {
     resolver: zodResolver(bikeSchema),
     defaultValues: {
       name: "",
+      sku: "",
       category: "",
       brand: "",
       frame_size: "",
