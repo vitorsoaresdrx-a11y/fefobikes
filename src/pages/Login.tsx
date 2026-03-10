@@ -1,10 +1,42 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Bike, Lock, Mail, ArrowRight } from "lucide-react";
+
+// ─── Design System ────────────────────────────────────────────────────────────
+
+const Btn = ({
+  children,
+  className = "",
+  disabled,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button
+    disabled={disabled}
+    className={`inline-flex items-center justify-center rounded-2xl bg-[#820AD1] hover:bg-[#9D3BE1] text-white font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(130,10,209,0.3)] transition-all active:scale-95 disabled:opacity-70 ${className}`}
+    {...props}
+  >
+    {children}
+  </button>
+);
+
+const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input
+    className={`flex w-full bg-[#161618] border border-zinc-800 h-14 px-4 rounded-2xl text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#820AD1] focus:border-transparent transition-all placeholder:text-zinc-600 ${className}`}
+    {...props}
+  />
+);
+
+const LabelEl = ({ children, className = "", ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
+  <label
+    className={`text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 block ${className}`}
+    {...props}
+  >
+    {children}
+  </label>
+);
+
+// ─── Componente Principal ─────────────────────────────────────────────────────
 
 export default function Login() {
   const { toast } = useToast();
@@ -12,10 +44,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const imageUrl =
+    "https://i.postimg.cc/DwztNbJB/bd759f9c2751e679b3155387f90f9821.jpg";
+
+  // Lógica real do Lovable — supabase.auth.signInWithPassword + useToast
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -27,42 +62,109 @@ export default function Login() {
   };
 
   return (
-    <div className="dark flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-foreground">Fefo Bikes</h1>
-          <p className="text-sm text-muted-foreground">Entre na sua conta</p>
-        </div>
+    <div className="min-h-screen bg-[#0A0A0B] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[#820AD1]/30">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>E-mail</Label>
-            <Input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="bg-card border-border"
-            />
+      {/* Imagem — esquerda no desktop, topo no mobile */}
+      <div className="relative w-full lg:w-[60%] h-[40vh] lg:h-screen overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-[10s] hover:scale-110"
+          style={{ backgroundImage: `url(${imageUrl})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-[#0A0A0B]/60 to-[#0A0A0B]" />
+
+        {/* Branding (só desktop) */}
+        <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.4)]">
+              <Bike className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xl font-black tracking-widest text-white">FEFO BIKES</span>
           </div>
-          <div className="space-y-2">
-            <Label>Senha</Label>
-            <Input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="bg-card border-border"
-            />
+          <p className="text-zinc-400 font-medium max-w-xs">
+            Performance e precisão para quem não aceita menos que o topo.
+          </p>
+        </div>
+      </div>
+
+      {/* Formulário — direita */}
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 relative z-10 bg-[#0A0A0B]">
+        <div className="w-full max-w-md space-y-10">
+
+          {/* Header */}
+          <div className="space-y-3 text-center lg:text-left">
+            <div className="lg:hidden flex justify-center mb-6">
+              <div className="w-14 h-14 bg-[#820AD1] rounded-[22px] flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+                <Bike className="w-7 h-7 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tighter leading-tight">
+              Acesse sua conta
+            </h1>
+            <p className="text-zinc-500 text-sm font-medium">
+              Entre com suas credenciais para gerenciar sua oficina.
+            </p>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Entrar
-          </Button>
-        </form>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+
+              {/* E-mail */}
+              <div className="space-y-2 group">
+                <LabelEl className="ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                  E-mail
+                </LabelEl>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#820AD1] transition-colors" />
+                  <InputEl
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                    className="pl-12"
+                  />
+                </div>
+              </div>
+
+              {/* Senha */}
+              <div className="space-y-2 group">
+                <LabelEl className="ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                  Senha
+                </LabelEl>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#820AD1] transition-colors" />
+                  <InputEl
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-12"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Btn type="submit" className="w-full h-14" disabled={loading}>
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-white" />
+              ) : (
+                <span className="flex items-center gap-2">
+                  Entrar no Sistema <ArrowRight size={18} />
+                </span>
+              )}
+            </Btn>
+          </form>
+
+          {/* Footer */}
+          <div className="text-center">
+            <p className="text-xs text-zinc-600 font-medium italic">
+              Acesso restrito a colaboradores autorizados da Fefo Bikes.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
