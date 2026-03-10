@@ -61,6 +61,20 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      toast({
+        title: "Faça login para enviar imagens",
+        description: "O upload de imagens exige um usuário autenticado.",
+        variant: "destructive",
+      });
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
     const remaining = maxImages - images.length;
     if (remaining <= 0) {
       toast({ title: `Máximo de ${maxImages} imagens`, variant: "destructive" });
@@ -105,7 +119,16 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
       onChange([...images, ...newUrls]);
     } catch (err) {
       console.error(err);
-      toast({ title: "Erro ao enviar imagem", variant: "destructive" });
+      const errorMessage = err instanceof Error ? err.message.toLowerCase() : "";
+      const isRlsError = errorMessage.includes("row-level security");
+
+      toast({
+        title: isRlsError ? "Upload bloqueado" : "Erro ao enviar imagem",
+        description: isRlsError
+          ? "Você precisa estar logado na aplicação para enviar imagens."
+          : undefined,
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
