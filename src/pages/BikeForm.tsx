@@ -182,7 +182,7 @@ export default function BikeForm() {
 
   const onSubmit = async (values: BikeFormValues) => {
     try {
-      const payload = {
+      const payload: any = {
         name: values.name,
         category: values.category || null,
         brand: values.brand || null,
@@ -199,6 +199,9 @@ export default function BikeForm() {
         sale_price: values.sale_price,
         images: bikeImages,
       };
+      if (isEditing && values.sku) {
+        payload.sku = values.sku;
+      }
 
       let bikeId: string;
 
