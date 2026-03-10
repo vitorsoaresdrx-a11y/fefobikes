@@ -39,7 +39,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.2)]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.2)]",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
     destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
