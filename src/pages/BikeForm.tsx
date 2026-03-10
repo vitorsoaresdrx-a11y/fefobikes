@@ -657,7 +657,7 @@ export default function BikeForm() {
                     Preço PIX / Dinheiro
                   </label>
                   <div className="flex items-baseline gap-2 relative z-10">
-                    <span className="text-xl font-bold text-[#820AD1]">R$</span>
+                    <span className="text-xl font-bold text-[#2952FF]">R$</span>
                     <input
                       type="number"
                       step="0.01"
