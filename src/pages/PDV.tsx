@@ -366,10 +366,10 @@ export default function PDV() {
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-[#1C1C1E]/80 backdrop-blur-2xl border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[32px] p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10">
           <div className="flex items-center gap-6 px-4">
             <div className="relative">
-              <div className="w-12 h-12 bg-[#820AD1] rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-lg">
                 <ShoppingCart size={20} />
               </div>
-              <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-[#820AD1] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
+              <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-[#2952FF] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
                 {itemCount}
               </span>
             </div>
