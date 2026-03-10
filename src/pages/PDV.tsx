@@ -670,7 +670,7 @@ export default function PDV() {
 
                 {/* Cliente selecionado */}
                 {selectedCustomer && (
-                  <div className="p-4 bg-[#820AD1]/10 border border-[#820AD1]/30 rounded-2xl flex items-center justify-between">
+                  <div className="p-4 bg-[#2952FF]/10 border border-[#2952FF]/30 rounded-2xl flex items-center justify-between">
                     <div>
                       <p className="font-bold text-white">{selectedCustomer.name}</p>
                       <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
