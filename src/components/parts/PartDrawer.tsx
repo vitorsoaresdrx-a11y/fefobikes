@@ -19,6 +19,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 
 const partSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
+  sku: z.string().optional(),
   category: z.string().optional(),
   stock_qty: z.coerce.number().int().min(0).default(0),
   alert_stock: z.coerce.number().int().min(0).default(0),
