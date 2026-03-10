@@ -514,7 +514,7 @@ export default function BikeForm() {
             </div>
           )}
 
-          {/* Sale price — always shown */}
+          
 
           {/* PIX / Dinheiro price */}
           <div className="space-y-2">
