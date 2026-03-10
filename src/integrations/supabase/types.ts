@@ -159,6 +159,7 @@ export type Database = {
           name: string
           notes: string | null
           rim_size: string | null
+          sale_price: number | null
           stock_qty: number
           unit_cost: number | null
           updated_at: string
@@ -177,6 +178,7 @@ export type Database = {
           name: string
           notes?: string | null
           rim_size?: string | null
+          sale_price?: number | null
           stock_qty?: number
           unit_cost?: number | null
           updated_at?: string
@@ -195,6 +197,7 @@ export type Database = {
           name?: string
           notes?: string | null
           rim_size?: string | null
+          sale_price?: number | null
           stock_qty?: number
           unit_cost?: number | null
           updated_at?: string
