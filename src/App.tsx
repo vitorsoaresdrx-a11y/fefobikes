@@ -8,6 +8,8 @@ import Dashboard from "@/pages/Dashboard";
 import Pecas from "@/pages/Pecas";
 import Bikes from "@/pages/Bikes";
 import BikeForm from "@/pages/BikeForm";
+import PDV from "@/pages/PDV";
+import Clientes from "@/pages/Clientes";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -28,8 +30,8 @@ const App = () => (
               <Route path="/bikes/nova" element={<BikeForm />} />
               <Route path="/bikes/:id" element={<BikeForm />} />
               <Route path="/estoque" element={<Placeholder title="Estoque" />} />
-              <Route path="/pdv" element={<Placeholder title="PDV" />} />
-              <Route path="/clientes" element={<Placeholder title="Clientes" />} />
+              <Route path="/pdv" element={<PDV />} />
+              <Route path="/clientes" element={<Clientes />} />
               <Route path="/configuracoes" element={<Placeholder title="Configurações" />} />
             </Route>
             <Route path="*" element={<NotFound />} />
