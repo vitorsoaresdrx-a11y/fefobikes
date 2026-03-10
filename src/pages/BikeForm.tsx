@@ -39,6 +39,8 @@ const bikeSchema = z.object({
   weight_kg: z.number().min(0).optional(),
   description: z.string().optional(),
   visible_on_storefront: z.boolean().default(false),
+  stock_qty: z.number().int().min(0).default(0),
+  alert_stock: z.number().int().min(0).default(0),
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
   cost_price: z.number().min(0).default(0),
   sale_price: z.number().min(0).default(0),
@@ -89,6 +91,8 @@ export default function BikeForm() {
       weight_kg: undefined,
       description: "",
       visible_on_storefront: false,
+      stock_qty: 0,
+      alert_stock: 0,
       cost_mode: "fixed",
       cost_price: 0,
       sale_price: 0,
@@ -121,6 +125,8 @@ export default function BikeForm() {
         weight_kg: Number((bike as any).weight_kg) || undefined,
         description: bike.description || "",
         visible_on_storefront: bike.visible_on_storefront,
+        stock_qty: Number((bike as any).stock_qty) || 0,
+        alert_stock: Number((bike as any).alert_stock) || 0,
         cost_mode: (bike as any).cost_mode || "fixed",
         cost_price: Number((bike as any).cost_price) || 0,
         sale_price: Number((bike as any).sale_price) || 0,
@@ -183,6 +189,8 @@ export default function BikeForm() {
         weight_kg: values.weight_kg || null,
         description: values.description || null,
         visible_on_storefront: values.visible_on_storefront,
+        stock_qty: values.stock_qty,
+        alert_stock: values.alert_stock,
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
         sale_price: values.sale_price,
@@ -517,6 +525,39 @@ export default function BikeForm() {
               </div>
             </div>
           )}
+        </section>
+
+        <Separator className="bg-border" />
+
+        {/* Estoque */}
+        <section className="space-y-3">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Estoque
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-sm">Estoque atual</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.watch("stock_qty")}
+                onChange={(e) => form.setValue("stock_qty", parseInt(e.target.value) || 0)}
+                className="bg-card border-border h-9 text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Estoque de alerta</Label>
+              <Input
+                type="number"
+                min={0}
+                value={form.watch("alert_stock")}
+                onChange={(e) => form.setValue("alert_stock", parseInt(e.target.value) || 0)}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 2"
+              />
+              <p className="text-[10px] text-muted-foreground">Avisa quando chegar nessa quantidade</p>
+            </div>
+          </div>
         </section>
 
         <Separator className="bg-border" />

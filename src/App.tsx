@@ -12,6 +12,7 @@ import PDV from "@/pages/PDV";
 import Historico from "@/pages/Historico";
 import Clientes from "@/pages/Clientes";
 import Configuracoes from "@/pages/Configuracoes";
+import Estoque from "@/pages/Estoque";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -31,7 +32,7 @@ const App = () => (
               <Route path="/bikes" element={<Bikes />} />
               <Route path="/bikes/nova" element={<BikeForm />} />
               <Route path="/bikes/:id" element={<BikeForm />} />
-              <Route path="/estoque" element={<Placeholder title="Estoque" />} />
+              <Route path="/estoque" element={<Estoque />} />
               <Route path="/pdv" element={<PDV />} />
               <Route path="/historico" element={<Historico />} />
               <Route path="/clientes" element={<Clientes />} />

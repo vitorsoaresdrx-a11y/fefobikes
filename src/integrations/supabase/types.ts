@@ -64,6 +64,7 @@ export type Database = {
       }
       bike_models: {
         Row: {
+          alert_stock: number
           brand: string | null
           category: string | null
           color: string | null
@@ -77,11 +78,13 @@ export type Database = {
           name: string
           rim_size: string | null
           sale_price: number | null
+          stock_qty: number
           updated_at: string
           visible_on_storefront: boolean
           weight_kg: number | null
         }
         Insert: {
+          alert_stock?: number
           brand?: string | null
           category?: string | null
           color?: string | null
@@ -95,11 +98,13 @@ export type Database = {
           name: string
           rim_size?: string | null
           sale_price?: number | null
+          stock_qty?: number
           updated_at?: string
           visible_on_storefront?: boolean
           weight_kg?: number | null
         }
         Update: {
+          alert_stock?: number
           brand?: string | null
           category?: string | null
           color?: string | null
@@ -113,6 +118,7 @@ export type Database = {
           name?: string
           rim_size?: string | null
           sale_price?: number | null
+          stock_qty?: number
           updated_at?: string
           visible_on_storefront?: boolean
           weight_kg?: number | null
@@ -151,6 +157,7 @@ export type Database = {
       }
       parts: {
         Row: {
+          alert_stock: number
           category: string | null
           color: string | null
           created_at: string
@@ -171,6 +178,7 @@ export type Database = {
           weight_capacity_kg: number | null
         }
         Insert: {
+          alert_stock?: number
           category?: string | null
           color?: string | null
           created_at?: string
@@ -191,6 +199,7 @@ export type Database = {
           weight_capacity_kg?: number | null
         }
         Update: {
+          alert_stock?: number
           category?: string | null
           color?: string | null
           created_at?: string
