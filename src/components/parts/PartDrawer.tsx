@@ -25,6 +25,9 @@ const partSchema = z.object({
   alert_stock: z.coerce.number().int().min(0).default(0),
   unit_cost: z.coerce.number().min(0).default(0),
   sale_price: z.coerce.number().min(0).default(0),
+  pix_price: z.coerce.number().min(0).default(0),
+  installment_price: z.coerce.number().min(0).default(0),
+  installment_count: z.coerce.number().int().min(1).default(1),
   notes: z.string().optional(),
 });
 
