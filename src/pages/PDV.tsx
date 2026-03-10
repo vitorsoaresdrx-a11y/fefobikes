@@ -480,7 +480,7 @@ export default function PDV() {
                         <div>
                           {item.category && <Badge variant="outline">{item.category}</Badge>}
                           <h4 className="text-lg font-bold text-white mt-1">{item.name}</h4>
-                          <p className="text-xl font-black text-[#820AD1] mt-1">{formatBRL(price)}</p>
+                          <p className="text-xl font-black text-[#2952FF] mt-1">{formatBRL(price)}</p>
                           {!isBike && (
                             <p className="text-[10px] text-zinc-600 mt-0.5 uppercase tracking-widest">
                               Estoque: {item.stock_qty}
