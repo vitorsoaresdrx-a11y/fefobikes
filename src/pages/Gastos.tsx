@@ -283,7 +283,7 @@ export default function Gastos() {
           <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
             <h3 className="font-bold text-lg">Histórico de Lançamentos</h3>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#820AD1] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tempo Real</span>
             </div>
           </div>
