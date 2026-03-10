@@ -515,18 +515,6 @@ export default function BikeForm() {
           )}
 
           {/* Sale price — always shown */}
-          <div className="space-y-2">
-            <Label className="text-sm">Preço de venda (R$)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              min={0}
-              value={salePrice || ""}
-              onChange={(e) => form.setValue("sale_price", parseFloat(e.target.value) || 0)}
-              className="bg-card border-border h-9 text-sm"
-              placeholder="0,00"
-            />
-          </div>
 
           {/* PIX / Dinheiro price */}
           <div className="space-y-2">
