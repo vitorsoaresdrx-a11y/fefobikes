@@ -67,8 +67,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           sale_price: Number((part as any).sale_price) || 0,
           notes: part.notes || "",
         });
+        setPartImages((part as any).images || []);
       } else {
         form.reset();
+        setPartImages([]);
       }
     }
   }, [open, part]);
