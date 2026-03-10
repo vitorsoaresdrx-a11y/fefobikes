@@ -197,7 +197,7 @@ export default function Bikes() {
         {/* Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-[#820AD1] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 && search === "" ? (
           <EmptyState onNew={() => navigate("/bikes/nova")} />
