@@ -374,9 +374,9 @@ export default function DRE() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={dailyChartData}>
                   <defs>
-                    <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#820AD1" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#820AD1" stopOpacity={0} />
+                    <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2952FF" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#2952FF" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C1C1E" />
