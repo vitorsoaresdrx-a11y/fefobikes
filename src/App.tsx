@@ -14,6 +14,7 @@ import Clientes from "@/pages/Clientes";
 import Configuracoes from "@/pages/Configuracoes";
 import Estoque from "@/pages/Estoque";
 import DRE from "@/pages/DRE";
+import Gastos from "@/pages/Gastos";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
