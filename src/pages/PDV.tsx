@@ -369,20 +369,34 @@ export default function PDV() {
                     key={id}
                     className="flex items-center justify-between p-3 border border-border rounded-md bg-card hover:bg-muted/20 transition-colors"
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {item.category && (
-                          <Badge variant="outline" className="text-[10px] h-4 px-1.5">
-                            {item.category}
-                          </Badge>
-                        )}
-                        <span className="text-xs text-muted-foreground">{formatBRL(price)}</span>
-                        {!isBike && (
-                          <span className="text-[10px] text-muted-foreground/60">
-                            estoque: {item.stock_qty}
-                          </span>
-                        )}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {/* Thumbnail */}
+                      {item.images && item.images.length > 0 ? (
+                        <img
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="h-10 w-10 rounded-md object-cover shrink-0 border border-border"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-md bg-muted/30 shrink-0 flex items-center justify-center border border-border">
+                          <span className="text-[10px] text-muted-foreground">Sem foto</span>
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {item.category && (
+                            <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                              {item.category}
+                            </Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground">{formatBRL(price)}</span>
+                          {!isBike && (
+                            <span className="text-[10px] text-muted-foreground/60">
+                              estoque: {item.stock_qty}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     {qty > 0 ? (

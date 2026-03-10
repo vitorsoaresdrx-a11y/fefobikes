@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useCreatePart, useUpdatePart, type Part } from "@/hooks/useParts";
 import { CategoryCombobox } from "@/components/parts/CategoryCombobox";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 const partSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -37,6 +38,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   const createPart = useCreatePart();
   const updatePart = useUpdatePart();
   const isEditing = !!part;
+  const [partImages, setPartImages] = useState<string[]>([]);
 
   const form = useForm<PartFormValues>({
     resolver: zodResolver(partSchema),
@@ -65,8 +67,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           sale_price: Number((part as any).sale_price) || 0,
           notes: part.notes || "",
         });
+        setPartImages((part as any).images || []);
       } else {
         form.reset();
+        setPartImages([]);
       }
     }
   }, [open, part]);
@@ -88,6 +92,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       rim_size: null,
       frame_size: null,
       visible_on_storefront: false,
+      images: partImages,
     };
 
     if (isEditing) {
@@ -116,6 +121,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Informações
             </h3>
+            <div className="space-y-2">
+              <Label className="text-sm">Fotos</Label>
+              <ImageUpload images={partImages} onChange={setPartImages} folder="parts" />
+            </div>
             <div className="space-y-2">
               <Label className="text-sm">Item *</Label>
               <Input

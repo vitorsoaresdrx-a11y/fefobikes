@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Plus, Trash2, DollarSign, TrendingUp } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -74,6 +75,7 @@ export default function BikeForm() {
   const saveParts = useSaveBikeModelParts();
 
   const [templateParts, setTemplateParts] = useState<TemplatePart[]>([]);
+  const [bikeImages, setBikeImages] = useState<string[]>([]);
 
   const form = useForm<BikeFormValues>({
     resolver: zodResolver(bikeSchema),
@@ -123,6 +125,7 @@ export default function BikeForm() {
         cost_price: Number((bike as any).cost_price) || 0,
         sale_price: Number((bike as any).sale_price) || 0,
       });
+      setBikeImages((bike as any).images || []);
     }
   }, [bike]);
 
@@ -183,6 +186,7 @@ export default function BikeForm() {
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
         sale_price: values.sale_price,
+        images: bikeImages,
       };
 
       let bikeId: string;
@@ -240,6 +244,12 @@ export default function BikeForm() {
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Informações do Modelo
           </h3>
+
+          {/* Image upload */}
+          <div className="space-y-2">
+            <Label className="text-sm">Fotos</Label>
+            <ImageUpload images={bikeImages} onChange={setBikeImages} folder="bikes" />
+          </div>
           <div className="space-y-2">
             <Label className="text-sm">Nome *</Label>
             <Input
