@@ -316,7 +316,7 @@ export default function Pecas() {
                               <p className="font-bold text-zinc-100">{part.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 {part.category && (
-                                  <span className="text-[10px] font-bold text-[#820AD1] uppercase tracking-wider">
+                                  <span className="text-[10px] font-bold text-[#2952FF] uppercase tracking-wider">
                                     {part.category}
                                   </span>
                                 )}
