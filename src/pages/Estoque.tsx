@@ -480,7 +480,7 @@ export default function Estoque() {
                       value={qty}
                       onChange={(e) => setQty(e.target.value)}
                       placeholder="0"
-                      className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-[#820AD1] transition-all"
+                      className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-[#2952FF] transition-all"
                     />
                   </div>
 
