@@ -654,7 +654,7 @@ export default function PDV() {
                         }}
                         className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
                           selectedCustomerId === c.id
-                            ? "bg-[#820AD1]/10 border-[#820AD1] text-white"
+                            ? "bg-[#2952FF]/10 border-[#2952FF] text-white"
                             : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
                         }`}
                       >
