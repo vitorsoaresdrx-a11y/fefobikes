@@ -212,7 +212,7 @@ export default function Bikes() {
               return (
                 <div
                   key={bike.id}
-                  className="group relative bg-[#161618] border border-zinc-800 rounded-[40px] overflow-hidden hover:border-[#820AD1]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
+                  className="group relative bg-[#161618] border border-zinc-800 rounded-[40px] overflow-hidden hover:border-[#2952FF]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
                   onClick={() => navigate(`/bikes/${bike.id}`)}
                 >
                   {/* Imagem */}
