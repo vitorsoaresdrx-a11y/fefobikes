@@ -781,7 +781,7 @@ export default function BikeForm() {
                 {/* Estoque */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#820AD1]/10 flex items-center justify-center text-[#820AD1]">
+                    <div className="w-8 h-8 rounded-xl bg-[#2952FF]/10 flex items-center justify-center text-[#2952FF]">
                       <Box size={16} />
                     </div>
                     <h4 className="text-sm font-black text-white tracking-tight italic uppercase">
@@ -800,7 +800,7 @@ export default function BikeForm() {
                         onChange={(e) =>
                           form.setValue("stock_qty", parseInt(e.target.value) || 0)
                         }
-                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
