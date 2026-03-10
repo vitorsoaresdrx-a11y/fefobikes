@@ -39,6 +39,8 @@ const bikeSchema = z.object({
   weight_kg: z.number().min(0).optional(),
   description: z.string().optional(),
   visible_on_storefront: z.boolean().default(false),
+  stock_qty: z.number().int().min(0).default(0),
+  alert_stock: z.number().int().min(0).default(0),
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
   cost_price: z.number().min(0).default(0),
   sale_price: z.number().min(0).default(0),
