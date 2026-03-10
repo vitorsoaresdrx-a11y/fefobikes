@@ -73,6 +73,7 @@ export type Database = {
           description: string | null
           frame_size: string | null
           id: string
+          images: string[] | null
           name: string
           rim_size: string | null
           sale_price: number | null
@@ -90,6 +91,7 @@ export type Database = {
           description?: string | null
           frame_size?: string | null
           id?: string
+          images?: string[] | null
           name: string
           rim_size?: string | null
           sale_price?: number | null
@@ -107,6 +109,7 @@ export type Database = {
           description?: string | null
           frame_size?: string | null
           id?: string
+          images?: string[] | null
           name?: string
           rim_size?: string | null
           sale_price?: number | null
@@ -155,6 +158,7 @@ export type Database = {
           gears: string | null
           hub_style: string | null
           id: string
+          images: string[] | null
           material: string | null
           name: string
           notes: string | null
@@ -174,6 +178,7 @@ export type Database = {
           gears?: string | null
           hub_style?: string | null
           id?: string
+          images?: string[] | null
           material?: string | null
           name: string
           notes?: string | null
@@ -193,6 +198,7 @@ export type Database = {
           gears?: string | null
           hub_style?: string | null
           id?: string
+          images?: string[] | null
           material?: string | null
           name?: string
           notes?: string | null
