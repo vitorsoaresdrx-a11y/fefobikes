@@ -21,7 +21,7 @@ export interface Part {
   updated_at: string;
 }
 
-export type PartInsert = Omit<Part, "id" | "created_at" | "updated_at">;
+export type PartInsert = Omit<Part, "id" | "created_at" | "updated_at" | "sku">;
 
 const PARTS_KEY = ["parts"];
 
