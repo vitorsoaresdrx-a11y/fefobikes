@@ -144,6 +144,7 @@ export default function BikeForm() {
         installment_count: Number((bike as any).installment_count) || 1,
       });
       setBikeImages((bike as any).images || []);
+    }
   }, [bike]);
 
   useEffect(() => {
