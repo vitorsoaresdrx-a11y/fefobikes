@@ -120,7 +120,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-background border-border">
         <SheetHeader>
           <SheetTitle className="text-foreground">
-            {isEditing ? "Editar Peça" : "Nova Peça"}
+            {isEditing ? "Editar Produto" : "Novo Produto"}
           </SheetTitle>
         </SheetHeader>
 
