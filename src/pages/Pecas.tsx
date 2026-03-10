@@ -48,16 +48,16 @@ export default function Pecas() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-lg font-semibold text-foreground">Peças</h1>
-        <Button size="sm" onClick={handleNew} className="gap-1.5">
+        <Button size="sm" onClick={handleNew} className="gap-1.5 w-full sm:w-auto">
           <Plus className="h-4 w-4" />
           Nova Peça
         </Button>
       </div>
 
       {/* Search */}
-      <div className="relative max-w-sm">
+      <div className="relative w-full sm:max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por nome ou categoria..."
