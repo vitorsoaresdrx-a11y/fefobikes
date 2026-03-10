@@ -286,7 +286,6 @@ export default function BikeForm() {
               <p className="text-[10px] text-muted-foreground">Código interno — editável após criação</p>
             </div>
           )}
-          <div className="space-y-2">
             <Label className="text-sm">Categoria</Label>
             <Select
               value={form.watch("category") || ""}
