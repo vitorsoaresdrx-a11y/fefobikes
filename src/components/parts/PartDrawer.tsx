@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useCreatePart, useUpdatePart, type Part } from "@/hooks/useParts";
 import { CategoryCombobox } from "@/components/parts/CategoryCombobox";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 const partSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
