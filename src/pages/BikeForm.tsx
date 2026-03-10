@@ -373,7 +373,49 @@ export default function BikeForm() {
             <ImageUpload images={bikeImages} onChange={setBikeImages} folder="bikes" />
           </div>
 
-          {/* ── Stats ─────────────────────────────────────────────────────── */}
+          {/* ── Ficha Técnica (full width) ──────────────────────────────────── */}
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl space-y-8">
+            <SectionHeader title="Ficha Técnica" icon={Maximize2} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <SmallInput
+                label="Marca de Origem"
+                placeholder="Ex: Caloi, Trek, Specialized"
+                {...form.register("brand")}
+              />
+              <SmallInput
+                label="Tamanho Quadro"
+                placeholder="Ex: M, 17"
+                {...form.register("frame_size")}
+              />
+              <SmallInput
+                label="Aro"
+                placeholder="Ex: 29, 700c"
+                {...form.register("rim_size")}
+              />
+              <SmallInput
+                label="Cor do Modelo"
+                placeholder="Ex: Preto, Vermelho"
+                {...form.register("color")}
+              />
+              <div className="space-y-1.5 group">
+                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                  Peso (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min={0}
+                  value={form.watch("weight_kg") ?? ""}
+                  onChange={(e) =>
+                    form.setValue("weight_kg", parseFloat(e.target.value) || undefined)
+                  }
+                  className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
+                  placeholder="Ex: 12.5"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatBox
               title="Custo Montagem"
