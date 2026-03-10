@@ -208,7 +208,7 @@ export default function Gastos() {
             </div>
             <div className="relative z-10 flex flex-col justify-between h-full space-y-12">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#820AD1]">
+                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#2952FF]">
                   <Repeat className="w-6 h-6" />
                 </div>
                 <Badge>CUSTO FIXO</Badge>
