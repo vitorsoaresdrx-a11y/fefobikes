@@ -4,6 +4,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -176,11 +183,32 @@ export default function BikeForm() {
           </div>
           <div className="space-y-2">
             <Label className="text-sm">Categoria</Label>
-            <Input
-              {...form.register("category")}
-              className="bg-card border-border h-9 text-sm"
-              placeholder="MTB, Speed, Urban, BMX, Gravel..."
-            />
+            <Select
+              value={form.watch("category") || ""}
+              onValueChange={(val) => form.setValue("category", val)}
+            >
+              <SelectTrigger className="bg-card border-border h-9 text-sm">
+                <SelectValue placeholder="Selecione a categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  "MTB",
+                  "Speed / Road",
+                  "Gravel",
+                  "Urban / Cidade",
+                  "BMX",
+                  "Elétrica",
+                  "Infantil",
+                  "Dobrável",
+                  "Cargo",
+                  "Touring",
+                ].map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label className="text-sm">Descrição</Label>
