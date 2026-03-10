@@ -101,6 +101,9 @@ export default function BikeForm() {
       cost_mode: "fixed",
       cost_price: 0,
       sale_price: 0,
+      pix_price: 0,
+      installment_price: 0,
+      installment_count: 1,
     },
   });
 
