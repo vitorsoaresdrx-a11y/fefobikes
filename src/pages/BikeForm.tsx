@@ -31,6 +31,11 @@ import { PartSelector } from "@/components/bikes/PartSelector";
 const bikeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   category: z.string().optional(),
+  brand: z.string().optional(),
+  frame_size: z.string().optional(),
+  rim_size: z.string().optional(),
+  color: z.string().optional(),
+  weight_kg: z.number().min(0).optional(),
   description: z.string().optional(),
   visible_on_storefront: z.boolean().default(false),
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
