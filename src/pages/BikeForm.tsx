@@ -732,119 +732,116 @@ export default function BikeForm() {
                 </div>
               </div>
 
-              {/* Ficha Técnica */}
+              {/* Estoque & Visibilidade */}
               <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
-                <SectionHeader title="Ficha Técnica" icon={Maximize2} />
-                <div className="space-y-4">
-                  <SmallInput
-                    label="Marca de Origem"
-                    placeholder="Ex: Caloi, Trek, Specialized"
-                    {...form.register("brand")}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <SmallInput
-                      label="Tamanho Quadro"
-                      placeholder="Ex: M, 17"
-                      {...form.register("frame_size")}
-                    />
-                    <SmallInput
-                      label="Aro"
-                      placeholder="Ex: 29, 700c"
-                      {...form.register("rim_size")}
-                    />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[#2952FF]/10 flex items-center justify-center text-[#2952FF]">
+                    <Box size={16} />
                   </div>
-                  <SmallInput
-                    label="Cor do Modelo"
-                    placeholder="Ex: Preto, Vermelho"
-                    {...form.register("color")}
-                  />
-                  <div className="space-y-1.5 group">
-                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
-                      Peso (kg)
+                  <h4 className="text-sm font-black text-white tracking-tight italic uppercase">
+                    Logística
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                      Estoque Atual
                     </label>
                     <input
                       type="number"
-                      step="0.1"
                       min={0}
-                      value={form.watch("weight_kg") ?? ""}
+                      value={form.watch("stock_qty")}
                       onChange={(e) =>
-                        form.setValue("weight_kg", parseFloat(e.target.value) || undefined)
+                        form.setValue("stock_qty", parseInt(e.target.value) || 0)
                       }
                       className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                      placeholder="Ex: 12.5"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                      Alerta Mín.
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.watch("alert_stock")}
+                      onChange={(e) =>
+                        form.setValue("alert_stock", parseInt(e.target.value) || 0)
+                      }
+                      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
+                      placeholder="Ex: 2"
                     />
                   </div>
                 </div>
 
-                <div className="h-px bg-zinc-800" />
-
-                {/* Estoque */}
-                <div className="space-y-4">
+                {/* Visibilidade toggle */}
+                <div className="flex items-center justify-between p-5 bg-[#0A0A0B] border border-zinc-800 rounded-[28px] hover:border-[#2952FF]/50 transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#2952FF]/10 flex items-center justify-center text-[#2952FF]">
-                      <Box size={16} />
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                      <Eye size={16} />
                     </div>
-                    <h4 className="text-sm font-black text-white tracking-tight italic uppercase">
-                      Logística
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                        Estoque Atual
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={form.watch("stock_qty")}
-                        onChange={(e) =>
-                          form.setValue("stock_qty", parseInt(e.target.value) || 0)
-                        }
-                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
-                        Alerta Mín.
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={form.watch("alert_stock")}
-                        onChange={(e) =>
-                          form.setValue("alert_stock", parseInt(e.target.value) || 0)
-                        }
-                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                        placeholder="Ex: 2"
-                      />
+                    <div>
+                      <p className="text-sm font-bold text-white">Exibir na Loja</p>
+                      <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">
+                        Vitrine Online
+                      </p>
                     </div>
                   </div>
-
-                  {/* Visibilidade toggle */}
-                  <div className="flex items-center justify-between p-5 bg-[#0A0A0B] border border-zinc-800 rounded-[28px] hover:border-[#2952FF]/50 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                        <Eye size={16} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-white">Exibir na Loja</p>
-                        <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">
-                          Vitrine Online
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={form.watch("visible_on_storefront")}
-                      onCheckedChange={(val) =>
-                        form.setValue("visible_on_storefront", val)
-                      }
-                    />
-                  </div>
+                  <Switch
+                    checked={form.watch("visible_on_storefront")}
+                    onCheckedChange={(val) =>
+                      form.setValue("visible_on_storefront", val)
+                    }
+                  />
                 </div>
               </div>
 
             </div>
           </div>
+
+          {/* ── Ficha Técnica (full width) ──────────────────────────────────── */}
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl space-y-8">
+            <SectionHeader title="Ficha Técnica" icon={Maximize2} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+              <SmallInput
+                label="Marca de Origem"
+                placeholder="Ex: Caloi, Trek, Specialized"
+                {...form.register("brand")}
+              />
+              <SmallInput
+                label="Tamanho Quadro"
+                placeholder="Ex: M, 17"
+                {...form.register("frame_size")}
+              />
+              <SmallInput
+                label="Aro"
+                placeholder="Ex: 29, 700c"
+                {...form.register("rim_size")}
+              />
+              <SmallInput
+                label="Cor do Modelo"
+                placeholder="Ex: Preto, Vermelho"
+                {...form.register("color")}
+              />
+              <div className="space-y-1.5 group">
+                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                  Peso (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min={0}
+                  value={form.watch("weight_kg") ?? ""}
+                  onChange={(e) =>
+                    form.setValue("weight_kg", parseFloat(e.target.value) || undefined)
+                  }
+                  className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
+                  placeholder="Ex: 12.5"
+                />
+              </div>
+            </div>
+          </div>
+
         </div>
       </form>
     </div>
