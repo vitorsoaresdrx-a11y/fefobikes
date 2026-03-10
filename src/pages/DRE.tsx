@@ -159,7 +159,7 @@ function DRELineRow({
       <div className="flex items-center gap-4">
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-            isSubtotal ? "bg-[#820AD1]/10 text-[#820AD1]" : "bg-zinc-900 text-zinc-500"
+            isSubtotal ? "bg-[#2952FF]/10 text-[#2952FF]" : "bg-zinc-900 text-zinc-500"
           }`}
         >
           <Icon size={18} />
