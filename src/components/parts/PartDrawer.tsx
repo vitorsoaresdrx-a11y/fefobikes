@@ -122,6 +122,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               Informações
             </h3>
             <div className="space-y-2">
+              <Label className="text-sm">Fotos</Label>
+              <ImageUpload images={partImages} onChange={setPartImages} folder="parts" />
+            </div>
+            <div className="space-y-2">
               <Label className="text-sm">Item *</Label>
               <Input
                 {...form.register("name")}
