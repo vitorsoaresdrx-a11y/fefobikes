@@ -202,7 +202,7 @@ export default function BikeForm() {
         alert_stock: values.alert_stock,
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
-        sale_price: values.sale_price,
+        sale_price: values.pix_price,
         pix_price: values.pix_price,
         installment_price: values.installment_price,
         installment_count: values.installment_count,
