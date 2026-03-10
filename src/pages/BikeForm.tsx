@@ -3,21 +3,27 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Plus, Trash2, DollarSign, TrendingUp } from "lucide-react";
-import { ImageUpload } from "@/components/ui/image-upload";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+  ArrowLeft,
+  Plus,
+  Trash2,
+  DollarSign,
+  TrendingUp,
+  Camera,
+  Save,
+  Wrench,
+  Activity,
+  Image as ImageIcon,
+  Tag,
+  Maximize2,
+  CreditCard,
+  Layers,
+  ChevronRight,
+  Eye,
+  Box,
+} from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import {
   useBikeModel,
   useBikeModelParts,
@@ -29,6 +35,7 @@ import { useParts } from "@/hooks/useParts";
 import { useToast } from "@/hooks/use-toast";
 import { PartSelector } from "@/components/bikes/PartSelector";
 
+// ─── Schema ───────────────────────────────────────────────────────────────────
 const bikeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   sku: z.string().optional(),
@@ -60,11 +67,70 @@ interface TemplatePart {
   unit_cost: number;
 }
 
-/** Formats a number as BRL currency */
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+// ─── Sub-components (UI only) ─────────────────────────────────────────────────
+const SectionHeader = ({
+  title,
+  icon: Icon,
+  subtitle,
+}: {
+  title: string;
+  icon: React.ElementType;
+  subtitle?: string;
+}) => (
+  <div className="flex flex-col gap-1 mb-8">
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-[#820AD1]/10 flex items-center justify-center text-[#820AD1]">
+        <Icon size={20} />
+      </div>
+      <h3 className="text-xl font-black text-white tracking-tight italic uppercase">{title}</h3>
+    </div>
+    {subtitle && <p className="text-xs text-zinc-500 ml-13 font-medium">{subtitle}</p>}
+  </div>
+);
+
+const StatBox = ({
+  title,
+  value,
+  icon,
+  color = "text-white",
+}: {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  color?: string;
+}) => (
+  <div className="p-6 bg-[#161618] border border-zinc-800 rounded-[32px] shadow-lg flex flex-col gap-2 hover:border-zinc-700 transition-all">
+    <div className="flex items-center gap-2 text-zinc-500">
+      {icon}
+      <span className="text-[10px] font-black uppercase tracking-widest">{title}</span>
+    </div>
+    <span className={`text-2xl font-black tracking-tighter ${color}`}>{value}</span>
+  </div>
+);
+
+const SmallInput = ({
+  label,
+  placeholder,
+  ...props
+}: { label: string; placeholder?: string } & React.InputHTMLAttributes<HTMLInputElement>) => (
+  <div className="space-y-1.5 group">
+    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+      {label}
+    </label>
+    <input
+      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+      placeholder={placeholder}
+      {...props}
+    />
+  </div>
+);
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function BikeForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -108,11 +174,13 @@ export default function BikeForm() {
   const costMode = form.watch("cost_mode");
   const costPrice = form.watch("cost_price");
   const pixPrice = form.watch("pix_price");
+  const installmentPrice = form.watch("installment_price");
+  const installmentCount = form.watch("installment_count");
 
-  // For manual mode, sum up part costs * quantities
-  const manualCost = useMemo(() => {
-    return templateParts.reduce((sum, p) => sum + p.unit_cost * p.quantity, 0);
-  }, [templateParts]);
+  const manualCost = useMemo(
+    () => templateParts.reduce((sum, p) => sum + p.unit_cost * p.quantity, 0),
+    [templateParts]
+  );
 
   const effectiveCost = costMode === "fixed" ? costPrice : manualCost;
   const profitValue = pixPrice - effectiveCost;
@@ -162,7 +230,14 @@ export default function BikeForm() {
   const addRow = () => {
     setTemplateParts((prev) => [
       ...prev,
-      { key: crypto.randomUUID(), part_id: null, part_name_override: null, quantity: 1, notes: null, unit_cost: 0 },
+      {
+        key: crypto.randomUUID(),
+        part_id: null,
+        part_name_override: null,
+        quantity: 1,
+        notes: null,
+        unit_cost: 0,
+      },
     ]);
   };
 
@@ -176,7 +251,6 @@ export default function BikeForm() {
     );
   };
 
-  /** When selecting a part from catalog, auto-fill its unit_cost */
   const handleSelectPart = (key: string, partId: string) => {
     const catalogPart = allParts.find((p) => p.id === partId);
     updateRow(key, {
@@ -208,12 +282,9 @@ export default function BikeForm() {
         installment_count: values.installment_count,
         images: bikeImages,
       };
-      if (isEditing && values.sku) {
-        payload.sku = values.sku;
-      }
+      if (isEditing && values.sku) payload.sku = values.sku;
 
       let bikeId: string;
-
       if (isEditing) {
         await updateBike.mutateAsync({ id, ...payload });
         bikeId = id;
@@ -222,7 +293,6 @@ export default function BikeForm() {
         bikeId = created.id;
       }
 
-      // Save template parts (only in manual mode they matter, but save anyway)
       if (values.cost_mode === "manual") {
         await saveParts.mutateAsync({
           bikeModelId: bikeId,
@@ -244,416 +314,537 @@ export default function BikeForm() {
     }
   };
 
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-2xl space-y-6">
-      {/* Back button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="gap-1.5 text-muted-foreground hover:text-foreground -ml-2"
-        onClick={() => navigate("/bikes")}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Voltar
-      </Button>
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 pb-32">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-12">
 
-      <h1 className="text-lg font-semibold text-foreground">
-        {isEditing ? "Editar Bike" : "Nova Bike"}
-      </h1>
+          {/* ── Topbar ────────────────────────────────────────────────────── */}
+          <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#161618] p-6 rounded-[32px] border border-zinc-800 shadow-2xl">
+            <div className="flex items-center gap-6">
+              <button
+                type="button"
+                onClick={() => navigate("/bikes")}
+                className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-zinc-500 hover:text-white transition-all border border-zinc-800"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#820AD1]">
+                  Oficina & Vitrine
+                </span>
+                <h1 className="text-2xl font-black text-white tracking-tight uppercase italic leading-none">
+                  {isEditing ? "Editar Bike" : "Nova Bike"}
+                </h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/bikes")}
+                className="h-12 px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-sm font-bold transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="h-12 px-10 rounded-2xl bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+              >
+                <Save size={16} />
+                {isEditing ? "Salvar" : "Criar Bike"}
+              </button>
+            </div>
+          </header>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Informações do Modelo */}
-        <section className="space-y-3">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Informações do Modelo
-          </h3>
-
-          {/* Image upload */}
-          <div className="space-y-2">
-            <Label className="text-sm">Fotos</Label>
+          {/* ── Galeria ───────────────────────────────────────────────────── */}
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-3">
+                <ImageIcon className="text-[#820AD1]" size={20} />
+                <h3 className="text-sm font-black uppercase tracking-widest text-white italic">
+                  Galeria do Marketplace
+                </h3>
+              </div>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase">
+                {bikeImages.length} / 5 Imagens
+              </span>
+            </div>
             <ImageUpload images={bikeImages} onChange={setBikeImages} folder="bikes" />
           </div>
-          <div className="space-y-2">
-            <Label className="text-sm">Nome *</Label>
-            <Input
-              {...form.register("name")}
-              className="bg-card border-border h-9 text-sm"
-              placeholder="Ex: Trail X Pro"
+
+          {/* ── Stats ─────────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatBox
+              title="Custo Montagem"
+              value={formatBRL(effectiveCost)}
+              icon={<Wrench size={14} />}
             />
-            {form.formState.errors.name && (
-              <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
-            )}
-          </div>
-          {isEditing && (
-            <div className="space-y-2">
-              <Label className="text-sm">SKU</Label>
-              <Input
-                {...form.register("sku")}
-                className="bg-card border-border h-9 text-sm font-mono"
-                placeholder="Gerado automaticamente"
-              />
-              <p className="text-[10px] text-muted-foreground">Código interno — editável após criação</p>
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label className="text-sm">Categoria</Label>
-            <Select
-              value={form.watch("category") || ""}
-              onValueChange={(val) => form.setValue("category", val)}
-            >
-              <SelectTrigger className="bg-card border-border h-9 text-sm">
-                <SelectValue placeholder="Selecione a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {[
-                  "MTB",
-                  "Speed / Road",
-                  "Gravel",
-                  "Urban / Cidade",
-                  "BMX",
-                  "Elétrica",
-                  "Infantil",
-                  "Dobrável",
-                  "Cargo",
-                  "Touring",
-                ].map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm">Marca</Label>
-            <Input
-              {...form.register("brand")}
-              className="bg-card border-border h-9 text-sm"
-              placeholder="Ex: Shimano, Caloi, Trek"
+            <StatBox
+              title="Valor PIX"
+              value={formatBRL(pixPrice)}
+              icon={<DollarSign size={14} />}
+              color="text-[#820AD1]"
+            />
+            <StatBox
+              title="Margem Bruta"
+              value={formatBRL(profitValue)}
+              icon={<TrendingUp size={14} />}
+              color={profitValue >= 0 ? "text-emerald-400" : "text-red-400"}
+            />
+            <StatBox
+              title="Rentabilidade"
+              value={profitPercent.toFixed(1) + "%"}
+              icon={<Activity size={14} />}
+              color={profitPercent >= 0 ? "text-emerald-400" : "text-red-400"}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="text-sm">Tamanho do quadro</Label>
-              <Input
-                {...form.register("frame_size")}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="Ex: 17, M, 29"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Tamanho do aro</Label>
-              <Input
-                {...form.register("rim_size")}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="Ex: 26, 29, 700c"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="text-sm">Cor</Label>
-              <Input
-                {...form.register("color")}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="Ex: Preto, Vermelho"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Peso (kg)</Label>
-              <Input
-                type="number"
-                step="0.1"
-                min={0}
-                value={form.watch("weight_kg") ?? ""}
-                onChange={(e) => form.setValue("weight_kg", parseFloat(e.target.value) || undefined)}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="Ex: 12.5"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm">Descrição</Label>
-            <Textarea
-              {...form.register("description")}
-              className="bg-card border-border text-sm min-h-[80px] resize-none"
-              placeholder="Descrição do modelo..."
-            />
-          </div>
-        </section>
 
-        <Separator className="bg-border" />
+          {/* ── Main Layout ───────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        {/* Modo de Custo */}
-        <section className="space-y-4">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Precificação
-          </h3>
+            {/* Left Column */}
+            <div className="lg:col-span-8 space-y-8">
 
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => form.setValue("cost_mode", "fixed")}
-              className={`p-3 rounded-md border text-left transition-colors ${
-                costMode === "fixed"
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
-              }`}
-            >
-              <p className="text-sm font-medium">Bike pronta</p>
-              <p className="text-xs mt-0.5 opacity-70">Preço de custo fixo</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => form.setValue("cost_mode", "manual")}
-              className={`p-3 rounded-md border text-left transition-colors ${
-                costMode === "manual"
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
-              }`}
-            >
-              <p className="text-sm font-medium">Montagem manual</p>
-              <p className="text-xs mt-0.5 opacity-70">Custo calculado pelas peças</p>
-            </button>
-          </div>
+              {/* Identidade */}
+              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+                <SectionHeader
+                  title="Identidade do Modelo"
+                  icon={Tag}
+                  subtitle="Configure como o produto será exibido para o cliente final."
+                />
 
-          {/* Fixed cost mode */}
-          {costMode === "fixed" && (
-            <div className="space-y-2">
-              <Label className="text-sm">Preço de custo (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min={0}
-                value={costPrice || ""}
-                onChange={(e) => form.setValue("cost_price", parseFloat(e.target.value) || 0)}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="0,00"
-              />
-            </div>
-          )}
-
-          {/* Manual cost mode — Template de Peças */}
-          {costMode === "manual" && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Peças da bike
-                </h4>
-                <Button type="button" variant="outline" size="sm" className="gap-1 h-7 text-xs" onClick={addRow}>
-                  <Plus className="h-3 w-3" />
-                  Adicionar
-                </Button>
-              </div>
-
-              {templateParts.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">
-                  Nenhuma peça adicionada
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {templateParts.map((tp) => (
-                    <div key={tp.key} className="flex items-start gap-2 p-3 border border-border rounded-md bg-card">
-                      <div className="flex-1 space-y-2">
-                        <PartSelector
-                          parts={allParts}
-                          selectedPartId={tp.part_id}
-                          customName={tp.part_name_override}
-                          onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
-                          onCustomName={(name) => updateRow(tp.key, { part_id: null, part_name_override: name })}
-                        />
-                        <div className="flex gap-2">
-                          <div className="w-16">
-                            <Label className="text-xs text-muted-foreground">Qtd</Label>
-                            <Input
-                              type="number"
-                              min={1}
-                              value={tp.quantity}
-                              onChange={(e) => updateRow(tp.key, { quantity: parseInt(e.target.value) || 1 })}
-                              className="bg-background border-border h-8 text-xs"
-                            />
-                          </div>
-                          <div className="w-28">
-                            <Label className="text-xs text-muted-foreground">Custo unit. (R$)</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min={0}
-                              value={tp.unit_cost || ""}
-                              onChange={(e) => updateRow(tp.key, { unit_cost: parseFloat(e.target.value) || 0 })}
-                              className="bg-background border-border h-8 text-xs"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <Label className="text-xs text-muted-foreground">Subtotal</Label>
-                            <div className="h-8 flex items-center text-xs text-muted-foreground">
-                              {formatBRL(tp.unit_cost * tp.quantity)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0 mt-1"
-                        onClick={() => removeRow(tp.key)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 space-y-2 group">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                        Nome Comercial *
+                      </label>
+                      <input
+                        {...form.register("name")}
+                        className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                        placeholder="Ex: Trail X Pro"
+                      />
+                      {form.formState.errors.name && (
+                        <p className="text-xs text-red-400 ml-1">
+                          {form.formState.errors.name.message}
+                        </p>
+                      )}
                     </div>
-                  ))}
+                    <div className="space-y-2 group">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                        Categoria
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={form.watch("category") || ""}
+                          onChange={(e) => form.setValue("category", e.target.value)}
+                          className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 outline-none focus:border-[#820AD1] appearance-none text-sm font-bold text-zinc-300 cursor-pointer"
+                        >
+                          <option value="">Selecione...</option>
+                          {["MTB", "Speed / Road", "Gravel", "Urban / Cidade", "BMX", "Elétrica", "Infantil", "Dobrável", "Cargo", "Touring"].map((cat) => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 rotate-90 pointer-events-none" size={16} />
+                      </div>
+                    </div>
+                  </div>
 
-                  {/* Manual cost total */}
-                  <div className="flex justify-between items-center px-3 py-2 bg-card border border-border rounded-md">
-                    <span className="text-xs font-medium text-muted-foreground">Custo total das peças</span>
-                    <span className="text-sm font-semibold text-foreground">{formatBRL(manualCost)}</span>
+                  {isEditing && (
+                    <SmallInput
+                      label="SKU — editável após criação"
+                      placeholder="Gerado automaticamente"
+                      {...form.register("sku")}
+                    />
+                  )}
+
+                  <div className="space-y-2 group">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                      Descrição da Oferta
+                    </label>
+                    <textarea
+                      {...form.register("description")}
+                      className="w-full h-40 bg-[#1C1C1E] border border-zinc-800 rounded-[28px] p-6 text-sm text-zinc-400 outline-none focus:border-[#820AD1] transition-all resize-none leading-relaxed"
+                      placeholder="Conte sobre a performance, estado de conservação e upgrades..."
+                    />
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
 
-          
-
-          {/* PIX / Dinheiro price */}
-          <div className="space-y-2">
-            <Label className="text-sm">Preço no PIX / Dinheiro (R$)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              min={0}
-              value={form.watch("pix_price") || ""}
-              onChange={(e) => form.setValue("pix_price", parseFloat(e.target.value) || 0)}
-              className="bg-card border-border h-9 text-sm"
-              placeholder="0,00"
-            />
-            <p className="text-[10px] text-muted-foreground">Preço com desconto para pagamento à vista</p>
-          </div>
-
-          {/* Installment */}
-          <div className="space-y-2">
-            <Label className="text-sm">Parcelamento no cartão</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Valor da parcela (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={form.watch("installment_price") || ""}
-                  onChange={(e) => form.setValue("installment_price", parseFloat(e.target.value) || 0)}
-                  className="bg-card border-border h-9 text-sm"
-                  placeholder="0,00"
+              {/* Build & Componentes */}
+              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+                <SectionHeader
+                  title="Build & Componentes"
+                  icon={Wrench}
+                  subtitle="Mapeie as peças vinculadas para obter o custo de inventário preciso."
                 />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Nº de parcelas</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={24}
-                  value={form.watch("installment_count") || 1}
-                  onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
-                  className="bg-card border-border h-9 text-sm"
-                  placeholder="12"
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Margin display */}
-          {(effectiveCost > 0 || pixPrice > 0) && (
-            <div className="flex gap-3">
-              <div className="flex-1 p-3 rounded-md border border-border bg-card">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Margem (R$)</span>
+                {/* Cost mode toggle */}
+                <div className="flex p-1 bg-[#0A0A0B] border border-zinc-800 rounded-2xl mb-8">
+                  <button
+                    type="button"
+                    onClick={() => form.setValue("cost_mode", "fixed")}
+                    className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      costMode === "fixed"
+                        ? "bg-[#2C2C2E] text-white shadow-xl"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    Custo Direto (Fixo)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => form.setValue("cost_mode", "manual")}
+                    className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      costMode === "manual"
+                        ? "bg-[#2C2C2E] text-white shadow-xl"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    Custo Composto (Peças)
+                  </button>
                 </div>
-                <p className={`text-base font-semibold ${profitValue >= 0 ? "text-emerald-500" : "text-destructive"}`}>
-                  {formatBRL(profitValue)}
-                </p>
+
+                {/* Fixed cost */}
+                {costMode === "fixed" && (
+                  <div className="space-y-2 group">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                      Preço de Custo (R$)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={costPrice || ""}
+                      onChange={(e) =>
+                        form.setValue("cost_price", parseFloat(e.target.value) || 0)
+                      }
+                      className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                      placeholder="0,00"
+                    />
+                  </div>
+                )}
+
+                {/* Manual parts */}
+                {costMode === "manual" && (
+                  <div className="space-y-4">
+                    {templateParts.length === 0 ? (
+                      <p className="text-sm text-zinc-500 py-8 text-center">
+                        Nenhuma peça adicionada
+                      </p>
+                    ) : (
+                      templateParts.map((tp) => (
+                        <div
+                          key={tp.key}
+                          className="group flex items-start gap-4 p-6 bg-[#0A0A0B] border border-zinc-800 rounded-[32px] hover:border-zinc-700 transition-all"
+                        >
+                          <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-600 border border-zinc-800 shrink-0">
+                            <Layers size={20} />
+                          </div>
+                          <div className="flex-1 space-y-3 min-w-0">
+                            <PartSelector
+                              parts={allParts}
+                              selectedPartId={tp.part_id}
+                              customName={tp.part_name_override}
+                              onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
+                              onCustomName={(name) =>
+                                updateRow(tp.key, {
+                                  part_id: null,
+                                  part_name_override: name,
+                                })
+                              }
+                            />
+                            <div className="flex gap-3">
+                              <div className="w-20">
+                                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                                  Qtd
+                                </label>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={tp.quantity}
+                                  onChange={(e) =>
+                                    updateRow(tp.key, {
+                                      quantity: parseInt(e.target.value) || 1,
+                                    })
+                                  }
+                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                                />
+                              </div>
+                              <div className="w-36">
+                                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                                  Custo unit. (R$)
+                                </label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  value={tp.unit_cost || ""}
+                                  onChange={(e) =>
+                                    updateRow(tp.key, {
+                                      unit_cost: parseFloat(e.target.value) || 0,
+                                    })
+                                  }
+                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                                  Subtotal
+                                </label>
+                                <div className="h-10 flex items-center text-sm font-bold text-[#820AD1]">
+                                  {formatBRL(tp.unit_cost * tp.quantity)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeRow(tp.key)}
+                            className="w-10 h-10 rounded-xl bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center shrink-0 mt-1"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+
+                    {/* Total */}
+                    {templateParts.length > 0 && (
+                      <div className="flex justify-between items-center px-6 py-4 bg-[#0A0A0B] border border-zinc-800 rounded-[28px]">
+                        <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">
+                          Custo Total das Peças
+                        </span>
+                        <span className="text-xl font-black text-white">
+                          {formatBRL(manualCost)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Add row */}
+                    <button
+                      type="button"
+                      onClick={addRow}
+                      className="w-full rounded-[32px] border-dashed border-2 border-zinc-800 py-10 flex flex-col items-center justify-center gap-3 hover:bg-[#820AD1]/5 hover:border-[#820AD1]/50 transition-all group"
+                    >
+                      <Plus
+                        size={24}
+                        className="text-[#820AD1] group-hover:scale-110 transition-transform"
+                      />
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 group-hover:text-zinc-300">
+                        Vincular Novo Componente
+                      </span>
+                    </button>
+                  </div>
+                )}
               </div>
-              <div className="flex-1 p-3 rounded-md border border-border bg-card">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Margem (%)</span>
+            </div>
+
+            {/* Right Column */}
+            <div className="lg:col-span-4 space-y-8">
+
+              {/* Financeiro */}
+              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
+                <SectionHeader title="Financeiro" icon={DollarSign} />
+
+                {/* PIX price */}
+                <div className="p-8 bg-[#0A0A0B] border border-zinc-800 rounded-[32px] relative overflow-hidden group">
+                  <div className="absolute -right-4 -top-4 opacity-[0.05] text-zinc-600 group-hover:rotate-12 transition-transform duration-700">
+                    <DollarSign size={120} />
+                  </div>
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">
+                    Preço PIX / Dinheiro
+                  </label>
+                  <div className="flex items-baseline gap-2 relative z-10">
+                    <span className="text-xl font-bold text-[#820AD1]">R$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      className="bg-transparent border-none outline-none text-4xl font-black text-white w-full tracking-tighter"
+                      value={pixPrice || ""}
+                      onChange={(e) =>
+                        form.setValue("pix_price", parseFloat(e.target.value) || 0)
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                  <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
+                    Preço com desconto para pagamento à vista
+                  </p>
                 </div>
-                <p className={`text-base font-semibold ${profitPercent >= 0 ? "text-emerald-500" : "text-destructive"}`}>
-                  {profitPercent.toFixed(1)}%
-                </p>
+
+                {/* Installment */}
+                <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-[28px] space-y-4">
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={14} className="text-indigo-400" />
+                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                      Parcelamento no Cartão
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                        Valor da Parcela
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={installmentPrice || ""}
+                        onChange={(e) =>
+                          form.setValue(
+                            "installment_price",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
+                        placeholder="0,00"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                        Nº Parcelas
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={24}
+                        value={installmentCount}
+                        onChange={(e) =>
+                          form.setValue(
+                            "installment_count",
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                  {installmentPrice > 0 && (
+                    <p className="text-2xl font-black text-white">
+                      {installmentCount}x{" "}
+                      <span className="text-sm font-bold text-zinc-500">de</span>{" "}
+                      {formatBRL(installmentPrice)}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </section>
 
-        <Separator className="bg-border" />
+              {/* Ficha Técnica */}
+              <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
+                <SectionHeader title="Ficha Técnica" icon={Maximize2} />
+                <div className="space-y-4">
+                  <SmallInput
+                    label="Marca de Origem"
+                    placeholder="Ex: Caloi, Trek, Specialized"
+                    {...form.register("brand")}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <SmallInput
+                      label="Tamanho Quadro"
+                      placeholder="Ex: M, 17"
+                      {...form.register("frame_size")}
+                    />
+                    <SmallInput
+                      label="Aro"
+                      placeholder="Ex: 29, 700c"
+                      {...form.register("rim_size")}
+                    />
+                  </div>
+                  <SmallInput
+                    label="Cor do Modelo"
+                    placeholder="Ex: Preto, Vermelho"
+                    {...form.register("color")}
+                  />
+                  <div className="space-y-1.5 group">
+                    <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1] transition-colors">
+                      Peso (kg)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min={0}
+                      value={form.watch("weight_kg") ?? ""}
+                      onChange={(e) =>
+                        form.setValue("weight_kg", parseFloat(e.target.value) || undefined)
+                      }
+                      className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                      placeholder="Ex: 12.5"
+                    />
+                  </div>
+                </div>
 
-        {/* Estoque */}
-        <section className="space-y-3">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Estoque
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="text-sm">Estoque atual</Label>
-              <Input
-                type="number"
-                min={0}
-                value={form.watch("stock_qty")}
-                onChange={(e) => form.setValue("stock_qty", parseInt(e.target.value) || 0)}
-                className="bg-card border-border h-9 text-sm"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Estoque de alerta</Label>
-              <Input
-                type="number"
-                min={0}
-                value={form.watch("alert_stock")}
-                onChange={(e) => form.setValue("alert_stock", parseInt(e.target.value) || 0)}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="Ex: 2"
-              />
-              <p className="text-[10px] text-muted-foreground">Avisa quando chegar nessa quantidade</p>
+                <div className="h-px bg-zinc-800" />
+
+                {/* Estoque */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[#820AD1]/10 flex items-center justify-center text-[#820AD1]">
+                      <Box size={16} />
+                    </div>
+                    <h4 className="text-sm font-black text-white tracking-tight italic uppercase">
+                      Logística
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                        Estoque Atual
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={form.watch("stock_qty")}
+                        onChange={(e) =>
+                          form.setValue("stock_qty", parseInt(e.target.value) || 0)
+                        }
+                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                        Alerta Mín.
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={form.watch("alert_stock")}
+                        onChange={(e) =>
+                          form.setValue("alert_stock", parseInt(e.target.value) || 0)
+                        }
+                        className="w-full h-12 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                        placeholder="Ex: 2"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Visibilidade toggle */}
+                  <div className="flex items-center justify-between p-5 bg-[#0A0A0B] border border-zinc-800 rounded-[28px] hover:border-[#820AD1]/50 transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                        <Eye size={16} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Exibir na Loja</p>
+                        <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">
+                          Vitrine Online
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={form.watch("visible_on_storefront")}
+                      onCheckedChange={(val) =>
+                        form.setValue("visible_on_storefront", val)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
-        </section>
-
-        <Separator className="bg-border" />
-
-        {/* Visibilidade */}
-        <section className="space-y-3">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Visibilidade
-          </h3>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-foreground">Exibir na loja</p>
-              <p className="text-xs text-muted-foreground">
-                Quando ativo, esta bike poderá aparecer no site público
-              </p>
-            </div>
-            <Switch
-              checked={form.watch("visible_on_storefront")}
-              onCheckedChange={(val) => form.setValue("visible_on_storefront", val)}
-            />
-          </div>
-        </section>
-
-        {/* Actions */}
-        <div className="flex gap-2 pt-2">
-          <Button type="submit" size="sm" className="flex-1">
-            {isEditing ? "Salvar" : "Criar bike"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/bikes")}
-          >
-            Cancelar
-          </Button>
         </div>
       </form>
     </div>
