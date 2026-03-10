@@ -6,10 +6,11 @@ import {
   CreditCard,
   Receipt,
   Percent,
-  ArrowDown,
   Minus,
   ChevronLeft,
   ChevronRight,
+  Activity,
+  Target,
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
@@ -23,54 +24,192 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 
-const MONTHS_SHORT = [
-  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
-];
+// ─── Constantes ───────────────────────────────────────────────────────────────
 
-const MONTHS_FULL = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-];
-
+const MONTHS_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MONTHS_FULL  = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const TAX_RATE = 0.08;
 
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function formatCompact(value: number) {
-  if (Math.abs(value) >= 1000) {
-    return `R$ ${(value / 1000).toFixed(1)}k`;
-  }
-  return formatBRL(value);
+// ─── Design System ────────────────────────────────────────────────────────────
+
+const Btn = ({
+  children,
+  variant = "ghost",
+  size = "icon",
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "primary" | "ghost";
+  size?: "icon" | "md";
+}) => {
+  const v = {
+    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1]",
+    ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
+  };
+  const s = {
+    icon: "h-9 w-9 flex items-center justify-center rounded-xl",
+    md: "h-10 px-4 py-2 text-sm font-bold rounded-xl",
+  };
+  return (
+    <button
+      className={`inline-flex items-center justify-center transition-all active:scale-95 disabled:opacity-30 ${v[variant]} ${s[size]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+// ─── Subcomponentes ───────────────────────────────────────────────────────────
+
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  tag,
+  color = "text-white",
+}: {
+  title: string;
+  value: number;
+  icon: React.ElementType;
+  tag: string;
+  color?: string;
+}) {
+  return (
+    <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
+      <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
+        <Icon size={160} />
+      </div>
+      <div className="relative z-10 flex flex-col justify-between h-full space-y-10">
+        <div className="flex items-center justify-between">
+          <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-zinc-400">
+            <Icon size={22} />
+          </div>
+          <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full uppercase tracking-widest">
+            {tag}
+          </span>
+        </div>
+        <div>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
+          <h2 className={`text-2xl font-black tracking-tighter ${color}`}>{formatBRL(value)}</h2>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-interface DRELine {
+function ChartContainer({
+  title,
+  subtitle,
+  value,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  value: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-8 space-y-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-black text-white tracking-tighter">{value}</h3>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800">
+              {subtitle}
+            </span>
+          </div>
+        </div>
+        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-zinc-600">
+          <Activity size={18} />
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function DRELineRow({
+  label,
+  value,
+  icon: Icon,
+  type,
+}: {
   label: string;
   value: number;
-  type: "revenue" | "deduction" | "subtotal" | "total";
-  icon?: React.ElementType;
+  icon: React.ElementType;
+  type: "header" | "deduction" | "subtotal";
+}) {
+  const isDeduction = type === "deduction";
+  const isSubtotal = type === "subtotal";
+  return (
+    <div
+      className={`flex items-center justify-between p-4 rounded-2xl transition-colors ${
+        isSubtotal ? "bg-zinc-900 border border-zinc-800" : "hover:bg-white/[0.02]"
+      }`}
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            isSubtotal ? "bg-[#820AD1]/10 text-[#820AD1]" : "bg-zinc-900 text-zinc-500"
+          }`}
+        >
+          <Icon size={18} />
+        </div>
+        <span className={`text-sm font-bold ${isSubtotal ? "text-white" : "text-zinc-400"}`}>
+          {label}
+        </span>
+      </div>
+      <span
+        className={`text-sm font-black tabular-nums ${
+          isDeduction
+            ? "text-red-400/80"
+            : isSubtotal
+            ? "text-indigo-400"
+            : "text-zinc-100"
+        }`}
+      >
+        {value < 0 ? `- ${formatBRL(Math.abs(value))}` : formatBRL(value)}
+      </span>
+    </div>
+  );
 }
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-[#1C1C1E] border border-zinc-800 p-4 rounded-2xl shadow-2xl">
+      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Dia {label}</p>
+      <p className="text-sm font-black text-white">{formatBRL(payload[0].value)}</p>
+    </div>
+  );
+}
+
+// ─── Componente Principal ─────────────────────────────────────────────────────
 
 export default function DRE() {
   const { data: sales = [], isLoading: salesLoading } = useSales();
   const { data: fixedExpenses = [], isLoading: fixedLoading } = useFixedExpenses();
   const { data: variableExpenses = [], isLoading: varLoading } = useVariableExpenses();
   const isLoading = salesLoading || fixedLoading || varLoading;
+
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
 
-  // Monthly fixed cost (sum of active fixed expenses)
   const monthlyFixedCost = useMemo(
     () => fixedExpenses.filter((e) => e.active).reduce((s, e) => s + Number(e.amount), 0),
     [fixedExpenses]
   );
 
-  // Monthly aggregation
   const monthlyData = useMemo(() => {
     const months = Array.from({ length: 12 }, (_, i) => ({
       month: i,
@@ -98,12 +237,13 @@ export default function DRE() {
       ...m,
       taxes: m.revenue * TAX_RATE,
       fixedExpenses: monthlyFixedCost,
-      netProfit: m.revenue - m.revenue * TAX_RATE - m.cardFees - monthlyFixedCost - m.variableExpenses,
+      netProfit:
+        m.revenue - m.revenue * TAX_RATE - m.cardFees - monthlyFixedCost - m.variableExpenses,
     }));
   }, [sales, variableExpenses, selectedYear, monthlyFixedCost]);
 
-  // Totals for the year
   const monthsInScope = selectedYear === currentYear ? new Date().getMonth() + 1 : 12;
+
   const totals = useMemo(() => {
     const t = monthlyData.reduce(
       (acc, m) => ({
@@ -120,24 +260,11 @@ export default function DRE() {
     return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit };
   }, [monthlyData, monthlyFixedCost, monthsInScope]);
 
-  // DRE lines
-  const dreLines: DRELine[] = [
-    { label: "Faturamento Bruto", value: totals.revenue, type: "revenue", icon: DollarSign },
-    { label: "(-) Impostos (8%)", value: -totals.taxes, type: "deduction", icon: Percent },
-    { label: "(-) Taxas de Cartão", value: -totals.cardFees, type: "deduction", icon: CreditCard },
-    { label: "= Receita Líquida", value: totals.netRevenue, type: "subtotal", icon: Receipt },
-    { label: "(-) Gastos Fixos", value: -totals.fixedExpenses, type: "deduction", icon: Minus },
-    { label: "(-) Gastos Variáveis", value: -totals.variableExpenses, type: "deduction", icon: Minus },
-    { label: "(-) Perdas", value: 0, type: "deduction", icon: TrendingDown },
-    { label: "= Lucro Líquido", value: totals.netProfit, type: "total", icon: TrendingUp },
-  ];
-
-  // Daily chart data for selected month
   const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+
   const dailyChartData = useMemo(() => {
     const days = Array.from({ length: daysInMonth }, (_, i) => ({
       day: i + 1,
-      label: String(i + 1),
       revenue: 0,
       netProfit: 0,
     }));
@@ -152,28 +279,11 @@ export default function DRE() {
       days[d].netProfit += rev - rev * TAX_RATE - cardFee;
     });
 
-    // Only show up to today if current month/year
-    const isCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
+    const isCurrentMonth =
+      selectedYear === currentYear && selectedMonth === new Date().getMonth();
     const limit = isCurrentMonth ? new Date().getDate() : daysInMonth;
     return days.slice(0, limit);
   }, [sales, selectedYear, selectedMonth, daysInMonth, currentYear]);
-
-  // Show every Nth day tick to avoid clutter
-  const dayTickInterval = daysInMonth <= 15 ? 1 : daysInMonth <= 22 ? 2 : 4;
-
-  const customTooltip = ({ active, payload, label }: any) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg">
-        <p className="text-xs font-medium text-foreground mb-1">Dia {label}</p>
-        {payload.map((entry: any, i: number) => (
-          <p key={i} className="text-xs text-muted-foreground">
-            {entry.name}: <span className="font-medium text-foreground">{formatBRL(entry.value)}</span>
-          </p>
-        ))}
-      </div>
-    );
-  };
 
   const prevMonth = () => {
     if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear((y) => y - 1); }
@@ -185,323 +295,186 @@ export default function DRE() {
     if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear((y) => y + 1); }
     else setSelectedMonth((m) => m + 1);
   };
-  const isAtCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
+  const isAtCurrentMonth =
+    selectedYear === currentYear && selectedMonth === new Date().getMonth();
+
+  const marginPct =
+    totals.revenue > 0
+      ? ((totals.netProfit / totals.revenue) * 100).toFixed(1)
+      : "0.0";
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-muted-foreground">Carregando...</p>
+      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#820AD1] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-foreground">DRE</h1>
-        <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-1">
-          <button
-            onClick={() => setSelectedYear((y) => y - 1)}
-            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
+      <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
+
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+                <Activity className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-black tracking-widest text-[#820AD1]">PERFORMANCE HUB</span>
+            </div>
+            <h1 className="text-4xl font-extrabold tracking-tight">Análise DRE</h1>
+          </div>
+
+          <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-2xl p-1">
+            <Btn onClick={() => setSelectedYear((y) => y - 1)}>
+              <ChevronLeft className="w-4 h-4" />
+            </Btn>
+            <span className="text-xs font-black uppercase tracking-widest px-6 min-w-[100px] text-center">
+              {selectedYear}
+            </span>
+            <Btn
+              onClick={() => setSelectedYear((y) => Math.min(y + 1, currentYear))}
+              disabled={selectedYear >= currentYear}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Btn>
+          </div>
+        </header>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" />
+          <StatCard title="Receita Líquida" value={totals.netRevenue} icon={Receipt} tag="Após Taxas" color="text-indigo-400" />
+          <StatCard
+            title="Despesas Totais"
+            value={totals.fixedExpenses + totals.variableExpenses}
+            icon={TrendingDown}
+            tag="Saídas"
+            color="text-red-400"
+          />
+          <StatCard
+            title="Lucro Líquido"
+            value={totals.netProfit}
+            icon={totals.netProfit >= 0 ? TrendingUp : TrendingDown}
+            tag="Resultado"
+            color={totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}
+          />
+        </div>
+
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartContainer
+            title="Faturamento Diário"
+            subtitle={MONTHS_FULL[selectedMonth]}
+            value={formatBRL(dailyChartData.reduce((s, d) => s + d.revenue, 0))}
           >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="text-sm font-medium text-foreground min-w-[48px] text-center">
-            {selectedYear}
-          </span>
-          <button
-            onClick={() => setSelectedYear((y) => Math.min(y + 1, currentYear))}
-            disabled={selectedYear >= currentYear}
-            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={dailyChartData}>
+                  <defs>
+                    <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#820AD1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#820AD1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C1C1E" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "#52525B", fontSize: 10 }} />
+                  <YAxis hide />
+                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#2C2C2E" }} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#820AD1"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#purpleGrad)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartContainer>
+
+          <ChartContainer
+            title="Lucro Líquido Diário"
+            subtitle={MONTHS_FULL[selectedMonth]}
+            value={formatBRL(dailyChartData.reduce((s, d) => s + d.netProfit, 0))}
           >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI Cards - row 1 */}
-        <KPICard
-          label="Faturamento"
-          value={formatBRL(totals.revenue)}
-          icon={DollarSign}
-          accent="primary"
-        />
-        <KPICard
-          label="Impostos (8%)"
-          value={formatBRL(totals.taxes)}
-          icon={Percent}
-          accent="amber"
-        />
-        <KPICard
-          label="Taxas de Cartão"
-          value={formatBRL(totals.cardFees)}
-          icon={CreditCard}
-          accent="rose"
-        />
-        <KPICard
-          label="Lucro Líquido"
-          value={formatBRL(totals.netProfit)}
-          icon={totals.netProfit >= 0 ? TrendingUp : TrendingDown}
-          accent={totals.netProfit >= 0 ? "emerald" : "destructive"}
-        />
-
-        {/* Month selector for charts */}
-        <div className="md:col-span-2 lg:col-span-4 flex items-center gap-2 bg-card border border-border rounded-lg px-1 w-fit">
-          <button onClick={prevMonth} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="text-sm font-medium text-foreground min-w-[140px] text-center">
-            {MONTHS_FULL[selectedMonth]} {selectedYear}
-          </span>
-          <button
-            onClick={nextMonth}
-            disabled={isAtCurrentMonth}
-            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C1C1E" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "#52525B", fontSize: 10 }} />
+                  <YAxis hide />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
+                  <Bar dataKey="netProfit" radius={[4, 4, 0, 0]}>
+                    {dailyChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.netProfit >= 0 ? "#10B981" : "#EF4444"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartContainer>
         </div>
 
-        {/* Revenue Chart - spans 2 cols */}
-        <div className="md:col-span-2 bg-card border border-border rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                Faturamento Diário
-              </p>
-              <p className="text-xl font-semibold text-foreground mt-1">
-                {formatBRL(dailyChartData.reduce((s, d) => s + d.revenue, 0))}
-              </p>
-            </div>
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <DollarSign className="h-4 w-4 text-primary" />
+        {/* DRE Detalhado */}
+        <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
+            <h3 className="font-bold text-lg">Demonstrativo Detalhado</h3>
+            <div className="flex items-center gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800">
+              <Btn onClick={prevMonth}>
+                <ChevronLeft size={16} />
+              </Btn>
+              <span className="text-[10px] font-black uppercase tracking-widest px-4 min-w-[100px] text-center">
+                {MONTHS_FULL[selectedMonth]}
+              </span>
+              <Btn onClick={nextMonth} disabled={isAtCurrentMonth}>
+                <ChevronRight size={16} />
+              </Btn>
             </div>
           </div>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dailyChartData}>
-                <defs>
-                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(225, 100%, 60%)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="hsl(225, 100%, 60%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 12%)" />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={dayTickInterval}
-                />
-                <YAxis
-                  tick={false}
-                  axisLine={false}
-                  tickLine={false}
-                  width={20}
-                  label={{ value: "R$", position: "insideTopLeft", offset: -5, fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
-                />
-                <Tooltip content={customTooltip} />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  name="Faturamento"
-                  stroke="hsl(225, 100%, 60%)"
-                  strokeWidth={2}
-                  fill="url(#revenueGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        {/* Profit Chart - spans 2 cols */}
-        <div className="md:col-span-2 bg-card border border-border rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                Lucro Líquido Diário
-              </p>
-              {(() => {
-                const monthProfit = dailyChartData.reduce((s, d) => s + d.netProfit, 0);
-                return (
-                  <p className={`text-xl font-semibold mt-1 ${monthProfit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
-                    {formatBRL(monthProfit)}
-                  </p>
-                );
-              })()}
-            </div>
-            <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
-              totals.netProfit >= 0 ? "bg-emerald-500/10" : "bg-destructive/10"
-            }`}>
-              {totals.netProfit >= 0 ? (
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-destructive" />
-              )}
-            </div>
-          </div>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 12%)" />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={dayTickInterval}
-                />
-                <YAxis
-                  tick={false}
-                  axisLine={false}
-                  tickLine={false}
-                  width={20}
-                  label={{ value: "R$", position: "insideTopLeft", offset: -5, fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
-                />
-                <Tooltip content={customTooltip} />
-                <Bar
-                  dataKey="netProfit"
-                  name="Lucro Líquido"
-                  radius={[4, 4, 0, 0]}
-                  fill="hsl(152, 76%, 40%)"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+          <div className="p-4 md:p-8 space-y-2">
+            <DRELineRow label="Faturamento Bruto" value={totals.revenue} icon={DollarSign} type="header" />
+            <DRELineRow label="Impostos sobre Venda (8%)" value={-totals.taxes} icon={Percent} type="deduction" />
+            <DRELineRow label="Taxas de Intermediação (Cartão)" value={-totals.cardFees} icon={CreditCard} type="deduction" />
 
-        {/* Full DRE Statement - spans all 4 cols */}
-        <div className="md:col-span-2 lg:col-span-4 bg-card border border-border rounded-xl p-5">
-          <h2 className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
-            Demonstração do Resultado — {selectedYear}
-          </h2>
-          <div className="space-y-1">
-            {dreLines.map((line, i) => {
-              const Icon = line.icon;
-              const isSubtotal = line.type === "subtotal";
-              const isTotal = line.type === "total";
-              const isDeduction = line.type === "deduction";
+            <div className="py-4">
+              <div className="h-px bg-zinc-800/50 w-full" />
+            </div>
 
-              return (
-                <div key={i}>
-                  {(isSubtotal || isTotal) && (
-                    <div className="border-t border-border my-2" />
-                  )}
-                  <div
-                    className={`flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors ${
-                      isTotal
-                        ? "bg-primary/5 border border-primary/20"
-                        : isSubtotal
-                        ? "bg-muted/30"
-                        : "hover:bg-muted/20"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {Icon && (
-                        <div
-                          className={`h-7 w-7 rounded-md flex items-center justify-center ${
-                            isTotal
-                              ? line.value >= 0
-                                ? "bg-emerald-500/10"
-                                : "bg-destructive/10"
-                              : isSubtotal
-                              ? "bg-primary/10"
-                              : isDeduction
-                              ? "bg-muted/50"
-                              : "bg-primary/10"
-                          }`}
-                        >
-                          <Icon
-                            className={`h-3.5 w-3.5 ${
-                              isTotal
-                                ? line.value >= 0
-                                  ? "text-emerald-500"
-                                  : "text-destructive"
-                                : isSubtotal
-                                ? "text-primary"
-                                : isDeduction
-                                ? "text-muted-foreground"
-                                : "text-primary"
-                            }`}
-                          />
-                        </div>
-                      )}
-                      <span
-                        className={`text-sm ${
-                          isTotal || isSubtotal
-                            ? "font-semibold text-foreground"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {line.label}
-                      </span>
-                    </div>
-                    <span
-                      className={`text-sm font-mono tabular-nums ${
-                        isTotal
-                          ? line.value >= 0
-                            ? "text-emerald-500 font-bold text-base"
-                            : "text-destructive font-bold text-base"
-                          : isSubtotal
-                          ? "font-semibold text-foreground"
-                          : line.value < 0
-                          ? "text-destructive/80"
-                          : line.value === 0
-                          ? "text-muted-foreground/40"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {line.value === 0 && line.type === "deduction"
-                        ? "—"
-                        : formatBRL(Math.abs(line.value))}
-                    </span>
-                  </div>
+            <DRELineRow label="Receita Líquida Operacional" value={totals.netRevenue} icon={Target} type="subtotal" />
+            <DRELineRow label="Custos Fixos Totais" value={-totals.fixedExpenses} icon={Minus} type="deduction" />
+            <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
+
+            {/* Lucro Final */}
+            <div className="mt-6 p-8 bg-[#820AD1]/5 border border-[#820AD1]/20 rounded-[24px] flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-[#820AD1] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(130,10,209,0.4)]">
+                  <TrendingUp size={28} />
                 </div>
-              );
-            })}
+                <div>
+                  <h4 className="text-white font-black text-xl">Lucro Líquido Final</h4>
+                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
+                    Resultado do Exercício de {selectedYear}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className={`text-3xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {formatBRL(totals.netProfit)}
+                </p>
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  Margem: {marginPct}%
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
 
-/* ─── KPI Card ─── */
-function KPICard({
-  label,
-  value,
-  icon: Icon,
-  accent,
-}: {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-  accent: string;
-}) {
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    primary: { bg: "bg-primary/10", text: "text-primary" },
-    emerald: { bg: "bg-emerald-500/10", text: "text-emerald-500" },
-    amber: { bg: "bg-amber-500/10", text: "text-amber-500" },
-    rose: { bg: "bg-rose-500/10", text: "text-rose-500" },
-    destructive: { bg: "bg-destructive/10", text: "text-destructive" },
-  };
-  const c = colorMap[accent] || colorMap.primary;
-
-  return (
-    <div className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-          {label}
-        </p>
-        <div className={`h-8 w-8 rounded-lg ${c.bg} flex items-center justify-center`}>
-          <Icon className={`h-4 w-4 ${c.text}`} />
-        </div>
       </div>
-      <p className="text-xl font-semibold text-foreground">{value}</p>
     </div>
   );
 }
