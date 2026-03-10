@@ -38,6 +38,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   const createPart = useCreatePart();
   const updatePart = useUpdatePart();
   const isEditing = !!part;
+  const [partImages, setPartImages] = useState<string[]>([]);
 
   const form = useForm<PartFormValues>({
     resolver: zodResolver(partSchema),
