@@ -173,7 +173,7 @@ function DRELineRow({
           isDeduction
             ? "text-red-400/80"
             : isSubtotal
-            ? "text-indigo-400"
+            ? "text-blue-400"
             : "text-zinc-100"
         }`}
       >
