@@ -9,6 +9,8 @@ export interface BikeModel {
   category: string | null;
   description: string | null;
   visible_on_storefront: boolean;
+  stock_qty: number;
+  alert_stock: number;
   created_at: string;
   updated_at: string;
 }
