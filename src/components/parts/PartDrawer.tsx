@@ -92,6 +92,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       rim_size: null,
       frame_size: null,
       visible_on_storefront: false,
+      images: partImages,
     };
 
     if (isEditing) {
