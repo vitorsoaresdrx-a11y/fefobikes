@@ -50,7 +50,7 @@ const Btn = ({
   size?: "icon" | "md";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF]",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
   };
   const s = {
@@ -159,7 +159,7 @@ function DRELineRow({
       <div className="flex items-center gap-4">
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-            isSubtotal ? "bg-[#820AD1]/10 text-[#820AD1]" : "bg-zinc-900 text-zinc-500"
+            isSubtotal ? "bg-[#2952FF]/10 text-[#2952FF]" : "bg-zinc-900 text-zinc-500"
           }`}
         >
           <Icon size={18} />
@@ -173,7 +173,7 @@ function DRELineRow({
           isDeduction
             ? "text-red-400/80"
             : isSubtotal
-            ? "text-indigo-400"
+            ? "text-blue-400"
             : "text-zinc-100"
         }`}
       >
@@ -319,10 +319,10 @@ export default function DRE() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Activity className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#820AD1]">PERFORMANCE HUB</span>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">PERFORMANCE HUB</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Análise DRE</h1>
           </div>
@@ -374,9 +374,9 @@ export default function DRE() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={dailyChartData}>
                   <defs>
-                    <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#820AD1" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#820AD1" stopOpacity={0} />
+                    <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2952FF" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#2952FF" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C1C1E" />
@@ -386,10 +386,10 @@ export default function DRE() {
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#820AD1"
+                    stroke="#2952FF"
                     strokeWidth={3}
                     fillOpacity={1}
-                    fill="url(#purpleGrad)"
+                    fill="url(#blueGrad)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -450,9 +450,9 @@ export default function DRE() {
             <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
 
             {/* Lucro Final */}
-            <div className="mt-6 p-8 bg-[#820AD1]/5 border border-[#820AD1]/20 rounded-[24px] flex items-center justify-between">
+            <div className="mt-6 p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-[24px] flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#820AD1] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(130,10,209,0.4)]">
+                <div className="w-14 h-14 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)]">
                   <TrendingUp size={28} />
                 </div>
                 <div>

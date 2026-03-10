@@ -45,7 +45,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.3)]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.3)]",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
     outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
@@ -69,7 +69,7 @@ const Btn = ({
 
 const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`w-full bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-zinc-100 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600 ${className}`}
+    className={`w-full bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600 ${className}`}
     {...props}
   />
 );
@@ -101,7 +101,7 @@ function PaymentCard({
       onClick={onClick}
       className={`h-24 rounded-3xl border flex flex-col items-center justify-center gap-2 transition-all ${
         active
-          ? "bg-[#820AD1]/10 border-[#820AD1] text-white shadow-[0_0_20px_rgba(130,10,209,0.2)]"
+          ? "bg-[#2952FF]/10 border-[#2952FF] text-white shadow-[0_0_20px_rgba(41,82,255,0.2)]"
           : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
       }`}
     >
@@ -274,17 +274,17 @@ export default function PDV() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30 pb-40">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-40">
       <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <ShoppingCart className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#820AD1]">CHECKOUT EXPRESS</span>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">CHECKOUT EXPRESS</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
           </div>
@@ -312,7 +312,7 @@ export default function PDV() {
               <h3 className="font-bold text-lg text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                 <Layers size={18} /> Itens Selecionados
               </h3>
-              <span className="text-xs font-black text-[#820AD1] bg-[#820AD1]/10 px-3 py-1 rounded-full">
+              <span className="text-xs font-black text-[#2952FF] bg-[#2952FF]/10 px-3 py-1 rounded-full">
                 {itemCount} Unidades
               </span>
             </div>
@@ -366,10 +366,10 @@ export default function PDV() {
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-[#1C1C1E]/80 backdrop-blur-2xl border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[32px] p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10">
           <div className="flex items-center gap-6 px-4">
             <div className="relative">
-              <div className="w-12 h-12 bg-[#820AD1] rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-lg">
                 <ShoppingCart size={20} />
               </div>
-              <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-[#820AD1] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
+              <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-[#2952FF] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
                 {itemCount}
               </span>
             </div>
@@ -439,7 +439,7 @@ export default function PDV() {
                     onClick={() => setCatalogCategory(cat)}
                     className={`shrink-0 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all border ${
                       catalogCategory === cat
-                        ? "bg-[#820AD1]/10 border-[#820AD1] text-white"
+                        ? "bg-[#2952FF]/10 border-[#2952FF] text-white"
                         : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
                     }`}
                   >
@@ -480,7 +480,7 @@ export default function PDV() {
                         <div>
                           {item.category && <Badge variant="outline">{item.category}</Badge>}
                           <h4 className="text-lg font-bold text-white mt-1">{item.name}</h4>
-                          <p className="text-xl font-black text-[#820AD1] mt-1">{formatBRL(price)}</p>
+                          <p className="text-xl font-black text-[#2952FF] mt-1">{formatBRL(price)}</p>
                           {!isBike && (
                             <p className="text-[10px] text-zinc-600 mt-0.5 uppercase tracking-widest">
                               Estoque: {item.stock_qty}
@@ -517,7 +517,7 @@ export default function PDV() {
             {/* Footer do catálogo */}
             <div className="p-6 bg-[#1C1C1E] border border-zinc-800 rounded-[32px] flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#820AD1]/10 text-[#820AD1] rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-[#2952FF]/10 text-[#2952FF] rounded-2xl flex items-center justify-center">
                   <ShoppingCart size={20} />
                 </div>
                 <div>
@@ -654,7 +654,7 @@ export default function PDV() {
                         }}
                         className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
                           selectedCustomerId === c.id
-                            ? "bg-[#820AD1]/10 border-[#820AD1] text-white"
+                            ? "bg-[#2952FF]/10 border-[#2952FF] text-white"
                             : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
                         }`}
                       >
@@ -662,7 +662,7 @@ export default function PDV() {
                           <p className="font-bold text-white">{c.name}</p>
                           <p className="text-[10px] uppercase tracking-widest">{c.whatsapp}</p>
                         </div>
-                        {selectedCustomerId === c.id && <CheckCircle2 className="text-[#820AD1]" />}
+                        {selectedCustomerId === c.id && <CheckCircle2 className="text-[#2952FF]" />}
                       </button>
                     ))}
                   </div>
@@ -670,7 +670,7 @@ export default function PDV() {
 
                 {/* Cliente selecionado */}
                 {selectedCustomer && (
-                  <div className="p-4 bg-[#820AD1]/10 border border-[#820AD1]/30 rounded-2xl flex items-center justify-between">
+                  <div className="p-4 bg-[#2952FF]/10 border border-[#2952FF]/30 rounded-2xl flex items-center justify-between">
                     <div>
                       <p className="font-bold text-white">{selectedCustomer.name}</p>
                       <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
