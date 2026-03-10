@@ -13,7 +13,7 @@ const Btn = ({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button
     disabled={disabled}
-    className={`inline-flex items-center justify-center rounded-2xl bg-[#820AD1] hover:bg-[#9D3BE1] text-white font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(130,10,209,0.3)] transition-all active:scale-95 disabled:opacity-70 ${className}`}
+    className={`inline-flex items-center justify-center rounded-2xl bg-[#2952FF] hover:bg-[#4A6FFF] text-white font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(41,82,255,0.3)] transition-all active:scale-95 disabled:opacity-70 ${className}`}
     {...props}
   >
     {children}
@@ -22,7 +22,7 @@ const Btn = ({
 
 const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`flex w-full bg-[#161618] border border-zinc-800 h-14 px-4 rounded-2xl text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#820AD1] focus:border-transparent transition-all placeholder:text-zinc-600 ${className}`}
+    className={`flex w-full bg-[#161618] border border-zinc-800 h-14 px-4 rounded-2xl text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#2952FF] focus:border-transparent transition-all placeholder:text-zinc-600 ${className}`}
     {...props}
   />
 );
@@ -62,7 +62,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[#2952FF]/30">
 
       {/* Imagem — esquerda no desktop, topo no mobile */}
       <div className="relative w-full lg:w-[60%] h-[40vh] lg:h-screen overflow-hidden">
@@ -75,7 +75,7 @@ export default function Login() {
         {/* Branding (só desktop) */}
         <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.4)]">
+            <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.4)]">
               <Bike className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-black tracking-widest text-white">FEFO BIKES</span>
@@ -93,7 +93,7 @@ export default function Login() {
           {/* Header */}
           <div className="space-y-3 text-center lg:text-left">
             <div className="lg:hidden flex justify-center mb-6">
-              <div className="w-14 h-14 bg-[#820AD1] rounded-[22px] flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+              <div className="w-14 h-14 bg-[#2952FF] rounded-[22px] flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Bike className="w-7 h-7 text-white" />
               </div>
             </div>
@@ -111,11 +111,11 @@ export default function Login() {
 
               {/* E-mail */}
               <div className="space-y-2 group">
-                <LabelEl className="ml-1 group-focus-within:text-[#820AD1] transition-colors">
-                  E-mail
-                </LabelEl>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#820AD1] transition-colors" />
+              <LabelEl className="ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                E-mail
+              </LabelEl>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors" />
                   <InputEl
                     type="email"
                     required
@@ -129,11 +129,11 @@ export default function Login() {
 
               {/* Senha */}
               <div className="space-y-2 group">
-                <LabelEl className="ml-1 group-focus-within:text-[#820AD1] transition-colors">
-                  Senha
-                </LabelEl>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#820AD1] transition-colors" />
+              <LabelEl className="ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                Senha
+              </LabelEl>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors" />
                   <InputEl
                     type="password"
                     required
