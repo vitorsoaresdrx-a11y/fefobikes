@@ -234,7 +234,7 @@ export default function Pecas() {
               placeholder="Buscar por nome, SKU ou categoria..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600"
+              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
             />
           </div>
           <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
