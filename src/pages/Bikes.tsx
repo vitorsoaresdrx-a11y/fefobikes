@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -7,7 +8,9 @@ import {
   useBikePartsCount,
   useUpdateBikeModel,
   useDeleteBikeModel,
+  type BikeModel,
 } from "@/hooks/useBikes";
+import { QRCodeModal } from "@/components/QRCodeModal";
 
 export default function Bikes() {
   const { data: bikes = [], isLoading } = useBikeModels();
@@ -15,6 +18,7 @@ export default function Bikes() {
   const updateBike = useUpdateBikeModel();
   const deleteBike = useDeleteBikeModel();
   const navigate = useNavigate();
+  const [qrBike, setQrBike] = useState<BikeModel | null>(null);
 
   const handleToggle = (id: string, current: boolean) => {
     updateBike.mutate({ id, visible_on_storefront: !current });
@@ -44,26 +48,44 @@ export default function Bikes() {
               className="border border-border rounded-md p-4 bg-card hover:bg-accent/30 transition-colors cursor-pointer"
               onClick={() => navigate(`/bikes/${bike.id}`)}
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between mb-1">
                 <div className="min-w-0">
                   <h3 className="text-sm font-medium text-foreground truncate">{bike.name}</h3>
+                  {bike.sku && (
+                    <p className="text-[10px] font-mono text-muted-foreground/70">{bike.sku}</p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {bike.category || "Sem categoria"} · {partsCounts[bike.id] || 0} peças
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteBike.mutate(bike.id);
-                  }}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  {bike.sku && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQrBike(bike);
+                      }}
+                    >
+                      <QrCode className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteBike.mutate(bike.id);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mt-2">
                 <span className="text-xs text-muted-foreground">Visível na loja</span>
                 <Switch
                   checked={bike.visible_on_storefront}
@@ -74,6 +96,15 @@ export default function Bikes() {
             </div>
           ))}
         </div>
+      )}
+
+      {qrBike?.sku && (
+        <QRCodeModal
+          open={!!qrBike}
+          onOpenChange={(open) => !open && setQrBike(null)}
+          sku={qrBike.sku}
+          productName={qrBike.name}
+        />
       )}
     </div>
   );

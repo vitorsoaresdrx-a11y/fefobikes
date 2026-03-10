@@ -19,6 +19,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 
 const partSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
+  sku: z.string().optional(),
   category: z.string().optional(),
   stock_qty: z.coerce.number().int().min(0).default(0),
   alert_stock: z.coerce.number().int().min(0).default(0),
@@ -45,6 +46,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
     resolver: zodResolver(partSchema),
     defaultValues: {
       name: "",
+      sku: "",
       category: "",
       stock_qty: 0,
       alert_stock: 0,
@@ -63,6 +65,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       if (part) {
         form.reset({
           name: part.name,
+          sku: part.sku || "",
           category: part.category || "",
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
@@ -79,7 +82,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   }, [open, part]);
 
   const onSubmit = (values: PartFormValues) => {
-    const payload = {
+    const payload: any = {
       name: values.name,
       category: values.category || null,
       stock_qty: values.stock_qty,
@@ -87,7 +90,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       unit_cost: values.unit_cost,
       sale_price: values.sale_price,
       notes: values.notes || null,
-      // keep other fields null
       weight_capacity_kg: null,
       material: null,
       gears: null,
@@ -98,6 +100,9 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       visible_on_storefront: false,
       images: partImages,
     };
+    if (isEditing && values.sku) {
+      payload.sku = values.sku;
+    }
 
     if (isEditing) {
       updatePart.mutate({ id: part.id, ...payload }, { onSuccess: () => onOpenChange(false) });
@@ -141,6 +146,17 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
               )}
             </div>
+            {isEditing && (
+              <div className="space-y-2">
+                <Label className="text-sm">SKU</Label>
+                <Input
+                  {...form.register("sku")}
+                  className="bg-card border-border h-9 text-sm font-mono"
+                  placeholder="Gerado automaticamente"
+                />
+                <p className="text-[10px] text-muted-foreground">Código interno — editável</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label className="text-sm">Categoria</Label>
               <CategoryCombobox

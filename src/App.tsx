@@ -17,6 +17,7 @@ import DRE from "@/pages/DRE";
 import Gastos from "@/pages/Gastos";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
+import ProdutoPublico from "@/pages/ProdutoPublico";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,8 @@ const App = () => (
       <BrowserRouter>
         <div className="dark">
           <Routes>
+            {/* Public route - no auth/layout */}
+            <Route path="/produto/:sku" element={<ProdutoPublico />} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/pecas" element={<Pecas />} />

@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface Part {
   id: string;
   name: string;
+  sku: string | null;
   category: string | null;
   weight_capacity_kg: number | null;
   material: string | null;
@@ -20,7 +21,7 @@ export interface Part {
   updated_at: string;
 }
 
-export type PartInsert = Omit<Part, "id" | "created_at" | "updated_at">;
+export type PartInsert = Omit<Part, "id" | "created_at" | "updated_at" | "sku">;
 
 const PARTS_KEY = ["parts"];
 
@@ -57,6 +58,7 @@ export function useCreatePart() {
       const previous = queryClient.getQueryData<Part[]>(PARTS_KEY);
       const optimistic: Part = {
         id: crypto.randomUUID(),
+        sku: null,
         ...newPart,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

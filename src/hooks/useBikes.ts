@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface BikeModel {
   id: string;
   name: string;
+  sku: string | null;
   category: string | null;
   description: string | null;
   visible_on_storefront: boolean;
@@ -22,7 +23,7 @@ export interface BikeModelPart {
   sort_order: number;
 }
 
-export type BikeModelInsert = Omit<BikeModel, "id" | "created_at" | "updated_at">;
+export type BikeModelInsert = Omit<BikeModel, "id" | "created_at" | "updated_at" | "sku">;
 export type BikeModelPartInsert = Omit<BikeModelPart, "id">;
 
 const BIKES_KEY = ["bike_models"];

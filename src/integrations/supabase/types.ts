@@ -78,6 +78,7 @@ export type Database = {
           name: string
           rim_size: string | null
           sale_price: number | null
+          sku: string | null
           stock_qty: number
           updated_at: string
           visible_on_storefront: boolean
@@ -98,6 +99,7 @@ export type Database = {
           name: string
           rim_size?: string | null
           sale_price?: number | null
+          sku?: string | null
           stock_qty?: number
           updated_at?: string
           visible_on_storefront?: boolean
@@ -118,6 +120,7 @@ export type Database = {
           name?: string
           rim_size?: string | null
           sale_price?: number | null
+          sku?: string | null
           stock_qty?: number
           updated_at?: string
           visible_on_storefront?: boolean
@@ -201,6 +204,7 @@ export type Database = {
           notes: string | null
           rim_size: string | null
           sale_price: number | null
+          sku: string | null
           stock_qty: number
           unit_cost: number | null
           updated_at: string
@@ -222,6 +226,7 @@ export type Database = {
           notes?: string | null
           rim_size?: string | null
           sale_price?: number | null
+          sku?: string | null
           stock_qty?: number
           unit_cost?: number | null
           updated_at?: string
@@ -243,6 +248,7 @@ export type Database = {
           notes?: string | null
           rim_size?: string | null
           sale_price?: number | null
+          sku?: string | null
           stock_qty?: number
           unit_cost?: number | null
           updated_at?: string

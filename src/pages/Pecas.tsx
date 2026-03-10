@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Plus, Trash2, Pencil, ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
+import { Search, Plus, Trash2, Pencil, ArrowUpDown, ArrowDown, ArrowUp, QrCode } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { useParts, useDeletePart, type Part } from "@/hooks/useParts";
 import { PartDrawer } from "@/components/parts/PartDrawer";
+import { QRCodeModal } from "@/components/QRCodeModal";
 
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -35,6 +36,7 @@ export default function Pecas() {
   const [editingPart, setEditingPart] = useState<Part | null>(null);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [qrPart, setQrPart] = useState<Part | null>(null);
 
   const getProfit = (p: Part) => (Number((p as any).sale_price) || 0) - (Number((p as any).unit_cost) || 0);
 
@@ -42,7 +44,8 @@ export default function Pecas() {
     let list = parts.filter(
       (p) =>
         p.name.toLowerCase().includes(search.toLowerCase()) ||
-        (p.category || "").toLowerCase().includes(search.toLowerCase())
+        (p.category || "").toLowerCase().includes(search.toLowerCase()) ||
+        (p.sku || "").toLowerCase().includes(search.toLowerCase())
     );
 
     list.sort((a, b) => {
@@ -125,7 +128,7 @@ export default function Pecas() {
         <div className="relative flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome ou categoria..."
+            placeholder="Buscar por nome, SKU ou categoria..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 h-9 text-sm bg-card border-border"
@@ -216,9 +219,14 @@ export default function Pecas() {
                     <TableCell>
                       <div>
                         <p className="text-sm font-medium text-foreground">{part.name}</p>
-                        {part.category && (
-                          <p className="text-xs text-muted-foreground">{part.category}</p>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {part.sku && (
+                            <span className="text-[10px] font-mono text-muted-foreground/70">{part.sku}</span>
+                          )}
+                          {part.category && (
+                            <span className="text-xs text-muted-foreground">{part.category}</span>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-center text-foreground">
@@ -237,6 +245,16 @@ export default function Pecas() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {part.sku && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => setQrPart(part)}
+                          >
+                            <QrCode className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -279,6 +297,15 @@ export default function Pecas() {
         onOpenChange={setDrawerOpen}
         part={editingPart}
       />
+
+      {qrPart?.sku && (
+        <QRCodeModal
+          open={!!qrPart}
+          onOpenChange={(open) => !open && setQrPart(null)}
+          sku={qrPart.sku}
+          productName={qrPart.name}
+        />
+      )}
     </div>
   );
 }

@@ -31,6 +31,7 @@ import { PartSelector } from "@/components/bikes/PartSelector";
 
 const bikeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
+  sku: z.string().optional(),
   category: z.string().optional(),
   brand: z.string().optional(),
   frame_size: z.string().optional(),
@@ -83,6 +84,7 @@ export default function BikeForm() {
     resolver: zodResolver(bikeSchema),
     defaultValues: {
       name: "",
+      sku: "",
       category: "",
       brand: "",
       frame_size: "",
@@ -117,6 +119,7 @@ export default function BikeForm() {
     if (bike) {
       form.reset({
         name: bike.name,
+        sku: bike.sku || "",
         category: bike.category || "",
         brand: (bike as any).brand || "",
         frame_size: (bike as any).frame_size || "",
@@ -179,7 +182,7 @@ export default function BikeForm() {
 
   const onSubmit = async (values: BikeFormValues) => {
     try {
-      const payload = {
+      const payload: any = {
         name: values.name,
         category: values.category || null,
         brand: values.brand || null,
@@ -196,6 +199,9 @@ export default function BikeForm() {
         sale_price: values.sale_price,
         images: bikeImages,
       };
+      if (isEditing && values.sku) {
+        payload.sku = values.sku;
+      }
 
       let bikeId: string;
 
@@ -269,6 +275,17 @@ export default function BikeForm() {
               <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
             )}
           </div>
+          {isEditing && (
+            <div className="space-y-2">
+              <Label className="text-sm">SKU</Label>
+              <Input
+                {...form.register("sku")}
+                className="bg-card border-border h-9 text-sm font-mono"
+                placeholder="Gerado automaticamente"
+              />
+              <p className="text-[10px] text-muted-foreground">Código interno — editável após criação</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label className="text-sm">Categoria</Label>
             <Select
