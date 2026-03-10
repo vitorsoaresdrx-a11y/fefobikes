@@ -281,6 +281,54 @@ export default function BikeForm() {
             </Select>
           </div>
           <div className="space-y-2">
+            <Label className="text-sm">Marca</Label>
+            <Input
+              {...form.register("brand")}
+              className="bg-card border-border h-9 text-sm"
+              placeholder="Ex: Shimano, Caloi, Trek"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-sm">Tamanho do quadro</Label>
+              <Input
+                {...form.register("frame_size")}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 17, M, 29"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Tamanho do aro</Label>
+              <Input
+                {...form.register("rim_size")}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 26, 29, 700c"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-sm">Cor</Label>
+              <Input
+                {...form.register("color")}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: Preto, Vermelho"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Peso (kg)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                min={0}
+                value={form.watch("weight_kg") ?? ""}
+                onChange={(e) => form.setValue("weight_kg", parseFloat(e.target.value) || undefined)}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 12.5"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label className="text-sm">Descrição</Label>
             <Textarea
               {...form.register("description")}
