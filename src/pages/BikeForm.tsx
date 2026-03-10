@@ -361,7 +361,7 @@ export default function BikeForm() {
           <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-8 shadow-2xl space-y-6">
             <div className="flex items-center justify-between px-2">
               <div className="flex items-center gap-3">
-                <ImageIcon className="text-[#820AD1]" size={20} />
+                <ImageIcon className="text-[#2952FF]" size={20} />
                 <h3 className="text-sm font-black uppercase tracking-widest text-white italic">
                   Galeria do Marketplace
                 </h3>
