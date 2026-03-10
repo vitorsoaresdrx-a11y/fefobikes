@@ -6,27 +6,19 @@ import {
   Minus,
   X,
   ClipboardPlus,
-  ChevronRight,
+  Package,
+  Bike as BikeIcon,
+  CreditCard,
+  DollarSign,
+  Zap,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  Layers,
   UserPlus,
+  ChevronRight,
+  Banknote,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useBikeModels } from "@/hooks/useBikes";
 import { useParts } from "@/hooks/useParts";
 import { useCustomers, useCreateCustomer } from "@/hooks/useCustomers";
@@ -34,9 +26,92 @@ import { useCreateSale } from "@/hooks/useSales";
 import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+// ─── Design System ────────────────────────────────────────────────────────────
+
+const Btn = ({
+  children,
+  variant = "primary",
+  size = "md",
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "primary" | "secondary" | "ghost" | "outline" | "destructive";
+  size?: "sm" | "md" | "lg" | "icon";
+}) => {
+  const v = {
+    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.3)]",
+    secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
+    ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
+    outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
+    destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
+  };
+  const s = {
+    sm: "h-9 px-4 text-xs font-bold",
+    md: "h-12 px-6 text-sm font-bold",
+    lg: "h-14 px-8 rounded-2xl text-base font-black uppercase tracking-widest",
+    icon: "h-10 w-10 flex items-center justify-center rounded-xl",
+  };
+  return (
+    <button
+      className={`inline-flex items-center justify-center rounded-2xl transition-all active:scale-95 disabled:opacity-50 ${v[variant]} ${s[size]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input
+    className={`w-full bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-zinc-100 outline-none focus:border-[#820AD1] transition-all placeholder:text-zinc-600 ${className}`}
+    {...props}
+  />
+);
+
+function Badge({ children, variant = "default" }: { children: React.ReactNode; variant?: "default" | "active" | "outline" }) {
+  const styles =
+    variant === "active"
+      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+      : variant === "outline"
+      ? "bg-zinc-800/60 text-zinc-400 border-zinc-700"
+      : "bg-zinc-800 text-zinc-500 border-zinc-700";
+  return <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${styles}`}>{children}</span>;
+}
+
+function PaymentCard({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ElementType;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-24 rounded-3xl border flex flex-col items-center justify-center gap-2 transition-all ${
+        active
+          ? "bg-[#820AD1]/10 border-[#820AD1] text-white shadow-[0_0_20px_rgba(130,10,209,0.2)]"
+          : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+      }`}
+    >
+      <Icon size={20} />
+      <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+    </button>
+  );
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface CartItem {
   key: string;
@@ -50,6 +125,8 @@ interface CartItem {
 
 type Step = "idle" | "catalog" | "cart" | "customer";
 
+// ─── PDV ──────────────────────────────────────────────────────────────────────
+
 export default function PDV() {
   const { toast } = useToast();
   const { data: bikes = [] } = useBikeModels();
@@ -62,29 +139,27 @@ export default function PDV() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [step, setStep] = useState<Step>("idle");
 
-  // Catalog modal state
-  const [catalogSearch, setCatalogSearch] = useState("");
-  const [catalogCategory, setCatalogCategory] = useState<string>("todas");
+  // Catalog
   const [catalogTab, setCatalogTab] = useState<"parts" | "bikes">("parts");
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogCategory, setCatalogCategory] = useState("todas");
 
-  // Cart modal state
-  const [paymentMethod, setPaymentMethod] = useState("dinheiro");
+  // Payment
+  const [paymentMethod, setPaymentMethod] = useState("pix");
 
-  // Customer modal state
+  // Customer
+  const [custSearch, setCustSearch] = useState("");
   const [custName, setCustName] = useState("");
   const [custWhatsapp, setCustWhatsapp] = useState("");
   const [custCpf, setCustCpf] = useState("");
-  const [custSearch, setCustSearch] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
-  const total = useMemo(
-    () => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0),
-    [cart]
-  );
+  // ── Derived ────────────────────────────────────────────────────────────────
+
+  const total = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
 
-  const isCardPayment =
-    paymentMethod === "cartão de crédito" || paymentMethod === "cartão de débito";
+  const isCardPayment = paymentMethod === "cartão de crédito" || paymentMethod === "cartão de débito";
   const cardTaxPercent = isCardPayment
     ? paymentMethod === "cartão de crédito"
       ? cardTaxes?.credit_tax || 0
@@ -92,31 +167,22 @@ export default function PDV() {
     : 0;
   const cardFee = total * (cardTaxPercent / 100);
 
-  // Categories from parts
   const categories = useMemo(() => {
     const cats = new Set<string>();
     parts.forEach((p) => p.category && cats.add(p.category));
     return Array.from(cats).sort();
   }, [parts]);
 
-  // Filtered catalog items
   const catalogItems = useMemo(() => {
     const q = catalogSearch.toLowerCase();
-    if (catalogTab === "parts") {
-      return parts.filter((p) => {
-        const matchSearch = !q || p.name.toLowerCase().includes(q) || (p.category || "").toLowerCase().includes(q);
-        const matchCat = catalogCategory === "todas" || p.category === catalogCategory;
-        return matchSearch && matchCat;
-      });
-    }
-    return bikes.filter((b) => {
-      const matchSearch = !q || b.name.toLowerCase().includes(q) || (b.category || "").toLowerCase().includes(q);
-      const matchCat = catalogCategory === "todas" || b.category === catalogCategory;
+    const source = catalogTab === "parts" ? parts : bikes;
+    return (source as any[]).filter((item) => {
+      const matchSearch = !q || item.name.toLowerCase().includes(q) || (item.category || "").toLowerCase().includes(q);
+      const matchCat = catalogCategory === "todas" || item.category === catalogCategory;
       return matchSearch && matchCat;
     });
   }, [parts, bikes, catalogSearch, catalogCategory, catalogTab]);
 
-  // Filtered customers
   const filteredCustomers = useMemo(() => {
     if (!custSearch.trim()) return [];
     const q = custSearch.toLowerCase();
@@ -125,40 +191,36 @@ export default function PDV() {
       .slice(0, 6);
   }, [customers, custSearch]);
 
+  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
+
+  // ── Cart actions ───────────────────────────────────────────────────────────
+
   const addToCart = (id: string, type: "bike" | "part", name: string, price: number, category: string | null) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === id && i.type === type);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === id && i.type === type ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
+      if (existing) return prev.map((i) => (i.id === id && i.type === type ? { ...i, quantity: i.quantity + 1 } : i));
       return [...prev, { key: crypto.randomUUID(), id, type, name, category, quantity: 1, unit_price: price }];
     });
   };
 
   const updateQty = (key: string, delta: number) => {
     setCart((prev) =>
-      prev
-        .map((i) => (i.key === key ? { ...i, quantity: i.quantity + delta } : i))
-        .filter((i) => i.quantity > 0)
+      prev.map((i) => (i.key === key ? { ...i, quantity: i.quantity + delta } : i)).filter((i) => i.quantity > 0)
     );
   };
 
-  const removeItem = (key: string) => {
-    setCart((prev) => prev.filter((i) => i.key !== key));
-  };
+  const removeItem = (key: string) => setCart((prev) => prev.filter((i) => i.key !== key));
 
   const getCartQty = (id: string, type: "bike" | "part") =>
     cart.find((i) => i.id === id && i.type === type)?.quantity || 0;
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
 
   const openCatalog = () => {
     setCatalogSearch("");
     setCatalogCategory("todas");
     setStep("catalog");
   };
-
-  const openCart = () => setStep("cart");
 
   const goToCustomer = () => {
     setCustName("");
@@ -169,11 +231,12 @@ export default function PDV() {
     setStep("customer");
   };
 
+  // ── Finalize ───────────────────────────────────────────────────────────────
+
   const handleFinalize = async () => {
     try {
       let customerId = selectedCustomerId;
 
-      // Create customer if new
       if (!customerId && custName.trim()) {
         const created = await createCustomer.mutateAsync({
           name: custName.trim(),
@@ -202,478 +265,476 @@ export default function PDV() {
       toast({ title: "Venda registrada com sucesso!" });
       setCart([]);
       setStep("idle");
-      setPaymentMethod("dinheiro");
+      setPaymentMethod("pix");
     } catch {
       toast({ title: "Erro ao registrar venda", variant: "destructive" });
     }
   };
 
-  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-semibold text-foreground">Ponto de Venda</h1>
-      </div>
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30 pb-40">
+      <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-10">
 
-      {/* Main area - empty state or summary */}
-      <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+                <ShoppingCart className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-black tracking-widest text-[#820AD1]">CHECKOUT EXPRESS</span>
+            </div>
+            <h1 className="text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
+          </div>
+          <Btn variant="primary" size="lg" onClick={openCatalog}>
+            <Plus className="w-5 h-5 mr-2 stroke-[3]" />
+            Adicionar Itens
+          </Btn>
+        </header>
+
+        {/* Carrinho / Empty State */}
         {cart.length === 0 ? (
-          <div className="space-y-3">
-            <ShoppingCart className="h-12 w-12 text-muted-foreground/30 mx-auto" />
-            <p className="text-sm text-muted-foreground">
-              Nenhum item adicionado
-            </p>
-            <Button onClick={openCatalog} className="gap-2">
-              <ClipboardPlus className="h-4 w-4" />
-              Registrar
-            </Button>
+          <div className="py-32 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-[40px]">
+            <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700">
+              <Package size={40} />
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-xl font-bold text-zinc-300">Carrinho Vazio</h4>
+              <p className="text-sm text-zinc-500 max-w-xs mx-auto">Inicie uma nova venda selecionando produtos do catálogo.</p>
+            </div>
+            <Btn variant="outline" className="px-10" onClick={openCatalog}>Abrir Catálogo</Btn>
           </div>
         ) : (
-          <div className="w-full max-w-md space-y-3">
-            <p className="text-sm text-muted-foreground mb-2">
-              {itemCount} ite{itemCount !== 1 ? "ns" : "m"} no pedido
-            </p>
-            {cart.map((item) => (
-              <div
-                key={item.key}
-                className="flex items-center justify-between p-3 border border-border rounded-md bg-card"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.quantity}x {formatBRL(item.unit_price)}
-                  </p>
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="flex items-center justify-between px-4">
+              <h3 className="font-bold text-lg text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <Layers size={18} /> Itens Selecionados
+              </h3>
+              <span className="text-xs font-black text-[#820AD1] bg-[#820AD1]/10 px-3 py-1 rounded-full">
+                {itemCount} Unidades
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              {cart.map((item) => (
+                <div
+                  key={item.key}
+                  className="group bg-[#161618] border border-zinc-800 rounded-[32px] p-6 flex items-center justify-between hover:border-zinc-700 transition-all"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
+                      {item.type === "bike" ? <BikeIcon size={32} /> : <Package size={32} />}
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold text-white">{item.name}</h4>
+                      <p className="text-sm text-zinc-500 font-medium">{formatBRL(item.unit_price)} por unidade</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 md:gap-8">
+                    <div className="flex items-center bg-[#0A0A0B] rounded-2xl p-1 border border-zinc-800">
+                      <Btn variant="ghost" size="icon" onClick={() => updateQty(item.key, -1)}><Minus size={16} /></Btn>
+                      <span className="w-10 text-center font-black text-white">{item.quantity}</span>
+                      <Btn variant="ghost" size="icon" onClick={() => updateQty(item.key, 1)}><Plus size={16} /></Btn>
+                    </div>
+                    <div className="text-right min-w-[100px] hidden sm:block">
+                      <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Subtotal</p>
+                      <p className="text-xl font-black text-white">{formatBRL(item.quantity * item.unit_price)}</p>
+                    </div>
+                    <button
+                      onClick={() => removeItem(item.key)}
+                      className="p-2 text-zinc-700 hover:text-red-500 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-foreground ml-3">
-                  {formatBRL(item.quantity * item.unit_price)}
-                </span>
-              </div>
-            ))}
-            <Button variant="outline" onClick={openCatalog} className="w-full gap-2 mt-2">
-              <Plus className="h-4 w-4" />
-              Adicionar mais itens
-            </Button>
+              ))}
+            </div>
+
+            <Btn variant="outline" className="w-full h-12" onClick={openCatalog}>
+              <Plus className="w-4 h-4 mr-2" /> Adicionar mais itens
+            </Btn>
           </div>
         )}
       </div>
 
-      {/* Bottom bar - iFood style */}
+      {/* Barra flutuante — estilo iFood */}
       {cart.length > 0 && (
-        <div className="sticky bottom-0 left-0 right-0 bg-card border-t border-border px-4 py-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground">{itemCount} ite{itemCount !== 1 ? "ns" : "m"}</p>
-            <p className="text-base font-semibold text-foreground">{formatBRL(total)}</p>
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-[#1C1C1E]/80 backdrop-blur-2xl border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[32px] p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10">
+          <div className="flex items-center gap-6 px-4">
+            <div className="relative">
+              <div className="w-12 h-12 bg-[#820AD1] rounded-2xl flex items-center justify-center text-white shadow-lg">
+                <ShoppingCart size={20} />
+              </div>
+              <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-[#820AD1] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
+                {itemCount}
+              </span>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total do Pedido</p>
+              <p className="text-2xl font-black text-white tracking-tighter">{formatBRL(total)}</p>
+            </div>
           </div>
-          <Button onClick={openCart} className="gap-2 px-6">
-            <ShoppingCart className="h-4 w-4" />
-            Ver pedido
-          </Button>
+          <Btn variant="primary" size="lg" className="h-16 px-12" onClick={() => setStep("cart")}>
+            Revisar e Pagar <ArrowRight className="ml-2 w-5 h-5" />
+          </Btn>
         </div>
       )}
 
-      {/* ===== MODAL 1: Catálogo de Estoque ===== */}
-      <Dialog open={step === "catalog"} onOpenChange={(open) => !open && setStep("idle")}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-4 pt-4 pb-2">
-            <DialogTitle className="text-base">Adicionar itens</DialogTitle>
-          </DialogHeader>
+      {/* ── MODAL 1: Catálogo ─────────────────────────────────────────────── */}
+      {step === "catalog" && (
+        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="h-full flex flex-col max-w-5xl mx-auto p-6 space-y-6">
 
-          {/* Tabs */}
-          <div className="flex gap-1 px-4 pb-2">
-            <button
-              type="button"
-              onClick={() => { setCatalogTab("parts"); setCatalogCategory("todas"); }}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                catalogTab === "parts"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted/30 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Peças
-            </button>
-            <button
-              type="button"
-              onClick={() => { setCatalogTab("bikes"); setCatalogCategory("todas"); }}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                catalogTab === "bikes"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted/30 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Bikes
-            </button>
-          </div>
-
-          {/* Search */}
-          <div className="px-4 pb-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={catalogSearch}
-                onChange={(e) => setCatalogSearch(e.target.value)}
-                placeholder="Buscar item..."
-                className="h-9 text-sm pl-9 bg-background border-border"
-              />
-            </div>
-          </div>
-
-          {/* Category chips */}
-          {catalogTab === "parts" && categories.length > 0 && (
-            <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto scrollbar-none">
+            <header className="flex items-center justify-between">
               <button
-                type="button"
-                onClick={() => setCatalogCategory("todas")}
-                className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                  catalogCategory === "todas"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                }`}
+                onClick={() => setStep("idle")}
+                className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group"
               >
-                Todas
+                <ArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+                <span className="font-bold uppercase text-xs tracking-widest">Voltar ao PDV</span>
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCatalogCategory(cat)}
-                  className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                    catalogCategory === cat
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted/40 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
+              <h2 className="text-2xl font-black text-white">Catálogo de Produtos</h2>
+              <div className="w-24" />
+            </header>
 
-          {/* Items list */}
-          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-1.5 min-h-0">
-            {catalogItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">Nenhum item encontrado</p>
-            ) : (
-              catalogItems.map((item: any) => {
-                const isBike = catalogTab === "bikes";
-                const id = item.id;
-                const type = isBike ? "bike" : "part";
-                const price = isBike
-                  ? Number(item.sale_price) || 0
-                  : Number(item.sale_price) || 0;
-                const qty = getCartQty(id, type as "bike" | "part");
-
-                return (
-                  <div
-                    key={id}
-                    className="flex items-center justify-between p-3 border border-border rounded-md bg-card hover:bg-muted/20 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {/* Thumbnail */}
-                      {item.images && item.images.length > 0 ? (
-                        <img
-                          src={item.images[0]}
-                          alt={item.name}
-                          className="h-10 w-10 rounded-md object-cover shrink-0 border border-border"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-md bg-muted/30 shrink-0 flex items-center justify-center border border-border">
-                          <span className="text-[10px] text-muted-foreground">Sem foto</span>
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          {item.category && (
-                            <Badge variant="outline" className="text-[10px] h-4 px-1.5">
-                              {item.category}
-                            </Badge>
-                          )}
-                          <span className="text-xs text-muted-foreground">{formatBRL(price)}</span>
-                          {!isBike && (
-                            <span className="text-[10px] text-muted-foreground/60">
-                              estoque: {item.stock_qty}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {qty > 0 ? (
-                      <div className="flex items-center gap-1.5 ml-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() =>
-                            updateQty(
-                              cart.find((i) => i.id === id && i.type === type)!.key,
-                              -1
-                            )
-                          }
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="text-sm font-medium w-6 text-center text-foreground">
-                          {qty}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() =>
-                            addToCart(id, type as "bike" | "part", item.name, price, item.category)
-                          }
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs gap-1 ml-2"
-                        onClick={() =>
-                          addToCart(id, type as "bike" | "part", item.name, price, item.category)
-                        }
-                      >
-                        <Plus className="h-3 w-3" />
-                        Adicionar
-                      </Button>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Bottom bar in catalog */}
-          {cart.length > 0 && (
-            <div className="border-t border-border px-4 py-3 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">{itemCount} ite{itemCount !== 1 ? "ns" : "m"}</p>
-                <p className="text-sm font-semibold text-foreground">{formatBRL(total)}</p>
-              </div>
-              <Button size="sm" onClick={() => setStep("idle")} className="gap-1.5">
-                Concluir
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* ===== MODAL 2: Resumo do Pedido (Carrinho) ===== */}
-      <Dialog open={step === "cart"} onOpenChange={(open) => !open && setStep("idle")}>
-        <DialogContent className="max-w-md max-h-[85vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-4 pt-4 pb-2">
-            <DialogTitle className="text-base">Resumo do Pedido</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 min-h-0">
-            {cart.map((item) => (
-              <div key={item.key} className="flex items-center gap-3 py-2 border-b border-border last:border-b-0">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.quantity}x {formatBRL(item.unit_price)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQty(item.key, -1)}>
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="text-sm w-5 text-center text-foreground">{item.quantity}</span>
-                    <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQty(item.key, 1)}>
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <span className="text-sm font-medium text-foreground w-20 text-right">
-                    {formatBRL(item.quantity * item.unit_price)}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeItem(item.key)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-border px-4 py-3 space-y-3">
-            {/* Payment */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Forma de pagamento</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger className="h-8 text-xs bg-background border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Dinheiro", "PIX", "Cartão de crédito", "Cartão de débito", "Transferência"].map((m) => (
-                    <SelectItem key={m} value={m.toLowerCase()}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Separator className="bg-border" />
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="text-foreground">{formatBRL(total)}</span>
-              </div>
-              {isCardPayment && cardTaxPercent > 0 && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Taxa cartão ({cardTaxPercent}%)</span>
-                  <span className="text-destructive">-{formatBRL(cardFee)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-lg font-semibold pt-1">
-                <span className="text-foreground">Total</span>
-                <span className="text-foreground">{formatBRL(total)}</span>
-              </div>
-              {isCardPayment && cardTaxPercent > 0 && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Líquido (após taxa)</span>
-                  <span className="text-emerald-500">{formatBRL(total - cardFee)}</span>
-                </div>
-              )}
-            </div>
-
-            <Button onClick={goToCustomer} className="w-full gap-2" size="sm">
-              Finalizar Pedido
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* ===== MODAL 3: Dados do Cliente ===== */}
-      <Dialog open={step === "customer"} onOpenChange={(open) => !open && setStep("cart")}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-base">Dados do Cliente</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 pt-1">
-            {/* Search existing */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Buscar cliente existente</Label>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={custSearch}
-                  onChange={(e) => {
-                    setCustSearch(e.target.value);
-                    setSelectedCustomerId(null);
-                  }}
-                  placeholder="Buscar por nome ou WhatsApp..."
-                  className="h-8 text-sm pl-9 bg-background border-border"
+            {/* Search + Tabs */}
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+                <InputEl
+                  autoFocus
+                  placeholder="Busque por nome ou categoria..."
+                  className="h-14 pl-12 pr-4"
+                  value={catalogSearch}
+                  onChange={(e) => setCatalogSearch(e.target.value)}
                 />
               </div>
-              {custSearch && filteredCustomers.length > 0 && !selectedCustomer && (
-                <div className="border border-border rounded-md bg-card max-h-32 overflow-y-auto">
-                  {filteredCustomers.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedCustomerId(c.id);
-                        setCustSearch("");
-                        setCustName(c.name);
-                        setCustWhatsapp(c.whatsapp || "");
-                        setCustCpf(c.cpf || "");
-                      }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50 flex justify-between"
+              <div className="flex p-1 bg-[#161618] rounded-2xl border border-zinc-800 shrink-0">
+                <button
+                  onClick={() => { setCatalogTab("parts"); setCatalogCategory("todas"); }}
+                  className={`px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                >
+                  Peças
+                </button>
+                <button
+                  onClick={() => { setCatalogTab("bikes"); setCatalogCategory("todas"); }}
+                  className={`px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                >
+                  Bikes
+                </button>
+              </div>
+            </div>
+
+            {/* Category chips — só peças */}
+            {catalogTab === "parts" && categories.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {["todas", ...categories].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCatalogCategory(cat)}
+                    className={`shrink-0 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all border ${
+                      catalogCategory === cat
+                        ? "bg-[#820AD1]/10 border-[#820AD1] text-white"
+                        : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                    }`}
+                  >
+                    {cat === "todas" ? "Todas" : cat}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Grid de itens */}
+            <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+              {catalogItems.length === 0 ? (
+                <div className="col-span-3 py-20 text-center text-zinc-600 text-sm">Nenhum item encontrado</div>
+              ) : (
+                catalogItems.map((item: any) => {
+                  const isBike = catalogTab === "bikes";
+                  const type = isBike ? "bike" : "part";
+                  const price = Number(item.sale_price) || 0;
+                  const qty = getCartQty(item.id, type as "bike" | "part");
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-[#161618] border border-zinc-800 rounded-[32px] p-6 flex flex-col justify-between space-y-4 hover:border-zinc-700 transition-all"
                     >
-                      <span className="text-foreground">{c.name}</span>
-                      <span className="text-xs text-muted-foreground">{c.whatsapp || ""}</span>
-                    </button>
-                  ))}
-                </div>
+                      <div className="space-y-3">
+                        {item.images && item.images.length > 0 ? (
+                          <img
+                            src={item.images[0]}
+                            alt={item.name}
+                            className="w-full aspect-square rounded-2xl object-cover border border-zinc-800"
+                          />
+                        ) : (
+                          <div className="w-full aspect-square bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-800 border border-zinc-800">
+                            {isBike ? <BikeIcon size={64} /> : <Package size={64} />}
+                          </div>
+                        )}
+                        <div>
+                          {item.category && <Badge variant="outline">{item.category}</Badge>}
+                          <h4 className="text-lg font-bold text-white mt-1">{item.name}</h4>
+                          <p className="text-xl font-black text-[#820AD1] mt-1">{formatBRL(price)}</p>
+                          {!isBike && (
+                            <p className="text-[10px] text-zinc-600 mt-0.5 uppercase tracking-widest">
+                              Estoque: {item.stock_qty}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {qty > 0 ? (
+                        <div className="flex items-center justify-between bg-[#0A0A0B] rounded-2xl p-1 border border-zinc-800">
+                          <Btn variant="ghost" size="icon" onClick={() => updateQty(cart.find((i) => i.id === item.id && i.type === type)!.key, -1)}>
+                            <Minus size={16} />
+                          </Btn>
+                          <span className="font-black text-white">{qty}</span>
+                          <Btn variant="ghost" size="icon" onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}>
+                            <Plus size={16} />
+                          </Btn>
+                        </div>
+                      ) : (
+                        <Btn
+                          variant="secondary"
+                          className="w-full"
+                          onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
+                        >
+                          <Plus className="mr-2 w-4 h-4" /> Adicionar
+                        </Btn>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
 
-            {selectedCustomer ? (
-              <div className="p-3 bg-card border border-border rounded-md">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{selectedCustomer.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {[selectedCustomer.whatsapp, selectedCustomer.cpf].filter(Boolean).join(" • ")}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs h-6"
-                    onClick={() => {
-                      setSelectedCustomerId(null);
-                      setCustName("");
-                      setCustWhatsapp("");
-                      setCustCpf("");
-                    }}
-                  >
-                    Trocar
-                  </Button>
+            {/* Footer do catálogo */}
+            <div className="p-6 bg-[#1C1C1E] border border-zinc-800 rounded-[32px] flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#820AD1]/10 text-[#820AD1] rounded-2xl flex items-center justify-center">
+                  <ShoppingCart size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pedido atual</p>
+                  <p className="font-black text-white">{itemCount} itens · {formatBRL(total)}</p>
                 </div>
               </div>
-            ) : (
-              <>
-                <Separator className="bg-border" />
-                <p className="text-xs text-muted-foreground">Ou cadastre um novo cliente:</p>
-                <div className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">Nome *</Label>
-                    <Input
-                      value={custName}
-                      onChange={(e) => setCustName(e.target.value)}
-                      className="h-9 text-sm"
-                      placeholder="Nome do cliente"
-                      maxLength={100}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">WhatsApp</Label>
-                    <Input
-                      value={custWhatsapp}
-                      onChange={(e) => setCustWhatsapp(e.target.value)}
-                      className="h-9 text-sm"
-                      placeholder="(11) 99999-9999"
-                      maxLength={20}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">CPF</Label>
-                    <Input
-                      value={custCpf}
-                      onChange={(e) => setCustCpf(e.target.value)}
-                      className="h-9 text-sm"
-                      placeholder="000.000.000-00"
-                      maxLength={14}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            <Button
-              onClick={handleFinalize}
-              disabled={(!custName.trim() && !selectedCustomerId) || createSale.isPending}
-              className="w-full gap-2"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              Salvar Pedido — {formatBRL(total)}
-            </Button>
+              <Btn variant="primary" size="lg" className="px-12" onClick={() => setStep("idle")}>
+                Concluir Seleção
+              </Btn>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+
+      {/* ── MODAL 2: Pagamento ────────────────────────────────────────────── */}
+      {step === "cart" && (
+        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
+          <div className="bg-[#1C1C1E] w-full max-w-2xl rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
+            <div className="p-10 space-y-8">
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-black text-white">Finalizar Venda</h2>
+                  <p className="text-zinc-500 text-sm">Escolha a forma de pagamento</p>
+                </div>
+                <button
+                  onClick={() => setStep("idle")}
+                  className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Payment cards visuais */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <PaymentCard active={paymentMethod === "pix"} onClick={() => setPaymentMethod("pix")} icon={Zap} label="PIX" />
+                <PaymentCard active={paymentMethod === "dinheiro"} onClick={() => setPaymentMethod("dinheiro")} icon={DollarSign} label="Dinheiro" />
+                <PaymentCard active={paymentMethod === "cartão de crédito"} onClick={() => setPaymentMethod("cartão de crédito")} icon={CreditCard} label="Crédito" />
+                <PaymentCard active={paymentMethod === "cartão de débito"} onClick={() => setPaymentMethod("cartão de débito")} icon={CreditCard} label="Débito" />
+              </div>
+
+              {/* Resumo financeiro */}
+              <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">Resumo Financeiro</span>
+                  <Badge variant="active">Pagamento Seguro</Badge>
+                </div>
+                <div className="space-y-2">
+                  {/* Itens do carrinho */}
+                  {cart.map((item) => (
+                    <div key={item.key} className="flex justify-between text-zinc-400 text-sm">
+                      <span>{item.name} ×{item.quantity}</span>
+                      <span>{formatBRL(item.quantity * item.unit_price)}</span>
+                    </div>
+                  ))}
+                  <div className="h-px bg-zinc-800 my-2" />
+                  <div className="flex justify-between text-zinc-400 text-sm">
+                    <span>Subtotal</span>
+                    <span>{formatBRL(total)}</span>
+                  </div>
+                  {isCardPayment && cardTaxPercent > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Taxa cartão ({cardTaxPercent}%)</span>
+                      <span className="text-red-400">-{formatBRL(cardFee)}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-zinc-800 my-2" />
+                  <div className="flex justify-between items-end text-white">
+                    <span className="font-bold">Valor Total</span>
+                    <span className="text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
+                  </div>
+                  {isCardPayment && cardTaxPercent > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Líquido (após taxa)</span>
+                      <span className="text-emerald-400">{formatBRL(total - cardFee)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <Btn variant="ghost" className="flex-1 h-16" onClick={() => setStep("idle")}>Revisar Itens</Btn>
+                <Btn variant="primary" className="flex-[2] h-16" onClick={goToCustomer}>
+                  Identificar Cliente <ArrowRight className="ml-2" />
+                </Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL 3: Cliente ──────────────────────────────────────────────── */}
+      {step === "customer" && (
+        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
+          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
+            <div className="p-10 space-y-8">
+
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-black text-white">Identificação</h2>
+                <button onClick={() => setStep("cart")} className="text-zinc-500 hover:text-white transition-colors">
+                  <ArrowLeft />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Busca de cliente existente */}
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+                  <InputEl
+                    placeholder="Buscar cliente por nome ou WhatsApp..."
+                    className="h-14 pl-12 pr-4"
+                    value={custSearch}
+                    onChange={(e) => {
+                      setCustSearch(e.target.value);
+                      setSelectedCustomerId(null);
+                    }}
+                  />
+                </div>
+
+                {/* Resultados da busca */}
+                {custSearch && filteredCustomers.length > 0 && !selectedCustomer && (
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {filteredCustomers.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCustomerId(c.id);
+                          setCustSearch("");
+                          setCustName(c.name);
+                          setCustWhatsapp(c.whatsapp || "");
+                          setCustCpf((c as any).cpf || "");
+                        }}
+                        className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
+                          selectedCustomerId === c.id
+                            ? "bg-[#820AD1]/10 border-[#820AD1] text-white"
+                            : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                        }`}
+                      >
+                        <div>
+                          <p className="font-bold text-white">{c.name}</p>
+                          <p className="text-[10px] uppercase tracking-widest">{c.whatsapp}</p>
+                        </div>
+                        {selectedCustomerId === c.id && <CheckCircle2 className="text-[#820AD1]" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Cliente selecionado */}
+                {selectedCustomer && (
+                  <div className="p-4 bg-[#820AD1]/10 border border-[#820AD1]/30 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-white">{selectedCustomer.name}</p>
+                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                        {[selectedCustomer.whatsapp, (selectedCustomer as any).cpf].filter(Boolean).join(" · ")}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => { setSelectedCustomerId(null); setCustName(""); setCustWhatsapp(""); setCustCpf(""); }}
+                      className="text-xs font-bold text-zinc-500 hover:text-white transition-colors"
+                    >
+                      Trocar
+                    </button>
+                  </div>
+                )}
+
+                {/* Divisor */}
+                {!selectedCustomer && (
+                  <>
+                    <div className="flex items-center gap-2 text-zinc-600">
+                      <div className="h-px flex-1 bg-zinc-800" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Ou novo cliente</span>
+                      <div className="h-px flex-1 bg-zinc-800" />
+                    </div>
+
+                    <div className="space-y-3">
+                      <InputEl
+                        placeholder="Nome *"
+                        className="h-12 px-4"
+                        value={custName}
+                        onChange={(e) => setCustName(e.target.value)}
+                        maxLength={100}
+                      />
+                      <InputEl
+                        placeholder="WhatsApp (11) 99999-9999"
+                        className="h-12 px-4"
+                        value={custWhatsapp}
+                        onChange={(e) => setCustWhatsapp(e.target.value)}
+                        maxLength={20}
+                      />
+                      <InputEl
+                        placeholder="CPF 000.000.000-00"
+                        className="h-12 px-4"
+                        value={custCpf}
+                        onChange={(e) => setCustCpf(e.target.value)}
+                        maxLength={14}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <Btn
+                variant="primary"
+                size="lg"
+                className="w-full h-16"
+                onClick={handleFinalize}
+                disabled={(!custName.trim() && !selectedCustomerId) || createSale.isPending}
+              >
+                Finalizar Venda — {formatBRL(total)}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
