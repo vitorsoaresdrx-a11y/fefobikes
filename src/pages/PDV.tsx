@@ -312,7 +312,7 @@ export default function PDV() {
               <h3 className="font-bold text-lg text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                 <Layers size={18} /> Itens Selecionados
               </h3>
-              <span className="text-xs font-black text-[#820AD1] bg-[#820AD1]/10 px-3 py-1 rounded-full">
+              <span className="text-xs font-black text-[#2952FF] bg-[#2952FF]/10 px-3 py-1 rounded-full">
                 {itemCount} Unidades
               </span>
             </div>
