@@ -160,7 +160,7 @@ export default function Bikes() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center bg-[#161618] border border-zinc-800 rounded-2xl px-4 py-2 text-zinc-500 focus-within:border-[#820AD1]/50 transition-colors">
+            <div className="hidden md:flex items-center bg-[#161618] border border-zinc-800 rounded-2xl px-4 py-2 text-zinc-500 focus-within:border-[#2952FF]/50 transition-colors">
               <Search className="w-4 h-4 mr-2 shrink-0" />
               <input
                 type="text"
