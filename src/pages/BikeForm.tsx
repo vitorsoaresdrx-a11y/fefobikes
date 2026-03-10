@@ -406,7 +406,8 @@ export default function BikeForm() {
               <p className="text-sm font-medium">Montagem manual</p>
               <p className="text-xs mt-0.5 opacity-70">Custo calculado pelas peças</p>
             </button>
-          <div className="space-y-2">
+          </div>
+
           {/* Fixed cost mode */}
           {costMode === "fixed" && (
             <div className="space-y-2">
