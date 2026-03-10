@@ -101,7 +101,7 @@ function PaymentCard({
       onClick={onClick}
       className={`h-24 rounded-3xl border flex flex-col items-center justify-center gap-2 transition-all ${
         active
-          ? "bg-[#820AD1]/10 border-[#820AD1] text-white shadow-[0_0_20px_rgba(130,10,209,0.2)]"
+          ? "bg-[#2952FF]/10 border-[#2952FF] text-white shadow-[0_0_20px_rgba(41,82,255,0.2)]"
           : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
       }`}
     >
