@@ -563,7 +563,7 @@ export default function BikeForm() {
           </div>
 
           {/* Margin display */}
-          {(effectiveCost > 0 || salePrice > 0) && (
+          {(effectiveCost > 0 || pixPrice > 0) && (
             <div className="flex gap-3">
               <div className="flex-1 p-3 rounded-md border border-border bg-card">
                 <div className="flex items-center gap-1.5 mb-1">
