@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Plus, Trash2, DollarSign, TrendingUp } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
