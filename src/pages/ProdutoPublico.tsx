@@ -165,7 +165,10 @@ export default function ProdutoPublico() {
 
         {/* Description */}
         {(product as any).description && (
-          <p className="text-sm text-muted-foreground leading-relaxed">{(product as any).description}</p>
+          <section className="space-y-2">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Descrição</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{(product as any).description}</p>
+          </section>
         )}
 
         {/* Specs */}
