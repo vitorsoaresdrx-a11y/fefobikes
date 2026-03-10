@@ -111,11 +111,11 @@ export default function Login() {
 
               {/* E-mail */}
               <div className="space-y-2 group">
-                <LabelEl className="ml-1 group-focus-within:text-[#820AD1] transition-colors">
-                  E-mail
-                </LabelEl>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#820AD1] transition-colors" />
+              <LabelEl className="ml-1 group-focus-within:text-[#2952FF] transition-colors">
+                E-mail
+              </LabelEl>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors" />
                   <InputEl
                     type="email"
                     required
