@@ -248,15 +248,32 @@ export default function DRE() {
           accent={totals.netProfit >= 0 ? "emerald" : "destructive"}
         />
 
+        {/* Month selector for charts */}
+        <div className="md:col-span-2 lg:col-span-4 flex items-center gap-2 bg-card border border-border rounded-lg px-1 w-fit">
+          <button onClick={prevMonth} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm font-medium text-foreground min-w-[140px] text-center">
+            {MONTHS_FULL[selectedMonth]} {selectedYear}
+          </span>
+          <button
+            onClick={nextMonth}
+            disabled={isAtCurrentMonth}
+            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+
         {/* Revenue Chart - spans 2 cols */}
         <div className="md:col-span-2 bg-card border border-border rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                Faturamento Mensal
+                Faturamento Diário
               </p>
               <p className="text-xl font-semibold text-foreground mt-1">
-                {formatBRL(totals.revenue)}
+                {formatBRL(dailyChartData.reduce((s, d) => s + d.revenue, 0))}
               </p>
             </div>
             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -265,7 +282,7 @@ export default function DRE() {
           </div>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart data={dailyChartData}>
                 <defs>
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(225, 100%, 60%)" stopOpacity={0.3} />
@@ -274,17 +291,18 @@ export default function DRE() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 12%)" />
                 <XAxis
-                  dataKey="label"
+                  dataKey="day"
                   tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
+                  interval={dayTickInterval}
                 />
                 <YAxis
-                  tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
+                  tick={false}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => formatCompact(v)}
-                  width={60}
+                  width={20}
+                  label={{ value: "R$", position: "insideTopLeft", offset: -5, fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                 />
                 <Tooltip content={customTooltip} />
                 <Area
@@ -305,11 +323,16 @@ export default function DRE() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                Lucro Líquido Mensal
+                Lucro Líquido Diário
               </p>
-              <p className={`text-xl font-semibold mt-1 ${totals.netProfit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
-                {formatBRL(totals.netProfit)}
-              </p>
+              {(() => {
+                const monthProfit = dailyChartData.reduce((s, d) => s + d.netProfit, 0);
+                return (
+                  <p className={`text-xl font-semibold mt-1 ${monthProfit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                    {formatBRL(monthProfit)}
+                  </p>
+                );
+              })()}
             </div>
             <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
               totals.netProfit >= 0 ? "bg-emerald-500/10" : "bg-destructive/10"
@@ -323,20 +346,21 @@ export default function DRE() {
           </div>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
+              <BarChart data={dailyChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0, 0%, 12%)" />
                 <XAxis
-                  dataKey="label"
+                  dataKey="day"
                   tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
+                  interval={dayTickInterval}
                 />
                 <YAxis
-                  tick={{ fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
+                  tick={false}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => formatCompact(v)}
-                  width={60}
+                  width={20}
+                  label={{ value: "R$", position: "insideTopLeft", offset: -5, fill: "hsl(0, 0%, 55%)", fontSize: 11 }}
                 />
                 <Tooltip content={customTooltip} />
                 <Bar
