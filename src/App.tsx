@@ -14,6 +14,7 @@ import Clientes from "@/pages/Clientes";
 import Configuracoes from "@/pages/Configuracoes";
 import Estoque from "@/pages/Estoque";
 import DRE from "@/pages/DRE";
+import Gastos from "@/pages/Gastos";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/pdv" element={<PDV />} />
               <Route path="/historico" element={<Historico />} />
               <Route path="/dre" element={<DRE />} />
+              <Route path="/gastos" element={<Gastos />} />
               <Route path="/clientes" element={<Clientes />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
             </Route>

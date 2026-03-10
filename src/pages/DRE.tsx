@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
+import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
 import {
   AreaChart,
   Area,
@@ -50,9 +51,18 @@ interface DRELine {
 }
 
 export default function DRE() {
-  const { data: sales = [], isLoading } = useSales();
+  const { data: sales = [], isLoading: salesLoading } = useSales();
+  const { data: fixedExpenses = [], isLoading: fixedLoading } = useFixedExpenses();
+  const { data: variableExpenses = [], isLoading: varLoading } = useVariableExpenses();
+  const isLoading = salesLoading || fixedLoading || varLoading;
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+
+  // Monthly fixed cost (sum of active fixed expenses)
+  const monthlyFixedCost = useMemo(
+    () => fixedExpenses.filter((e) => e.active).reduce((s, e) => s + Number(e.amount), 0),
+    [fixedExpenses]
+  );
 
   // Monthly aggregation
   const monthlyData = useMemo(() => {
@@ -61,7 +71,7 @@ export default function DRE() {
       label: MONTHS[i],
       revenue: 0,
       cardFees: 0,
-      costOfGoods: 0,
+      variableExpenses: 0,
     }));
 
     sales.forEach((sale: any) => {
@@ -70,44 +80,48 @@ export default function DRE() {
       const m = date.getMonth();
       months[m].revenue += Number(sale.total) || 0;
       months[m].cardFees += Number(sale.card_fee) || 0;
+    });
 
-      // Cost of goods from sale items
-      (sale.sale_items || []).forEach((item: any) => {
-        // We approximate cost as 0 for now since we track sale_price in items
-        // In a real system you'd store unit_cost on sale_items
-      });
+    variableExpenses.forEach((exp: any) => {
+      const d = new Date(exp.expense_date + "T00:00:00");
+      if (d.getFullYear() !== selectedYear) return;
+      months[d.getMonth()].variableExpenses += Number(exp.amount) || 0;
     });
 
     return months.map((m) => ({
       ...m,
       taxes: m.revenue * TAX_RATE,
-      netProfit: m.revenue - m.revenue * TAX_RATE - m.cardFees,
+      fixedExpenses: monthlyFixedCost,
+      netProfit: m.revenue - m.revenue * TAX_RATE - m.cardFees - monthlyFixedCost - m.variableExpenses,
     }));
-  }, [sales, selectedYear]);
+  }, [sales, variableExpenses, selectedYear, monthlyFixedCost]);
 
   // Totals for the year
+  const monthsInScope = selectedYear === currentYear ? new Date().getMonth() + 1 : 12;
   const totals = useMemo(() => {
     const t = monthlyData.reduce(
       (acc, m) => ({
         revenue: acc.revenue + m.revenue,
         cardFees: acc.cardFees + m.cardFees,
         taxes: acc.taxes + m.taxes,
-        netProfit: acc.netProfit + m.netProfit,
+        variableExpenses: acc.variableExpenses + m.variableExpenses,
       }),
-      { revenue: 0, cardFees: 0, taxes: 0, netProfit: 0 }
+      { revenue: 0, cardFees: 0, taxes: 0, variableExpenses: 0 }
     );
-    return t;
-  }, [monthlyData]);
+    const totalFixed = monthlyFixedCost * monthsInScope;
+    const netRevenue = t.revenue - t.taxes - t.cardFees;
+    const netProfit = netRevenue - totalFixed - t.variableExpenses;
+    return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit };
+  }, [monthlyData, monthlyFixedCost, monthsInScope]);
 
   // DRE lines
   const dreLines: DRELine[] = [
     { label: "Faturamento Bruto", value: totals.revenue, type: "revenue", icon: DollarSign },
     { label: "(-) Impostos (8%)", value: -totals.taxes, type: "deduction", icon: Percent },
     { label: "(-) Taxas de Cartão", value: -totals.cardFees, type: "deduction", icon: CreditCard },
-    { label: "= Receita Líquida", value: totals.revenue - totals.taxes - totals.cardFees, type: "subtotal", icon: Receipt },
-    { label: "(-) Descontos", value: 0, type: "deduction", icon: ArrowDown },
-    { label: "(-) Gastos Fixos", value: 0, type: "deduction", icon: Minus },
-    { label: "(-) Gastos Variáveis", value: 0, type: "deduction", icon: Minus },
+    { label: "= Receita Líquida", value: totals.netRevenue, type: "subtotal", icon: Receipt },
+    { label: "(-) Gastos Fixos", value: -totals.fixedExpenses, type: "deduction", icon: Minus },
+    { label: "(-) Gastos Variáveis", value: -totals.variableExpenses, type: "deduction", icon: Minus },
     { label: "(-) Perdas", value: 0, type: "deduction", icon: TrendingDown },
     { label: "= Lucro Líquido", value: totals.netProfit, type: "total", icon: TrendingUp },
   ];

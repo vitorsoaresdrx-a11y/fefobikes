@@ -8,6 +8,7 @@ import {
   Users,
   Settings,
   BarChart3,
+  Wallet,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -31,6 +32,7 @@ const navItems = [
   { title: "PDV", url: "/pdv", icon: ShoppingCart },
   { title: "Histórico", url: "/historico", icon: ClipboardList },
   { title: "DRE", url: "/dre", icon: BarChart3 },
+  { title: "Gastos", url: "/gastos", icon: Wallet },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
