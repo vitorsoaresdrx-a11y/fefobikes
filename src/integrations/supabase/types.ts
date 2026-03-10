@@ -257,6 +257,8 @@ export type Database = {
       }
       sales: {
         Row: {
+          card_fee: number | null
+          card_tax_percent: number | null
           created_at: string
           customer_id: string | null
           id: string
@@ -265,6 +267,8 @@ export type Database = {
           total: number
         }
         Insert: {
+          card_fee?: number | null
+          card_tax_percent?: number | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -273,6 +277,8 @@ export type Database = {
           total?: number
         }
         Update: {
+          card_fee?: number | null
+          card_tax_percent?: number | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -289,6 +295,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
       }
     }
     Views: {
