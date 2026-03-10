@@ -82,7 +82,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   }, [open, part]);
 
   const onSubmit = (values: PartFormValues) => {
-    const payload = {
+    const payload: any = {
       name: values.name,
       category: values.category || null,
       stock_qty: values.stock_qty,
@@ -90,7 +90,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       unit_cost: values.unit_cost,
       sale_price: values.sale_price,
       notes: values.notes || null,
-      // keep other fields null
       weight_capacity_kg: null,
       material: null,
       gears: null,
@@ -101,6 +100,9 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       visible_on_storefront: false,
       images: partImages,
     };
+    if (isEditing && values.sku) {
+      payload.sku = values.sku;
+    }
 
     if (isEditing) {
       updatePart.mutate({ id: part.id, ...payload }, { onSuccess: () => onOpenChange(false) });
