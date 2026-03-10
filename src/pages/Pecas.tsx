@@ -302,7 +302,7 @@ export default function Pecas() {
       {/* Summary */}
       {filtered.length > 0 && (
         <div className="flex gap-4 text-xs text-muted-foreground">
-          <span>{filtered.length} peça{filtered.length !== 1 ? "s" : ""}</span>
+          <span>{filtered.length} produto{filtered.length !== 1 ? "s" : ""}</span>
           <span>•</span>
           <span>{totalStock} un. em estoque</span>
           <span>•</span>
