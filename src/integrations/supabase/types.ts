@@ -23,6 +23,7 @@ export type Database = {
           part_name_override: string | null
           quantity: number
           sort_order: number
+          unit_cost: number | null
         }
         Insert: {
           bike_model_id: string
@@ -32,6 +33,7 @@ export type Database = {
           part_name_override?: string | null
           quantity?: number
           sort_order?: number
+          unit_cost?: number | null
         }
         Update: {
           bike_model_id?: string
@@ -41,6 +43,7 @@ export type Database = {
           part_name_override?: string | null
           quantity?: number
           sort_order?: number
+          unit_cost?: number | null
         }
         Relationships: [
           {
@@ -62,28 +65,37 @@ export type Database = {
       bike_models: {
         Row: {
           category: string | null
+          cost_mode: string
+          cost_price: number | null
           created_at: string
           description: string | null
           id: string
           name: string
+          sale_price: number | null
           updated_at: string
           visible_on_storefront: boolean
         }
         Insert: {
           category?: string | null
+          cost_mode?: string
+          cost_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
           name: string
+          sale_price?: number | null
           updated_at?: string
           visible_on_storefront?: boolean
         }
         Update: {
           category?: string | null
+          cost_mode?: string
+          cost_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
           name?: string
+          sale_price?: number | null
           updated_at?: string
           visible_on_storefront?: boolean
         }
@@ -103,6 +115,7 @@ export type Database = {
           notes: string | null
           rim_size: string | null
           stock_qty: number
+          unit_cost: number | null
           updated_at: string
           visible_on_storefront: boolean
           weight_capacity_kg: number | null
@@ -120,6 +133,7 @@ export type Database = {
           notes?: string | null
           rim_size?: string | null
           stock_qty?: number
+          unit_cost?: number | null
           updated_at?: string
           visible_on_storefront?: boolean
           weight_capacity_kg?: number | null
@@ -137,6 +151,7 @@ export type Database = {
           notes?: string | null
           rim_size?: string | null
           stock_qty?: number
+          unit_cost?: number | null
           updated_at?: string
           visible_on_storefront?: boolean
           weight_capacity_kg?: number | null
