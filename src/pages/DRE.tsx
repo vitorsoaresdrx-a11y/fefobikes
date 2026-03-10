@@ -132,16 +132,40 @@ export default function DRE() {
     { label: "= Lucro Líquido", value: totals.netProfit, type: "total", icon: TrendingUp },
   ];
 
-  // Chart data (only months with data or up to current month)
-  const chartData = monthlyData.filter(
-    (m) => m.month <= (selectedYear === currentYear ? new Date().getMonth() : 11)
-  );
+  // Daily chart data for selected month
+  const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+  const dailyChartData = useMemo(() => {
+    const days = Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      label: String(i + 1),
+      revenue: 0,
+      netProfit: 0,
+    }));
+
+    sales.forEach((sale: any) => {
+      const date = new Date(sale.created_at);
+      if (date.getFullYear() !== selectedYear || date.getMonth() !== selectedMonth) return;
+      const d = date.getDate() - 1;
+      const rev = Number(sale.total) || 0;
+      const cardFee = Number(sale.card_fee) || 0;
+      days[d].revenue += rev;
+      days[d].netProfit += rev - rev * TAX_RATE - cardFee;
+    });
+
+    // Only show up to today if current month/year
+    const isCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
+    const limit = isCurrentMonth ? new Date().getDate() : daysInMonth;
+    return days.slice(0, limit);
+  }, [sales, selectedYear, selectedMonth, daysInMonth, currentYear]);
+
+  // Show every Nth day tick to avoid clutter
+  const dayTickInterval = daysInMonth <= 15 ? 1 : daysInMonth <= 22 ? 2 : 4;
 
   const customTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
       <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg">
-        <p className="text-xs font-medium text-foreground mb-1">{label}</p>
+        <p className="text-xs font-medium text-foreground mb-1">Dia {label}</p>
         {payload.map((entry: any, i: number) => (
           <p key={i} className="text-xs text-muted-foreground">
             {entry.name}: <span className="font-medium text-foreground">{formatBRL(entry.value)}</span>
@@ -150,6 +174,18 @@ export default function DRE() {
       </div>
     );
   };
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear((y) => y - 1); }
+    else setSelectedMonth((m) => m - 1);
+  };
+  const nextMonth = () => {
+    const isCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
+    if (isCurrentMonth) return;
+    if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear((y) => y + 1); }
+    else setSelectedMonth((m) => m + 1);
+  };
+  const isAtCurrentMonth = selectedYear === currentYear && selectedMonth === new Date().getMonth();
 
   if (isLoading) {
     return (
