@@ -44,6 +44,11 @@ export default function Pecas() {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [qrPart, setQrPart] = useState<Part | null>(null);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const { data: categories = [] } = useCategories();
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
 
   const getProfit = (p: Part) => (Number((p as any).sale_price) || 0) - (Number((p as any).unit_cost) || 0);
 
