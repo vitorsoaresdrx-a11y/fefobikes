@@ -18,8 +18,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useParts, useDeletePart, type Part } from "@/hooks/useParts";
+import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { PartDrawer } from "@/components/parts/PartDrawer";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
