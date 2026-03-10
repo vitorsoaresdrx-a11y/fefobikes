@@ -64,40 +64,55 @@ export type Database = {
       }
       bike_models: {
         Row: {
+          brand: string | null
           category: string | null
+          color: string | null
           cost_mode: string
           cost_price: number | null
           created_at: string
           description: string | null
+          frame_size: string | null
           id: string
           name: string
+          rim_size: string | null
           sale_price: number | null
           updated_at: string
           visible_on_storefront: boolean
+          weight_kg: number | null
         }
         Insert: {
+          brand?: string | null
           category?: string | null
+          color?: string | null
           cost_mode?: string
           cost_price?: number | null
           created_at?: string
           description?: string | null
+          frame_size?: string | null
           id?: string
           name: string
+          rim_size?: string | null
           sale_price?: number | null
           updated_at?: string
           visible_on_storefront?: boolean
+          weight_kg?: number | null
         }
         Update: {
+          brand?: string | null
           category?: string | null
+          color?: string | null
           cost_mode?: string
           cost_price?: number | null
           created_at?: string
           description?: string | null
+          frame_size?: string | null
           id?: string
           name?: string
+          rim_size?: string | null
           sale_price?: number | null
           updated_at?: string
           visible_on_storefront?: boolean
+          weight_kg?: number | null
         }
         Relationships: []
       }

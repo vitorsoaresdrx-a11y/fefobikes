@@ -31,6 +31,11 @@ import { PartSelector } from "@/components/bikes/PartSelector";
 const bikeSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   category: z.string().optional(),
+  brand: z.string().optional(),
+  frame_size: z.string().optional(),
+  rim_size: z.string().optional(),
+  color: z.string().optional(),
+  weight_kg: z.number().min(0).optional(),
   description: z.string().optional(),
   visible_on_storefront: z.boolean().default(false),
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
@@ -75,6 +80,11 @@ export default function BikeForm() {
     defaultValues: {
       name: "",
       category: "",
+      brand: "",
+      frame_size: "",
+      rim_size: "",
+      color: "",
+      weight_kg: undefined,
       description: "",
       visible_on_storefront: false,
       cost_mode: "fixed",
@@ -102,6 +112,11 @@ export default function BikeForm() {
       form.reset({
         name: bike.name,
         category: bike.category || "",
+        brand: (bike as any).brand || "",
+        frame_size: (bike as any).frame_size || "",
+        rim_size: (bike as any).rim_size || "",
+        color: (bike as any).color || "",
+        weight_kg: Number((bike as any).weight_kg) || undefined,
         description: bike.description || "",
         visible_on_storefront: bike.visible_on_storefront,
         cost_mode: (bike as any).cost_mode || "fixed",
@@ -158,6 +173,11 @@ export default function BikeForm() {
       const payload = {
         name: values.name,
         category: values.category || null,
+        brand: values.brand || null,
+        frame_size: values.frame_size || null,
+        rim_size: values.rim_size || null,
+        color: values.color || null,
+        weight_kg: values.weight_kg || null,
         description: values.description || null,
         visible_on_storefront: values.visible_on_storefront,
         cost_mode: values.cost_mode,
@@ -259,6 +279,54 @@ export default function BikeForm() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm">Marca</Label>
+            <Input
+              {...form.register("brand")}
+              className="bg-card border-border h-9 text-sm"
+              placeholder="Ex: Shimano, Caloi, Trek"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-sm">Tamanho do quadro</Label>
+              <Input
+                {...form.register("frame_size")}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 17, M, 29"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Tamanho do aro</Label>
+              <Input
+                {...form.register("rim_size")}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 26, 29, 700c"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-sm">Cor</Label>
+              <Input
+                {...form.register("color")}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: Preto, Vermelho"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Peso (kg)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                min={0}
+                value={form.watch("weight_kg") ?? ""}
+                onChange={(e) => form.setValue("weight_kg", parseFloat(e.target.value) || undefined)}
+                className="bg-card border-border h-9 text-sm"
+                placeholder="Ex: 12.5"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label className="text-sm">Descrição</Label>
