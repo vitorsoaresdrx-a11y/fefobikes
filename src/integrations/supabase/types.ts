@@ -14,7 +14,135 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bike_model_parts: {
+        Row: {
+          bike_model_id: string
+          id: string
+          notes: string | null
+          part_id: string | null
+          part_name_override: string | null
+          quantity: number
+          sort_order: number
+        }
+        Insert: {
+          bike_model_id: string
+          id?: string
+          notes?: string | null
+          part_id?: string | null
+          part_name_override?: string | null
+          quantity?: number
+          sort_order?: number
+        }
+        Update: {
+          bike_model_id?: string
+          id?: string
+          notes?: string | null
+          part_id?: string | null
+          part_name_override?: string | null
+          quantity?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bike_model_parts_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bike_model_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bike_models: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          visible_on_storefront: boolean
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          visible_on_storefront?: boolean
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          visible_on_storefront?: boolean
+        }
+        Relationships: []
+      }
+      parts: {
+        Row: {
+          category: string | null
+          color: string | null
+          created_at: string
+          frame_size: string | null
+          gears: string | null
+          hub_style: string | null
+          id: string
+          material: string | null
+          name: string
+          notes: string | null
+          rim_size: string | null
+          stock_qty: number
+          updated_at: string
+          visible_on_storefront: boolean
+          weight_capacity_kg: number | null
+        }
+        Insert: {
+          category?: string | null
+          color?: string | null
+          created_at?: string
+          frame_size?: string | null
+          gears?: string | null
+          hub_style?: string | null
+          id?: string
+          material?: string | null
+          name: string
+          notes?: string | null
+          rim_size?: string | null
+          stock_qty?: number
+          updated_at?: string
+          visible_on_storefront?: boolean
+          weight_capacity_kg?: number | null
+        }
+        Update: {
+          category?: string | null
+          color?: string | null
+          created_at?: string
+          frame_size?: string | null
+          gears?: string | null
+          hub_style?: string | null
+          id?: string
+          material?: string | null
+          name?: string
+          notes?: string | null
+          rim_size?: string | null
+          stock_qty?: number
+          updated_at?: string
+          visible_on_storefront?: boolean
+          weight_capacity_kg?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

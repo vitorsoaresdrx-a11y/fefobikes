@@ -1,0 +1,141 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+export interface Part {
+  id: string;
+  name: string;
+  category: string | null;
+  weight_capacity_kg: number | null;
+  material: string | null;
+  gears: string | null;
+  hub_style: string | null;
+  color: string | null;
+  rim_size: string | null;
+  frame_size: string | null;
+  stock_qty: number;
+  visible_on_storefront: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type PartInsert = Omit<Part, "id" | "created_at" | "updated_at">;
+
+const PARTS_KEY = ["parts"];
+
+export function useParts() {
+  return useQuery({
+    queryKey: PARTS_KEY,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("parts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Part[];
+    },
+  });
+}
+
+export function useCreatePart() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (part: PartInsert) => {
+      const { data, error } = await supabase
+        .from("parts")
+        .insert(part)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Part;
+    },
+    onMutate: async (newPart) => {
+      await queryClient.cancelQueries({ queryKey: PARTS_KEY });
+      const previous = queryClient.getQueryData<Part[]>(PARTS_KEY);
+      const optimistic: Part = {
+        id: crypto.randomUUID(),
+        ...newPart,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      queryClient.setQueryData<Part[]>(PARTS_KEY, (old) => [optimistic, ...(old || [])]);
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(PARTS_KEY, context.previous);
+      toast({ title: "Erro ao criar peça", variant: "destructive" });
+    },
+    onSuccess: () => {
+      toast({ title: "Peça criada com sucesso" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: PARTS_KEY });
+    },
+  });
+}
+
+export function useUpdatePart() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Part> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("parts")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Part;
+    },
+    onMutate: async (updated) => {
+      await queryClient.cancelQueries({ queryKey: PARTS_KEY });
+      const previous = queryClient.getQueryData<Part[]>(PARTS_KEY);
+      queryClient.setQueryData<Part[]>(PARTS_KEY, (old) =>
+        (old || []).map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(PARTS_KEY, context.previous);
+      toast({ title: "Erro ao atualizar peça", variant: "destructive" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: PARTS_KEY });
+    },
+  });
+}
+
+export function useDeletePart() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("parts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: PARTS_KEY });
+      const previous = queryClient.getQueryData<Part[]>(PARTS_KEY);
+      queryClient.setQueryData<Part[]>(PARTS_KEY, (old) =>
+        (old || []).filter((p) => p.id !== id)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(PARTS_KEY, context.previous);
+      toast({ title: "Erro ao excluir peça", variant: "destructive" });
+    },
+    onSuccess: () => {
+      toast({ title: "Peça excluída" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: PARTS_KEY });
+    },
+  });
+}
