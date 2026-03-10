@@ -125,7 +125,7 @@ export default function ProdutoPublico() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8 space-y-8">
         {/* Hero */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">{product.name}</h1>
+          <h1 className="text-4xl font-bold text-foreground tracking-tight">{product.name}</h1>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground font-mono">{sku}</span>
             {category && <Badge variant="secondary" className="text-xs">{category}</Badge>}
@@ -165,18 +165,21 @@ export default function ProdutoPublico() {
 
         {/* Description */}
         {(product as any).description && (
-          <p className="text-sm text-muted-foreground leading-relaxed">{(product as any).description}</p>
+          <section className="space-y-2">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Descrição</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{(product as any).description}</p>
+          </section>
         )}
 
         {/* Specs */}
         {specs.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Especificações</h2>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Especificações</h2>
+            <div className="grid grid-cols-1 gap-y-0">
               {specs.map((s) => (
-                <div key={s.label} className="flex justify-between py-1.5 border-b border-border/50">
-                  <span className="text-xs text-muted-foreground">{s.label}</span>
-                  <span className="text-xs text-foreground font-medium">{s.value}</span>
+                <div key={s.label} className="flex justify-between py-2 border-b border-border/50">
+                  <span className="text-sm text-muted-foreground">{s.label}</span>
+                  <span className="text-sm text-foreground font-medium">{s.value}</span>
                 </div>
               ))}
             </div>
@@ -210,19 +213,18 @@ export default function ProdutoPublico() {
           if (!hasAnyPrice) return null;
 
           return (
-            <section className="py-4 space-y-3">
+            <section className="py-4 space-y-2">
               {pixPrice > 0 && (
-                <div className="p-3 rounded-md border border-primary/20 bg-primary/5">
-                  <p className="text-xs text-muted-foreground mb-0.5">No PIX / Dinheiro</p>
+                <div className="p-4 rounded-md border border-primary/20 bg-primary/5 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Por apenas</p>
                   <p className="text-3xl font-bold text-primary tracking-tight">{formatBRL(pixPrice)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">no PIX ou dinheiro</p>
                 </div>
               )}
               {installmentPrice > 0 && installmentCount > 1 && (
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    ou <span className="text-sm font-semibold text-foreground">{installmentCount}x de {formatBRL(installmentPrice)}</span> no cartão
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  Ou em <span className="font-semibold text-foreground">{installmentCount}x de {formatBRL(installmentPrice)}</span> no cartão
+                </p>
               )}
             </section>
           );
