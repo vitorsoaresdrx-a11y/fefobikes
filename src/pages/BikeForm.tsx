@@ -125,6 +125,7 @@ export default function BikeForm() {
         cost_price: Number((bike as any).cost_price) || 0,
         sale_price: Number((bike as any).sale_price) || 0,
       });
+      setBikeImages((bike as any).images || []);
     }
   }, [bike]);
 
