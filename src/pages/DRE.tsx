@@ -386,10 +386,10 @@ export default function DRE() {
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#820AD1"
+                    stroke="#2952FF"
                     strokeWidth={3}
                     fillOpacity={1}
-                    fill="url(#purpleGrad)"
+                    fill="url(#blueGrad)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
