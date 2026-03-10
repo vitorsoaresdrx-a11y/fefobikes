@@ -280,7 +280,7 @@ export default function Bikes() {
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-[#820AD1] uppercase tracking-[0.2em]">
+                        <span className="text-[10px] font-bold text-[#2952FF] uppercase tracking-[0.2em]">
                           {bike.category || "Sem categoria"}
                         </span>
                         {bike.sku && (
