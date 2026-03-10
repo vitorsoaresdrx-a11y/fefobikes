@@ -217,22 +217,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                   placeholder="0,00"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Preço de venda (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={salePrice || ""}
-                  onChange={(e) => form.setValue("sale_price", parseFloat(e.target.value) || 0)}
-                  className="bg-card border-border h-9 text-sm"
-                  placeholder="0,00"
-                />
-              </div>
             </div>
 
             {/* Lucro preview */}
-            {(unitCost > 0 || salePrice > 0) && (
+            {(unitCost > 0 || pixPrice > 0) && (
               <div className="p-3 rounded-md border border-border bg-card">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">Lucro por unidade</span>
