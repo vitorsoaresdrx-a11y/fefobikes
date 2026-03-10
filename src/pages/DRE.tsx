@@ -50,7 +50,7 @@ const Btn = ({
   size?: "icon" | "md";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF]",
     ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
   };
   const s = {
