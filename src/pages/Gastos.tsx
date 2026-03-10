@@ -202,7 +202,7 @@ export default function Gastos() {
 
         {/* Cards Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-[#820AD1]/50 transition-all duration-500 overflow-hidden">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
               <Repeat size={180} />
             </div>
