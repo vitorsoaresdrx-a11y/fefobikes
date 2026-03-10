@@ -450,9 +450,9 @@ export default function DRE() {
             <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
 
             {/* Lucro Final */}
-            <div className="mt-6 p-8 bg-[#820AD1]/5 border border-[#820AD1]/20 rounded-[24px] flex items-center justify-between">
+            <div className="mt-6 p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-[24px] flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#820AD1] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(130,10,209,0.4)]">
+                <div className="w-14 h-14 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)]">
                   <TrendingUp size={28} />
                 </div>
                 <div>
