@@ -45,7 +45,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const imageUrl =
-    "https://i.postimg.cc/DwztNbJB/bd759f9c2751e679b3155387f90f9821.jpg";
+    "https://i.postimg.cc/15gFKyyF/Lona-painel-led-1920-x-1080-px-20260310-164540-0000.png";
 
   // Lógica real do Lovable — supabase.auth.signInWithPassword + useToast
   const handleSubmit = async (e: React.FormEvent) => {
