@@ -84,7 +84,7 @@ const SectionHeader = ({
 }) => (
   <div className="flex flex-col gap-1 mb-8">
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-xl bg-[#820AD1]/10 flex items-center justify-center text-[#820AD1]">
+      <div className="w-10 h-10 rounded-xl bg-[#2952FF]/10 flex items-center justify-center text-[#2952FF]">
         <Icon size={20} />
       </div>
       <h3 className="text-xl font-black text-white tracking-tight italic uppercase">{title}</h3>
