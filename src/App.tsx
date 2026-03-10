@@ -38,6 +38,7 @@ const App = () => (
               <Route path="/pdv" element={<PDV />} />
               <Route path="/historico" element={<Historico />} />
               <Route path="/dre" element={<DRE />} />
+              <Route path="/gastos" element={<Gastos />} />
               <Route path="/clientes" element={<Clientes />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
             </Route>
