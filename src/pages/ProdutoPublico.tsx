@@ -125,7 +125,7 @@ export default function ProdutoPublico() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8 space-y-8">
         {/* Hero */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">{product.name}</h1>
+          <h1 className="text-4xl font-bold text-foreground tracking-tight">{product.name}</h1>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground font-mono">{sku}</span>
             {category && <Badge variant="secondary" className="text-xs">{category}</Badge>}
