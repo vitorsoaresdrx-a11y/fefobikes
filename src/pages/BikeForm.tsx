@@ -530,6 +530,52 @@ export default function BikeForm() {
             />
           </div>
 
+          {/* PIX / Dinheiro price */}
+          <div className="space-y-2">
+            <Label className="text-sm">Preço no PIX / Dinheiro (R$)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              min={0}
+              value={form.watch("pix_price") || ""}
+              onChange={(e) => form.setValue("pix_price", parseFloat(e.target.value) || 0)}
+              className="bg-card border-border h-9 text-sm"
+              placeholder="0,00"
+            />
+            <p className="text-[10px] text-muted-foreground">Preço com desconto para pagamento à vista</p>
+          </div>
+
+          {/* Installment */}
+          <div className="space-y-2">
+            <Label className="text-sm">Parcelamento no cartão</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor da parcela (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={form.watch("installment_price") || ""}
+                  onChange={(e) => form.setValue("installment_price", parseFloat(e.target.value) || 0)}
+                  className="bg-card border-border h-9 text-sm"
+                  placeholder="0,00"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Nº de parcelas</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={form.watch("installment_count") || 1}
+                  onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
+                  className="bg-card border-border h-9 text-sm"
+                  placeholder="12"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Margin display */}
           {(effectiveCost > 0 || salePrice > 0) && (
             <div className="flex gap-3">

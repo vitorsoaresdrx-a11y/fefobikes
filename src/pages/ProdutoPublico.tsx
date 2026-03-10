@@ -202,12 +202,38 @@ export default function ProdutoPublico() {
         )}
 
         {/* Price */}
-        {salePrice > 0 && (
-          <section className="py-4">
-            <p className="text-xs text-muted-foreground mb-1">A partir de</p>
-            <p className="text-3xl font-bold text-foreground tracking-tight">{formatBRL(salePrice)}</p>
-          </section>
-        )}
+        {(() => {
+          const pixPrice = Number((product as any).pix_price) || 0;
+          const installmentPrice = Number((product as any).installment_price) || 0;
+          const installmentCount = Number((product as any).installment_count) || 1;
+          const hasAnyPrice = salePrice > 0 || pixPrice > 0 || installmentPrice > 0;
+
+          if (!hasAnyPrice) return null;
+
+          return (
+            <section className="py-4 space-y-3">
+              {salePrice > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Preço</p>
+                  <p className="text-3xl font-bold text-foreground tracking-tight">{formatBRL(salePrice)}</p>
+                </div>
+              )}
+              {pixPrice > 0 && (
+                <div className="p-3 rounded-md border border-primary/20 bg-primary/5">
+                  <p className="text-xs text-muted-foreground mb-0.5">No PIX / Dinheiro</p>
+                  <p className="text-xl font-bold text-primary tracking-tight">{formatBRL(pixPrice)}</p>
+                </div>
+              )}
+              {installmentPrice > 0 && installmentCount > 1 && (
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    ou <span className="text-sm font-semibold text-foreground">{installmentCount}x de {formatBRL(installmentPrice)}</span> no cartão
+                  </p>
+                </div>
+              )}
+            </section>
+          );
+        })()}
       </main>
 
       <Footer />
