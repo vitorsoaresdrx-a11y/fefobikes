@@ -43,7 +43,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-4">
+      <SidebarHeader className="px-5 py-5">
         <div className="flex items-center gap-2">
           <Bike className="h-6 w-6 text-primary shrink-0" />
           {!collapsed && (
@@ -56,26 +56,33 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className="hover:bg-accent/50"
-                      activeClassName="bg-accent text-primary font-medium"
+            <SidebarMenu className="px-2 space-y-1">
+              {navItems.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={item.title}
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <NavLink
+                        to={item.url}
+                        end={item.url === "/"}
+                        className={
+                          active
+                            ? "bg-primary/10 text-primary font-medium shadow-[0_0_12px_hsl(var(--primary)/0.35)] border border-primary/20 rounded-md"
+                            : "text-muted-foreground/60 hover:text-foreground hover:bg-accent/30 rounded-md"
+                        }
+                        activeClassName=""
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
