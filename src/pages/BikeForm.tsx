@@ -586,7 +586,7 @@ export default function BikeForm() {
                                       unit_cost: parseFloat(e.target.value) || 0,
                                     })
                                   }
-                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#820AD1] transition-all"
+                                  className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-[#2952FF] transition-all"
                                 />
                               </div>
                               <div className="flex-1">
