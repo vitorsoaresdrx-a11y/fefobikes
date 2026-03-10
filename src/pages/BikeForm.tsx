@@ -189,6 +189,8 @@ export default function BikeForm() {
         weight_kg: values.weight_kg || null,
         description: values.description || null,
         visible_on_storefront: values.visible_on_storefront,
+        stock_qty: values.stock_qty,
+        alert_stock: values.alert_stock,
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
         sale_price: values.sale_price,
