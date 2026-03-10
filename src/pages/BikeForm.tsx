@@ -173,6 +173,11 @@ export default function BikeForm() {
       const payload = {
         name: values.name,
         category: values.category || null,
+        brand: values.brand || null,
+        frame_size: values.frame_size || null,
+        rim_size: values.rim_size || null,
+        color: values.color || null,
+        weight_kg: values.weight_kg || null,
         description: values.description || null,
         visible_on_storefront: values.visible_on_storefront,
         cost_mode: values.cost_mode,
