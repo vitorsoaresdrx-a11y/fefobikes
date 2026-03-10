@@ -12,6 +12,7 @@ import PDV from "@/pages/PDV";
 import Historico from "@/pages/Historico";
 import Clientes from "@/pages/Clientes";
 import Configuracoes from "@/pages/Configuracoes";
+import Estoque from "@/pages/Estoque";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 
