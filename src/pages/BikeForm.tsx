@@ -119,6 +119,7 @@ export default function BikeForm() {
     if (bike) {
       form.reset({
         name: bike.name,
+        sku: bike.sku || "",
         category: bike.category || "",
         brand: (bike as any).brand || "",
         frame_size: (bike as any).frame_size || "",
