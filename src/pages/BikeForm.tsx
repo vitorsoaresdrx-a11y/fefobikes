@@ -244,6 +244,12 @@ export default function BikeForm() {
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Informações do Modelo
           </h3>
+
+          {/* Image upload */}
+          <div className="space-y-2">
+            <Label className="text-sm">Fotos</Label>
+            <ImageUpload images={bikeImages} onChange={setBikeImages} folder="bikes" />
+          </div>
           <div className="space-y-2">
             <Label className="text-sm">Nome *</Label>
             <Input
