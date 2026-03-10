@@ -74,7 +74,7 @@ export default function DRE() {
   const monthlyData = useMemo(() => {
     const months = Array.from({ length: 12 }, (_, i) => ({
       month: i,
-      label: MONTHS[i],
+      label: MONTHS_SHORT[i],
       revenue: 0,
       cardFees: 0,
       variableExpenses: 0,
