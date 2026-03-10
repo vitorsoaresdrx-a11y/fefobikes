@@ -144,7 +144,7 @@ function SummaryCard({
       onClick={onClick}
       className={`relative group p-8 rounded-[32px] border transition-all duration-500 text-left overflow-hidden ${
         active
-          ? "bg-[#161618] border-[#820AD1] shadow-[0_0_30px_rgba(130,10,209,0.1)]"
+          ? "bg-[#161618] border-[#2952FF] shadow-[0_0_30px_rgba(41,82,255,0.1)]"
           : "bg-[#161618] border-zinc-800 hover:border-zinc-700"
       }`}
     >
