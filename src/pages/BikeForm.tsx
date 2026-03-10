@@ -125,6 +125,8 @@ export default function BikeForm() {
         weight_kg: Number((bike as any).weight_kg) || undefined,
         description: bike.description || "",
         visible_on_storefront: bike.visible_on_storefront,
+        stock_qty: Number((bike as any).stock_qty) || 0,
+        alert_stock: Number((bike as any).alert_stock) || 0,
         cost_mode: (bike as any).cost_mode || "fixed",
         cost_price: Number((bike as any).cost_price) || 0,
         sale_price: Number((bike as any).sale_price) || 0,
