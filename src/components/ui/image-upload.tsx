@@ -1,13 +1,12 @@
-import { useState, useRef } from "react";
-import { ImagePlus, X, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useRef, useCallback } from "react";
+import { ImagePlus, X, Loader2, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploadProps {
   images: string[];
   onChange: (images: string[]) => void;
-  folder: string; // e.g. "parts" or "bikes"
+  folder: string;
   maxImages?: number;
 }
 
@@ -15,30 +14,21 @@ const MAX_WIDTH = 800;
 const MAX_HEIGHT = 800;
 const QUALITY = 0.7;
 
-/**
- * Compresses an image file client-side using canvas.
- * Converts to WebP, resizes to max 800px, quality 0.7.
- * Returns a Blob ready for upload.
- */
 async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       let { width, height } = img;
-
-      // Scale down proportionally
       if (width > MAX_WIDTH || height > MAX_HEIGHT) {
         const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
         width = Math.round(width * ratio);
         height = Math.round(height * ratio);
       }
-
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0, width, height);
-
       canvas.toBlob(
         (blob) => {
           if (blob) resolve(blob);
@@ -57,6 +47,8 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -88,17 +80,14 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
       const newUrls: string[] = [];
 
       for (const file of toUpload) {
-        // Validate type
         if (!file.type.startsWith("image/")) {
           toast({ title: "Arquivo inválido, envie uma imagem", variant: "destructive" });
           continue;
         }
 
-        // Compress
         const compressed = await compressImage(file);
         const fileName = `${folder}/${crypto.randomUUID()}.webp`;
 
-        // Upload
         const { error } = await supabase.storage
           .from("product-images")
           .upload(fileName, compressed, {
@@ -108,7 +97,6 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
 
         if (error) throw error;
 
-        // Get public URL
         const { data } = supabase.storage
           .from("product-images")
           .getPublicUrl(fileName);
@@ -136,7 +124,6 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
   };
 
   const removeImage = async (url: string) => {
-    // Extract path from URL
     const match = url.match(/product-images\/(.+)$/);
     if (match) {
       await supabase.storage.from("product-images").remove([match[1]]);
@@ -144,15 +131,67 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
     onChange(images.filter((u) => u !== url));
   };
 
+  // Drag & drop reorder
+  const handleDragStart = useCallback((index: number) => {
+    setDragIndex(index);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setOverIndex(index);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, dropIndex: number) => {
+      e.preventDefault();
+      if (dragIndex === null || dragIndex === dropIndex) {
+        setDragIndex(null);
+        setOverIndex(null);
+        return;
+      }
+      const reordered = [...images];
+      const [moved] = reordered.splice(dragIndex, 1);
+      reordered.splice(dropIndex, 0, moved);
+      onChange(reordered);
+      setDragIndex(null);
+      setOverIndex(null);
+    },
+    [dragIndex, images, onChange]
+  );
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null);
+    setOverIndex(null);
+  }, []);
+
   return (
     <div className="space-y-2">
       <div className="flex gap-2 flex-wrap">
-        {images.map((url) => (
+        {images.map((url, index) => (
           <div
             key={url}
-            className="relative h-20 w-20 rounded-md border border-border overflow-hidden bg-muted/20 group"
+            draggable
+            onDragStart={() => handleDragStart(index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDrop={(e) => handleDrop(e, index)}
+            onDragEnd={handleDragEnd}
+            className={`relative h-20 w-20 rounded-md border overflow-hidden bg-muted/20 group cursor-grab active:cursor-grabbing transition-all ${
+              dragIndex === index
+                ? "opacity-40 scale-95 border-primary"
+                : overIndex === index && dragIndex !== null
+                ? "border-primary ring-2 ring-primary/30"
+                : "border-border"
+            }`}
           >
             <img src={url} alt="" className="h-full w-full object-cover" />
+            {/* Drag handle indicator */}
+            <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-black/40 to-transparent flex items-end justify-center pb-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <GripVertical className="h-3 w-3 text-white/80" />
+            </div>
+            {/* Position badge */}
+            <span className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background/80 text-[9px] font-medium flex items-center justify-center text-foreground">
+              {index + 1}
+            </span>
             <button
               type="button"
               onClick={() => removeImage(url)}
@@ -192,7 +231,7 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
       />
 
       <p className="text-[10px] text-muted-foreground">
-        Até {maxImages} imagens • JPG, PNG ou WebP • Otimizadas automaticamente
+        Até {maxImages} imagens • JPG, PNG ou WebP • Arraste para reordenar
       </p>
     </div>
   );
