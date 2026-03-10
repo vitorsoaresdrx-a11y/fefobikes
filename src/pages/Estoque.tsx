@@ -370,7 +370,7 @@ export default function Estoque() {
                       >
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#820AD1]/50 transition-colors overflow-hidden shrink-0">
+                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors overflow-hidden shrink-0">
                               {item.image ? (
                                 <img src={item.image} alt="" className="w-full h-full object-cover" />
                               ) : item.type === "Bike" ? (
