@@ -626,11 +626,11 @@ export default function BikeForm() {
                     <button
                       type="button"
                       onClick={addRow}
-                      className="w-full rounded-[32px] border-dashed border-2 border-zinc-800 py-10 flex flex-col items-center justify-center gap-3 hover:bg-[#820AD1]/5 hover:border-[#820AD1]/50 transition-all group"
+                      className="w-full rounded-[32px] border-dashed border-2 border-zinc-800 py-10 flex flex-col items-center justify-center gap-3 hover:bg-[#2952FF]/5 hover:border-[#2952FF]/50 transition-all group"
                     >
                       <Plus
                         size={24}
-                        className="text-[#820AD1] group-hover:scale-110 transition-transform"
+                        className="text-[#2952FF] group-hover:scale-110 transition-transform"
                       />
                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 group-hover:text-zinc-300">
                         Vincular Novo Componente
