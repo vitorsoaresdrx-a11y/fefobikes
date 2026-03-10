@@ -805,6 +805,33 @@ export default function BikeForm() {
             )}
           </div>
 
+          {/* ── Stats ─────────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatBox
+              title="Custo Montagem"
+              value={formatBRL(effectiveCost)}
+              icon={<Wrench size={14} />}
+            />
+            <StatBox
+              title="Valor PIX"
+              value={formatBRL(pixPrice)}
+              icon={<DollarSign size={14} />}
+              color="text-[#2952FF]"
+            />
+            <StatBox
+              title="Margem Bruta"
+              value={formatBRL(profitValue)}
+              icon={<TrendingUp size={14} />}
+              color={profitValue >= 0 ? "text-emerald-400" : "text-red-400"}
+            />
+            <StatBox
+              title="Rentabilidade"
+              value={profitPercent.toFixed(1) + "%"}
+              icon={<Activity size={14} />}
+              color={profitPercent >= 0 ? "text-emerald-400" : "text-red-400"}
+            />
+          </div>
+
         </div>
       </form>
     </div>
