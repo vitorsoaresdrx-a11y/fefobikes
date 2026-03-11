@@ -6,6 +6,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function normalizeQrCode(raw: unknown): string | undefined {
+  if (typeof raw !== "string") return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith("data:image")) return trimmed;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  const cleaned = trimmed.replace(/^base64,?/i, "");
+  return `data:image/png;base64,${cleaned}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -78,7 +88,26 @@ Deno.serve(async (req) => {
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
       const data = await zapiRes.json();
+      const candidate = typeof data === "string"
+        ? data
+        : data?.qrCode ?? data?.qrcode ?? data?.value ?? data?.base64 ?? data?.image;
+      const normalizedQrCode = normalizeQrCode(candidate);
+
+      console.log(
+        `Z-API qr payload keys=${typeof data === "object" && data ? Object.keys(data).join(",") : "n/a"}, hasQr=${Boolean(normalizedQrCode)}`
+      );
+
+      if (normalizedQrCode) {
+        const payload = typeof data === "object" && data
+          ? { ...data, qrCode: normalizedQrCode }
+          : { qrCode: normalizedQrCode };
+        return new Response(JSON.stringify(payload), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

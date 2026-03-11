@@ -15,6 +15,35 @@ function zapiUrl(action: string) {
   return `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-status?action=${action}`;
 }
 
+function normalizeQrCode(raw: unknown): string | undefined {
+  if (typeof raw !== "string") return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith("data:image")) return trimmed;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  const cleaned = trimmed.replace(/^base64,?/i, "");
+  return `data:image/png;base64,${cleaned}`;
+}
+
+function normalizeQrPayload(payload: unknown): { qrCode?: string; value?: string; error?: string } {
+  if (typeof payload === "string") {
+    return { qrCode: normalizeQrCode(payload) };
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return {};
+  }
+
+  const data = payload as Record<string, unknown>;
+  const candidate = data.qrCode ?? data.qrcode ?? data.value ?? data.base64 ?? data.image;
+
+  return {
+    qrCode: normalizeQrCode(candidate),
+    value: typeof data.value === "string" ? data.value : undefined,
+    error: typeof data.error === "string" ? data.error : undefined,
+  };
+}
+
 export function useZapiConnectionStatus() {
   return useQuery({
     queryKey: [...STATUS_KEY, "status"],
@@ -40,7 +69,8 @@ export function useZapiQrCode(enabled: boolean) {
         const text = await res.text();
         throw new Error(`QR code failed: ${text}`);
       }
-      return res.json() as Promise<{ qrCode?: string; value?: string; error?: string }>;
+      const payload = await res.json();
+      return normalizeQrPayload(payload);
     },
     enabled,
     refetchInterval: enabled ? 20000 : false,
