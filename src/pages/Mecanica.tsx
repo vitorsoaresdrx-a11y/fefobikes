@@ -655,7 +655,7 @@ export default function Mecanica() {
               <button
                 onClick={handleSave}
                 disabled={create.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-[#66B3FF] text-white hover:bg-[#85C4FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] h-12 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {create.isPending ? (
                   <Loader2 size={16} className="animate-spin" />
