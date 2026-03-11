@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PermissionGuard } from "@/components/permissions/PermissionGuard";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Pecas from "@/pages/Pecas";
@@ -20,12 +21,21 @@ import Gastos from "@/pages/Gastos";
 import Mecanica from "@/pages/Mecanica";
 import CashRegister from "@/pages/CashRegister";
 import WhatsAppPage from "@/pages/WhatsApp";
+import Permissoes from "@/pages/Permissoes";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 import ProdutoPublico from "@/pages/ProdutoPublico";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
+
+function GuardedRoute({ module, children }: { module: string; children: React.ReactNode }) {
+  return (
+    <PermissionGuard module={module as any}>
+      {children}
+    </PermissionGuard>
+  );
+}
 
 function AuthGate() {
   const { session, loading } = useAuth();
@@ -43,21 +53,22 @@ function AuthGate() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/produtos" element={<Pecas />} />
-        <Route path="/bikes" element={<Bikes />} />
-        <Route path="/bikes/nova" element={<BikeForm />} />
-        <Route path="/bikes/:id" element={<BikeForm />} />
-        <Route path="/estoque" element={<Estoque />} />
-        <Route path="/pdv" element={<PDV />} />
-        <Route path="/caixa" element={<CashRegister />} />
-        <Route path="/historico" element={<Historico />} />
-        <Route path="/dre" element={<DRE />} />
-        <Route path="/gastos" element={<Gastos />} />
-        <Route path="/mecanica" element={<Mecanica />} />
-        <Route path="/clientes" element={<Clientes />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
-        <Route path="/whatsapp" element={<WhatsAppPage />} />
+        <Route path="/" element={<GuardedRoute module="dashboard"><Dashboard /></GuardedRoute>} />
+        <Route path="/produtos" element={<GuardedRoute module="produtos"><Pecas /></GuardedRoute>} />
+        <Route path="/bikes" element={<GuardedRoute module="bikes"><Bikes /></GuardedRoute>} />
+        <Route path="/bikes/nova" element={<GuardedRoute module="bikes"><BikeForm /></GuardedRoute>} />
+        <Route path="/bikes/:id" element={<GuardedRoute module="bikes"><BikeForm /></GuardedRoute>} />
+        <Route path="/estoque" element={<GuardedRoute module="estoque"><Estoque /></GuardedRoute>} />
+        <Route path="/pdv" element={<GuardedRoute module="pdv"><PDV /></GuardedRoute>} />
+        <Route path="/caixa" element={<GuardedRoute module="caixa"><CashRegister /></GuardedRoute>} />
+        <Route path="/historico" element={<GuardedRoute module="historico"><Historico /></GuardedRoute>} />
+        <Route path="/dre" element={<GuardedRoute module="dre"><DRE /></GuardedRoute>} />
+        <Route path="/gastos" element={<GuardedRoute module="gastos"><Gastos /></GuardedRoute>} />
+        <Route path="/mecanica" element={<GuardedRoute module="mecanica"><Mecanica /></GuardedRoute>} />
+        <Route path="/clientes" element={<GuardedRoute module="clientes"><Clientes /></GuardedRoute>} />
+        <Route path="/configuracoes" element={<GuardedRoute module="configuracoes"><Configuracoes /></GuardedRoute>} />
+        <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><WhatsAppPage /></GuardedRoute>} />
+        <Route path="/permissoes" element={<Permissoes />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
