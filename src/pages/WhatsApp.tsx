@@ -8,6 +8,11 @@ import {
   type Conversation,
 } from "@/hooks/useWhatsApp";
 import {
+  useZapiConnectionStatus,
+  useZapiQrCode,
+  useZapiDisconnect,
+} from "@/hooks/useZapiStatus";
+import {
   MessageCircle,
   Send,
   Search,
@@ -17,17 +22,25 @@ import {
   Check,
   Clock,
   CircleDot,
-  Copy,
   MoreVertical,
-  User,
+  Hash,
   Paperclip,
   Smile,
-  Hash,
+  LogOut,
+  Loader2,
+  QrCode,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -93,6 +106,12 @@ export default function WhatsApp() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Z-API connection status
+  const { data: connStatus, isLoading: connLoading } = useZapiConnectionStatus();
+  const isConnected = connStatus?.connected === true || connStatus?.smartphoneConnected === true;
+  const { data: qrData, isLoading: qrLoading } = useZapiQrCode(!isConnected && !connLoading);
+  const disconnect = useZapiDisconnect();
+
   const { data: conversations = [] } = useConversations(statusFilter);
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
   const sendMessage = useSendMessage();
@@ -134,7 +153,12 @@ export default function WhatsApp() {
     );
   };
 
-  const webhookUrl = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-webhook`;
+  const handleDisconnect = () => {
+    disconnect.mutate(undefined, {
+      onSuccess: () => toast({ title: "WhatsApp desconectado" }),
+      onError: () => toast({ title: "Erro ao desconectar", variant: "destructive" }),
+    });
+  };
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
@@ -150,14 +174,76 @@ export default function WhatsApp() {
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
                 <MessageCircle size={20} className="text-white" />
               </div>
-              <h1 className="text-xl font-black italic uppercase tracking-tighter">
-                Mensagens
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black italic uppercase tracking-tighter">
+                  Mensagens
+                </h1>
+                {/* Connection indicator */}
+                {connLoading ? (
+                  <Loader2 size={14} className="text-zinc-500 animate-spin" />
+                ) : isConnected ? (
+                  <Wifi size={14} className="text-emerald-400" />
+                ) : (
+                  <WifiOff size={14} className="text-red-400" />
+                )}
+              </div>
             </div>
-            <button className="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all">
-              <MoreVertical size={18} />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all">
+                  <MoreVertical size={18} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                {isConnected && (
+                  <DropdownMenuItem
+                    onClick={handleDisconnect}
+                    disabled={disconnect.isPending}
+                    className="text-red-400 focus:text-red-400 focus:bg-red-500/10 gap-2"
+                  >
+                    <LogOut size={14} />
+                    {disconnect.isPending ? "Desconectando..." : "Desconectar WhatsApp"}
+                  </DropdownMenuItem>
+                )}
+                {!isConnected && !connLoading && (
+                  <DropdownMenuItem disabled className="text-zinc-500 gap-2">
+                    <QrCode size={14} />
+                    Escaneie o QR Code abaixo
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+
+          {/* QR Code when not connected */}
+          {!connLoading && !isConnected && (
+            <div className="flex flex-col items-center gap-4 p-6 bg-[#161618] border border-zinc-800 rounded-3xl">
+              <div className="flex items-center gap-2 text-zinc-400">
+                <QrCode size={18} />
+                <span className="text-xs font-bold uppercase tracking-widest">Conectar WhatsApp</span>
+              </div>
+              {qrLoading ? (
+                <div className="w-48 h-48 flex items-center justify-center">
+                  <Loader2 size={32} className="text-[#2952FF] animate-spin" />
+                </div>
+              ) : qrData?.qrCode ? (
+                <img
+                  src={qrData.qrCode}
+                  alt="QR Code WhatsApp"
+                  className="w-48 h-48 rounded-2xl bg-white p-2"
+                />
+              ) : (
+                <div className="w-48 h-48 flex items-center justify-center bg-zinc-900 rounded-2xl">
+                  <p className="text-xs text-zinc-600 text-center px-4">
+                    Não foi possível gerar o QR Code. Tente novamente.
+                  </p>
+                </div>
+              )}
+              <p className="text-[10px] text-zinc-600 text-center leading-relaxed max-w-[200px]">
+                Abra o WhatsApp no celular, vá em Dispositivos Conectados e escaneie o código.
+              </p>
+            </div>
+          )}
 
           {/* Search */}
           <div className="space-y-4">
@@ -246,11 +332,9 @@ export default function WhatsApp() {
                       getInitials(conv.contact_name, conv.contact_phone)
                     )}
                   </div>
-                  {/* Status dot */}
                   <span
                     className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#111113] ${statusDotConfig[conv.status] || "bg-zinc-500"}`}
                   />
-                  {/* Unread badge */}
                   {conv.unread_count > 0 && (
                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#2952FF] text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
                       {conv.unread_count}
@@ -378,7 +462,6 @@ export default function WhatsApp() {
                   className={`flex ${msg.from_me ? "justify-end" : "justify-start"}`}
                 >
                   <div className="max-w-[65%] space-y-1">
-                    {/* Media */}
                     {msg.type === "image" && msg.media_url && (
                       <img
                         src={msg.media_url}
@@ -386,7 +469,6 @@ export default function WhatsApp() {
                         className="max-w-full rounded-[24px] mb-2"
                       />
                     )}
-                    {/* Bubble */}
                     <div
                       className={`p-5 shadow-lg ${
                         msg.from_me
@@ -398,7 +480,6 @@ export default function WhatsApp() {
                         {msg.content}
                       </p>
                     </div>
-                    {/* Meta */}
                     <div
                       className={`flex items-center gap-1.5 px-2 ${
                         msg.from_me ? "justify-end" : "justify-start"
