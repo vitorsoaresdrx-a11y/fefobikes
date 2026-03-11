@@ -73,6 +73,8 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { data: currentRegister } = useCurrentCashRegister();
+  const isCashOpen = currentRegister?.status === "open";
 
   const isActive = (url: string) => {
     if (url === "/") return location.pathname === "/";
