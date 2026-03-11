@@ -78,6 +78,7 @@ export function AppSidebar() {
   const location = useLocation();
   const { data: currentRegister } = useCurrentCashRegister();
   const isCashOpen = currentRegister?.status === "open";
+  const { data: totalUnread = 0 } = useTotalUnread();
 
   const isActive = (url: string) => {
     if (url === "/") return location.pathname === "/";
