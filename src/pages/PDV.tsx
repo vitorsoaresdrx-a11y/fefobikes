@@ -250,7 +250,7 @@ export default function PDV() {
         customerId = created.id;
       }
 
-      await createSale.mutateAsync({
+      const sale = await createSale.mutateAsync({
         customer_id: customerId,
         total,
         payment_method: paymentMethod,
@@ -266,13 +266,41 @@ export default function PDV() {
         })),
       });
 
-      toast({ title: "Venda registrada com sucesso!" });
-      setCart([]);
+      // Build receipt data from current PDV state
+      const finalCustomerName = selectedCustomer?.name || custName.trim() || undefined;
+      const finalWhatsapp = selectedCustomer?.whatsapp || custWhatsapp.trim() || undefined;
+
+      const receipt: ReceiptData = {
+        orderNumber: sale.id.slice(-4).toUpperCase(),
+        timestamp: new Date(),
+        customerName: finalCustomerName,
+        customerWhatsapp: finalWhatsapp,
+        items: cart.map((i) => ({ name: i.name, quantity: i.quantity, unit_price: i.unit_price })),
+        subtotal: total,
+        discount: 0,
+        total,
+        paymentMethod,
+      };
+
+      setReceiptData(receipt);
+      setShowReceipt(true);
       setStep("idle");
-      setPaymentMethod("pix");
+
+      toast({ title: "Venda registrada com sucesso!" });
     } catch {
       toast({ title: "Erro ao registrar venda", variant: "destructive" });
     }
+  };
+
+  const handleCloseReceipt = () => {
+    setShowReceipt(false);
+    setReceiptData(null);
+    setCart([]);
+    setPaymentMethod("pix");
+    setSelectedCustomerId(null);
+    setCustName("");
+    setCustWhatsapp("");
+    setCustCpf("");
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
