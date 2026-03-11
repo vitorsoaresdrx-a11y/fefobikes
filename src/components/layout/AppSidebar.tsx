@@ -49,6 +49,7 @@ const navGroups = [
     label: "Vendas",
     items: [
       { title: "PDV", url: "/pdv", icon: ShoppingCart },
+      { title: "Caixa", url: "/caixa", icon: Landmark },
       { title: "Histórico", url: "/historico", icon: ClipboardList },
     ],
   },
