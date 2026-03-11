@@ -85,7 +85,9 @@ Deno.serve(async (req) => {
     }
 
     const data = await zapiRes.json();
+    console.log(`Z-API body:`, JSON.stringify(data));
     return new Response(JSON.stringify(data), {
+      status: zapiRes.ok ? 200 : zapiRes.status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
