@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.zapi-webhook]
 verify_jwt = false
+
+[functions.zapi-status]
+verify_jwt = false

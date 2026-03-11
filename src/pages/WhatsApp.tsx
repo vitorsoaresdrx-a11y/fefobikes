@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   useConversations,
   useMessages,
@@ -13,6 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   MessageCircle,
   Send,
   Search,
@@ -21,11 +27,80 @@ import {
   Clock,
   CircleDot,
   Copy,
+  QrCode,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+function useZApiStatus() {
+  const [status, setStatus] = useState<"connected" | "disconnected" | "loading">("loading");
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [loadingQr, setLoadingQr] = useState(false);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      setStatus("loading");
+      const { data, error } = await supabase.functions.invoke("zapi-status", {
+        body: null,
+        headers: {},
+      });
+      // Use query param approach
+      const res = await fetch(
+        `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-status?action=status`,
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      const result = await res.json();
+      const connected = result?.connected === true || result?.status === "CONNECTED";
+      setStatus(connected ? "connected" : "disconnected");
+    } catch {
+      setStatus("disconnected");
+    }
+  }, []);
+
+  const fetchQrCode = useCallback(async () => {
+    try {
+      setLoadingQr(true);
+      const res = await fetch(
+        `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-status?action=qr-code`,
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      const result = await res.json();
+      if (result?.qrCode) {
+        setQrCode(result.qrCode);
+      } else if (result?.value) {
+        // Some Z-API versions return QR as value
+        setQrCode(result.value);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingQr(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkStatus();
+  }, [checkStatus]);
+
+  return { status, qrCode, loadingQr, checkStatus, fetchQrCode };
+}
 
 const STATUS_FILTERS = [
   { label: "Todas", value: "all" },
@@ -57,6 +132,7 @@ export default function WhatsApp() {
   const [search, setSearch] = useState("");
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState("");
+  const [showQrModal, setShowQrModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -65,6 +141,7 @@ export default function WhatsApp() {
   const sendMessage = useSendMessage();
   const updateStatus = useUpdateConversationStatus();
   const markAsRead = useMarkAsRead();
+  const { status: connStatus, qrCode, loadingQr, checkStatus, fetchQrCode } = useZApiStatus();
 
   const filtered = conversations.filter((c) => {
     const q = search.toLowerCase();
@@ -106,11 +183,87 @@ export default function WhatsApp() {
   const webhookUrl = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-webhook`;
 
   return (
+    <>
+    {/* QR Code Modal */}
+    <Dialog open={showQrModal} onOpenChange={setShowQrModal}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <QrCode className="h-5 w-5" />
+            Conectar WhatsApp
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col items-center gap-4 py-4">
+          {loadingQr ? (
+            <div className="flex h-64 w-64 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : qrCode ? (
+            <div className="rounded-xl border border-border bg-white p-4">
+              <img src={qrCode} alt="QR Code WhatsApp" className="h-64 w-64" />
+            </div>
+          ) : (
+            <div className="flex h-64 w-64 flex-col items-center justify-center gap-2 rounded-xl border border-border text-muted-foreground">
+              <QrCode className="h-12 w-12" />
+              <p className="text-sm">Clique para gerar o QR Code</p>
+            </div>
+          )}
+          <p className="text-center text-sm text-muted-foreground">
+            Abra o WhatsApp no seu celular → Dispositivos conectados → Conectar dispositivo → Escaneie o QR Code
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchQrCode();
+              }}
+              disabled={loadingQr}
+            >
+              <RefreshCw className={cn("mr-1.5 h-4 w-4", loadingQr && "animate-spin")} />
+              {qrCode ? "Atualizar QR" : "Gerar QR Code"}
+            </Button>
+            <Button
+              onClick={() => {
+                checkStatus();
+                setShowQrModal(false);
+              }}
+            >
+              Já escaneei
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
     <div className="flex h-[calc(100vh-2rem)] gap-0 overflow-hidden rounded-2xl border border-border bg-card">
       {/* Left: Conversation list */}
       <div className="flex w-80 shrink-0 flex-col border-r border-border">
-        {/* Search */}
+        {/* Connection status + Search */}
         <div className="space-y-3 border-b border-border p-4">
+          <button
+            onClick={() => {
+              if (connStatus !== "connected") {
+                setShowQrModal(true);
+                fetchQrCode();
+              }
+            }}
+            className={cn(
+              "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+              connStatus === "connected"
+                ? "bg-emerald-500/10 text-emerald-400"
+                : connStatus === "loading"
+                ? "bg-muted text-muted-foreground"
+                : "bg-destructive/10 text-destructive cursor-pointer hover:bg-destructive/20"
+            )}
+          >
+            {connStatus === "connected" ? (
+              <><Wifi className="h-3.5 w-3.5" /> Conectado</>
+            ) : connStatus === "loading" ? (
+              <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Verificando...</>
+            ) : (
+              <><WifiOff className="h-3.5 w-3.5" /> Desconectado — Clique para conectar</>
+            )}
+          </button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -365,5 +518,6 @@ export default function WhatsApp() {
         )}
       </div>
     </div>
+    </>
   );
 }
