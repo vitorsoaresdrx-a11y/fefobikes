@@ -25,6 +25,7 @@ import { useCustomers, useCreateCustomer } from "@/hooks/useCustomers";
 import { useCreateSale } from "@/hooks/useSales";
 import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
+import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -154,6 +155,9 @@ export default function PDV() {
   const [custCpf, setCustCpf] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
+  // Receipt
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
   // ── Derived ────────────────────────────────────────────────────────────────
 
   const total = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
@@ -246,7 +250,7 @@ export default function PDV() {
         customerId = created.id;
       }
 
-      await createSale.mutateAsync({
+      const sale = await createSale.mutateAsync({
         customer_id: customerId,
         total,
         payment_method: paymentMethod,
@@ -262,13 +266,41 @@ export default function PDV() {
         })),
       });
 
-      toast({ title: "Venda registrada com sucesso!" });
-      setCart([]);
+      // Build receipt data from current PDV state
+      const finalCustomerName = selectedCustomer?.name || custName.trim() || undefined;
+      const finalWhatsapp = selectedCustomer?.whatsapp || custWhatsapp.trim() || undefined;
+
+      const receipt: ReceiptData = {
+        orderNumber: sale.id.slice(-4).toUpperCase(),
+        timestamp: new Date(),
+        customerName: finalCustomerName,
+        customerWhatsapp: finalWhatsapp,
+        items: cart.map((i) => ({ name: i.name, quantity: i.quantity, unit_price: i.unit_price })),
+        subtotal: total,
+        discount: 0,
+        total,
+        paymentMethod,
+      };
+
+      setReceiptData(receipt);
+      setShowReceipt(true);
       setStep("idle");
-      setPaymentMethod("pix");
+
+      toast({ title: "Venda registrada com sucesso!" });
     } catch {
       toast({ title: "Erro ao registrar venda", variant: "destructive" });
     }
+  };
+
+  const handleCloseReceipt = () => {
+    setShowReceipt(false);
+    setReceiptData(null);
+    setCart([]);
+    setPaymentMethod("pix");
+    setSelectedCustomerId(null);
+    setCustName("");
+    setCustWhatsapp("");
+    setCustCpf("");
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -734,6 +766,14 @@ export default function PDV() {
             </div>
           </div>
         </div>
+      )}
+      {/* ── Receipt Modal ─────────────────────────────────────────────── */}
+      {receiptData && (
+        <SaleReceipt
+          open={showReceipt}
+          onClose={handleCloseReceipt}
+          data={receiptData}
+        />
       )}
     </div>
   );
