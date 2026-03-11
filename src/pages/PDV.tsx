@@ -26,6 +26,7 @@ import { useCreateSale } from "@/hooks/useSales";
 import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
+import { useCurrentCashRegister, useLinkSaleToCashRegister } from "@/hooks/useCashRegister";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -136,6 +137,8 @@ export default function PDV() {
   const { data: cardTaxes } = useCardTaxes();
   const createCustomer = useCreateCustomer();
   const createSale = useCreateSale();
+  const { data: currentCashRegister } = useCurrentCashRegister();
+  const linkSaleToCash = useLinkSaleToCashRegister();
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [step, setStep] = useState<Step>("idle");
@@ -265,6 +268,19 @@ export default function PDV() {
           part_id: item.type === "part" ? item.id : null,
         })),
       });
+
+      // Link to cash register if payment is cash and register is open
+      if (paymentMethod === "dinheiro") {
+        if (currentCashRegister?.status === "open") {
+          await linkSaleToCash.mutateAsync({
+            cashRegisterId: currentCashRegister.id,
+            saleId: sale.id,
+            amount: total,
+          });
+        } else {
+          toast({ title: "Atenção: nenhum caixa aberto. A venda foi registrada mas não vinculada ao caixa.", variant: "destructive" });
+        }
+      }
 
       // Build receipt data from current PDV state
       const finalCustomerName = selectedCustomer?.name || custName.trim() || undefined;

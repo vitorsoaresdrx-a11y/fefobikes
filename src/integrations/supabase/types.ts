@@ -137,6 +137,84 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_register_sales: {
+        Row: {
+          amount: number
+          cash_register_id: string
+          created_at: string
+          id: string
+          sale_id: string
+        }
+        Insert: {
+          amount?: number
+          cash_register_id: string
+          created_at?: string
+          id?: string
+          sale_id: string
+        }
+        Update: {
+          amount?: number
+          cash_register_id?: string
+          created_at?: string
+          id?: string
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_register_sales_cash_register_id_fkey"
+            columns: ["cash_register_id"]
+            isOneToOne: false
+            referencedRelation: "cash_registers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_register_sales_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_registers: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          closing_amount: number | null
+          difference: number | null
+          expected_amount: number | null
+          id: string
+          opened_at: string
+          opened_by: string | null
+          opening_amount: number
+          status: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_amount?: number | null
+          difference?: number | null
+          expected_amount?: number | null
+          id?: string
+          opened_at?: string
+          opened_by?: string | null
+          opening_amount?: number
+          status?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_amount?: number | null
+          difference?: number | null
+          expected_amount?: number | null
+          id?: string
+          opened_at?: string
+          opened_by?: string | null
+          opening_amount?: number
+          status?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string

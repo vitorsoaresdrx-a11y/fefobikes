@@ -18,6 +18,7 @@ import Estoque from "@/pages/Estoque";
 import DRE from "@/pages/DRE";
 import Gastos from "@/pages/Gastos";
 import Mecanica from "@/pages/Mecanica";
+import CashRegister from "@/pages/CashRegister";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 import ProdutoPublico from "@/pages/ProdutoPublico";
@@ -48,6 +49,7 @@ function AuthGate() {
         <Route path="/bikes/:id" element={<BikeForm />} />
         <Route path="/estoque" element={<Estoque />} />
         <Route path="/pdv" element={<PDV />} />
+        <Route path="/caixa" element={<CashRegister />} />
         <Route path="/historico" element={<Historico />} />
         <Route path="/dre" element={<DRE />} />
         <Route path="/gastos" element={<Gastos />} />

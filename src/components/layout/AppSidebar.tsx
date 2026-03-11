@@ -10,10 +10,12 @@ import {
   BarChart3,
   Wallet,
   LogOut,
+  Landmark,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrentCashRegister } from "@/hooks/useCashRegister";
 import {
   Sidebar,
   SidebarContent,
@@ -47,6 +49,7 @@ const navGroups = [
     label: "Vendas",
     items: [
       { title: "PDV", url: "/pdv", icon: ShoppingCart },
+      { title: "Caixa", url: "/caixa", icon: Landmark },
       { title: "Histórico", url: "/historico", icon: ClipboardList },
     ],
   },
@@ -70,6 +73,8 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { data: currentRegister } = useCurrentCashRegister();
+  const isCashOpen = currentRegister?.status === "open";
 
   const isActive = (url: string) => {
     if (url === "/") return location.pathname === "/";
@@ -118,7 +123,17 @@ export function AppSidebar() {
                           onClick={() => isMobile && setOpenMobile(false)}
                         >
                           <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span>{item.title}</span>}
+                          {!collapsed && (
+                            <span className="flex items-center gap-2">
+                              {item.title}
+                              {item.title === "Caixa" && isCashOpen && (
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
