@@ -155,6 +155,9 @@ export default function PDV() {
   const [custCpf, setCustCpf] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
+  // Receipt
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
   // ── Derived ────────────────────────────────────────────────────────────────
 
   const total = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
