@@ -689,7 +689,7 @@ export default function Mecanica() {
                     <p className="font-bold text-white leading-none mb-1 truncate">
                       {addJob.customer_name || "Cliente"}
                     </p>
-                    <p className="text-[10px] font-black text-[#820AD1] uppercase tracking-widest italic truncate">
+                    <p className="text-[10px] font-black text-[#66B3FF] uppercase tracking-widest italic truncate">
                       {addJob.problem}
                     </p>
                     <p className="text-xs font-bold text-zinc-500 mt-1">
