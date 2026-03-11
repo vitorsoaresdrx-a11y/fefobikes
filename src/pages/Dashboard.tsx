@@ -143,12 +143,12 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
 
       {/* Topbar */}
       <div className="px-12 py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0B]/50 backdrop-blur-xl">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(130,10,209,0.3)]">
+          <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
             <Activity size={20} className="text-white" />
           </div>
           <div>
