@@ -518,5 +518,6 @@ export default function WhatsApp() {
         )}
       </div>
     </div>
+    </>
   );
 }
