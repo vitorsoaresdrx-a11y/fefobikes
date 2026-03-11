@@ -502,7 +502,7 @@ export default function Mecanica() {
             </button>
             <button
               onClick={() => setOpen(true)}
-              className="h-12 px-8 rounded-2xl bg-[#66B3FF] text-white hover:bg-[#85C4FF] shadow-[0_0_20px_rgba(102,179,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+              className="h-12 px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
             >
               <Plus size={18} className="stroke-[3]" /> Nova Manutenção
             </button>
