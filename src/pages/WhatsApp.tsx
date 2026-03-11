@@ -180,7 +180,7 @@ export default function WhatsApp() {
                   onClick={() => setStatusFilter(f.value)}
                   className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border whitespace-nowrap ${
                     statusFilter === f.value
-                      ? "bg-[#820AD1] border-[#820AD1] text-white shadow-lg"
+                      ? "bg-[#2952FF] border-[#2952FF] text-white shadow-lg"
                       : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600"
                   }`}
                 >
