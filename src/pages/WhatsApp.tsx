@@ -330,7 +330,7 @@ export default function WhatsApp() {
                     {selectedConv.contact_name || selectedConv.contact_phone}
                   </h2>
                   <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
-                    <Hash size={10} className="text-[#820AD1]" />
+                    <Hash size={10} className="text-[#2952FF]" />
                     {selectedConv.contact_phone}
                   </p>
                 </div>
