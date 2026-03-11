@@ -35,6 +35,7 @@ const navItems = [
   { title: "Histórico", url: "/historico", icon: ClipboardList },
   { title: "DRE", url: "/dre", icon: BarChart3 },
   { title: "Gastos", url: "/gastos", icon: Wallet },
+  { title: "Mecânica", url: "/mecanica", icon: Wrench },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];

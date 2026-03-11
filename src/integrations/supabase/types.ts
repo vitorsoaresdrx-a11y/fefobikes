@@ -215,6 +215,45 @@ export type Database = {
         }
         Relationships: []
       }
+      mechanic_jobs: {
+        Row: {
+          bike_name: string | null
+          created_at: string
+          customer_cpf: string | null
+          customer_name: string | null
+          customer_whatsapp: string | null
+          id: string
+          price: number
+          problem: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bike_name?: string | null
+          created_at?: string
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_whatsapp?: string | null
+          id?: string
+          price?: number
+          problem: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bike_name?: string | null
+          created_at?: string
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_whatsapp?: string | null
+          id?: string
+          price?: number
+          problem?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parts: {
         Row: {
           alert_stock: number

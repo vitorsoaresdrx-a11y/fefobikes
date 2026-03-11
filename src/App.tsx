@@ -17,6 +17,7 @@ import Configuracoes from "@/pages/Configuracoes";
 import Estoque from "@/pages/Estoque";
 import DRE from "@/pages/DRE";
 import Gastos from "@/pages/Gastos";
+import Mecanica from "@/pages/Mecanica";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 import ProdutoPublico from "@/pages/ProdutoPublico";
@@ -50,6 +51,7 @@ function AuthGate() {
         <Route path="/historico" element={<Historico />} />
         <Route path="/dre" element={<DRE />} />
         <Route path="/gastos" element={<Gastos />} />
+        <Route path="/mecanica" element={<Mecanica />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
       </Route>
