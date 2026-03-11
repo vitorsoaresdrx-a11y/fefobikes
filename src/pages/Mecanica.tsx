@@ -149,7 +149,7 @@ const InputGroup = ({
 
 const PremiumInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#66B3FF] focus:shadow-[0_0_0_1px_rgba(102,179,255,0.1)] transition-all placeholder:text-zinc-600"
+    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#2952FF] focus:shadow-[0_0_0_1px_rgba(41,82,255,0.1)] transition-all placeholder:text-zinc-600"
     {...props}
   />
 );
