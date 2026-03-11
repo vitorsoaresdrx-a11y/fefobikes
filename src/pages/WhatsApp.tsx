@@ -173,20 +173,40 @@ export default function WhatsApp() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {STATUS_FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setStatusFilter(f.value)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border whitespace-nowrap ${
-                    statusFilter === f.value
-                      ? "bg-[#2952FF] border-[#2952FF] text-white shadow-lg"
-                      : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <div className="relative flex items-center">
+              <button
+                onClick={() => {
+                  const container = document.getElementById('status-filters');
+                  container?.scrollBy({ left: -100, behavior: 'smooth' });
+                }}
+                className="shrink-0 w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-white transition-colors"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <div id="status-filters" className="flex gap-2 overflow-x-auto scrollbar-none px-1">
+                {STATUS_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => setStatusFilter(f.value)}
+                    className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border whitespace-nowrap ${
+                      statusFilter === f.value
+                        ? "bg-[#2952FF] border-[#2952FF] text-white shadow-lg"
+                        : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  const container = document.getElementById('status-filters');
+                  container?.scrollBy({ left: 100, behavior: 'smooth' });
+                }}
+                className="shrink-0 w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-white transition-colors"
+              >
+                <ChevronRight size={14} />
+              </button>
             </div>
           </div>
         </div>
