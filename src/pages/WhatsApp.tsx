@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   useConversations,
   useMessages,
@@ -13,6 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   MessageCircle,
   Send,
   Search,
@@ -21,11 +27,80 @@ import {
   Clock,
   CircleDot,
   Copy,
+  QrCode,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+function useZApiStatus() {
+  const [status, setStatus] = useState<"connected" | "disconnected" | "loading">("loading");
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [loadingQr, setLoadingQr] = useState(false);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      setStatus("loading");
+      const { data, error } = await supabase.functions.invoke("zapi-status", {
+        body: null,
+        headers: {},
+      });
+      // Use query param approach
+      const res = await fetch(
+        `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-status?action=status`,
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      const result = await res.json();
+      const connected = result?.connected === true || result?.status === "CONNECTED";
+      setStatus(connected ? "connected" : "disconnected");
+    } catch {
+      setStatus("disconnected");
+    }
+  }, []);
+
+  const fetchQrCode = useCallback(async () => {
+    try {
+      setLoadingQr(true);
+      const res = await fetch(
+        `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-status?action=qr-code`,
+        {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      const result = await res.json();
+      if (result?.qrCode) {
+        setQrCode(result.qrCode);
+      } else if (result?.value) {
+        // Some Z-API versions return QR as value
+        setQrCode(result.value);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingQr(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkStatus();
+  }, [checkStatus]);
+
+  return { status, qrCode, loadingQr, checkStatus, fetchQrCode };
+}
 
 const STATUS_FILTERS = [
   { label: "Todas", value: "all" },
