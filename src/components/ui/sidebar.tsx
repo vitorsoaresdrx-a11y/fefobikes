@@ -458,7 +458,7 @@ const SidebarGroupAction = React.forwardRef<
       ref={ref}
       data-sidebar="group-action"
       className={cn(
-        "absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-zinc-400 outline-none ring-[#820AD1]/50 transition-transform hover:bg-zinc-800 hover:text-zinc-100 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-zinc-400 outline-none ring-[#66B3FF]/50 transition-transform hover:bg-zinc-800 hover:text-zinc-100 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "after:absolute after:-inset-2 after:md:hidden",
         "group-data-[collapsible=icon]:hidden",
         className
