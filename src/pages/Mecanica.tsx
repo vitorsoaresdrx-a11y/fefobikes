@@ -266,7 +266,7 @@ function JobCard({
   const showApprovalActions = columnKey === "in_maintenance";
 
   return (
-    <div className="group bg-[#161618] border border-zinc-800 rounded-[32px] p-6 space-y-5 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)]">
+    <div className="group bg-[#161618] border border-zinc-800 rounded-2xl lg:rounded-[32px] p-4 md:p-6 space-y-4 md:space-y-5 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
       {/* Customer info */}
       <div className="flex items-start justify-between">
         <div className="space-y-1 min-w-0">
