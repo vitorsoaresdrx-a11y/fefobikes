@@ -483,7 +483,7 @@ export default function Mecanica() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(130,10,209,0.3)]">
+              <div className="w-10 h-10 bg-[#66B3FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(102,179,255,0.3)]">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-black tracking-widest text-[#820AD1]">
