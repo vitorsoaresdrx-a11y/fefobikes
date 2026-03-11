@@ -137,6 +137,8 @@ export default function PDV() {
   const { data: cardTaxes } = useCardTaxes();
   const createCustomer = useCreateCustomer();
   const createSale = useCreateSale();
+  const { data: currentCashRegister } = useCurrentCashRegister();
+  const linkSaleToCash = useLinkSaleToCashRegister();
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [step, setStep] = useState<Step>("idle");
