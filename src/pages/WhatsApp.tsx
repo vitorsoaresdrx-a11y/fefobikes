@@ -286,33 +286,6 @@ export default function WhatsApp() {
           )}
         </div>
 
-        {/* Webhook URL footer */}
-        <div className="p-6 bg-[#0A0A0B] border-t border-zinc-800/50">
-          <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">
-                  Webhook URL — Z-API
-                </p>
-                <p className="text-[10px] font-bold text-emerald-400 uppercase italic flex items-center gap-1 mt-0.5">
-                  <CircleDot size={8} /> Conectado
-                </p>
-              </div>
-              <button
-                className="p-2 text-zinc-700 hover:text-zinc-300 transition-colors"
-                onClick={() => {
-                  navigator.clipboard.writeText(webhookUrl);
-                  toast({ title: "URL copiada!" });
-                }}
-              >
-                <Copy size={16} />
-              </button>
-            </div>
-            <code className="block truncate text-[9px] text-zinc-600 font-mono">
-              {webhookUrl}
-            </code>
-          </div>
-        </div>
       </aside>
 
       {/* ── Chat Area ──────────────────────────────────────────────────────── */}
