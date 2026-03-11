@@ -51,6 +51,7 @@ function AuthGate() {
         <Route path="/historico" element={<Historico />} />
         <Route path="/dre" element={<DRE />} />
         <Route path="/gastos" element={<Gastos />} />
+        <Route path="/mecanica" element={<Mecanica />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
       </Route>
