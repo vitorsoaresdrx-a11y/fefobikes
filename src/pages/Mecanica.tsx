@@ -95,13 +95,13 @@ const SummaryStat = ({
   icon: React.ReactNode;
   color?: string;
 }) => (
-  <div className="bg-[#161618] border border-zinc-800 p-6 rounded-[32px] flex items-center gap-4 hover:border-zinc-700 transition-all">
-    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500">
+  <div className="bg-[#161618] border border-zinc-800 p-4 md:p-6 rounded-2xl md:rounded-[32px] flex items-center gap-3 md:gap-4 hover:border-zinc-700 transition-all overflow-hidden">
+    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 shrink-0">
       {icon}
     </div>
-    <div>
-      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{title}</p>
-      <p className={`text-xl font-black ${color}`}>{value}</p>
+    <div className="min-w-0">
+      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest truncate">{title}</p>
+      <p className={`text-base md:text-xl font-black ${color} truncate`}>{value}</p>
     </div>
   </div>
 );
