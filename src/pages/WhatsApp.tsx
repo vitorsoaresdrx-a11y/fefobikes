@@ -230,7 +230,7 @@ export default function WhatsApp() {
                   />
                   {/* Unread badge */}
                   {conv.unread_count > 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#820AD1] text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#2952FF] text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
                       {conv.unread_count}
                     </div>
                   )}
