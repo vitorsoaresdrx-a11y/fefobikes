@@ -767,6 +767,14 @@ export default function PDV() {
           </div>
         </div>
       )}
+      {/* ── Receipt Modal ─────────────────────────────────────────────── */}
+      {receiptData && (
+        <SaleReceipt
+          open={showReceipt}
+          onClose={handleCloseReceipt}
+          data={receiptData}
+        />
+      )}
     </div>
   );
 }
