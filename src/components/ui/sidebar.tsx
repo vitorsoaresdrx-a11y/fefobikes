@@ -632,7 +632,7 @@ const SidebarMenuBadge = React.forwardRef<
     data-sidebar="menu-badge"
     className={cn(
       "pointer-events-none absolute right-1 flex h-5 min-w-5 select-none items-center justify-center rounded-full px-1 text-[9px] font-black tabular-nums text-zinc-400",
-      "peer-hover/menu-button:text-zinc-100 peer-data-[active=true]/menu-button:text-[#66B3FF]",
+      "peer-hover/menu-button:text-zinc-100 peer-data-[active=true]/menu-button:text-[#2952FF]",
       "peer-data-[size=sm]/menu-button:top-1",
       "peer-data-[size=default]/menu-button:top-1.5",
       "peer-data-[size=lg]/menu-button:top-2.5",
