@@ -57,6 +57,7 @@ function AuthGate() {
         <Route path="/mecanica" element={<Mecanica />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
+        <Route path="/whatsapp" element={<WhatsAppPage />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
