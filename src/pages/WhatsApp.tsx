@@ -395,7 +395,7 @@ export default function WhatsApp() {
                     <div
                       className={`p-5 shadow-lg ${
                         msg.from_me
-                          ? "bg-[#820AD1] text-white rounded-[32px] rounded-tr-lg"
+                          ? "bg-[#2952FF] text-white rounded-[32px] rounded-tr-lg"
                           : "bg-[#161618] text-zinc-200 border border-zinc-800 rounded-[32px] rounded-tl-lg"
                       }`}
                     >
