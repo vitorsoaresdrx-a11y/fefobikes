@@ -156,7 +156,7 @@ const PremiumInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
 
 const PremiumTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   <textarea
-    className="w-full bg-[#161618] border border-zinc-800 rounded-[20px] p-5 text-sm text-zinc-100 outline-none focus:border-[#820AD1] transition-all resize-none placeholder:text-zinc-600 leading-relaxed"
+    className="w-full bg-[#161618] border border-zinc-800 rounded-[20px] p-5 text-sm text-zinc-100 outline-none focus:border-[#66B3FF] transition-all resize-none placeholder:text-zinc-600 leading-relaxed"
     {...props}
   />
 );
