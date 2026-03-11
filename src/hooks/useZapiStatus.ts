@@ -69,7 +69,8 @@ export function useZapiQrCode(enabled: boolean) {
         const text = await res.text();
         throw new Error(`QR code failed: ${text}`);
       }
-      return res.json() as Promise<{ qrCode?: string; value?: string; error?: string }>;
+      const payload = await res.json();
+      return normalizeQrPayload(payload);
     },
     enabled,
     refetchInterval: enabled ? 20000 : false,

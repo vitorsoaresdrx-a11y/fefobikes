@@ -88,7 +88,26 @@ Deno.serve(async (req) => {
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
       const data = await zapiRes.json();
+      const candidate = typeof data === "string"
+        ? data
+        : data?.qrCode ?? data?.qrcode ?? data?.value ?? data?.base64 ?? data?.image;
+      const normalizedQrCode = normalizeQrCode(candidate);
+
+      console.log(
+        `Z-API qr payload keys=${typeof data === "object" && data ? Object.keys(data).join(",") : "n/a"}, hasQr=${Boolean(normalizedQrCode)}`
+      );
+
+      if (normalizedQrCode) {
+        const payload = typeof data === "object" && data
+          ? { ...data, qrCode: normalizedQrCode }
+          : { qrCode: normalizedQrCode };
+        return new Response(JSON.stringify(payload), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
