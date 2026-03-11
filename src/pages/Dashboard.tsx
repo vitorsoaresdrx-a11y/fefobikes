@@ -50,25 +50,25 @@ const secondaryActions = [
 type ColorTheme = "primary" | "amber" | "indigo";
 
 const themes: Record<ColorTheme, string> = {
-  primary: "border-[#820AD1]/20 hover:border-[#820AD1]/50",
+  primary: "border-[#2952FF]/20 hover:border-[#2952FF]/50",
   amber:   "border-amber-500/20 hover:border-amber-500/50",
   indigo:  "border-indigo-500/20 hover:border-indigo-500/50",
 };
 
 const iconColors: Record<ColorTheme, string> = {
-  primary: "text-[#820AD1] bg-[#820AD1]/10",
+  primary: "text-[#2952FF] bg-[#2952FF]/10",
   amber:   "text-amber-500 bg-amber-500/10",
   indigo:  "text-indigo-400 bg-indigo-400/10",
 };
 
 const hoverBg: Record<ColorTheme, string> = {
-  primary: "hover:bg-[#820AD1]/5",
+  primary: "hover:bg-[#2952FF]/5",
   amber:   "hover:bg-amber-500/5",
   indigo:  "hover:bg-indigo-500/5",
 };
 
 const actionTextColor: Record<ColorTheme, string> = {
-  primary: "text-[#820AD1]",
+  primary: "text-[#2952FF]",
   amber:   "text-amber-500",
   indigo:  "text-indigo-400",
 };
@@ -121,9 +121,9 @@ const SecondaryAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-4 p-5 bg-[#161618] border border-zinc-800 rounded-2xl hover:border-[#820AD1]/50 hover:bg-[#820AD1]/5 transition-all text-left group"
+    className="flex items-center gap-4 p-5 bg-[#161618] border border-zinc-800 rounded-2xl hover:border-[#2952FF]/50 hover:bg-[#2952FF]/5 transition-all text-left group"
   >
-    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 group-hover:text-[#820AD1] transition-colors">
+    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 group-hover:text-[#2952FF] transition-colors">
       {icon}
     </div>
     <span className="text-xs font-bold text-zinc-400 group-hover:text-white uppercase tracking-wider transition-colors">
@@ -143,12 +143,12 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
 
       {/* Topbar */}
       <div className="px-12 py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0B]/50 backdrop-blur-xl">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(130,10,209,0.3)]">
+          <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
             <Activity size={20} className="text-white" />
           </div>
           <div>
@@ -184,7 +184,7 @@ export default function Dashboard() {
         {/* Welcome */}
         <div className="space-y-2">
           <h1 className="text-5xl font-black text-white tracking-tighter leading-none italic uppercase">
-            O que vamos <span className="text-[#820AD1]">resolver</span> hoje?
+            O que vamos <span className="text-[#2952FF]">resolver</span> hoje?
           </h1>
           <p className="text-zinc-500 text-lg font-medium">
             Selecione uma ação rápida para iniciar o atendimento.
@@ -208,7 +208,7 @@ export default function Dashboard() {
         {/* Secondary Actions */}
         <div className="pt-12 border-t border-zinc-800/50">
           <div className="flex items-center gap-2 mb-8">
-            <Plus size={16} className="text-[#820AD1]" />
+            <Plus size={16} className="text-[#2952FF]" />
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
               Outros Procedimentos
             </h4>
