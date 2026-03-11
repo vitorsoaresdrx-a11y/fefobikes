@@ -125,7 +125,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full bg-[#0A0A0B] font-sans selection:bg-[#66B3FF]/30 has-[[data-variant=inset]]:bg-[#0A0A0B]",
+              "group/sidebar-wrapper flex min-h-svh w-full bg-[#0A0A0B] font-sans selection:bg-[#2952FF]/30 has-[[data-variant=inset]]:bg-[#0A0A0B]",
               className
             )}
             ref={ref}
@@ -254,7 +254,7 @@ const SidebarTrigger = React.forwardRef<
       variant="ghost"
       size="icon"
       className={cn(
-        "h-9 w-9 rounded-xl text-zinc-500 hover:text-[#66B3FF] hover:bg-[#66B3FF]/10",
+        "h-9 w-9 rounded-xl text-zinc-500 hover:text-[#2952FF] hover:bg-[#2952FF]/10",
         className
       )}
       onClick={(event) => {
@@ -331,7 +331,7 @@ const SidebarInput = React.forwardRef<
       ref={ref}
       data-sidebar="input"
       className={cn(
-        "h-10 w-full bg-zinc-900 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 shadow-none focus-visible:ring-1 focus-visible:ring-[#66B3FF]/50 focus-visible:border-[#66B3FF]/50 rounded-xl text-xs font-medium transition-all",
+        "h-10 w-full bg-zinc-900 border-zinc-800 text-zinc-300 placeholder:text-zinc-600 shadow-none focus-visible:ring-1 focus-visible:ring-[#2952FF]/50 focus-visible:border-[#2952FF]/50 rounded-xl text-xs font-medium transition-all",
         className
       )}
       {...props}
@@ -458,7 +458,7 @@ const SidebarGroupAction = React.forwardRef<
       ref={ref}
       data-sidebar="group-action"
       className={cn(
-        "absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-zinc-400 outline-none ring-[#66B3FF]/50 transition-transform hover:bg-zinc-800 hover:text-zinc-100 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-zinc-400 outline-none ring-[#2952FF]/50 transition-transform hover:bg-zinc-800 hover:text-zinc-100 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "after:absolute after:-inset-2 after:md:hidden",
         "group-data-[collapsible=icon]:hidden",
         className
@@ -565,7 +565,7 @@ const SidebarMenuButton = React.forwardRef<
         className={cn(
           sidebarMenuButtonVariants({ variant, size }),
           isActive &&
-            "bg-[#66B3FF]/10 text-[#66B3FF] border-l-[3px] border-l-[#66B3FF] rounded-l-none hover:bg-[#66B3FF]/15 hover:text-[#66B3FF]",
+            "bg-[#2952FF]/10 text-[#2952FF] border-l-[3px] border-l-[#2952FF] rounded-l-none hover:bg-[#2952FF]/15 hover:text-[#2952FF]",
           className
         )}
         {...props}
@@ -607,14 +607,14 @@ const SidebarMenuAction = React.forwardRef<
       ref={ref}
       data-sidebar="menu-action"
       className={cn(
-        "absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-zinc-400 outline-none ring-[#66B3FF]/50 transition-transform hover:bg-zinc-800 hover:text-zinc-100 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-zinc-400 outline-none ring-[#2952FF]/50 transition-transform hover:bg-zinc-800 hover:text-zinc-100 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "after:absolute after:-inset-2 after:md:hidden",
         "peer-data-[size=sm]/menu-button:top-1",
         "peer-data-[size=default]/menu-button:top-1.5",
         "peer-data-[size=lg]/menu-button:top-2.5",
         "group-data-[collapsible=icon]:hidden",
         showOnHover &&
-          "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-[#66B3FF] md:opacity-0",
+          "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-[#2952FF] md:opacity-0",
         className
       )}
       {...props}
@@ -632,7 +632,7 @@ const SidebarMenuBadge = React.forwardRef<
     data-sidebar="menu-badge"
     className={cn(
       "pointer-events-none absolute right-1 flex h-5 min-w-5 select-none items-center justify-center rounded-full px-1 text-[9px] font-black tabular-nums text-zinc-400",
-      "peer-hover/menu-button:text-zinc-100 peer-data-[active=true]/menu-button:text-[#66B3FF]",
+      "peer-hover/menu-button:text-zinc-100 peer-data-[active=true]/menu-button:text-[#2952FF]",
       "peer-data-[size=sm]/menu-button:top-1",
       "peer-data-[size=default]/menu-button:top-1.5",
       "peer-data-[size=lg]/menu-button:top-2.5",
@@ -716,8 +716,8 @@ const SidebarMenuSubButton = React.forwardRef<
       data-size={size}
       data-active={isActive}
       className={cn(
-        "flex h-9 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-xl px-3 text-zinc-500 outline-none ring-[#66B3FF]/50 transition-all hover:bg-zinc-800/40 hover:text-zinc-100 focus-visible:ring-2 active:bg-zinc-800 disabled:pointer-events-none disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-zinc-500",
-        "data-[active=true]:text-[#66B3FF] data-[active=true]:bg-[#66B3FF]/10",
+        "flex h-9 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-xl px-3 text-zinc-500 outline-none ring-[#2952FF]/50 transition-all hover:bg-zinc-800/40 hover:text-zinc-100 focus-visible:ring-2 active:bg-zinc-800 disabled:pointer-events-none disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-zinc-500",
+        "data-[active=true]:text-[#2952FF] data-[active=true]:bg-[#2952FF]/10",
         size === "sm" && "text-xs",
         size === "md" && "text-sm font-medium",
         "group-data-[collapsible=icon]:hidden",

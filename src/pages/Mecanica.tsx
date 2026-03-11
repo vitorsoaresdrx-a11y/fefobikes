@@ -149,14 +149,14 @@ const InputGroup = ({
 
 const PremiumInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#66B3FF] focus:shadow-[0_0_0_1px_rgba(102,179,255,0.1)] transition-all placeholder:text-zinc-600"
+    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#2952FF] focus:shadow-[0_0_0_1px_rgba(41,82,255,0.1)] transition-all placeholder:text-zinc-600"
     {...props}
   />
 );
 
 const PremiumTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   <textarea
-    className="w-full bg-[#161618] border border-zinc-800 rounded-[20px] p-5 text-sm text-zinc-100 outline-none focus:border-[#66B3FF] transition-all resize-none placeholder:text-zinc-600 leading-relaxed"
+    className="w-full bg-[#161618] border border-zinc-800 rounded-[20px] p-5 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all resize-none placeholder:text-zinc-600 leading-relaxed"
     {...props}
   />
 );
@@ -272,7 +272,7 @@ function JobCard({
         <div className="space-y-1 min-w-0">
           {job.customer_name && (
             <div className="flex items-center gap-2">
-              <User size={14} className="text-[#66B3FF] shrink-0" />
+              <User size={14} className="text-[#2952FF] shrink-0" />
               <span className="text-sm font-black tracking-tight text-white uppercase italic truncate">
                 {job.customer_name}
               </span>
@@ -344,7 +344,7 @@ function JobCard({
             <button
               onClick={handleAdvance}
               disabled={advance.isPending}
-              className="h-8 rounded-xl px-4 bg-[#66B3FF] text-white hover:bg-[#85C4FF] shadow-[0_0_20px_rgba(102,179,255,0.2)] text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              className="h-8 rounded-xl px-4 bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.2)] text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
             >
               {advance.isPending ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -476,17 +476,17 @@ export default function Mecanica() {
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#66B3FF]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
       <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#66B3FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(102,179,255,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#66B3FF]">
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">
                 SERVICE CENTER
               </span>
             </div>
@@ -502,7 +502,7 @@ export default function Mecanica() {
             </button>
             <button
               onClick={() => setOpen(true)}
-              className="h-12 px-8 rounded-2xl bg-[#66B3FF] text-white hover:bg-[#85C4FF] shadow-[0_0_20px_rgba(102,179,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+              className="h-12 px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
             >
               <Plus size={18} className="stroke-[3]" /> Nova Manutenção
             </button>
@@ -655,7 +655,7 @@ export default function Mecanica() {
               <button
                 onClick={handleSave}
                 disabled={create.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-[#66B3FF] text-white hover:bg-[#85C4FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] h-12 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {create.isPending ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -689,7 +689,7 @@ export default function Mecanica() {
                     <p className="font-bold text-white leading-none mb-1 truncate">
                       {addJob.customer_name || "Cliente"}
                     </p>
-                    <p className="text-[10px] font-black text-[#66B3FF] uppercase tracking-widest italic truncate">
+                    <p className="text-[10px] font-black text-[#2952FF] uppercase tracking-widest italic truncate">
                       {addJob.problem}
                     </p>
                     <p className="text-xs font-bold text-zinc-500 mt-1">
@@ -738,7 +738,7 @@ export default function Mecanica() {
               <button
                 onClick={handleSaveAddition}
                 disabled={createAddition.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-[#66B3FF] text-white hover:bg-[#85C4FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] h-12 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {createAddition.isPending ? (
                   <Loader2 size={16} className="animate-spin" />
