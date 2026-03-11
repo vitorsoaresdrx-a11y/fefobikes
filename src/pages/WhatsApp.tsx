@@ -162,7 +162,7 @@ export default function WhatsApp() {
             <div className="relative group">
               <Search
                 size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#820AD1] transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors"
               />
               <input
                 placeholder="Buscar contato..."
