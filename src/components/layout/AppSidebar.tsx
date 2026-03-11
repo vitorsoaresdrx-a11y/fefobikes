@@ -11,11 +11,13 @@ import {
   Wallet,
   LogOut,
   Landmark,
+  MessageCircle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentCashRegister } from "@/hooks/useCashRegister";
+import { useTotalUnread } from "@/hooks/useWhatsApp";
 import {
   Sidebar,
   SidebarContent,
@@ -59,6 +61,7 @@ const navGroups = [
       { title: "Mecânica", url: "/mecanica", icon: Wrench },
       { title: "Gastos", url: "/gastos", icon: Wallet },
       { title: "Clientes", url: "/clientes", icon: Users },
+      { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle },
     ],
   },
   {
@@ -75,6 +78,7 @@ export function AppSidebar() {
   const location = useLocation();
   const { data: currentRegister } = useCurrentCashRegister();
   const isCashOpen = currentRegister?.status === "open";
+  const { data: totalUnread = 0 } = useTotalUnread();
 
   const isActive = (url: string) => {
     if (url === "/") return location.pathname === "/";
@@ -124,12 +128,17 @@ export function AppSidebar() {
                         >
                           <item.icon className="h-4 w-4 shrink-0" />
                           {!collapsed && (
-                            <span className="flex items-center gap-2">
+                             <span className="flex items-center gap-2">
                               {item.title}
                               {item.title === "Caixa" && isCashOpen && (
                                 <span className="relative flex h-2 w-2">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                </span>
+                              )}
+                              {item.title === "WhatsApp" && totalUnread > 0 && (
+                                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                                  {totalUnread}
                                 </span>
                               )}
                             </span>
