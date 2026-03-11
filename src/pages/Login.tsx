@@ -43,6 +43,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const imageUrl =
     "https://i.postimg.cc/15gFKyyF/Lona-painel-led-1920-x-1080-px-20260310-164540-0000.png";
@@ -66,11 +67,18 @@ export default function Login() {
 
       {/* Imagem — esquerda no desktop, topo no mobile */}
       <div className="relative w-full lg:w-[60%] h-[40vh] lg:h-screen overflow-hidden">
+        {/* Hidden preloader */}
+        <img
+          src={imageUrl}
+          alt=""
+          className="sr-only"
+          onLoad={() => setImgLoaded(true)}
+        />
         <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-[10s] hover:scale-110"
+          className={`absolute inset-0 bg-cover bg-center transition-all duration-1000 ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
           style={{ backgroundImage: `url(${imageUrl})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-[#0A0A0B]/60 to-[#0A0A0B]" />
+        <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-[#0A0A0B]/30 to-[#0A0A0B]/70" />
 
         {/* Branding (só desktop) */}
         <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
