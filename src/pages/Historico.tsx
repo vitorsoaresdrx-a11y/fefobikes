@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
-import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, Printer, MessageCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useSales } from "@/hooks/useSales";
+import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -20,10 +22,31 @@ const paymentLabel: Record<string, string> = {
   transferência: "Transferência",
 };
 
+function buildReceiptFromSale(sale: any): ReceiptData {
+  const customer = sale.customers;
+  const items = (sale.sale_items || []).map((item: any) => ({
+    name: item.description,
+    quantity: item.quantity,
+    unit_price: Number(item.unit_price),
+  }));
+  return {
+    orderNumber: sale.id.slice(-4).toUpperCase(),
+    timestamp: new Date(sale.created_at),
+    customerName: customer?.name || undefined,
+    customerWhatsapp: customer?.whatsapp || undefined,
+    items,
+    subtotal: Number(sale.total),
+    discount: 0,
+    total: Number(sale.total),
+    paymentMethod: sale.payment_method || "pix",
+  };
+}
+
 export default function Historico() {
   const { data: sales = [], isLoading } = useSales();
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return sales;
@@ -37,6 +60,10 @@ export default function Historico() {
       );
     });
   }, [sales, search]);
+
+  const openReceipt = (sale: any) => {
+    setReceiptData(buildReceiptFromSale(sale));
+  };
 
   return (
     <div className="space-y-4">
@@ -140,6 +167,19 @@ export default function Historico() {
                     {sale.notes && (
                       <p className="text-xs text-muted-foreground italic">Obs: {sale.notes}</p>
                     )}
+
+                    {/* Receipt actions */}
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 text-xs"
+                        onClick={(e) => { e.stopPropagation(); openReceipt(sale); }}
+                      >
+                        <Printer className="h-3.5 w-3.5" />
+                        Reimprimir
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -151,6 +191,15 @@ export default function Historico() {
       <p className="text-xs text-muted-foreground text-right">
         {filtered.length} venda{filtered.length !== 1 ? "s" : ""}
       </p>
+
+      {/* Receipt modal */}
+      {receiptData && (
+        <SaleReceipt
+          open={!!receiptData}
+          onClose={() => setReceiptData(null)}
+          data={receiptData}
+        />
+      )}
     </div>
   );
 }
