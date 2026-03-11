@@ -42,7 +42,7 @@ const primaryActions = [
 const secondaryActions = [
   { icon: <UserPlus size={18} />, label: "Cadastrar Cliente", to: "/clientes" },
   { icon: <Package size={18} />, label: "Checar Estoque", to: "/estoque" },
-  { icon: <TrendingUp size={18} />, label: "Ver Vendas Hoje", to: "/vendas" },
+  { icon: <TrendingUp size={18} />, label: "Ver Vendas Hoje", to: "/historico" },
   { icon: <Monitor size={18} />, label: "Site Público", to: "/site" },
 ];
 
