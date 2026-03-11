@@ -367,6 +367,44 @@ export type Database = {
         }
         Relationships: []
       }
+      module_permissions: {
+        Row: {
+          can_access: boolean
+          created_at: string
+          hide_sensitive: boolean
+          id: string
+          module: Database["public"]["Enums"]["app_module"]
+          tenant_member_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_access?: boolean
+          created_at?: string
+          hide_sensitive?: boolean
+          id?: string
+          module: Database["public"]["Enums"]["app_module"]
+          tenant_member_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_access?: boolean
+          created_at?: string
+          hide_sensitive?: boolean
+          id?: string
+          module?: Database["public"]["Enums"]["app_module"]
+          tenant_member_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_permissions_tenant_member_id_fkey"
+            columns: ["tenant_member_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parts: {
         Row: {
           alert_stock: number
@@ -583,6 +621,59 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_members: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["tenant_role"]
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["tenant_role"]
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["tenant_role"]
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       variable_expenses: {
         Row: {
           amount: number
@@ -695,10 +786,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_tenant_member_id: { Args: { _user_id: string }; Returns: string }
+      has_module_access: {
+        Args: {
+          _module: Database["public"]["Enums"]["app_module"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_tenant_owner: { Args: { _user_id: string }; Returns: boolean }
+      should_hide_sensitive: {
+        Args: {
+          _module: Database["public"]["Enums"]["app_module"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_module:
+        | "dashboard"
+        | "dre"
+        | "produtos"
+        | "bikes"
+        | "estoque"
+        | "pdv"
+        | "caixa"
+        | "historico"
+        | "mecanica"
+        | "gastos"
+        | "clientes"
+        | "whatsapp"
+        | "configuracoes"
+      tenant_role: "owner" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -825,6 +945,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_module: [
+        "dashboard",
+        "dre",
+        "produtos",
+        "bikes",
+        "estoque",
+        "pdv",
+        "caixa",
+        "historico",
+        "mecanica",
+        "gastos",
+        "clientes",
+        "whatsapp",
+        "configuracoes",
+      ],
+      tenant_role: ["owner", "member"],
+    },
   },
 } as const
