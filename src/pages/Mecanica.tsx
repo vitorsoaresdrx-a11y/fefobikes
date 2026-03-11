@@ -542,11 +542,11 @@ export default function Mecanica() {
             <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 lg:gap-8 items-start">
             {columns.map((col) => (
               <div
                 key={col.key}
-                className="flex flex-col min-h-[600px] bg-[#111113]/50 rounded-[40px] p-2 border border-zinc-800/30"
+                className="flex flex-col min-h-[400px] lg:min-h-[600px] bg-[#111113]/50 rounded-3xl lg:rounded-[40px] p-2 border border-zinc-800/30"
               >
                 <ColumnHeader {...col} count={grouped[col.key].length} />
                 <div className="px-2 space-y-4 pb-10">
