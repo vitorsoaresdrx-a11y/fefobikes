@@ -565,7 +565,7 @@ const SidebarMenuButton = React.forwardRef<
         className={cn(
           sidebarMenuButtonVariants({ variant, size }),
           isActive &&
-            "bg-[#66B3FF]/10 text-[#66B3FF] border-l-[3px] border-l-[#66B3FF] rounded-l-none hover:bg-[#66B3FF]/15 hover:text-[#66B3FF]",
+            "bg-[#2952FF]/10 text-[#2952FF] border-l-[3px] border-l-[#2952FF] rounded-l-none hover:bg-[#2952FF]/15 hover:text-[#2952FF]",
           className
         )}
         {...props}
