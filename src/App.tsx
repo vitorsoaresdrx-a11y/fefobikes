@@ -18,6 +18,7 @@ import Estoque from "@/pages/Estoque";
 import DRE from "@/pages/DRE";
 import Gastos from "@/pages/Gastos";
 import Mecanica from "@/pages/Mecanica";
+import CashRegister from "@/pages/CashRegister";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 import ProdutoPublico from "@/pages/ProdutoPublico";
