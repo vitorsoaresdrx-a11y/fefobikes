@@ -132,6 +132,7 @@ export default function WhatsApp() {
   const [search, setSearch] = useState("");
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState("");
+  const [showQrModal, setShowQrModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -140,6 +141,7 @@ export default function WhatsApp() {
   const sendMessage = useSendMessage();
   const updateStatus = useUpdateConversationStatus();
   const markAsRead = useMarkAsRead();
+  const { status: connStatus, qrCode, loadingQr, checkStatus, fetchQrCode } = useZApiStatus();
 
   const filtered = conversations.filter((c) => {
     const q = search.toLowerCase();
