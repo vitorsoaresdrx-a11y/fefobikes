@@ -424,7 +424,7 @@ export default function WhatsApp() {
             <div className="p-8 pt-4 shrink-0">
               <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-2 flex items-center gap-2 shadow-2xl focus-within:border-[#2952FF]/50 transition-all">
                 <div className="flex items-center px-2">
-                  <button className="p-3 text-zinc-600 hover:text-[#820AD1] transition-colors">
+                  <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
                     <Paperclip size={20} />
                   </button>
                   <button className="p-3 text-zinc-600 hover:text-amber-500 transition-colors">
