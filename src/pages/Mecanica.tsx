@@ -344,7 +344,7 @@ function JobCard({
             <button
               onClick={handleAdvance}
               disabled={advance.isPending}
-              className="h-8 rounded-xl px-4 bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_20px_rgba(130,10,209,0.2)] text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              className="h-8 rounded-xl px-4 bg-[#66B3FF] text-white hover:bg-[#85C4FF] shadow-[0_0_20px_rgba(102,179,255,0.2)] text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
             >
               {advance.isPending ? (
                 <Loader2 size={12} className="animate-spin" />
