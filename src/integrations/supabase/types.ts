@@ -215,6 +215,41 @@ export type Database = {
         }
         Relationships: []
       }
+      mechanic_job_additions: {
+        Row: {
+          approval: string
+          created_at: string
+          id: string
+          job_id: string
+          price: number
+          problem: string
+        }
+        Insert: {
+          approval?: string
+          created_at?: string
+          id?: string
+          job_id: string
+          price?: number
+          problem: string
+        }
+        Update: {
+          approval?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          price?: number
+          problem?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mechanic_job_additions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "mechanic_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mechanic_jobs: {
         Row: {
           bike_name: string | null
