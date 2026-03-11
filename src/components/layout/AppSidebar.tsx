@@ -19,6 +19,7 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -26,18 +27,43 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const navItems = [
-  { title: "Ações Rápidas", url: "/", icon: LayoutDashboard },
-  { title: "Produtos", url: "/produtos", icon: Wrench },
-  { title: "Bikes", url: "/bikes", icon: Bike },
-  { title: "Estoque", url: "/estoque", icon: Package },
-  { title: "PDV", url: "/pdv", icon: ShoppingCart },
-  { title: "Histórico", url: "/historico", icon: ClipboardList },
-  { title: "DRE", url: "/dre", icon: BarChart3 },
-  { title: "Gastos", url: "/gastos", icon: Wallet },
-  { title: "Mecânica", url: "/mecanica", icon: Wrench },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
+const navGroups = [
+  {
+    label: "Geral",
+    items: [
+      { title: "Ações Rápidas", url: "/", icon: LayoutDashboard },
+      { title: "Dashboard", url: "/dre", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Catálogo",
+    items: [
+      { title: "Produtos", url: "/produtos", icon: Wrench },
+      { title: "Bikes", url: "/bikes", icon: Bike },
+      { title: "Estoque", url: "/estoque", icon: Package },
+    ],
+  },
+  {
+    label: "Vendas",
+    items: [
+      { title: "PDV", url: "/pdv", icon: ShoppingCart },
+      { title: "Histórico", url: "/historico", icon: ClipboardList },
+    ],
+  },
+  {
+    label: "Operações",
+    items: [
+      { title: "Mecânica", url: "/mecanica", icon: Wrench },
+      { title: "Gastos", url: "/gastos", icon: Wallet },
+      { title: "Clientes", url: "/clientes", icon: Users },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [
+      { title: "Configurações", url: "/configuracoes", icon: Settings },
+    ],
+  },
 ];
 
 export function AppSidebar() {
@@ -63,38 +89,45 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="px-2 space-y-1">
-              {navItems.map((item) => {
-                const active = isActive(item.url);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      tooltip={item.title}
-                      className={
-                        active
-                          ? "!bg-[linear-gradient(to_left,hsl(225_100%_60%/0.12),transparent_70%)] border-r-2 !border-r-primary"
-                          : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
-                      }
-                    >
-                      <NavLink
-                        to={item.url}
-                        end={item.url === "/"}
-                        onClick={() => isMobile && setOpenMobile(false)}
+        {navGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            {!collapsed && (
+              <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-4 mb-1">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu className="px-2 space-y-0.5">
+                {group.items.map((item) => {
+                  const active = isActive(item.url);
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={item.title}
+                        className={
+                          active
+                            ? "!bg-[linear-gradient(to_left,hsl(225_100%_60%/0.12),transparent_70%)] border-r-2 !border-r-primary"
+                            : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
+                        }
                       >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                        <NavLink
+                          to={item.url}
+                          end={item.url === "/"}
+                          onClick={() => isMobile && setOpenMobile(false)}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
 
         {/* Logout */}
         <SidebarGroup className="mt-auto pb-4">
