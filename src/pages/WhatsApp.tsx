@@ -427,7 +427,7 @@ export default function WhatsApp() {
                   <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
                     <Paperclip size={20} />
                   </button>
-                  <button className="p-3 text-zinc-600 hover:text-amber-500 transition-colors">
+                  <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
                     <Smile size={20} />
                   </button>
                 </div>
