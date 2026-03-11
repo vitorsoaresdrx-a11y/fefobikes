@@ -477,34 +477,34 @@ export default function Mecanica() {
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
-      <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-10">
+      <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-10 overflow-x-hidden">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+          <div className="space-y-2 min-w-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)] shrink-0">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">
                 SERVICE CENTER
               </span>
             </div>
-            <h1 className="text-4xl font-black tracking-tight italic uppercase text-white">
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
               Mecânica
             </h1>
-            <p className="text-zinc-500 font-medium">Gerencie os serviços de manutenção</p>
+            <p className="text-zinc-500 font-medium text-sm">Gerencie os serviços de manutenção</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button className="h-12 px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-sm font-bold flex items-center gap-2 transition-all">
-              <History size={18} /> Histórico de O.S
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0">
+            <button className="h-10 md:h-12 px-4 md:px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-xs md:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+              <History size={16} /> Histórico de O.S
             </button>
             <button
               onClick={() => setOpen(true)}
-              className="h-12 px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+              className="h-10 md:h-12 px-5 md:px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs md:text-sm font-bold flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap"
             >
-              <Plus size={18} className="stroke-[3]" /> Nova Manutenção
+              <Plus size={16} className="stroke-[3]" /> Nova Manutenção
             </button>
           </div>
         </header>
