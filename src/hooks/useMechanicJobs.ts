@@ -1,6 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface MechanicJobAddition {
+  id: string;
+  job_id: string;
+  problem: string;
+  price: number;
+  approval: "pending" | "accepted" | "refused";
+  created_at: string;
+}
+
 export interface MechanicJob {
   id: string;
   customer_name: string | null;
@@ -12,6 +21,7 @@ export interface MechanicJob {
   status: "in_repair" | "in_maintenance" | "ready";
   created_at: string;
   updated_at: string;
+  additions?: MechanicJobAddition[];
 }
 
 const KEY = ["mechanic_jobs"];
@@ -20,12 +30,28 @@ export function useMechanicJobs() {
   return useQuery({
     queryKey: KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: jobs, error } = await supabase
         .from("mechanic_jobs" as any)
         .select("*")
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data as unknown as MechanicJob[];
+
+      const { data: additions, error: addErr } = await supabase
+        .from("mechanic_job_additions" as any)
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (addErr) throw addErr;
+
+      const addMap = new Map<string, MechanicJobAddition[]>();
+      (additions as unknown as MechanicJobAddition[]).forEach((a) => {
+        if (!addMap.has(a.job_id)) addMap.set(a.job_id, []);
+        addMap.get(a.job_id)!.push(a);
+      });
+
+      return (jobs as unknown as MechanicJob[]).map((j) => ({
+        ...j,
+        additions: addMap.get(j.id) || [],
+      }));
     },
   });
 }
@@ -81,6 +107,40 @@ export function useDeleteMechanicJob() {
       const { error } = await supabase
         .from("mechanic_jobs" as any)
         .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useCreateAddition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (addition: {
+      job_id: string;
+      problem: string;
+      price: number;
+    }) => {
+      const { data, error } = await supabase
+        .from("mechanic_job_additions" as any)
+        .insert(addition)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as unknown as MechanicJobAddition;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useUpdateAdditionApproval() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, approval }: { id: string; approval: "accepted" | "refused" }) => {
+      const { error } = await supabase
+        .from("mechanic_job_additions" as any)
+        .update({ approval })
         .eq("id", id);
       if (error) throw error;
     },
