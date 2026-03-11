@@ -19,6 +19,7 @@ import DRE from "@/pages/DRE";
 import Gastos from "@/pages/Gastos";
 import Mecanica from "@/pages/Mecanica";
 import CashRegister from "@/pages/CashRegister";
+import WhatsAppPage from "@/pages/WhatsApp";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 import ProdutoPublico from "@/pages/ProdutoPublico";
