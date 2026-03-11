@@ -121,9 +121,9 @@ const SecondaryAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-4 p-5 bg-[#161618] border border-zinc-800 rounded-2xl hover:border-[#820AD1]/50 hover:bg-[#820AD1]/5 transition-all text-left group"
+    className="flex items-center gap-4 p-5 bg-[#161618] border border-zinc-800 rounded-2xl hover:border-[#2952FF]/50 hover:bg-[#2952FF]/5 transition-all text-left group"
   >
-    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 group-hover:text-[#820AD1] transition-colors">
+    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 group-hover:text-[#2952FF] transition-colors">
       {icon}
     </div>
     <span className="text-xs font-bold text-zinc-400 group-hover:text-white uppercase tracking-wider transition-colors">
