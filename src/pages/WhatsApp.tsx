@@ -168,7 +168,7 @@ export default function WhatsApp() {
                 placeholder="Buscar contato..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm outline-none focus:border-[#820AD1] transition-all text-zinc-100 placeholder:text-zinc-600"
+                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm outline-none focus:border-[#2952FF] transition-all text-zinc-100 placeholder:text-zinc-600"
               />
             </div>
 
