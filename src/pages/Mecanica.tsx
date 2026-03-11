@@ -95,13 +95,13 @@ const SummaryStat = ({
   icon: React.ReactNode;
   color?: string;
 }) => (
-  <div className="bg-[#161618] border border-zinc-800 p-6 rounded-[32px] flex items-center gap-4 hover:border-zinc-700 transition-all">
-    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500">
+  <div className="bg-[#161618] border border-zinc-800 p-4 md:p-6 rounded-2xl md:rounded-[32px] flex items-center gap-3 md:gap-4 hover:border-zinc-700 transition-all overflow-hidden">
+    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 shrink-0">
       {icon}
     </div>
-    <div>
-      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{title}</p>
-      <p className={`text-xl font-black ${color}`}>{value}</p>
+    <div className="min-w-0">
+      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest truncate">{title}</p>
+      <p className={`text-base md:text-xl font-black ${color} truncate`}>{value}</p>
     </div>
   </div>
 );
@@ -266,7 +266,7 @@ function JobCard({
   const showApprovalActions = columnKey === "in_maintenance";
 
   return (
-    <div className="group bg-[#161618] border border-zinc-800 rounded-[32px] p-6 space-y-5 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)]">
+    <div className="group bg-[#161618] border border-zinc-800 rounded-2xl lg:rounded-[32px] p-4 md:p-6 space-y-4 md:space-y-5 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
       {/* Customer info */}
       <div className="flex items-start justify-between">
         <div className="space-y-1 min-w-0">
@@ -477,40 +477,40 @@ export default function Mecanica() {
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
-      <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-10">
+      <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-10 overflow-x-hidden">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+          <div className="space-y-2 min-w-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)] shrink-0">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">
                 SERVICE CENTER
               </span>
             </div>
-            <h1 className="text-4xl font-black tracking-tight italic uppercase text-white">
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
               Mecânica
             </h1>
-            <p className="text-zinc-500 font-medium">Gerencie os serviços de manutenção</p>
+            <p className="text-zinc-500 font-medium text-sm">Gerencie os serviços de manutenção</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button className="h-12 px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-sm font-bold flex items-center gap-2 transition-all">
-              <History size={18} /> Histórico de O.S
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0">
+            <button className="h-10 md:h-12 px-4 md:px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-xs md:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+              <History size={16} /> Histórico de O.S
             </button>
             <button
               onClick={() => setOpen(true)}
-              className="h-12 px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+              className="h-10 md:h-12 px-5 md:px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs md:text-sm font-bold flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap"
             >
-              <Plus size={18} className="stroke-[3]" /> Nova Manutenção
+              <Plus size={16} className="stroke-[3]" /> Nova Manutenção
             </button>
           </div>
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
           <SummaryStat
             title="Total em Oficina"
             value={jobs.length}
@@ -542,14 +542,14 @@ export default function Mecanica() {
             <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 lg:gap-8 items-start">
             {columns.map((col) => (
               <div
                 key={col.key}
-                className="flex flex-col min-h-[600px] bg-[#111113]/50 rounded-[40px] p-2 border border-zinc-800/30"
+                className="flex flex-col min-h-[400px] lg:min-h-[600px] bg-[#111113]/50 rounded-3xl lg:rounded-[40px] p-2 border border-zinc-800/30"
               >
                 <ColumnHeader {...col} count={grouped[col.key].length} />
-                <div className="px-2 space-y-4 pb-10">
+                <div className="px-2 space-y-4 pb-6 lg:pb-10">
                   {grouped[col.key].length > 0 ? (
                     grouped[col.key].map((job) => (
                       <JobCard
