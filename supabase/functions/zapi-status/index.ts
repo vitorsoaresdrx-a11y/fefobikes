@@ -56,10 +56,12 @@ Deno.serve(async (req) => {
 
     console.log(`Z-API action=${action}, endpoint=${endpoint}`);
 
+    console.log(`Z-API request: method=${method}, endpoint=${endpoint}`);
     const zapiRes = await fetch(endpoint, {
       method,
       headers: { "client-token": clientToken! },
     });
+    console.log(`Z-API response: status=${zapiRes.status}, contentType=${zapiRes.headers.get("content-type")}`);
 
     if (action === "qr-code" && zapiRes.ok) {
       const contentType = zapiRes.headers.get("content-type") || "";
