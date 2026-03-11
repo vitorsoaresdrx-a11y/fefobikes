@@ -145,7 +145,7 @@ export default function WhatsApp() {
         <div className="p-8 space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(130,10,209,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
                 <MessageCircle size={20} className="text-white" />
               </div>
               <h1 className="text-xl font-black italic uppercase tracking-tighter">
@@ -162,25 +162,25 @@ export default function WhatsApp() {
             <div className="relative group">
               <Search
                 size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#820AD1] transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors"
               />
               <input
                 placeholder="Buscar contato..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm outline-none focus:border-[#820AD1] transition-all text-zinc-100 placeholder:text-zinc-600"
+                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm outline-none focus:border-[#2952FF] transition-all text-zinc-100 placeholder:text-zinc-600"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex gap-2 overflow-x-auto pb-1">
               {STATUS_FILTERS.map((f) => (
                 <button
                   key={f.value}
                   onClick={() => setStatusFilter(f.value)}
                   className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border whitespace-nowrap ${
                     statusFilter === f.value
-                      ? "bg-[#820AD1] border-[#820AD1] text-white shadow-lg"
+                      ? "bg-[#2952FF] border-[#2952FF] text-white shadow-lg"
                       : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600"
                   }`}
                 >
@@ -207,13 +207,13 @@ export default function WhatsApp() {
                 onClick={() => setSelectedConv(conv)}
                 className={`w-full p-5 rounded-[28px] border transition-all flex items-center gap-4 group ${
                   selectedConv?.id === conv.id
-                    ? "bg-[#1C1C1E] border-[#820AD1]/30 shadow-xl"
+                    ? "bg-[#1C1C1E] border-[#2952FF]/30 shadow-xl"
                     : "bg-transparent border-transparent hover:bg-white/[0.03]"
                 }`}
               >
                 {/* Avatar */}
                 <div className="relative shrink-0">
-                  <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 group-hover:border-[#820AD1]/50 transition-colors font-bold text-lg uppercase">
+                  <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 group-hover:border-[#2952FF]/50 transition-colors font-bold text-lg uppercase">
                     {conv.contact_photo ? (
                       <img
                         src={conv.contact_photo}
@@ -230,7 +230,7 @@ export default function WhatsApp() {
                   />
                   {/* Unread badge */}
                   {conv.unread_count > 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#820AD1] text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#2952FF] text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
                       {conv.unread_count}
                     </div>
                   )}
@@ -330,7 +330,7 @@ export default function WhatsApp() {
                     {selectedConv.contact_name || selectedConv.contact_phone}
                   </h2>
                   <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
-                    <Hash size={10} className="text-[#820AD1]" />
+                    <Hash size={10} className="text-[#2952FF]" />
                     {selectedConv.contact_phone}
                   </p>
                 </div>
@@ -395,7 +395,7 @@ export default function WhatsApp() {
                     <div
                       className={`p-5 shadow-lg ${
                         msg.from_me
-                          ? "bg-[#820AD1] text-white rounded-[32px] rounded-tr-lg"
+                          ? "bg-[#2952FF] text-white rounded-[32px] rounded-tr-lg"
                           : "bg-[#161618] text-zinc-200 border border-zinc-800 rounded-[32px] rounded-tl-lg"
                       }`}
                     >
@@ -422,12 +422,12 @@ export default function WhatsApp() {
 
             {/* Input */}
             <div className="p-8 pt-4 shrink-0">
-              <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-2 flex items-center gap-2 shadow-2xl focus-within:border-[#820AD1]/50 transition-all">
+              <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-2 flex items-center gap-2 shadow-2xl focus-within:border-[#2952FF]/50 transition-all">
                 <div className="flex items-center px-2">
-                  <button className="p-3 text-zinc-600 hover:text-[#820AD1] transition-colors">
+                  <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
                     <Paperclip size={20} />
                   </button>
-                  <button className="p-3 text-zinc-600 hover:text-amber-500 transition-colors">
+                  <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
                     <Smile size={20} />
                   </button>
                 </div>
@@ -443,7 +443,7 @@ export default function WhatsApp() {
                 <button
                   onClick={handleSend}
                   disabled={!messageText.trim() || sendMessage.isPending}
-                  className="w-14 h-14 rounded-[24px] bg-[#820AD1] hover:bg-[#9D3BE1] flex items-center justify-center text-white shadow-[0_0_20px_rgba(130,10,209,0.2)] transition-all active:scale-95 disabled:opacity-50"
+                  className="w-14 h-14 rounded-[24px] bg-[#2952FF] hover:bg-[#3D63FF] flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.2)] transition-all active:scale-95 disabled:opacity-50"
                 >
                   <Send size={20} />
                 </button>
