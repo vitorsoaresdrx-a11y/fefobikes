@@ -486,7 +486,7 @@ export default function Mecanica() {
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#66B3FF]">
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">
                 SERVICE CENTER
               </span>
             </div>
