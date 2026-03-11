@@ -125,7 +125,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full bg-[#0A0A0B] font-sans selection:bg-[#820AD1]/30 has-[[data-variant=inset]]:bg-[#0A0A0B]",
+              "group/sidebar-wrapper flex min-h-svh w-full bg-[#0A0A0B] font-sans selection:bg-[#66B3FF]/30 has-[[data-variant=inset]]:bg-[#0A0A0B]",
               className
             )}
             ref={ref}
