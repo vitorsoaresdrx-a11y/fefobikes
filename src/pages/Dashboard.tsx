@@ -184,7 +184,7 @@ export default function Dashboard() {
         {/* Welcome */}
         <div className="space-y-2">
           <h1 className="text-5xl font-black text-white tracking-tighter leading-none italic uppercase">
-            O que vamos <span className="text-[#820AD1]">resolver</span> hoje?
+            O que vamos <span className="text-[#2952FF]">resolver</span> hoje?
           </h1>
           <p className="text-zinc-500 text-lg font-medium">
             Selecione uma ação rápida para iniciar o atendimento.
@@ -208,7 +208,7 @@ export default function Dashboard() {
         {/* Secondary Actions */}
         <div className="pt-12 border-t border-zinc-800/50">
           <div className="flex items-center gap-2 mb-8">
-            <Plus size={16} className="text-[#820AD1]" />
+            <Plus size={16} className="text-[#2952FF]" />
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
               Outros Procedimentos
             </h4>
