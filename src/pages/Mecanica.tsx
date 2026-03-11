@@ -549,7 +549,7 @@ export default function Mecanica() {
                 className="flex flex-col min-h-[400px] lg:min-h-[600px] bg-[#111113]/50 rounded-3xl lg:rounded-[40px] p-2 border border-zinc-800/30"
               >
                 <ColumnHeader {...col} count={grouped[col.key].length} />
-                <div className="px-2 space-y-4 pb-10">
+                <div className="px-2 space-y-4 pb-6 lg:pb-10">
                   {grouped[col.key].length > 0 ? (
                     grouped[col.key].map((job) => (
                       <JobCard
