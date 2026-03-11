@@ -108,7 +108,7 @@ export function AppSidebar() {
                         tooltip={item.title}
                         className={
                           active
-                            ? "!bg-[linear-gradient(to_left,hsl(225_100%_60%/0.12),transparent_70%)] border-r-2 !border-r-primary"
+                            ? "!bg-[linear-gradient(to_left,hsl(210_100%_70%/0.15),transparent_70%)] border-r-2 !border-r-[hsl(210_100%_70%)]"
                             : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
                         }
                       >
