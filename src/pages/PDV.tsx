@@ -269,6 +269,19 @@ export default function PDV() {
         })),
       });
 
+      // Link to cash register if payment is cash and register is open
+      if (paymentMethod === "dinheiro") {
+        if (currentCashRegister?.status === "open") {
+          await linkSaleToCash.mutateAsync({
+            cashRegisterId: currentCashRegister.id,
+            saleId: sale.id,
+            amount: total,
+          });
+        } else {
+          toast({ title: "Atenção: nenhum caixa aberto. A venda foi registrada mas não vinculada ao caixa.", variant: "destructive" });
+        }
+      }
+
       // Build receipt data from current PDV state
       const finalCustomerName = selectedCustomer?.name || custName.trim() || undefined;
       const finalWhatsapp = selectedCustomer?.whatsapp || custWhatsapp.trim() || undefined;
