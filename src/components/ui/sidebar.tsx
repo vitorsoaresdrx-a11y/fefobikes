@@ -222,14 +222,14 @@ const Sidebar = React.forwardRef<
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
             variant === "floating" || variant === "inset"
               ? "p-4 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] border-r border-zinc-800/40",
+              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] border-r-0",
             className
           )}
           {...props}
         >
           <div
             data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-[#111113] rounded-r-2xl group-data-[variant=floating]:rounded-[32px] group-data-[variant=floating]:border group-data-[variant=floating]:border-zinc-800/50 group-data-[variant=floating]:shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+            className="flex h-full w-full flex-col bg-[#111113] rounded-r-[2.5rem] group-data-[variant=floating]:rounded-[32px] group-data-[variant=floating]:border group-data-[variant=floating]:border-zinc-800/50 group-data-[variant=floating]:shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
           >
             {children}
           </div>
