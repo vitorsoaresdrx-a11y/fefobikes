@@ -17,6 +17,7 @@ import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentCashRegister } from "@/hooks/useCashRegister";
+import { useTotalUnread } from "@/hooks/useWhatsApp";
 import {
   Sidebar,
   SidebarContent,
