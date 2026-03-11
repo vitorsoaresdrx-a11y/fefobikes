@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Shield,
-  Users,
   Plus,
   Trash2,
   Loader2,
@@ -12,19 +11,21 @@ import {
   Crown,
   UserPlus,
   Copy,
+  Mail,
+  Lock,
 } from "lucide-react";
 import {
   useTenantMembers,
   useMemberPermissions,
   useUpsertPermission,
   useRemoveMember,
-  useAddMemberById,
   useMyPermissions,
   ALL_MODULES,
   type AppModule,
   type TenantMember,
 } from "@/hooks/usePermissions";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ─── Permission Row ──────────────────────────────────────────────────────────
 
@@ -64,7 +66,6 @@ function PermissionRow({
     <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-white/[0.02] transition-colors">
       <span className="text-sm font-medium text-zinc-300">{label}</span>
       <div className="flex items-center gap-4">
-        {/* Access toggle */}
         <button
           onClick={() => toggle("access")}
           disabled={upsert.isPending}
@@ -78,7 +79,6 @@ function PermissionRow({
           {canAccess ? "Liberado" : "Bloqueado"}
         </button>
 
-        {/* Sensitive toggle (only if has access) */}
         {canAccess && (
           <button
             onClick={() => toggle("sensitive")}
@@ -169,6 +169,37 @@ function MemberPermissionsPanel({ member }: { member: TenantMember }) {
   );
 }
 
+// ─── Create Member Hook ──────────────────────────────────────────────────────
+
+function useCreateMember() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Não autenticado");
+
+      const response = await supabase.functions.invoke("create-member", {
+        body: { email, password },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Erro ao criar membro");
+      }
+
+      const result = response.data;
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tenant", "members"] });
+    },
+  });
+}
+
 // ─── Add Member Dialog ───────────────────────────────────────────────────────
 
 function AddMemberDialog({
@@ -178,23 +209,29 @@ function AddMemberDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const [userId, setUserId] = useState("");
-  const addMember = useAddMemberById();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const createMember = useCreateMember();
 
   const handleAdd = () => {
-    if (!userId.trim()) {
-      toast.error("Insira o ID do usuário");
+    if (!email.trim()) {
+      toast.error("Insira o email");
       return;
     }
-    addMember.mutate(
-      { userId: userId.trim() },
+    if (!password.trim() || password.length < 6) {
+      toast.error("A senha deve ter no mínimo 6 caracteres");
+      return;
+    }
+    createMember.mutate(
+      { email: email.trim(), password },
       {
         onSuccess: () => {
-          toast.success("Membro adicionado!");
-          setUserId("");
+          toast.success("Membro criado com sucesso!");
+          setEmail("");
+          setPassword("");
           onOpenChange(false);
         },
-        onError: (err) => toast.error(err.message || "Erro ao adicionar membro"),
+        onError: (err) => toast.error(err.message || "Erro ao criar membro"),
       }
     );
   };
@@ -204,23 +241,42 @@ function AddMemberDialog({
       <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-3xl max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg font-black text-white uppercase italic tracking-tight">
-            Adicionar Membro
+            Criar Novo Membro
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <p className="text-xs text-zinc-500 leading-relaxed">
-            O membro precisa já ter uma conta no sistema. Peça para ele se cadastrar e depois copie o ID do usuário.
+            Cadastre um email e senha para o novo membro. Ele poderá usar essas credenciais para acessar o sistema.
           </p>
           <div className="space-y-2">
             <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-              ID do Usuário (UUID)
+              Email
             </label>
-            <input
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="ex: 3e7a1234-abcd-..."
-              className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-xl px-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
-            />
+            <div className="relative">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="membro@exemplo.com"
+                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-xl pl-11 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+              Senha
+            </label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-xl pl-11 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+              />
+            </div>
           </div>
           <div className="flex gap-3 pt-2">
             <button
@@ -231,10 +287,10 @@ function AddMemberDialog({
             </button>
             <button
               onClick={handleAdd}
-              disabled={addMember.isPending}
+              disabled={createMember.isPending}
               className="flex-[2] h-10 rounded-xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
-              {addMember.isPending ? <Loader2 size={14} className="animate-spin" /> : "Adicionar"}
+              {createMember.isPending ? <Loader2 size={14} className="animate-spin" /> : "Criar Membro"}
             </button>
           </div>
         </div>
@@ -256,7 +312,6 @@ export default function Permissoes() {
 
   useEffect(() => {
     if (members.length > 0 && !selectedMember) {
-      // Select first non-owner member, or first member
       const first = members.find((m) => m.role !== "owner") || members[0];
       setSelectedMember(first);
     }
@@ -302,16 +357,6 @@ export default function Permissoes() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Copy own user ID */}
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(session?.user?.id || "");
-                toast.success("Seu ID foi copiado!");
-              }}
-              className="h-10 px-4 rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 text-xs font-bold flex items-center gap-2 transition-all"
-            >
-              <Copy size={14} /> Copiar meu ID
-            </button>
             <button
               onClick={() => setAddOpen(true)}
               className="h-10 px-5 rounded-xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs font-bold flex items-center gap-2 transition-all active:scale-95"

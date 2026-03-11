@@ -624,6 +624,7 @@ export type Database = {
       tenant_members: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           role: Database["public"]["Enums"]["tenant_role"]
           tenant_id: string
@@ -631,6 +632,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: string
           role?: Database["public"]["Enums"]["tenant_role"]
           tenant_id: string
@@ -638,6 +640,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           role?: Database["public"]["Enums"]["tenant_role"]
           tenant_id?: string
