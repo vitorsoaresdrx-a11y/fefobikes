@@ -12,6 +12,8 @@ import {
   Send,
   Search,
   CheckCheck,
+  ChevronLeft,
+  ChevronRight,
   Check,
   Clock,
   CircleDot,
