@@ -272,7 +272,7 @@ function JobCard({
         <div className="space-y-1 min-w-0">
           {job.customer_name && (
             <div className="flex items-center gap-2">
-              <User size={14} className="text-[#820AD1] shrink-0" />
+              <User size={14} className="text-[#66B3FF] shrink-0" />
               <span className="text-sm font-black tracking-tight text-white uppercase italic truncate">
                 {job.customer_name}
               </span>
