@@ -183,11 +183,87 @@ export default function WhatsApp() {
   const webhookUrl = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/zapi-webhook`;
 
   return (
+    <>
+    {/* QR Code Modal */}
+    <Dialog open={showQrModal} onOpenChange={setShowQrModal}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <QrCode className="h-5 w-5" />
+            Conectar WhatsApp
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col items-center gap-4 py-4">
+          {loadingQr ? (
+            <div className="flex h-64 w-64 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : qrCode ? (
+            <div className="rounded-xl border border-border bg-white p-4">
+              <img src={qrCode} alt="QR Code WhatsApp" className="h-64 w-64" />
+            </div>
+          ) : (
+            <div className="flex h-64 w-64 flex-col items-center justify-center gap-2 rounded-xl border border-border text-muted-foreground">
+              <QrCode className="h-12 w-12" />
+              <p className="text-sm">Clique para gerar o QR Code</p>
+            </div>
+          )}
+          <p className="text-center text-sm text-muted-foreground">
+            Abra o WhatsApp no seu celular → Dispositivos conectados → Conectar dispositivo → Escaneie o QR Code
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchQrCode();
+              }}
+              disabled={loadingQr}
+            >
+              <RefreshCw className={cn("mr-1.5 h-4 w-4", loadingQr && "animate-spin")} />
+              {qrCode ? "Atualizar QR" : "Gerar QR Code"}
+            </Button>
+            <Button
+              onClick={() => {
+                checkStatus();
+                setShowQrModal(false);
+              }}
+            >
+              Já escaneei
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
     <div className="flex h-[calc(100vh-2rem)] gap-0 overflow-hidden rounded-2xl border border-border bg-card">
       {/* Left: Conversation list */}
       <div className="flex w-80 shrink-0 flex-col border-r border-border">
-        {/* Search */}
+        {/* Connection status + Search */}
         <div className="space-y-3 border-b border-border p-4">
+          <button
+            onClick={() => {
+              if (connStatus !== "connected") {
+                setShowQrModal(true);
+                fetchQrCode();
+              }
+            }}
+            className={cn(
+              "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+              connStatus === "connected"
+                ? "bg-emerald-500/10 text-emerald-400"
+                : connStatus === "loading"
+                ? "bg-muted text-muted-foreground"
+                : "bg-destructive/10 text-destructive cursor-pointer hover:bg-destructive/20"
+            )}
+          >
+            {connStatus === "connected" ? (
+              <><Wifi className="h-3.5 w-3.5" /> Conectado</>
+            ) : connStatus === "loading" ? (
+              <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Verificando...</>
+            ) : (
+              <><WifiOff className="h-3.5 w-3.5" /> Desconectado — Clique para conectar</>
+            )}
+          </button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
