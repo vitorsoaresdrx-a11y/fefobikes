@@ -213,7 +213,7 @@ export default function WhatsApp() {
               >
                 {/* Avatar */}
                 <div className="relative shrink-0">
-                  <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 group-hover:border-[#820AD1]/50 transition-colors font-bold text-lg uppercase">
+                  <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 group-hover:border-[#2952FF]/50 transition-colors font-bold text-lg uppercase">
                     {conv.contact_photo ? (
                       <img
                         src={conv.contact_photo}
