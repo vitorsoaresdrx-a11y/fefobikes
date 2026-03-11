@@ -50,25 +50,25 @@ const secondaryActions = [
 type ColorTheme = "primary" | "amber" | "indigo";
 
 const themes: Record<ColorTheme, string> = {
-  primary: "border-[#820AD1]/20 hover:border-[#820AD1]/50",
+  primary: "border-[#2952FF]/20 hover:border-[#2952FF]/50",
   amber:   "border-amber-500/20 hover:border-amber-500/50",
   indigo:  "border-indigo-500/20 hover:border-indigo-500/50",
 };
 
 const iconColors: Record<ColorTheme, string> = {
-  primary: "text-[#820AD1] bg-[#820AD1]/10",
+  primary: "text-[#2952FF] bg-[#2952FF]/10",
   amber:   "text-amber-500 bg-amber-500/10",
   indigo:  "text-indigo-400 bg-indigo-400/10",
 };
 
 const hoverBg: Record<ColorTheme, string> = {
-  primary: "hover:bg-[#820AD1]/5",
+  primary: "hover:bg-[#2952FF]/5",
   amber:   "hover:bg-amber-500/5",
   indigo:  "hover:bg-indigo-500/5",
 };
 
 const actionTextColor: Record<ColorTheme, string> = {
-  primary: "text-[#820AD1]",
+  primary: "text-[#2952FF]",
   amber:   "text-amber-500",
   indigo:  "text-indigo-400",
 };
