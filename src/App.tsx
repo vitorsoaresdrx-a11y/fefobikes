@@ -49,6 +49,7 @@ function AuthGate() {
         <Route path="/bikes/:id" element={<BikeForm />} />
         <Route path="/estoque" element={<Estoque />} />
         <Route path="/pdv" element={<PDV />} />
+        <Route path="/caixa" element={<CashRegister />} />
         <Route path="/historico" element={<Historico />} />
         <Route path="/dre" element={<DRE />} />
         <Route path="/gastos" element={<Gastos />} />
