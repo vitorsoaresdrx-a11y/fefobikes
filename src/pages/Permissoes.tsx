@@ -1,0 +1,376 @@
+import { useState, useEffect } from "react";
+import {
+  Shield,
+  Users,
+  Plus,
+  Trash2,
+  Loader2,
+  Check,
+  X,
+  Eye,
+  EyeOff,
+  Crown,
+  UserPlus,
+  Copy,
+} from "lucide-react";
+import {
+  useTenantMembers,
+  useMemberPermissions,
+  useUpsertPermission,
+  useRemoveMember,
+  useAddMemberById,
+  useMyPermissions,
+  ALL_MODULES,
+  type AppModule,
+  type TenantMember,
+} from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+
+// ─── Permission Row ──────────────────────────────────────────────────────────
+
+function PermissionRow({
+  module,
+  label,
+  permission,
+  memberId,
+}: {
+  module: AppModule;
+  label: string;
+  permission: { can_access: boolean; hide_sensitive: boolean } | undefined;
+  memberId: string;
+}) {
+  const upsert = useUpsertPermission();
+  const canAccess = permission?.can_access ?? false;
+  const hideSensitive = permission?.hide_sensitive ?? false;
+
+  const toggle = (field: "access" | "sensitive") => {
+    const newAccess = field === "access" ? !canAccess : canAccess;
+    const newHide = field === "sensitive" ? !hideSensitive : hideSensitive;
+
+    upsert.mutate(
+      { tenantMemberId: memberId, module, canAccess: newAccess, hideSensitive: newHide },
+      { onError: () => toast.error("Erro ao salvar permissão") }
+    );
+  };
+
+  return (
+    <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-white/[0.02] transition-colors">
+      <span className="text-sm font-medium text-zinc-300">{label}</span>
+      <div className="flex items-center gap-4">
+        {/* Access toggle */}
+        <button
+          onClick={() => toggle("access")}
+          disabled={upsert.isPending}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
+            canAccess
+              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+              : "bg-red-500/10 border-red-500/20 text-red-400"
+          }`}
+        >
+          {canAccess ? <Check size={12} /> : <X size={12} />}
+          {canAccess ? "Liberado" : "Bloqueado"}
+        </button>
+
+        {/* Sensitive toggle (only if has access) */}
+        {canAccess && (
+          <button
+            onClick={() => toggle("sensitive")}
+            disabled={upsert.isPending}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
+              hideSensitive
+                ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                : "bg-zinc-800 border-zinc-700 text-zinc-500"
+            }`}
+          >
+            {hideSensitive ? <EyeOff size={12} /> : <Eye size={12} />}
+            {hideSensitive ? "Censurado" : "Visível"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Member Permissions Panel ────────────────────────────────────────────────
+
+function MemberPermissionsPanel({ member }: { member: TenantMember }) {
+  const { data: permissions = [], isLoading } = useMemberPermissions(member.id);
+  const removeMember = useRemoveMember();
+
+  const getPermission = (mod: AppModule) =>
+    permissions.find((p) => p.module === mod);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="animate-spin text-zinc-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-sm">
+            {(member.email || member.user_id).slice(0, 2).toUpperCase()}
+          </div>
+          <div>
+            <p className="text-sm font-bold text-white">
+              {member.email || member.user_id.slice(0, 8) + "..."}
+            </p>
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+              {member.role === "owner" ? "Proprietário" : "Membro"}
+            </p>
+          </div>
+        </div>
+        {member.role !== "owner" && (
+          <button
+            onClick={() =>
+              removeMember.mutate(member.id, {
+                onSuccess: () => toast.success("Membro removido"),
+                onError: () => toast.error("Erro ao remover"),
+              })
+            }
+            disabled={removeMember.isPending}
+            className="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
+      </div>
+
+      {member.role === "owner" ? (
+        <div className="px-4 py-6 text-center">
+          <Crown className="mx-auto text-amber-400 mb-2" size={24} />
+          <p className="text-xs text-zinc-500">Proprietários possuem acesso total ao sistema.</p>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {ALL_MODULES.map((mod) => (
+            <PermissionRow
+              key={mod.key}
+              module={mod.key}
+              label={mod.label}
+              permission={getPermission(mod.key)}
+              memberId={member.id}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Add Member Dialog ───────────────────────────────────────────────────────
+
+function AddMemberDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const [userId, setUserId] = useState("");
+  const addMember = useAddMemberById();
+
+  const handleAdd = () => {
+    if (!userId.trim()) {
+      toast.error("Insira o ID do usuário");
+      return;
+    }
+    addMember.mutate(
+      { userId: userId.trim() },
+      {
+        onSuccess: () => {
+          toast.success("Membro adicionado!");
+          setUserId("");
+          onOpenChange(false);
+        },
+        onError: (err) => toast.error(err.message || "Erro ao adicionar membro"),
+      }
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-3xl max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-black text-white uppercase italic tracking-tight">
+            Adicionar Membro
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <p className="text-xs text-zinc-500 leading-relaxed">
+            O membro precisa já ter uma conta no sistema. Peça para ele se cadastrar e depois copie o ID do usuário.
+          </p>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+              ID do Usuário (UUID)
+            </label>
+            <input
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="ex: 3e7a1234-abcd-..."
+              className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-xl px-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="flex-1 h-10 rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 text-sm font-bold transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleAdd}
+              disabled={addMember.isPending}
+              className="flex-[2] h-10 rounded-xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              {addMember.isPending ? <Loader2 size={14} className="animate-spin" /> : "Adicionar"}
+            </button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
+
+export default function Permissoes() {
+  const { session } = useAuth();
+  const { data: myPerms, isLoading: permsLoading } = useMyPermissions();
+  const { data: members = [], isLoading: membersLoading } = useTenantMembers();
+  const [selectedMember, setSelectedMember] = useState<TenantMember | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+
+  const isOwner = myPerms?.isOwner ?? false;
+
+  useEffect(() => {
+    if (members.length > 0 && !selectedMember) {
+      // Select first non-owner member, or first member
+      const first = members.find((m) => m.role !== "owner") || members[0];
+      setSelectedMember(first);
+    }
+  }, [members]);
+
+  if (permsLoading || membersLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+      </div>
+    );
+  }
+
+  if (!isOwner) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-zinc-500">
+        <Shield size={48} strokeWidth={1.5} />
+        <p className="text-sm">Apenas o proprietário pode gerenciar permissões.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
+      <div className="max-w-[1200px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-8">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+                <Shield className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-black tracking-widest text-[#2952FF]">
+                CONTROLE
+              </span>
+            </div>
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
+              Permissões
+            </h1>
+            <p className="text-zinc-500 font-medium text-sm">
+              Gerencie o acesso de cada membro do sistema
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Copy own user ID */}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(session?.user?.id || "");
+                toast.success("Seu ID foi copiado!");
+              }}
+              className="h-10 px-4 rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 text-xs font-bold flex items-center gap-2 transition-all"
+            >
+              <Copy size={14} /> Copiar meu ID
+            </button>
+            <button
+              onClick={() => setAddOpen(true)}
+              className="h-10 px-5 rounded-xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+            >
+              <UserPlus size={14} /> Novo Membro
+            </button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
+          {/* Members list */}
+          <div className="bg-[#111113]/50 rounded-3xl border border-zinc-800/30 p-4 space-y-2">
+            <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest px-2 mb-3">
+              Membros ({members.length})
+            </h3>
+            {members.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setSelectedMember(m)}
+                className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${
+                  selectedMember?.id === m.id
+                    ? "bg-[#2952FF]/10 border border-[#2952FF]/20"
+                    : "hover:bg-white/[0.03] border border-transparent"
+                }`}
+              >
+                <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-xs shrink-0">
+                  {m.role === "owner" ? (
+                    <Crown size={14} className="text-amber-400" />
+                  ) : (
+                    (m.email || m.user_id).slice(0, 2).toUpperCase()
+                  )}
+                </div>
+                <div className="text-left min-w-0">
+                  <p className="text-sm font-bold text-zinc-300 truncate">
+                    {m.email || m.user_id.slice(0, 12) + "..."}
+                  </p>
+                  <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">
+                    {m.role === "owner" ? "Proprietário" : "Membro"}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Permission editor */}
+          <div className="bg-[#111113]/50 rounded-3xl border border-zinc-800/30 p-6">
+            {selectedMember ? (
+              <MemberPermissionsPanel member={selectedMember} />
+            ) : (
+              <div className="flex items-center justify-center py-20 text-zinc-600 text-sm">
+                Selecione um membro para editar permissões
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <AddMemberDialog open={addOpen} onOpenChange={setAddOpen} />
+    </div>
+  );
+}

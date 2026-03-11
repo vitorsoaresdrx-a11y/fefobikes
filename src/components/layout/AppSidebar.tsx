@@ -12,12 +12,14 @@ import {
   LogOut,
   Landmark,
   MessageCircle,
+  Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentCashRegister } from "@/hooks/useCashRegister";
 import { useTotalUnread } from "@/hooks/useWhatsApp";
+import { useMyPermissions, type AppModule, NAV_MODULE_MAP } from "@/hooks/usePermissions";
 import {
   Sidebar,
   SidebarContent,
@@ -67,6 +69,7 @@ const navGroups = [
   {
     label: "Sistema",
     items: [
+      { title: "Permissões", url: "/permissoes", icon: Shield },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
   },
@@ -79,6 +82,25 @@ export function AppSidebar() {
   const { data: currentRegister } = useCurrentCashRegister();
   const isCashOpen = currentRegister?.status === "open";
   const { data: totalUnread = 0 } = useTotalUnread();
+  const { data: permsData } = useMyPermissions();
+
+  const isOwner = permsData?.isOwner ?? true; // default to true while loading
+  const permissions = permsData?.permissions ?? [];
+
+  const canAccessModule = (url: string): boolean => {
+    // Owners can see everything
+    if (isOwner) return true;
+
+    const moduleKey = NAV_MODULE_MAP[url] as AppModule | undefined;
+    if (!moduleKey) return true; // Unknown routes are always visible
+
+    // Permissões page is only for owners
+    if (url === "/permissoes") return false;
+
+    const perm = permissions.find((p) => p.module === moduleKey);
+    // If no permission record exists, deny by default for members
+    return perm?.can_access ?? false;
+  };
 
   const isActive = (url: string) => {
     if (url === "/") return location.pathname === "/";
@@ -98,60 +120,65 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {navGroups.map((group) => (
-          <SidebarGroup key={group.label}>
-            {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-4 mb-1">
-                {group.label}
-              </SidebarGroupLabel>
-            )}
-            <SidebarGroupContent>
-              <SidebarMenu className="px-2 space-y-0.5">
-                {group.items.map((item) => {
-                  const active = isActive(item.url);
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={active}
-                        tooltip={item.title}
-                        className={
-                          active
-                            ? "!bg-[linear-gradient(to_left,hsl(225_100%_52%/0.15),transparent_70%)] border-r-2 !border-r-[#2952FF]"
-                            : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
-                        }
-                      >
-                        <NavLink
-                          to={item.url}
-                          end={item.url === "/"}
-                          onClick={() => isMobile && setOpenMobile(false)}
+        {navGroups.map((group) => {
+          const visibleItems = group.items.filter((item) => canAccessModule(item.url));
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <SidebarGroup key={group.label}>
+              {!collapsed && (
+                <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-4 mb-1">
+                  {group.label}
+                </SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu className="px-2 space-y-0.5">
+                  {visibleItems.map((item) => {
+                    const active = isActive(item.url);
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={item.title}
+                          className={
+                            active
+                              ? "!bg-[linear-gradient(to_left,hsl(225_100%_52%/0.15),transparent_70%)] border-r-2 !border-r-[#2952FF]"
+                              : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
+                          }
                         >
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && (
-                             <span className="flex items-center gap-2">
-                              {item.title}
-                              {item.title === "Caixa" && isCashOpen && (
-                                <span className="relative flex h-2 w-2">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                                </span>
-                              )}
-                              {item.title === "WhatsApp" && totalUnread > 0 && (
-                                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-                                  {totalUnread}
-                                </span>
-                              )}
-                            </span>
-                          )}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+                          <NavLink
+                            to={item.url}
+                            end={item.url === "/"}
+                            onClick={() => isMobile && setOpenMobile(false)}
+                          >
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            {!collapsed && (
+                               <span className="flex items-center gap-2">
+                                {item.title}
+                                {item.title === "Caixa" && isCashOpen && (
+                                  <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                  </span>
+                                )}
+                                {item.title === "WhatsApp" && totalUnread > 0 && (
+                                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                                    {totalUnread}
+                                  </span>
+                                )}
+                              </span>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
 
         {/* Logout */}
         <SidebarGroup className="mt-auto pb-4">
