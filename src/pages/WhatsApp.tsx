@@ -493,7 +493,7 @@ export default function WhatsApp() {
                  </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3 shrink-0">
                 {selectedConv.status !== "resolved" ? (
                   <button
                     onClick={() =>
