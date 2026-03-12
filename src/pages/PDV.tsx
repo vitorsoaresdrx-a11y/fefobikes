@@ -321,7 +321,7 @@ export default function PDV() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-40">
-      <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-5xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -332,7 +332,7 @@ export default function PDV() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">CHECKOUT EXPRESS</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
+            <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
           </div>
           <Btn variant="primary" size="lg" onClick={openCatalog}>
             <Plus className="w-5 h-5 mr-2 stroke-[3]" />
@@ -583,11 +583,11 @@ export default function PDV() {
       {step === "cart" && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
           <div className="bg-[#1C1C1E] w-full max-w-2xl rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
-            <div className="p-10 space-y-8">
+            <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 max-h-[90vh] overflow-y-auto">
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-black text-white">Finalizar Venda</h2>
+                  <h2 className="text-xl lg:text-3xl font-black text-white">Finalizar Venda</h2>
                   <p className="text-zinc-500 text-sm">Escolha a forma de pagamento</p>
                 </div>
                 <button
@@ -634,7 +634,7 @@ export default function PDV() {
                   <div className="h-px bg-zinc-800 my-2" />
                   <div className="flex justify-between items-end text-white">
                     <span className="font-bold">Valor Total</span>
-                    <span className="text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
+                    <span className="text-xl lg:text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
                   </div>
                   {isCardPayment && cardTaxPercent > 0 && (
                     <div className="flex justify-between text-xs">
@@ -660,7 +660,7 @@ export default function PDV() {
       {step === "customer" && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
           <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
-            <div className="p-10 space-y-8">
+            <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 max-h-[90vh] overflow-y-auto">
 
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-black text-white">Identificação</h2>

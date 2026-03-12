@@ -191,7 +191,7 @@ export default function Pecas() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
-      <div className="max-w-6xl mx-auto p-4 md:p-12 space-y-6 md:space-y-10">
+      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -202,7 +202,7 @@ export default function Pecas() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">INVENTORY MASTER</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Produtos & Peças</h1>
+            <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Produtos & Peças</h1>
           </div>
           <div className="flex items-center gap-3">
             <Btn variant="secondary" size="lg" onClick={() => setCategoriesOpen(true)}>

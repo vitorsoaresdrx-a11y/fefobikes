@@ -41,9 +41,9 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background text-foreground">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Top bar */}
           <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
@@ -76,7 +76,7 @@ export function AppLayout() {
           </header>
 
           {/* Main content - pb for bottom nav on mobile */}
-          <main className="flex-1 overflow-auto p-4 md:p-6 pb-20 lg:pb-6">
+          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 lg:p-6 pb-20 lg:pb-6">
             <Outlet />
           </main>
         </div>

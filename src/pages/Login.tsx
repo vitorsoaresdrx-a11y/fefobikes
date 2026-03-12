@@ -95,7 +95,7 @@ export default function Login() {
       </div>
 
       {/* Formulário — direita */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-12 lg:pr-40 relative z-10 bg-[#0A0A0B]">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-8 relative z-10 bg-[#0A0A0B]">
         <div className="w-full max-w-md space-y-10">
 
           {/* Header */}
@@ -105,7 +105,7 @@ export default function Login() {
                 <Bike className="w-7 h-7 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tighter leading-tight">
+            <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-tight">
               Acesse sua conta
             </h1>
             <p className="text-zinc-500 text-sm font-medium">

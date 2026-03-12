@@ -119,7 +119,7 @@ function PriceSection({ product }: { product: any }) {
           <p className="text-[10px] font-bold text-[#820AD1] uppercase tracking-[0.3em] mb-2">
             Valor Especial PIX
           </p>
-          <p className="text-5xl font-black text-white tracking-tighter mb-2">
+          <p className="text-3xl lg:text-5xl font-black text-white tracking-tighter mb-2">
             {formatBRL(pixPrice)}
           </p>
           <div className="flex items-center justify-center gap-2 text-zinc-500 text-xs font-bold uppercase tracking-widest">
@@ -285,7 +285,7 @@ export default function ProdutoPublico() {
               </span>
               <div className="h-px flex-1 bg-zinc-800/50" />
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tighter leading-none">
+            <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-none">
               {product.name}
             </h1>
           </div>

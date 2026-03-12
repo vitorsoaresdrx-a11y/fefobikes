@@ -143,7 +143,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
 
       {/* Topbar */}
-      <div className="px-4 md:px-12 py-4 md:py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0B]/50 backdrop-blur-xl">
+      <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0B]/50 backdrop-blur-xl">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="w-9 h-9 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
             <Activity size={18} className="text-white md:hidden" />
@@ -177,11 +177,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto p-4 md:p-12 space-y-8 md:space-y-12">
+      <main className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Welcome */}
         <div className="space-y-2">
-          <h1 className="text-2xl md:text-5xl font-black text-white tracking-tighter leading-none italic uppercase">
+          <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-none italic uppercase">
             O que vamos <span className="text-[#2952FF]">resolver</span> hoje?
           </h1>
           <p className="text-zinc-500 text-sm md:text-lg font-medium">
@@ -190,7 +190,7 @@ export default function Dashboard() {
         </div>
 
         {/* Primary Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
           {primaryActions.map((action) => (
             <QuickActionCard
               key={action.label}
@@ -204,7 +204,7 @@ export default function Dashboard() {
         </div>
 
         {/* Secondary Actions */}
-        <div className="pt-8 md:pt-12 border-t border-zinc-800/50">
+        <div className="pt-6 lg:pt-8 border-t border-zinc-800/50">
           <div className="flex items-center gap-2 mb-6 md:mb-8">
             <Plus size={16} className="text-[#2952FF]" />
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">

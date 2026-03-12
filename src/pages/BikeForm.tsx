@@ -317,7 +317,7 @@ export default function BikeForm() {
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 pb-32">
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-12">
+        <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8 lg:space-y-10">
 
           {/* ── Topbar ────────────────────────────────────────────────────── */}
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#161618] p-6 rounded-[32px] border border-zinc-800 shadow-2xl">
@@ -376,7 +376,7 @@ export default function BikeForm() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* Identidade */}
-            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl">
               <SectionHeader
                 title="Identidade do Modelo"
                 icon={Tag}
@@ -441,7 +441,7 @@ export default function BikeForm() {
             </div>
 
             {/* Financeiro */}
-            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl space-y-6">
+            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-6">
               <SectionHeader title="Financeiro" icon={DollarSign} />
 
               {/* PIX price */}
@@ -578,7 +578,7 @@ export default function BikeForm() {
           </div>
 
           {/* ── Ficha Técnica (full width) ──────────────────────────────────── */}
-          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl space-y-8">
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-8">
             <SectionHeader title="Ficha Técnica" icon={Maximize2} />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <SmallInput
@@ -621,7 +621,7 @@ export default function BikeForm() {
           </div>
 
           {/* ── Build & Componentes (full width) ──────────────────────────── */}
-          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl">
             <SectionHeader
               title="Cálculo de Preços"
               icon={Wrench}
