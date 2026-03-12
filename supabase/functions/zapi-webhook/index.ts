@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
       };
       if (contactName)  updates.contact_name  = contactName;
       if (contactPhoto) updates.contact_photo = contactPhoto;
-      if (!isFromMe)    updates.unread_count  = (existing.unread_count || 0) + 1;
+      updates.unread_count = (existing.unread_count || 0) + 1;
 
       await supabase
         .from("whatsapp_conversations")
