@@ -636,6 +636,7 @@ export type Database = {
           category: string | null
           color: string | null
           created_at: string
+          description: string | null
           frame_size: string | null
           gears: string | null
           hub_style: string | null
@@ -662,6 +663,7 @@ export type Database = {
           category?: string | null
           color?: string | null
           created_at?: string
+          description?: string | null
           frame_size?: string | null
           gears?: string | null
           hub_style?: string | null
@@ -688,6 +690,7 @@ export type Database = {
           category?: string | null
           color?: string | null
           created_at?: string
+          description?: string | null
           frame_size?: string | null
           gears?: string | null
           hub_style?: string | null
@@ -1410,6 +1413,7 @@ export type Database = {
           category: string | null
           color: string | null
           created_at: string | null
+          description: string | null
           frame_size: string | null
           gears: string | null
           hub_style: string | null
@@ -1434,6 +1438,7 @@ export type Database = {
           category?: string | null
           color?: string | null
           created_at?: string | null
+          description?: string | null
           frame_size?: string | null
           gears?: string | null
           hub_style?: string | null
@@ -1458,6 +1463,7 @@ export type Database = {
           category?: string | null
           color?: string | null
           created_at?: string | null
+          description?: string | null
           frame_size?: string | null
           gears?: string | null
           hub_style?: string | null
