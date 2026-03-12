@@ -363,9 +363,9 @@ export default function WhatsApp() {
             </div>
           ) : (
             filtered.map((conv) => (
-                <button
-355:                 key={conv.id}
-356:                 onClick={() => handleSelectConv(conv)}
+              <button
+                key={conv.id}
+                onClick={() => handleSelectConv(conv)}
                 className={`w-full p-4 md:p-5 rounded-2xl md:rounded-[28px] border transition-all flex items-center gap-3 md:gap-4 group ${
                   selectedConv?.id === conv.id
                     ? "bg-[#1C1C1E] border-[#2952FF]/30 shadow-xl"
