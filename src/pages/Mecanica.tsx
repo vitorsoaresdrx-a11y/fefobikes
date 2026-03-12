@@ -691,8 +691,8 @@ export default function Mecanica() {
 
       {/* ── New Maintenance Modal ────────────────────────────────────────────── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
-          <div className="p-6 md:p-10 space-y-6 md:space-y-8">
+        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
+          <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
                 Nova Ordem de Serviço
