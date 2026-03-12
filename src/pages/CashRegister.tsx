@@ -191,7 +191,7 @@ export default function CashRegister() {
         {/* ── History Section ─────────────────────────────────────────── */}
         {history.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+            <h2 className="text-xs font-black uppercase tracking-widest whitespace-nowrap flex items-center gap-2">
               <ClipboardList size={18} /> Histórico de Fechamentos
             </h2>
             <div className="space-y-3">
