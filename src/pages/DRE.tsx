@@ -73,13 +73,34 @@ function StatCard({
   icon: Icon,
   tag,
   color = "text-white",
+  compact = false,
 }: {
   title: string;
   value: number;
   icon: React.ElementType;
   tag: string;
   color?: string;
+  compact?: boolean;
 }) {
+  if (compact) {
+    return (
+      <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] px-4 py-3 md:p-8 hover:border-zinc-700 transition-all overflow-hidden">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-400 shrink-0">
+              <Icon size={16} />
+            </div>
+            <div>
+              <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{tag}</span>
+              <p className="text-[10px] md:text-xs text-zinc-400 leading-tight">{title}</p>
+            </div>
+          </div>
+          <span className={`text-base md:text-2xl font-black tracking-tighter shrink-0 ml-3 ${color}`}>{formatBRL(value)}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
       <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
