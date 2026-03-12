@@ -332,7 +332,7 @@ export default function PDV() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">CHECKOUT EXPRESS</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
+            <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
           </div>
           <Btn variant="primary" size="lg" onClick={openCatalog}>
             <Plus className="w-5 h-5 mr-2 stroke-[3]" />
