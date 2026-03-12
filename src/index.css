@@ -147,14 +147,14 @@
   }
 }
 
-/* Global: force dark scrollbars on all dialogs */
-[role="dialog"]::-webkit-scrollbar {
+/* Global: force dark scrollbars inside dialogs */
+[role="dialog"] > div::-webkit-scrollbar {
   width: 6px;
 }
-[role="dialog"]::-webkit-scrollbar-track {
+[role="dialog"] > div::-webkit-scrollbar-track {
   background: transparent;
 }
-[role="dialog"]::-webkit-scrollbar-thumb {
+[role="dialog"] > div::-webkit-scrollbar-thumb {
   background: #3f3f46;
   border-radius: 9999px;
 }
