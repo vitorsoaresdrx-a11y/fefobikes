@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
     const isFromMe = body.fromMe === true;
     const phone = body.phone || body.chatId?.replace("@c.us", "") || "";
     const messageId = body.messageId || body.id?.id || "";
-    const text = body.text?.message || body.body || body.caption || "";
+    const rawText = body.text?.message || body.text || body.body || body.message || body.caption || "";
+    const text = typeof rawText === "string" ? rawText : (rawText?.message || JSON.stringify(rawText) || "");
     const senderName = body.senderName || body.chatName || null;
     const senderPhoto = body.senderPhoto || null;
     const type = body.isMedia ? (body.mimetype?.startsWith("image") ? "image" : body.mimetype?.startsWith("audio") ? "audio" : "document") : "text";
