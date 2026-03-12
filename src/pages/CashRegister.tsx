@@ -134,7 +134,7 @@ export default function CashRegister() {
             </div>
             <span className="text-sm font-black tracking-widest text-[#2952FF]">CONTROLE DE CAIXA</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Caixa</h1>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Caixa</h1>
         </header>
 
         {/* ── Status Section ──────────────────────────────────────────── */}
