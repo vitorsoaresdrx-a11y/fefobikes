@@ -365,89 +365,124 @@ export default function Estoque() {
           </div>
         </div>
 
-        {/* Tabela */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <h3 className="font-bold text-base md:text-lg">Itens em Inventário</h3>
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-              {filtered.length} {filtered.length !== 1 ? "itens" : "item"} filtrado{filtered.length !== 1 ? "s" : ""}
-            </span>
+        {/* Loading / Empty */}
+        {isLoading ? (
+          <div className="p-20 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-20 text-center text-zinc-600 text-sm">
+            {search || filterStatus !== "all" || filterType !== "all"
+              ? "Nenhum item encontrado com esses filtros"
+              : "Nenhum item cadastrado"}
+          </div>
+        ) : (
+          <>
+            {/* Mobile Cards */}
+            <div className="block md:hidden space-y-2">
+              {filtered.map((item) => {
+                const cfg = statusConfig[item.status];
+                return (
+                  <button
+                    key={`m-${item.type}-${item.id}`}
+                    onClick={() => openModal(item)}
+                    className="w-full flex items-center gap-3 p-3 rounded-2xl bg-zinc-900 border border-zinc-800 text-left"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-600 overflow-hidden shrink-0">
+                      {item.image ? (
+                        <img src={item.image} alt="" className="w-full h-full object-cover" />
+                      ) : item.type === "Bike" ? (
+                        <Bike size={20} />
+                      ) : (
+                        <Package size={20} />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate">{item.name}</p>
+                      <p className="text-[10px] text-zinc-500 uppercase">{item.category || "Sem Categoria"}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400 block mb-1">
+                        {item.type}
+                      </span>
+                      <p className={`text-sm font-black ${cfg.color}`}>{item.stock_qty}</p>
+                      <p className="text-[9px] text-zinc-600">un.</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-          <div className="overflow-x-auto">
-            {isLoading ? (
-              <div className="p-20 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
+              <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between gap-2">
+                <h3 className="font-bold text-lg">Itens em Inventário</h3>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  {filtered.length} {filtered.length !== 1 ? "itens" : "item"} filtrado{filtered.length !== 1 ? "s" : ""}
+                </span>
               </div>
-            ) : filtered.length === 0 ? (
-              <div className="p-20 text-center text-zinc-600 text-sm">
-                {search || filterStatus !== "all" || filterType !== "all"
-                  ? "Nenhum item encontrado com esses filtros"
-                  : "Nenhum item cadastrado"}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
+                      <th className="px-8 py-4">Item / Categoria</th>
+                      <th className="px-8 py-4">Tipo</th>
+                      <th className="px-8 py-4 text-center">Disponível</th>
+                      <th className="px-8 py-4 text-center">Alerta</th>
+                      <th className="px-8 py-4 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/30 text-sm">
+                    {filtered.map((item) => {
+                      const cfg = statusConfig[item.status];
+                      const StatusIcon = cfg.icon;
+                      return (
+                        <tr
+                          key={`d-${item.type}-${item.id}`}
+                          onClick={() => openModal(item)}
+                          className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
+                        >
+                          <td className="px-8 py-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors overflow-hidden shrink-0">
+                                {item.image ? (
+                                  <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                ) : item.type === "Bike" ? (
+                                  <Bike className="w-6 h-6" />
+                                ) : (
+                                  <Package className="w-6 h-6" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-bold text-zinc-100">{item.name}</p>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                                  {item.category || "Sem Categoria"}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6"><BadgeEl>{item.type}</BadgeEl></td>
+                          <td className="px-8 py-6 text-center">
+                            <span className={`text-lg font-black ${cfg.color}`}>{item.stock_qty}</span>
+                          </td>
+                          <td className="px-8 py-6 text-center text-zinc-500 font-medium">
+                            {item.alert_stock > 0 ? item.alert_stock : "—"}
+                          </td>
+                          <td className="px-8 py-6">
+                            <div className={`flex items-center justify-end gap-2 ${cfg.color} font-bold text-xs uppercase tracking-tighter`}>
+                              {cfg.label}
+                              <StatusIcon className="w-4 h-4" />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-                    <th className="px-4 md:px-8 py-4">Item / Categoria</th>
-                    <th className="px-4 md:px-8 py-4 hidden sm:table-cell">Tipo</th>
-                    <th className="px-4 md:px-8 py-4 text-center">Disponível</th>
-                    <th className="px-4 md:px-8 py-4 text-center hidden md:table-cell">Alerta</th>
-                    <th className="px-8 py-4 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/30 text-sm">
-                  {filtered.map((item) => {
-                    const cfg = statusConfig[item.status];
-                    const StatusIcon = cfg.icon;
-                    return (
-                      <tr
-                        key={`${item.type}-${item.id}`}
-                        onClick={() => openModal(item)}
-                        className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
-                      >
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors overflow-hidden shrink-0">
-                              {item.image ? (
-                                <img src={item.image} alt="" className="w-full h-full object-cover" />
-                              ) : item.type === "Bike" ? (
-                                <Bike className="w-6 h-6" />
-                              ) : (
-                                <Package className="w-6 h-6" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-bold text-zinc-100">{item.name}</p>
-                              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                                {item.category || "Sem Categoria"}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <BadgeEl>{item.type}</BadgeEl>
-                        </td>
-                        <td className="px-8 py-6 text-center">
-                          <span className={`text-lg font-black ${cfg.color}`}>{item.stock_qty}</span>
-                        </td>
-                        <td className="px-8 py-6 text-center text-zinc-500 font-medium">
-                          {item.alert_stock > 0 ? item.alert_stock : "—"}
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className={`flex items-center justify-end gap-2 ${cfg.color} font-bold text-xs uppercase tracking-tighter`}>
-                            {cfg.label}
-                            <StatusIcon className="w-4 h-4" />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modal de Ajuste */}
