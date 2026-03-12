@@ -42,14 +42,11 @@ export function AppLayout() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background text-foreground">
-        {/* Sidebar hidden on mobile, visible on lg+ */}
-        <div className="hidden lg:flex">
-          <AppSidebar />
-        </div>
+        <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top bar */}
           <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground hidden lg:flex" />
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="h-4 w-px bg-border hidden lg:block" />
             <Breadcrumb>
               <BreadcrumbList>
