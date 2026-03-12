@@ -634,7 +634,7 @@ export default function PDV() {
                   <div className="h-px bg-zinc-800 my-2" />
                   <div className="flex justify-between items-end text-white">
                     <span className="font-bold">Valor Total</span>
-                    <span className="text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
+                    <span className="text-xl lg:text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
                   </div>
                   {isCardPayment && cardTaxPercent > 0 && (
                     <div className="flex justify-between text-xs">
