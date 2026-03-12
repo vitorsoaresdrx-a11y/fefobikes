@@ -89,7 +89,7 @@ export default function CashRegister() {
       await openRegister.mutateAsync(amount);
       toast({ title: "Caixa aberto com sucesso!" });
       setShowOpenModal(false);
-      setOpeningAmount("");
+      setOpeningAmount(0);
     } catch {
       toast({ title: "Erro ao abrir caixa", variant: "destructive" });
     }
