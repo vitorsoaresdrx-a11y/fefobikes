@@ -312,25 +312,26 @@ export default function DRE() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
-      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
+      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-3 md:space-y-6 lg:space-y-8">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
-                <Activity className="w-5 h-5 text-white" />
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+          <div className="space-y-1 md:space-y-2">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+                <Activity size={16} className="md:hidden text-white" />
+                <Activity size={20} className="hidden md:block text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#2952FF]">PERFORMANCE HUB</span>
+              <span className="text-[10px] md:text-sm font-black tracking-widest text-[#2952FF] uppercase">Performance Hub</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Análise DRE</h1>
+            <h1 className="text-lg md:text-2xl lg:text-4xl font-black md:font-extrabold tracking-tight">Análise DRE</h1>
           </div>
 
-          <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-2xl p-1">
+          <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-xl md:rounded-2xl p-1 h-10 md:h-auto self-start">
             <Btn onClick={() => setSelectedYear((y) => y - 1)}>
               <ChevronLeft className="w-4 h-4" />
             </Btn>
-            <span className="text-xs font-black uppercase tracking-widest px-6 min-w-[100px] text-center">
+            <span className="text-xs font-black uppercase tracking-widest px-4 md:px-6 min-w-[80px] md:min-w-[100px] text-center">
               {selectedYear}
             </span>
             <Btn
