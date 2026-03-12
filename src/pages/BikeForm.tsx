@@ -376,7 +376,7 @@ export default function BikeForm() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* Identidade */}
-            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl">
               <SectionHeader
                 title="Identidade do Modelo"
                 icon={Tag}
