@@ -336,7 +336,7 @@ export default function Permissoes() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
-      <div className="max-w-[1200px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-8">
+      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">

@@ -204,7 +204,7 @@ export default function Dashboard() {
         </div>
 
         {/* Secondary Actions */}
-        <div className="pt-8 md:pt-12 border-t border-zinc-800/50">
+        <div className="pt-6 lg:pt-8 border-t border-zinc-800/50">
           <div className="flex items-center gap-2 mb-6 md:mb-8">
             <Plus size={16} className="text-[#2952FF]" />
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">

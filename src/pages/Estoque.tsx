@@ -158,7 +158,7 @@ function SummaryCard({
         <div>
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-1">{cfg.label}</p>
           <div className="flex items-baseline gap-2">
-            <h2 className={`text-4xl font-black tracking-tighter ${cfg.color}`}>{count}</h2>
+            <h2 className={`text-2xl lg:text-4xl font-black tracking-tighter ${cfg.color}`}>{count}</h2>
             <span className="text-xs text-zinc-600 font-bold uppercase">Itens</span>
           </div>
         </div>

@@ -621,7 +621,7 @@ export default function BikeForm() {
           </div>
 
           {/* ── Build & Componentes (full width) ──────────────────────────── */}
-          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl">
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl">
             <SectionHeader
               title="Cálculo de Preços"
               icon={Wrench}

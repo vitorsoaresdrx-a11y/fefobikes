@@ -105,7 +105,7 @@ export default function Login() {
                 <Bike className="w-7 h-7 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tighter leading-tight">
+            <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-tight">
               Acesse sua conta
             </h1>
             <p className="text-zinc-500 text-sm font-medium">

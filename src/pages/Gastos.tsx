@@ -235,8 +235,8 @@ export default function Gastos() {
               <div>
                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Variáveis</p>
                 <div className="flex items-baseline gap-3">
-                  <h2 className="text-4xl font-black tracking-tighter">
-                    {isLoading ? <span className="text-zinc-700 text-2xl">Carregando...</span> : formatBRL(varTotal)}
+                  <h2 className="text-2xl lg:text-4xl font-black tracking-tighter">
+                    {isLoading ? <span className="text-zinc-700 text-lg lg:text-2xl">Carregando...</span> : formatBRL(varTotal)}
                   </h2>
                   <TrendingUp className="w-5 h-5 text-amber-500" />
                 </div>
