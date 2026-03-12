@@ -384,6 +384,7 @@ export default function Mecanica() {
   const create = useCreateMechanicJob();
   const createServiceOrder = useCreateServiceOrder();
   const createAddition = useCreateAddition();
+  const advance = useAdvanceMechanicJob();
 
   // Realtime: react to service_order changes
   const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
