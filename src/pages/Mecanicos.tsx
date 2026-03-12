@@ -29,6 +29,12 @@ import { useCreateBikeServiceRecord } from "@/hooks/useBikeServiceHistory";
 import { playDoneSound, playNewOrderSound } from "@/lib/sounds";
 import { toast } from "sonner";
 
+const mobileColumns = [
+  { key: "pending" as const, label: "Pendentes", icon: Clock, color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20" },
+  { key: "accepted" as const, label: "Em Andamento", icon: Wrench, color: "text-indigo-400", bg: "bg-indigo-400/5", border: "border-indigo-400/20" },
+  { key: "done" as const, label: "Concluídos", icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-400/5", border: "border-emerald-400/20" },
+];
+
 export default function Mecanicos() {
   const { data: orders = [], isLoading } = useServiceOrders(["pending", "accepted", "done"]);
   const acceptOrder = useAcceptServiceOrder();
@@ -36,7 +42,6 @@ export default function Mecanicos() {
   const { data: mechanics = [] } = useActiveMechanics();
   const createHistory = useCreateBikeServiceRecord();
 
-  // Play sound when a NEW service order arrives
   const handleNewOrder = useCallback((order: ServiceOrder) => {
     playNewOrderSound();
     toast.info(`🔔 Nova OS recebida!`, {
@@ -47,15 +52,11 @@ export default function Mecanicos() {
 
   useServiceOrdersRealtime({ onNew: handleNewOrder });
 
-  // Accept modal
   const [acceptOpen, setAcceptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
-
-  // Frame number per order
   const [frameNumbers, setFrameNumbers] = useState<Record<string, string>>({});
-
-  // Done orders auto-hide
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [mobileTab, setMobileTab] = useState<"pending" | "accepted" | "done">("pending");
 
   useEffect(() => {
     const doneOrders = orders.filter((o) => o.mechanic_status === "done" && !hiddenIds.has(o.id));
@@ -93,11 +94,8 @@ export default function Mecanicos() {
       toast.error("Preencha o número do quadro");
       return;
     }
-
     try {
       await finishOrder.mutateAsync({ id: order.id, frame_number: frame });
-
-      // Create bike service history record
       await createHistory.mutateAsync({
         frame_number: frame,
         bike_name: order.bike_name || "Bike",
@@ -111,7 +109,6 @@ export default function Mecanicos() {
         status: "done",
         completed_at: new Date().toISOString(),
       });
-
       playDoneSound();
       toast.success("Serviço finalizado!");
     } catch {
@@ -124,9 +121,108 @@ export default function Mecanicos() {
   const accepted = visibleOrders.filter((o) => o.mechanic_status === "accepted");
   const done = visibleOrders.filter((o) => o.mechanic_status === "done");
 
+  const grouped: Record<string, ServiceOrder[]> = { pending, accepted, done };
+
+  // ── Render helpers ──
+  const renderPendingCard = (order: ServiceOrder) => (
+    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
+      <div className="space-y-1">
+        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+        {order.customer_name && (
+          <div className="flex items-center gap-2 text-zinc-400 text-xs">
+            <User size={12} /> {order.customer_name}
+          </div>
+        )}
+      </div>
+      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
+        <p className="text-xs text-zinc-400">{order.problem}</p>
+      </div>
+      <button
+        onClick={() => handleAcceptClick(order)}
+        className="w-full h-10 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-amber-500/20"
+      >
+        Aceitar
+      </button>
+    </div>
+  );
+
+  const renderAcceptedCard = (order: ServiceOrder) => (
+    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
+      <div className="space-y-1">
+        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+        {order.customer_name && (
+          <div className="flex items-center gap-2 text-zinc-400 text-xs">
+            <User size={12} /> {order.customer_name}
+          </div>
+        )}
+        {order.mechanic_name && (
+          <div className="flex items-center gap-2 text-indigo-400 text-xs">
+            <Wrench size={12} /> {order.mechanic_name}
+          </div>
+        )}
+      </div>
+      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
+        <p className="text-xs text-zinc-400">{order.problem}</p>
+      </div>
+      <div className="space-y-2">
+        <div className="relative">
+          <Hash size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+          <input
+            className="w-full h-10 bg-[#0A0A0B] border border-zinc-800 rounded-xl pl-9 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+            placeholder="Número do quadro"
+            value={frameNumbers[order.id] || ""}
+            onChange={(e) => setFrameNumbers((prev) => ({ ...prev, [order.id]: e.target.value }))}
+          />
+        </div>
+        <button
+          onClick={() => handleFinish(order)}
+          disabled={finishOrder.isPending || createHistory.isPending}
+          className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
+        >
+          {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderDoneCard = (order: ServiceOrder) => (
+    <div key={order.id} className="bg-[#161618] border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+          {order.mechanic_name && (
+            <div className="flex items-center gap-2 text-zinc-400 text-xs">
+              <Wrench size={12} /> {order.mechanic_name}
+            </div>
+          )}
+        </div>
+        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
+          Concluído
+        </span>
+      </div>
+    </div>
+  );
+
+  const renderCards = (key: string) => {
+    const list = grouped[key] || [];
+    if (list.length === 0) {
+      const emptyIcon = key === "pending" ? Bell : key === "accepted" ? Wrench : CheckCircle2;
+      const EmptyIcon = emptyIcon;
+      return (
+        <div className="py-16 text-center space-y-2 opacity-20">
+          <EmptyIcon className="mx-auto" size={32} />
+          <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma OS</p>
+        </div>
+      );
+    }
+    if (key === "pending") return list.map(renderPendingCard);
+    if (key === "accepted") return list.map(renderAcceptedCard);
+    return list.map(renderDoneCard);
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
-      <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-8">
+      <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-8">
         {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center gap-3">
@@ -142,7 +238,7 @@ export default function Mecanicos() {
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-[#161618] border border-amber-400/20 p-4 rounded-2xl">
             <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Pendentes</p>
             <p className="text-2xl font-black text-amber-400">{pending.length}</p>
@@ -163,149 +259,86 @@ export default function Mecanicos() {
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-            {/* Pending Column */}
-            <section className="bg-[#111113]/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
-              <div className="flex items-center gap-3 p-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 mb-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 bg-white/5">
-                  <Clock size={20} className="stroke-[2.5]" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Pendentes</h3>
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase">{pending.length} OS aguardando</p>
-                </div>
-              </div>
-
-              <div className="space-y-4 px-1">
-                {pending.length > 0 ? (
-                  pending.map((order) => (
-                    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
-                      <div className="space-y-1">
-                        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-                        {order.customer_name && (
-                          <div className="flex items-center gap-2 text-zinc-400 text-xs">
-                            <User size={12} /> {order.customer_name}
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
-                        <p className="text-xs text-zinc-400">{order.problem}</p>
-                      </div>
-                      <button
-                        onClick={() => handleAcceptClick(order)}
-                        className="w-full h-10 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-amber-500/20"
-                      >
-                        Aceitar
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <div className="py-16 text-center space-y-2 opacity-20">
-                    <Bell className="mx-auto" size={32} />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma OS pendente</p>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* In Progress Column */}
-            <section className="bg-[#111113]/50 rounded-3xl p-4 border border-indigo-400/10 min-h-[400px]">
-              <div className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-400/20 bg-indigo-400/5 mb-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400 bg-white/5">
-                  <Wrench size={20} className="stroke-[2.5]" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Em Andamento</h3>
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase">{accepted.length} OS em execução</p>
-                </div>
-              </div>
-
-              <div className="space-y-4 px-1">
-                {accepted.length > 0 ? (
-                  accepted.map((order) => (
-                    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
-                      <div className="space-y-1">
-                        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-                        {order.customer_name && (
-                          <div className="flex items-center gap-2 text-zinc-400 text-xs">
-                            <User size={12} /> {order.customer_name}
-                          </div>
-                        )}
-                        {order.mechanic_name && (
-                          <div className="flex items-center gap-2 text-indigo-400 text-xs">
-                            <Wrench size={12} /> {order.mechanic_name}
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
-                        <p className="text-xs text-zinc-400">{order.problem}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <Hash size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
-                          <input
-                            className="w-full h-10 bg-[#0A0A0B] border border-zinc-800 rounded-xl pl-9 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
-                            placeholder="Número do quadro"
-                            value={frameNumbers[order.id] || ""}
-                            onChange={(e) => setFrameNumbers((prev) => ({ ...prev, [order.id]: e.target.value }))}
-                          />
-                        </div>
-                        <button
-                          onClick={() => handleFinish(order)}
-                          disabled={finishOrder.isPending || createHistory.isPending}
-                          className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
-                        >
-                          {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="py-16 text-center space-y-2 opacity-20">
-                    <Wrench className="mx-auto" size={32} />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma OS em andamento</p>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-
-          {/* Done - below both columns */}
-          {done.length > 0 && (
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-400" />
-                <h2 className="text-xs font-black text-emerald-400 uppercase tracking-widest">Concluídos Recentemente</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {done.map((order) => (
-                  <div key={order.id} className="bg-[#161618] border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-                        {order.mechanic_name && (
-                          <div className="flex items-center gap-2 text-zinc-400 text-xs">
-                            <Wrench size={12} /> {order.mechanic_name}
-                          </div>
-                        )}
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
-                        Concluído
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* Mobile: horizontal scrollable tabs */}
+            <div className="flex md:hidden overflow-x-auto gap-3 pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
+              {mobileColumns.map((col) => {
+                const active = mobileTab === col.key;
+                return (
+                  <button
+                    key={col.key}
+                    onClick={() => setMobileTab(col.key)}
+                    className={`snap-start shrink-0 flex items-center gap-2 px-4 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-wider transition-all ${
+                      active
+                        ? `${col.bg} ${col.border} ${col.color}`
+                        : "bg-[#161618] border-zinc-800 text-zinc-500"
+                    }`}
+                  >
+                    <col.icon size={14} />
+                    <span className="whitespace-nowrap">{col.label}</span>
+                    <span className={`ml-1 text-[10px] ${active ? "opacity-100" : "opacity-50"}`}>
+                      ({grouped[col.key].length})
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </>
+
+            {/* Mobile: single column */}
+            <div className="md:hidden space-y-4">
+              {renderCards(mobileTab)}
+            </div>
+
+            {/* Desktop: two columns + done below */}
+            <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
+              {/* Pending */}
+              <section className="bg-[#111113]/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
+                <div className="flex items-center gap-3 p-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 mb-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 bg-white/5">
+                    <Clock size={20} className="stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Pendentes</h3>
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase">{pending.length} OS aguardando</p>
+                  </div>
+                </div>
+                <div className="space-y-4 px-1">{renderCards("pending")}</div>
+              </section>
+
+              {/* In Progress */}
+              <section className="bg-[#111113]/50 rounded-3xl p-4 border border-indigo-400/10 min-h-[400px]">
+                <div className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-400/20 bg-indigo-400/5 mb-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400 bg-white/5">
+                    <Wrench size={20} className="stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Em Andamento</h3>
+                    <p className="text-[10px] font-bold text-zinc-500 uppercase">{accepted.length} OS em execução</p>
+                  </div>
+                </div>
+                <div className="space-y-4 px-1">{renderCards("accepted")}</div>
+              </section>
+            </div>
+
+            {/* Done - desktop only (mobile shows via tab) */}
+            {done.length > 0 && (
+              <div className="hidden md:block mt-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-400" />
+                  <h2 className="text-xs font-black text-emerald-400 uppercase tracking-widest">Concluídos Recentemente</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {done.map(renderDoneCard)}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Mechanic selection modal */}
       <Dialog open={acceptOpen} onOpenChange={setAcceptOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl">
-          <div className="p-8 space-y-6">
+        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 md:p-8 space-y-6">
             <DialogHeader>
               <DialogTitle className="text-xl font-black text-white italic uppercase tracking-tight">
                 Selecionar Mecânico
