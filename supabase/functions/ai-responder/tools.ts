@@ -60,12 +60,18 @@ export async function executeCalcularFrete(args: {
   }
 
   // 2. Authenticate with Rodonaves
-  const RODONAVES_USER = Deno.env.get("RODONAVES_USER")!;
-  const RODONAVES_PASS = Deno.env.get("RODONAVES_PASS")!;
+  const RODONAVES_USER = Deno.env.get("RODONAVES_USER");
+  const RODONAVES_PASS = Deno.env.get("RODONAVES_PASS");
 
-  const tokenRes = await fetch(
-    "https://quotation-apigateway.rte.com.br/token",
-    {
+  if (!RODONAVES_USER || !RODONAVES_PASS) {
+    throw new Error("Credenciais da Rodonaves não configuradas.");
+  }
+
+  const authTypesToTry = ["DEV", "dev"];
+  let accessToken: string | null = null;
+
+  for (const authType of authTypesToTry) {
+    const tokenRes = await fetch("https://quotation-apigateway.rte.com.br/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -73,17 +79,38 @@ export async function executeCalcularFrete(args: {
         username: RODONAVES_USER,
         password: RODONAVES_PASS,
         companyId: "1",
-        auth_type: "DEV",
+        auth_type: authType,
       }).toString(),
-    }
-  );
+    });
 
-  if (!tokenRes.ok) {
-    throw new Error("Erro ao autenticar na transportadora Rodonaves.");
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text();
+      console.error("Rodonaves token error:", {
+        status: tokenRes.status,
+        auth_type: authType,
+        body: errText.slice(0, 300),
+      });
+      continue;
+    }
+
+    const tokenData = await tokenRes.json();
+    accessToken = tokenData?.access_token ?? null;
+
+    if (accessToken) {
+      break;
+    }
+
+    console.error("Rodonaves token response missing access_token", {
+      auth_type: authType,
+      token_keys: Object.keys(tokenData || {}),
+    });
   }
 
-  const tokenData = await tokenRes.json();
-  const accessToken = tokenData.access_token;
+  if (!accessToken) {
+    throw new Error(
+      "Erro ao autenticar na transportadora Rodonaves. Confira credenciais e ambiente da conta."
+    );
+  }
 
   // 3. Get quotation
   const cotacaoRes = await fetch(
