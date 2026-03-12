@@ -319,9 +319,14 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
       <button type="button" onClick={onToggle} className="w-full text-left hover:bg-zinc-800/20 transition-colors">
         {/* Mobile Layout: Stacked */}
         <div className="p-4 space-y-3 md:hidden">
-          {/* Linha 1: data */}
-          <div className="text-sm font-bold text-white px-1">
-            {formatDateOnly(register.opened_at)}
+          {/* Linha 1: data + valor inicial discreto */}
+          <div className="flex items-center justify-between px-1">
+            <span className="text-sm font-bold text-white">
+              {formatDateOnly(register.opened_at)}
+            </span>
+            <span className="text-[11px] text-zinc-600">
+              Inicial: {formatBRL(Number(register.opening_amount))}
+            </span>
           </div>
           {/* Linha 2: horário de fechamento + badge */}
           <div className="flex items-center justify-between px-1">
@@ -342,19 +347,15 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
               </span>
             )}
           </div>
-          {/* Linha 3: 3 valores empilhados */}
+          {/* Linha 3: Esperado e Informado com mais espaço */}
           <div className="flex justify-between px-1 pt-1">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] text-zinc-500">Inicial</p>
-              <p className="text-sm font-bold">{formatBRL(Number(register.opening_amount))}</p>
-            </div>
-            <div className="min-w-0 flex-1">
               <p className="text-[10px] text-zinc-500">Esperado</p>
-              <p className="text-sm font-bold">{formatBRL(Number(register.expected_amount) || 0)}</p>
+              <p className="text-base font-bold">{formatBRL(Number(register.expected_amount) || 0)}</p>
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 text-right">
               <p className="text-[10px] text-zinc-500">Informado</p>
-              <p className="text-sm font-bold">{formatBRL(Number(register.closing_amount) || 0)}</p>
+              <p className="text-base font-bold">{formatBRL(Number(register.closing_amount) || 0)}</p>
             </div>
           </div>
         </div>
