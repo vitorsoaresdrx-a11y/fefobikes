@@ -170,14 +170,14 @@ export default function ProdutoPublico() {
         .select("*")
         .eq("sku", sku!)
         .maybeSingle();
-      if (part) return { ...part, _type: "part" as const };
+      if (part) return { ...(part as Record<string, any>), _type: "part" as const };
 
       const { data: bike } = await supabase
         .from("bike_models_public" as any)
         .select("*")
         .eq("sku", sku!)
         .maybeSingle();
-      if (bike) return { ...bike, _type: "bike" as const };
+      if (bike) return { ...(bike as Record<string, any>), _type: "bike" as const };
 
       return null;
     },
