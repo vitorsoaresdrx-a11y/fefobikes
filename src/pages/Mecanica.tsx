@@ -439,7 +439,7 @@ export default function Mecanica() {
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
   const [addForm, setAddForm] = useState({ problem: "", price: 0 });
-  const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "ready">("in_repair");
+  const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_repair");
 
   const grouped = useMemo(() => {
     const map: Record<string, MechanicJob[]> = {
