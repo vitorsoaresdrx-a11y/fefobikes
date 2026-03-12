@@ -53,7 +53,7 @@ export function useConversations(statusFilter?: string) {
     queryFn: async () => {
       let query = supabase
         .from("whatsapp_conversations")
-        .select("*")
+        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, created_at")
         .order("last_message_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "all") {
