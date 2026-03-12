@@ -41,9 +41,9 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background text-foreground">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Top bar */}
           <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
