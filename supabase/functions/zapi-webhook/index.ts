@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       message_id: messageId,
       from_me: isFromMe,
       type,
-      content: text || `[${type}]`,
+      content: content || `[${type}]`,
       media_url: mediaUrl,
       status: isFromMe ? "sent" : "delivered",
     });
