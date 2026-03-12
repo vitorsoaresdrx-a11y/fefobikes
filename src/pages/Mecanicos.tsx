@@ -162,16 +162,22 @@ export default function Mecanicos() {
             <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Pending */}
-            {pending.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Clock size={16} className="text-amber-400" />
-                  <h2 className="text-xs font-black text-amber-400 uppercase tracking-widest">Pendentes</h2>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+            {/* Pending Column */}
+            <section className="bg-[#111113]/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
+              <div className="flex items-center gap-3 p-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 mb-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 bg-white/5">
+                  <Clock size={20} className="stroke-[2.5]" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {pending.map((order) => (
+                <div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Pendentes</h3>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase">{pending.length} OS aguardando</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 px-1">
+                {pending.length > 0 ? (
+                  pending.map((order) => (
                     <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
                       <div className="space-y-1">
                         {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
@@ -191,20 +197,31 @@ export default function Mecanicos() {
                         Aceitar
                       </button>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                  ))
+                ) : (
+                  <div className="py-16 text-center space-y-2 opacity-20">
+                    <Bell className="mx-auto" size={32} />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma OS pendente</p>
+                  </div>
+                )}
+              </div>
+            </section>
 
-            {/* Accepted */}
-            {accepted.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Wrench size={16} className="text-indigo-400" />
-                  <h2 className="text-xs font-black text-indigo-400 uppercase tracking-widest">Em Andamento</h2>
+            {/* In Progress Column */}
+            <section className="bg-[#111113]/50 rounded-3xl p-4 border border-indigo-400/10 min-h-[400px]">
+              <div className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-400/20 bg-indigo-400/5 mb-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400 bg-white/5">
+                  <Wrench size={20} className="stroke-[2.5]" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {accepted.map((order) => (
+                <div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Em Andamento</h3>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase">{accepted.length} OS em execução</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 px-1">
+                {accepted.length > 0 ? (
+                  accepted.map((order) => (
                     <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
                       <div className="space-y-1">
                         {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
@@ -241,43 +258,49 @@ export default function Mecanicos() {
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                  ))
+                ) : (
+                  <div className="py-16 text-center space-y-2 opacity-20">
+                    <Wrench className="mx-auto" size={32} />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma OS em andamento</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
 
-            {/* Done */}
-            {done.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-400" />
-                  <h2 className="text-xs font-black text-emerald-400 uppercase tracking-widest">Concluídos</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {done.map((order) => (
-                    <div key={order.id} className="bg-[#161618] border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-                          {order.mechanic_name && (
-                            <div className="flex items-center gap-2 text-zinc-400 text-xs">
-                              <Wrench size={12} /> {order.mechanic_name}
-                            </div>
-                          )}
-                        </div>
-                        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
-                          Concluído
-                        </span>
+          {/* Done - below both columns */}
+          {done.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-400" />
+                <h2 className="text-xs font-black text-emerald-400 uppercase tracking-widest">Concluídos Recentemente</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {done.map((order) => (
+                  <div key={order.id} className="bg-[#161618] border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+                        {order.mechanic_name && (
+                          <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                            <Wrench size={12} /> {order.mechanic_name}
+                          </div>
+                        )}
                       </div>
+                      <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
+                        Concluído
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-            {visibleOrders.length === 0 && (
-              <div className="text-center py-20 space-y-3 opacity-30">
-                <Wrench className="mx-auto" size={40} />
+          {visibleOrders.length === 0 && (
+            <div className="text-center py-20 space-y-3 opacity-30">
+              <Wrench className="mx-auto" size={40} />
                 <p className="text-xs font-black uppercase tracking-widest">Nenhuma OS no momento</p>
               </div>
             )}
