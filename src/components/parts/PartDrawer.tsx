@@ -1,4 +1,5 @@
 import { formatBRL } from "@/lib/format";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
