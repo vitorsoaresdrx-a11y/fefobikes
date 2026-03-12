@@ -381,8 +381,8 @@ export default function Gastos() {
       {/* Modal Fixo */}
       {fixedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
-            <div className="p-10 space-y-8">
+          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="p-6 md:p-10 space-y-6 md:space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-white">Novo Gasto Fixo</h2>
