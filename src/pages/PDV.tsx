@@ -603,7 +603,7 @@ export default function PDV() {
                       </div>
                     </div>
                   );
-                }))
+                })
               )}
               </div>
             </div>
