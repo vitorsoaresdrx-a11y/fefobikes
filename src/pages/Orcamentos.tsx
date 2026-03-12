@@ -474,36 +474,54 @@ export default function Orcamentos() {
               </DialogTitle>
             </DialogHeader>
 
-            {/* Customer info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InputGroup label="Nome do Cliente">
-                <PremiumInput
-                  placeholder="Nome completo"
-                  value={form.customer_name}
-                  onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
-                />
-              </InputGroup>
-              <InputGroup label="WhatsApp">
-                <PremiumInput
-                  placeholder="(00) 00000-0000"
-                  value={form.customer_whatsapp}
-                  onChange={(e) => setForm({ ...form, customer_whatsapp: e.target.value })}
-                />
-              </InputGroup>
-              <InputGroup label="CPF">
-                <PremiumInput
-                  placeholder="000.000.000-00"
-                  value={form.customer_cpf}
-                  onChange={(e) => setForm({ ...form, customer_cpf: e.target.value })}
-                />
-              </InputGroup>
-              <InputGroup label="Observações">
-                <PremiumInput
-                  placeholder="Detalhes adicionais"
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                />
-              </InputGroup>
+            <div className="space-y-4">
+              <CustomerAutocomplete
+                customerName={form.customer_name}
+                customerWhatsapp={form.customer_whatsapp}
+                customerCpf={form.customer_cpf}
+                onSelect={(c: Customer) =>
+                  setForm({
+                    ...form,
+                    customer_name: c.name,
+                    customer_whatsapp: c.whatsapp || "",
+                    customer_cpf: c.cpf || "",
+                  })
+                }
+                onChange={(field, value) => {
+                  const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
+                  setForm({ ...form, [key]: value });
+                }}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InputGroup label="Nome do Cliente">
+                  <PremiumInput
+                    placeholder="Nome completo"
+                    value={form.customer_name}
+                    onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
+                  />
+                </InputGroup>
+                <InputGroup label="WhatsApp">
+                  <PremiumInput
+                    placeholder="(00) 00000-0000"
+                    value={form.customer_whatsapp}
+                    onChange={(e) => setForm({ ...form, customer_whatsapp: e.target.value })}
+                  />
+                </InputGroup>
+                <InputGroup label="CPF">
+                  <PremiumInput
+                    placeholder="000.000.000-00"
+                    value={form.customer_cpf}
+                    onChange={(e) => setForm({ ...form, customer_cpf: e.target.value })}
+                  />
+                </InputGroup>
+                <InputGroup label="Observações">
+                  <PremiumInput
+                    placeholder="Detalhes adicionais"
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  />
+                </InputGroup>
+              </div>
             </div>
 
             {/* Parts section */}
