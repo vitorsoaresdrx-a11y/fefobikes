@@ -508,7 +508,7 @@ export default function WhatsApp() {
                     className="h-9 px-3 md:px-4 rounded-xl border border-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-800 flex items-center gap-1.5 md:gap-2 transition-all"
                   >
                     <CircleDot size={14} className="text-emerald-400" />
-                    Resolver Caso
+                    <span className="hidden sm:inline">Resolver Caso</span>
                   </button>
                 ) : (
                   <button
