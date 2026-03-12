@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import {
   Lock,
   Unlock,
