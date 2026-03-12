@@ -557,7 +557,7 @@ export default function WhatsApp() {
             </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-10 space-y-6 scrollbar-none">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-4 md:space-y-6 scrollbar-none">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
