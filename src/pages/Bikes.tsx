@@ -132,10 +132,11 @@ export default function Bikes() {
     updateBike.mutate({ id, visible_on_storefront: !current });
   };
 
+  const debouncedSearch = useDebounce(search, 300);
   const filtered = bikes.filter(
     (b) =>
-      b.name.toLowerCase().includes(search.toLowerCase()) ||
-      (b.category || "").toLowerCase().includes(search.toLowerCase())
+      b.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (b.category || "").toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   const totalParts = Object.values(partsCounts as Record<string, number>).reduce(

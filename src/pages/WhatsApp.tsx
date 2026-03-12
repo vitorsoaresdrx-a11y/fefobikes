@@ -159,14 +159,15 @@ export default function WhatsApp() {
     session?.user?.user_metadata?.name ||
     null;
 
+  const debouncedSearch = useDebounce(search, 300);
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
+    const q = debouncedSearch.toLowerCase().trim();
     return conversations.filter((c) => {
       const displayName = getDisplayContactName(c, currentUserName).toLowerCase();
       const displayPhone = getDisplayContactPhone(c.contact_phone).toLowerCase();
       return displayName.includes(q) || displayPhone.includes(q);
     });
-  }, [conversations, search, currentUserName]);
+  }, [conversations, debouncedSearch, currentUserName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
