@@ -269,22 +269,22 @@ export default function Pecas() {
                       Estoque <SortIcon field="stock_qty" />
                     </button>
                   </th>
-                  <th className="px-8 py-4 text-right">
+                  <th className="px-4 md:px-8 py-4 text-right hidden sm:table-cell">
                     <button type="button" onClick={() => toggleSort("unit_cost")} className="flex items-center gap-1 ml-auto">
                       Custo <SortIcon field="unit_cost" />
                     </button>
                   </th>
-                  <th className="px-8 py-4 text-right">
+                  <th className="px-4 md:px-8 py-4 text-right hidden sm:table-cell">
                     <button type="button" onClick={() => toggleSort("sale_price")} className="flex items-center gap-1 ml-auto">
                       Venda <SortIcon field="sale_price" />
                     </button>
                   </th>
-                  <th className="px-8 py-4 text-right">
+                  <th className="px-4 md:px-8 py-4 text-right hidden md:table-cell">
                     <button type="button" onClick={() => toggleSort("profit")} className="flex items-center gap-1 ml-auto">
                       Lucro Un. <SortIcon field="profit" />
                     </button>
                   </th>
-                  <th className="px-8 py-4 w-28" />
+                  <th className="px-4 md:px-8 py-4 w-28" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/30 text-sm">
