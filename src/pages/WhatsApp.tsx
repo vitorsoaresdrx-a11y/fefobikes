@@ -152,7 +152,7 @@ export default function WhatsApp() {
   const sendMessage = useSendMessage();
   const updateStatus = useUpdateConversationStatus();
   const markAsRead = useMarkAsRead();
-
+  const toggleAi = useToggleAi();
   const { session } = useAuth();
   const currentUserName =
     session?.user?.user_metadata?.full_name ||
