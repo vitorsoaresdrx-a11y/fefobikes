@@ -575,36 +575,91 @@ export default function Mecanica() {
             <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 lg:gap-8 items-start">
-            {columns.map((col) => (
-              <div
-                key={col.key}
-                className="flex flex-col min-h-[400px] lg:min-h-[600px] bg-[#111113]/50 rounded-3xl lg:rounded-[40px] p-2 border border-zinc-800/30"
-              >
-                <ColumnHeader {...col} count={grouped[col.key].length} />
-                <div className="px-2 space-y-4 pb-6 lg:pb-10">
-                  {grouped[col.key].length > 0 ? (
-                    grouped[col.key].map((job) => (
-                      <JobCard
-                        key={job.id}
-                        job={job}
-                        isLast={col.key === "ready"}
-                        columnKey={col.key}
-                        onAddRepair={handleAddRepair}
-                      />
-                    ))
-                  ) : (
-                    <div className="py-20 text-center space-y-3 opacity-20">
-                      <Layers className="mx-auto" size={40} />
-                      <p className="text-[10px] font-black uppercase tracking-widest">
-                        Coluna Vazia
-                      </p>
-                    </div>
-                  )}
+          <>
+            {/* Mobile tabs */}
+            <div className="flex md:hidden rounded-2xl bg-[#161618] border border-zinc-800 p-1 gap-1">
+              {columns.map((col) => {
+                const active = mobileTab === col.key;
+                return (
+                  <button
+                    key={col.key}
+                    onClick={() => setMobileTab(col.key)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                      active
+                        ? `bg-[#0A0A0B] ${col.color} shadow-sm`
+                        : "text-zinc-500"
+                    }`}
+                  >
+                    <col.icon size={13} />
+                    <span className="truncate">{col.label}</span>
+                    <span className={`ml-0.5 text-[9px] ${active ? "opacity-100" : "opacity-50"}`}>
+                      ({grouped[col.key].length})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Mobile: single column based on active tab */}
+            <div className="md:hidden">
+              {columns
+                .filter((col) => col.key === mobileTab)
+                .map((col) => (
+                  <div key={col.key} className="space-y-4">
+                    {grouped[col.key].length > 0 ? (
+                      grouped[col.key].map((job) => (
+                        <JobCard
+                          key={job.id}
+                          job={job}
+                          isLast={col.key === "ready"}
+                          columnKey={col.key}
+                          onAddRepair={handleAddRepair}
+                        />
+                      ))
+                    ) : (
+                      <div className="py-20 text-center space-y-3 opacity-20">
+                        <Layers className="mx-auto" size={40} />
+                        <p className="text-[10px] font-black uppercase tracking-widest">
+                          Coluna Vazia
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+
+            {/* Desktop: 3 columns */}
+            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 lg:gap-8 items-start">
+              {columns.map((col) => (
+                <div
+                  key={col.key}
+                  className="flex flex-col min-h-[600px] bg-[#111113]/50 rounded-[40px] p-2 border border-zinc-800/30"
+                >
+                  <ColumnHeader {...col} count={grouped[col.key].length} />
+                  <div className="px-2 space-y-4 pb-10">
+                    {grouped[col.key].length > 0 ? (
+                      grouped[col.key].map((job) => (
+                        <JobCard
+                          key={job.id}
+                          job={job}
+                          isLast={col.key === "ready"}
+                          columnKey={col.key}
+                          onAddRepair={handleAddRepair}
+                        />
+                      ))
+                    ) : (
+                      <div className="py-20 text-center space-y-3 opacity-20">
+                        <Layers className="mx-auto" size={40} />
+                        <p className="text-[10px] font-black uppercase tracking-widest">
+                          Coluna Vazia
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
