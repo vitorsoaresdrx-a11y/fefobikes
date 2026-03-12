@@ -324,7 +324,7 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
             {formatDateOnly(register.opened_at)}
           </div>
           {/* Linha 2: horário de fechamento + badge */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between px-1">
             <span className="text-xs text-zinc-500">
               {register.closed_at ? `Fechado às ${formatTime(register.closed_at)}` : ""}
             </span>
