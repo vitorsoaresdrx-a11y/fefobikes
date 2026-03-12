@@ -151,24 +151,24 @@ function DRELineRow({
   const isSubtotal = type === "subtotal";
   return (
     <div
-      className={`flex items-center justify-between p-4 rounded-2xl transition-colors ${
+      className={`flex items-center justify-between p-3 md:p-4 rounded-xl md:rounded-2xl transition-colors ${
         isSubtotal ? "bg-zinc-900 border border-zinc-800" : "hover:bg-white/[0.02]"
       }`}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
         <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 ${
             isSubtotal ? "bg-[#2952FF]/10 text-[#2952FF]" : "bg-zinc-900 text-zinc-500"
           }`}
         >
-          <Icon size={18} />
+          <Icon size={16} />
         </div>
-        <span className={`text-sm font-bold ${isSubtotal ? "text-white" : "text-zinc-400"}`}>
+        <span className={`text-xs md:text-sm font-bold leading-snug min-w-0 ${isSubtotal ? "text-white" : "text-zinc-400"}`}>
           {label}
         </span>
       </div>
       <span
-        className={`text-sm font-black tabular-nums ${
+        className={`text-xs md:text-sm font-black tabular-nums text-right shrink-0 ml-2 whitespace-nowrap ${
           isDeduction
             ? "text-red-400/80"
             : isSubtotal
