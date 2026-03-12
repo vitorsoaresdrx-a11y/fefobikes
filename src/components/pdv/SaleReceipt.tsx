@@ -260,9 +260,7 @@ export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
       >
         {/* Receipt card — white bg, black text to simulate thermal print */}
         <div className="overflow-y-auto max-h-[85vh] rounded-2xl">
-          <div
-            id="receipt-content"
-            className="receipt bg-white text-black rounded-2xl p-5 w-full"
+          <div className="bg-white text-black rounded-2xl p-5 w-full">
           >
             {/* Header */}
             <div className="text-center border-b border-dashed border-black pb-3 mb-3">
