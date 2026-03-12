@@ -103,7 +103,7 @@ export default function CashRegister() {
       await closeRegister.mutateAsync({ id: currentRegister.id, closingAmount: closing, expectedAmount: expected });
       toast({ title: "Caixa fechado com sucesso!" });
       setShowCloseModal(false);
-      setClosingAmount("");
+      setClosingAmount(0);
     } catch {
       toast({ title: "Erro ao fechar caixa", variant: "destructive" });
     }
