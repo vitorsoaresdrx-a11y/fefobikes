@@ -353,6 +353,7 @@ export default function Orcamentos() {
         customer_name: form.customer_name || undefined,
         customer_cpf: form.customer_cpf || undefined,
         customer_whatsapp: form.customer_whatsapp || undefined,
+        customer_id: form.customer_id || undefined,
         notes: form.notes || undefined,
         labor_cost: laborCost,
         total: grandTotal,
