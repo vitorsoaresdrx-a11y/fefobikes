@@ -180,6 +180,22 @@ export function useMarkAsRead() {
   });
 }
 
+export function useToggleAi() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ai_enabled }: { id: string; ai_enabled: boolean }) => {
+      const { error } = await supabase
+        .from("whatsapp_conversations")
+        .update({ ai_enabled })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
+    },
+  });
+}
+
 export function useTotalUnread() {
   return useQuery({
     queryKey: [...CONVERSATIONS_KEY, "total_unread"],
