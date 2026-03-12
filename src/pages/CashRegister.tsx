@@ -97,7 +97,7 @@ export default function CashRegister() {
 
   const handleClose = async () => {
     if (!currentRegister) return;
-    const closing = parseFloat(closingAmount.replace(",", ".")) || 0;
+    const closing = closingAmount;
     const expected = (currentRegister.opening_amount || 0) + (cashTotals?.total || 0);
     try {
       await closeRegister.mutateAsync({ id: currentRegister.id, closingAmount: closing, expectedAmount: expected });
