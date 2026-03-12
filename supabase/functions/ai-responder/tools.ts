@@ -38,8 +38,9 @@ interface FreteResult {
 export async function executeCalcularFrete(args: {
   cep_destino: string;
   tipo_carga: "bike_completa" | "quadro";
+  valor_nf: number;
 }): Promise<FreteResult> {
-  const { cep_destino, tipo_carga } = args;
+  const { cep_destino, tipo_carga, valor_nf } = args;
   const cep = cep_destino.replace(/\D/g, "");
   const peso = tipo_carga === "bike_completa" ? 15.5 : 6;
 
