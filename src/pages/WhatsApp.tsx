@@ -538,7 +538,7 @@ export default function WhatsApp() {
                     );
                   }}
                   title={selectedConv.ai_enabled !== false ? "Pausar IA" : "Ativar IA"}
-                  className={`h-9 px-4 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
+                  className={`h-9 px-3 md:px-4 rounded-xl border text-xs font-bold flex items-center gap-1.5 md:gap-2 transition-all hidden sm:flex ${
                     selectedConv.ai_enabled !== false
                       ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
                       : "border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
