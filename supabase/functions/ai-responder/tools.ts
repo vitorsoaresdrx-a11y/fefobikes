@@ -39,29 +39,16 @@ export async function executeCalcularFrete(args: {
   const cep = cep_destino.replace(/\D/g, "");
   const peso = tipo_carga === "bike_completa" ? 15.5 : 6;
 
-  // 1. Geocode CEP to get city/state
-  const GOOGLE_MAPS_API_KEY = Deno.env.get("GOOGLE_MAPS_API_KEY")!;
-  const geoRes = await fetch(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${cep}&key=${GOOGLE_MAPS_API_KEY}`
-  );
-  const geoData = await geoRes.json();
+  // 1. Lookup CEP via ViaCEP
+  const viacepRes = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+  const viacepData = await viacepRes.json();
 
-  if (!geoData.results || geoData.results.length === 0) {
+  if (viacepData.erro) {
     throw new Error("CEP não encontrado. Verifique se o CEP está correto.");
   }
 
-  const components = geoData.results[0].address_components as Array<{
-    long_name: string;
-    short_name: string;
-    types: string[];
-  }>;
-
-  let cidade = "";
-  let estado = "";
-  for (const c of components) {
-    if (c.types.includes("administrative_area_level_2")) cidade = c.long_name;
-    if (c.types.includes("administrative_area_level_1")) estado = c.short_name;
-  }
+  const cidade = viacepData.localidade;
+  const estado = viacepData.uf;
 
   if (!cidade || !estado) {
     throw new Error("Não foi possível identificar cidade/estado para o CEP informado.");
