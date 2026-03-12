@@ -452,18 +452,11 @@ export default function BikeForm() {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">
                   Preço PIX / Dinheiro
                 </label>
-                <div className="flex items-baseline gap-2 relative z-10">
-                  <span className="text-xl font-bold text-[#2952FF]">R$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    className="bg-transparent border-none outline-none text-4xl font-black text-white w-full tracking-tighter"
-                    value={pixPrice || ""}
-                    onChange={(e) =>
-                      form.setValue("pix_price", parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0"
+                <div className="relative z-10">
+                  <CurrencyInput
+                    value={pixPrice || 0}
+                    onChange={(val) => form.setValue("pix_price", val)}
+                    className="text-4xl font-black h-16 rounded-2xl"
                   />
                 </div>
                 <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
