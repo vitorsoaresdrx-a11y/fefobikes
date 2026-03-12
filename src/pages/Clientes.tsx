@@ -80,8 +80,8 @@ export default function Clientes() {
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors">
-                  <td className="px-3 py-2.5 text-foreground font-medium">{c.name}</td>
+                <tr key={c.id} onClick={() => navigate(`/clientes/${c.id}`)} className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors cursor-pointer">
+                  <td className="px-3 py-2.5 text-foreground font-medium flex items-center gap-2">{c.name} <ChevronRight className="h-3 w-3 text-muted-foreground" /></td>
                   <td className="px-3 py-2.5">
                     {c.whatsapp ? (
                       <a
