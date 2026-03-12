@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePublicPartAttributes } from "@/hooks/usePartAttributes";
 import {
   Bike,
   Package,
@@ -12,6 +13,7 @@ import {
   Info,
   Settings,
   CreditCard,
+  List,
 } from "lucide-react";
 import {
   Carousel,
@@ -151,6 +153,32 @@ function PriceSection({ product }: { product: any }) {
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+// ─── Part Attributes Section ──────────────────────────────────────────────────
+
+function PartAttributesSection({ partId }: { partId: string }) {
+  const { data: attrs = [] } = usePublicPartAttributes(partId);
+  if (attrs.length === 0) return null;
+
+  return (
+    <section className="space-y-4">
+      <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
+        <List size={14} className="text-[#820AD1]" /> Características
+      </h2>
+      <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden divide-y divide-zinc-800/50">
+        {attrs.map((attr) => (
+          <div
+            key={attr.id}
+            className="flex justify-between items-center p-5 hover:bg-white/[0.02] transition-colors"
+          >
+            <span className="text-sm font-bold text-zinc-500">{attr.name}</span>
+            <span className="text-sm font-black text-zinc-100">{attr.value}</span>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -342,9 +370,12 @@ export default function ProdutoPublico() {
             <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
               <Info size={14} className="text-[#820AD1]" /> Sobre o Produto
             </h2>
-            <p className="text-zinc-400 text-sm leading-relaxed">{(product as any).description}</p>
+            <p className="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">{(product as any).description}</p>
           </section>
         )}
+
+        {/* Custom Attributes — only for parts */}
+        {product._type === "part" && <PartAttributesSection partId={product.id} />}
 
         {/* Ficha Técnica */}
         {specs.length > 0 && (

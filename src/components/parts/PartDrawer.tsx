@@ -4,20 +4,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+import { X, Plus, Image as ImageIcon } from "lucide-react";
 import { useCreatePart, useUpdatePart, type Part } from "@/hooks/useParts";
+import { usePartAttributes, useSavePartAttributes } from "@/hooks/usePartAttributes";
 import { CategoryCombobox } from "@/components/parts/CategoryCombobox";
 import { ImageUpload } from "@/components/ui/image-upload";
+
+// ─── Schema ──────────────────────────────────────────────────────────────────
 
 const partSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -29,10 +22,15 @@ const partSchema = z.object({
   pix_price: z.coerce.number().min(0).default(0),
   installment_price: z.coerce.number().min(0).default(0),
   installment_count: z.coerce.number().int().min(1).default(1),
-  notes: z.string().optional(),
+  description: z.string().max(500).optional(),
 });
 
 type PartFormValues = z.infer<typeof partSchema>;
+
+interface LocalAttribute {
+  name: string;
+  value: string;
+}
 
 interface PartDrawerProps {
   open: boolean;
@@ -40,11 +38,29 @@ interface PartDrawerProps {
   part: Part | null;
 }
 
+// ─── Section header ──────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">
+      {children}
+    </p>
+  );
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   const createPart = useCreatePart();
   const updatePart = useUpdatePart();
+  const saveAttributes = useSavePartAttributes();
   const isEditing = !!part;
+
   const [partImages, setPartImages] = useState<string[]>([]);
+  const [attributes, setAttributes] = useState<LocalAttribute[]>([]);
+
+  // Load existing attributes
+  const { data: existingAttrs } = usePartAttributes(part?.id);
 
   const form = useForm<PartFormValues>({
     resolver: zodResolver(partSchema),
@@ -58,13 +74,14 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       pix_price: 0,
       installment_price: 0,
       installment_count: 1,
-      notes: "",
+      description: "",
     },
   });
 
   const unitCost = form.watch("unit_cost");
   const pixPrice = form.watch("pix_price");
   const profit = pixPrice - unitCost;
+  const descriptionValue = form.watch("description") || "";
 
   useEffect(() => {
     if (open) {
@@ -79,17 +96,30 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           pix_price: Number((part as any).pix_price) || 0,
           installment_price: Number((part as any).installment_price) || 0,
           installment_count: Number((part as any).installment_count) || 1,
-          notes: part.notes || "",
+          description: (part as any).description || "",
         });
         setPartImages((part as any).images || []);
       } else {
         form.reset();
         setPartImages([]);
+        setAttributes([]);
       }
     }
   }, [open, part]);
 
-  const onSubmit = (values: PartFormValues) => {
+  // Sync existing attributes when loaded
+  useEffect(() => {
+    if (existingAttrs && open && isEditing) {
+      setAttributes(existingAttrs.map((a) => ({ name: a.name, value: a.value })));
+    }
+  }, [existingAttrs, open, isEditing]);
+
+  const addAttribute = () => setAttributes((prev) => [...prev, { name: "", value: "" }]);
+  const removeAttribute = (i: number) => setAttributes((prev) => prev.filter((_, idx) => idx !== i));
+  const updateAttribute = (i: number, field: "name" | "value", val: string) =>
+    setAttributes((prev) => prev.map((a, idx) => (idx === i ? { ...a, [field]: val } : a)));
+
+  const onSubmit = async (values: PartFormValues) => {
     const payload: any = {
       name: values.name,
       category: values.category || null,
@@ -100,7 +130,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       pix_price: values.pix_price,
       installment_price: values.installment_price,
       installment_count: values.installment_count,
-      notes: values.notes || null,
+      description: values.description || null,
+      notes: values.description || null, // keep notes in sync
       weight_capacity_kg: null,
       material: null,
       gears: null,
@@ -115,149 +146,207 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       payload.sku = values.sku;
     }
 
+    const validAttrs = attributes
+      .filter((a) => a.name.trim() && a.value.trim())
+      .map((a, i) => ({ name: a.name.trim(), value: a.value.trim(), sort_order: i }));
+
     if (isEditing) {
-      updatePart.mutate({ id: part.id, ...payload }, { onSuccess: () => onOpenChange(false) });
+      updatePart.mutate(
+        { id: part.id, ...payload },
+        {
+          onSuccess: () => {
+            saveAttributes.mutate({ partId: part.id, attributes: validAttrs });
+            onOpenChange(false);
+          },
+        }
+      );
     } else {
-      createPart.mutate(payload, { onSuccess: () => onOpenChange(false) });
+      createPart.mutate(payload, {
+        onSuccess: (created: any) => {
+          if (created?.id && validAttrs.length > 0) {
+            saveAttributes.mutate({ partId: created.id, attributes: validAttrs });
+          }
+          onOpenChange(false);
+        },
+      });
     }
   };
 
+  if (!open) return null;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-background border-border">
-        <SheetHeader>
-          <SheetTitle className="text-foreground">
-            {isEditing ? "Editar Produto" : "Novo Produto"}
-          </SheetTitle>
-        </SheetHeader>
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+      {/* Overlay */}
+      <div
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={() => onOpenChange(false)}
+      />
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
-          {/* Informações */}
-          <section className="space-y-3">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Informações
-            </h3>
+      {/* Modal */}
+      <div className="relative z-10 w-full h-full md:h-auto md:max-h-[90vh] md:max-w-lg md:rounded-3xl bg-[#0A0A0B] border-t md:border border-zinc-800 flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        {/* Fixed header */}
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-zinc-800 shrink-0">
+          <h2 className="text-base md:text-lg font-black text-white">
+            {isEditing ? "Editar Produto" : "Novo Produto"}
+          </h2>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-zinc-900 text-zinc-400 hover:text-white transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Scrollable content */}
+        <form
+          id="part-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-6"
+        >
+          {/* ── Section 1: Informações Básicas ────────────────────────── */}
+          <section className="space-y-4">
+            <SectionLabel>Informações Básicas</SectionLabel>
+
+            {/* Photos */}
             <div className="space-y-2">
-              <Label className="text-sm">Fotos</Label>
-              <ImageUpload images={partImages} onChange={setPartImages} folder="parts" />
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                <ImageIcon size={12} /> Fotos
+              </label>
+              <ImageUpload images={partImages} onChange={setPartImages} folder="parts" maxImages={2} />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Item *</Label>
-              <Input
+
+            {/* Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                Nome do Produto *
+              </label>
+              <input
                 {...form.register("name")}
-                className="bg-card border-border h-9 text-sm"
+                className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
                 placeholder="Ex: Freio a disco, Banco, Pedivela..."
                 maxLength={100}
               />
               {form.formState.errors.name && (
-                <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+                <p className="text-[10px] text-red-400">{form.formState.errors.name.message}</p>
               )}
             </div>
-            {isEditing && (
-              <div className="space-y-2">
-                <Label className="text-sm">SKU</Label>
-                <Input
-                  {...form.register("sku")}
-                  className="bg-card border-border h-9 text-sm font-mono"
-                  placeholder="Gerado automaticamente"
-                />
-                <p className="text-[10px] text-muted-foreground">Código interno — editável</p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label className="text-sm">Categoria</Label>
+
+            {/* Category */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                Categoria
+              </label>
               <CategoryCombobox
                 value={form.watch("category") || ""}
                 onChange={(val) => form.setValue("category", val)}
               />
             </div>
+
+            {/* SKU */}
+            {isEditing && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                  SKU
+                </label>
+                <input
+                  {...form.register("sku")}
+                  className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white font-mono placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                  placeholder="Gerado automaticamente"
+                />
+                <p className="text-[10px] text-zinc-600">Código interno — editável</p>
+              </div>
+            )}
           </section>
 
-          <Separator className="bg-border" />
+          {/* ── Section 2: Estoque & Preços ───────────────────────────── */}
+          <section className="space-y-4">
+            <SectionLabel>Estoque & Preços</SectionLabel>
 
-          {/* Estoque e Preços */}
-          <section className="space-y-3">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Estoque & Preços
-            </h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="text-sm">Estoque atual</Label>
-                <Input
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                  Estoque atual
+                </label>
+                <input
                   type="number"
                   min={0}
                   {...form.register("stock_qty")}
-                  className="bg-card border-border h-9 text-sm"
+                  className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm">Estoque de alerta</Label>
-                <Input
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                  Alerta de estoque
+                </label>
+                <input
                   type="number"
                   min={0}
                   {...form.register("alert_stock")}
-                  className="bg-card border-border h-9 text-sm"
+                  className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
                   placeholder="Ex: 3"
                 />
-                
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="text-sm">Preço de custo (R$)</Label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                  Preço de custo
+                </label>
                 <CurrencyInput
                   value={unitCost || 0}
                   onChange={(val) => form.setValue("unit_cost", val)}
-                  className="h-9 text-sm"
+                  className="h-11 text-sm rounded-xl"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                  PIX / Dinheiro
+                </label>
+                <CurrencyInput
+                  value={form.watch("pix_price") || 0}
+                  onChange={(val) => form.setValue("pix_price", val)}
+                  className="h-11 text-sm rounded-xl"
+                />
+                <p className="text-[10px] text-zinc-600">Desconto à vista</p>
               </div>
             </div>
 
-            {/* Lucro preview */}
+            {/* Profit preview */}
             {(unitCost > 0 || pixPrice > 0) && (
-              <div className="p-3 rounded-md border border-border bg-card">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Lucro por unidade</span>
-                  <span className={`text-sm font-semibold ${profit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
-                    {formatBRL(profit)}
-                  </span>
-                </div>
+              <div className="p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  Lucro por unidade
+                </span>
+                <span className={`text-sm font-black ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {formatBRL(profit)}
+                </span>
               </div>
             )}
 
-            {/* PIX / Dinheiro price */}
-            <div className="space-y-2">
-              <Label className="text-sm">Preço no PIX / Dinheiro (R$)</Label>
-              <CurrencyInput
-                value={form.watch("pix_price") || 0}
-                onChange={(val) => form.setValue("pix_price", val)}
-                className="h-9 text-sm"
-              />
-              <p className="text-[10px] text-muted-foreground">Preço com desconto para pagamento à vista</p>
-            </div>
-
             {/* Installment */}
-            <div className="space-y-2">
-              <Label className="text-sm">Parcelamento no cartão</Label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                Parcelamento no cartão
+              </label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Valor da parcela (R$)</Label>
+                  <label className="text-[10px] text-zinc-600">Valor da parcela</label>
                   <CurrencyInput
                     value={form.watch("installment_price") || 0}
                     onChange={(val) => form.setValue("installment_price", val)}
-                    className="h-9 text-sm"
+                    className="h-11 text-sm rounded-xl"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Nº de parcelas</Label>
-                  <Input
+                  <label className="text-[10px] text-zinc-600">Nº de parcelas</label>
+                  <input
                     type="number"
                     min={1}
                     max={24}
                     value={form.watch("installment_count") || 1}
                     onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
-                    className="bg-card border-border h-9 text-sm"
+                    className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
                     placeholder="12"
                   />
                 </div>
@@ -265,32 +354,87 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             </div>
           </section>
 
-          <Separator className="bg-border" />
-
-          {/* Notas */}
+          {/* ── Section 3: Descrição ──────────────────────────────────── */}
           <section className="space-y-3">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Observações
-            </h3>
-            <Textarea
-              {...form.register("notes")}
-              placeholder="Observações opcionais..."
-              className="bg-card border-border text-sm min-h-[60px] resize-none"
+            <SectionLabel>Descrição do Produto</SectionLabel>
+            <textarea
+              {...form.register("description")}
+              placeholder="Descreva o produto para o cliente — materiais, uso indicado, diferenciais..."
+              className="w-full min-h-[100px] p-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors resize-none"
               maxLength={500}
             />
+            <div className="flex justify-between">
+              <p className="text-[10px] text-zinc-600">Aparece na página pública do produto</p>
+              <p className={`text-[10px] ${descriptionValue.length > 450 ? "text-amber-400" : "text-zinc-600"}`}>
+                {descriptionValue.length}/500
+              </p>
+            </div>
           </section>
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-2">
-            <Button type="submit" size="sm" className="flex-1">
-              {isEditing ? "Salvar" : "Criar produto"}
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-          </div>
+          {/* ── Section 4: Características ────────────────────────────── */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <SectionLabel>Características</SectionLabel>
+              <button
+                type="button"
+                onClick={addAttribute}
+                className="h-7 px-3 text-[10px] font-bold rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 flex items-center gap-1 hover:bg-zinc-700 transition-colors"
+              >
+                <Plus size={12} /> Adicionar
+              </button>
+            </div>
+
+            {attributes.map((attr, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <input
+                  placeholder="Ex: Material"
+                  value={attr.name}
+                  onChange={(e) => updateAttribute(i, "name", e.target.value)}
+                  className="flex-1 h-9 px-3 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                />
+                <input
+                  placeholder="Ex: Borracha"
+                  value={attr.value}
+                  onChange={(e) => updateAttribute(i, "value", e.target.value)}
+                  className="flex-1 h-9 px-3 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeAttribute(i)}
+                  className="w-8 h-8 flex items-center justify-center text-zinc-600 hover:text-red-400 transition-colors shrink-0"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+
+            {attributes.length === 0 && (
+              <p className="text-[11px] text-zinc-600 text-center py-3">
+                Nenhuma característica adicionada
+              </p>
+            )}
+          </section>
         </form>
-      </SheetContent>
-    </Sheet>
+
+        {/* Fixed footer */}
+        <div className="px-4 md:px-6 py-4 border-t border-zinc-800 flex gap-3 shrink-0 bg-[#0A0A0B]">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="flex-1 h-11 rounded-xl border border-zinc-700 text-sm font-bold text-zinc-300 hover:bg-zinc-800 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="part-form"
+            disabled={createPart.isPending || updatePart.isPending}
+            className="flex-1 h-11 rounded-xl bg-[#2952FF] text-white text-sm font-bold hover:bg-[#4A6FFF] transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(41,82,255,0.2)]"
+          >
+            {isEditing ? "Salvar" : "Criar Produto"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
