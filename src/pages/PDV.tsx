@@ -27,6 +27,7 @@ import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { useCurrentCashRegister, useLinkSaleToCashRegister } from "@/hooks/useCashRegister";
+import { useRealtimeStock } from "@/hooks/useRealtimeStock";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
