@@ -28,6 +28,7 @@ import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
 import Orcamentos from "@/pages/Orcamentos";
 import ProdutoPublico from "@/pages/ProdutoPublico";
+import ClienteDetalhe from "@/pages/ClienteDetalhe";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
