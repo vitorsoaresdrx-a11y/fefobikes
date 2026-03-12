@@ -577,22 +577,22 @@ export default function Mecanica() {
         ) : (
           <>
             {/* Mobile tabs */}
-            <div className="flex md:hidden rounded-2xl bg-[#161618] border border-zinc-800 p-1 gap-1">
+            <div className="flex md:hidden overflow-x-auto gap-3 pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
               {columns.map((col) => {
                 const active = mobileTab === col.key;
                 return (
                   <button
                     key={col.key}
                     onClick={() => setMobileTab(col.key)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                    className={`snap-start shrink-0 flex items-center gap-2 px-4 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-wider transition-all ${
                       active
-                        ? `bg-[#0A0A0B] ${col.color} shadow-sm`
-                        : "text-zinc-500"
+                        ? `${col.bg} ${col.border} ${col.color}`
+                        : "bg-[#161618] border-zinc-800 text-zinc-500"
                     }`}
                   >
-                    <col.icon size={13} />
-                    <span className="truncate">{col.label}</span>
-                    <span className={`ml-0.5 text-[9px] ${active ? "opacity-100" : "opacity-50"}`}>
+                    <col.icon size={14} />
+                    <span className="whitespace-nowrap">{col.label}</span>
+                    <span className={`ml-1 text-[10px] ${active ? "opacity-100" : "opacity-50"}`}>
                       ({grouped[col.key].length})
                     </span>
                   </button>
