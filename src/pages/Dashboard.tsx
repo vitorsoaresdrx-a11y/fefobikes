@@ -181,7 +181,7 @@ export default function Dashboard() {
 
         {/* Welcome */}
         <div className="space-y-2">
-          <h1 className="text-2xl md:text-5xl font-black text-white tracking-tighter leading-none italic uppercase">
+          <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-none italic uppercase">
             O que vamos <span className="text-[#2952FF]">resolver</span> hoje?
           </h1>
           <p className="text-zinc-500 text-sm md:text-lg font-medium">
