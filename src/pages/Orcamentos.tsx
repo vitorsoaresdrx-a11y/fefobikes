@@ -287,6 +287,7 @@ export default function Orcamentos() {
     customer_name: "",
     customer_cpf: "",
     customer_whatsapp: "",
+    customer_id: null as string | null,
     notes: "",
   });
   const [lineItems, setLineItems] = useState<QuoteLineItem[]>([]);
