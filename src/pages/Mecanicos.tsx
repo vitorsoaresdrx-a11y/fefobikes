@@ -297,14 +297,7 @@ export default function Mecanicos() {
               </div>
             </div>
           )}
-
-          {visibleOrders.length === 0 && (
-            <div className="text-center py-20 space-y-3 opacity-30">
-              <Wrench className="mx-auto" size={40} />
-                <p className="text-xs font-black uppercase tracking-widest">Nenhuma OS no momento</p>
-              </div>
-            )}
-          </div>
+        </>
         )}
       </div>
 
