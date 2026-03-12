@@ -36,7 +36,7 @@ export function useBikeModels() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bike_models")
-        .select("*")
+        .select("id, name, sku, category, description, visible_on_storefront, stock_qty, alert_stock, images, brand, color, rim_size, frame_size, weight_kg, cost_price, cost_mode, sale_price, pix_price, installment_price, installment_count, created_at, updated_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as BikeModel[];

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   useConversations,
   useMessages,
@@ -39,6 +40,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { getOptimizedImageUrl } from "@/lib/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -159,14 +161,15 @@ export default function WhatsApp() {
     session?.user?.user_metadata?.name ||
     null;
 
+  const debouncedSearch = useDebounce(search, 300);
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
+    const q = debouncedSearch.toLowerCase().trim();
     return conversations.filter((c) => {
       const displayName = getDisplayContactName(c, currentUserName).toLowerCase();
       const displayPhone = getDisplayContactPhone(c.contact_phone).toLowerCase();
       return displayName.includes(q) || displayPhone.includes(q);
     });
-  }, [conversations, search, currentUserName]);
+  }, [conversations, debouncedSearch, currentUserName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -377,8 +380,9 @@ export default function WhatsApp() {
                   <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 group-hover:border-[#2952FF]/50 transition-colors font-bold text-lg uppercase">
                     {conv.contact_photo ? (
                       <img
-                        src={conv.contact_photo}
+                        src={getOptimizedImageUrl(conv.contact_photo, 80, 70) || conv.contact_photo}
                         className="w-full h-full object-cover rounded-2xl"
+                        loading="lazy"
                         alt=""
                       />
                     ) : (
@@ -464,7 +468,7 @@ export default function WhatsApp() {
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-700 font-bold uppercase shrink-0">
                   {selectedConv.contact_photo ? (
                     <img
-                      src={selectedConv.contact_photo}
+                      src={getOptimizedImageUrl(selectedConv.contact_photo, 80, 70) || selectedConv.contact_photo}
                       className="w-full h-full object-cover rounded-xl"
                       alt=""
                     />

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Search, ChevronDown, ChevronUp, Printer, User, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -94,9 +95,11 @@ export default function Historico() {
     );
   }, [sales]);
 
+  const debouncedSearch = useDebounce(search, 300);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return customerGroups;
-    const q = search.toLowerCase();
+    if (!debouncedSearch.trim()) return customerGroups;
+    const q = debouncedSearch.toLowerCase();
     return customerGroups.filter((g) =>
       g.customerName.toLowerCase().includes(q) ||
       (g.customerWhatsapp && g.customerWhatsapp.includes(q)) ||

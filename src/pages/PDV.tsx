@@ -32,6 +32,7 @@ import { useRealtimeStock } from "@/hooks/useRealtimeStock";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 import { formatBRL } from "@/lib/format";
+import { getOptimizedImageUrl } from "@/lib/image";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -556,8 +557,9 @@ export default function PDV() {
                       <div className="space-y-2 md:space-y-3">
                         {item.images && item.images.length > 0 ? (
                           <img
-                            src={item.images[0]}
+                            src={getOptimizedImageUrl(item.images[0], 200, 75) || item.images[0]}
                             alt={item.name}
+                            loading="lazy"
                             className="w-full h-32 md:aspect-square rounded-xl md:rounded-2xl object-cover border border-zinc-800"
                           />
                         ) : (

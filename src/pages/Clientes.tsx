@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
 import { Search, Download, Phone, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,16 +15,18 @@ export default function Clientes() {
   const { data: customers = [], isLoading } = useCustomers();
   const [search, setSearch] = useState("");
 
+  const debouncedSearch = useDebounce(search, 300);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return customers;
-    const q = search.toLowerCase();
+    if (!debouncedSearch.trim()) return customers;
+    const q = debouncedSearch.toLowerCase();
     return customers.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
         (c.whatsapp && c.whatsapp.includes(q)) ||
         (c.cpf && c.cpf.includes(q))
     );
-  }, [customers, search]);
+  }, [customers, debouncedSearch]);
 
   const handleExportCSV = () => {
     const header = "Nome,WhatsApp,CPF,Cadastrado em";

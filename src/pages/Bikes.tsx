@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -20,6 +21,7 @@ import {
   type BikeModel,
 } from "@/hooks/useBikes";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import { getOptimizedImageUrl } from "@/lib/image";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -132,10 +134,11 @@ export default function Bikes() {
     updateBike.mutate({ id, visible_on_storefront: !current });
   };
 
+  const debouncedSearch = useDebounce(search, 300);
   const filtered = bikes.filter(
     (b) =>
-      b.name.toLowerCase().includes(search.toLowerCase()) ||
-      (b.category || "").toLowerCase().includes(search.toLowerCase())
+      b.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (b.category || "").toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   const totalParts = Object.values(partsCounts as Record<string, number>).reduce(
@@ -226,7 +229,7 @@ export default function Bikes() {
 
                     <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
                       {firstImage ? (
-                        <img src={firstImage} alt={bike.name} className="w-full h-full object-cover" />
+                        <img src={getOptimizedImageUrl(firstImage, 400, 80) || firstImage} alt={bike.name} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
                         <Package className="w-16 h-16 text-zinc-800" />
                       )}

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   Search,
   AlertTriangle,
@@ -15,6 +16,7 @@ import {
 import { useParts, useUpdatePart } from "@/hooks/useParts";
 import { useBikeModels, useUpdateBikeModel } from "@/hooks/useBikes";
 import { useToast } from "@/hooks/use-toast";
+import { getOptimizedImageUrl } from "@/lib/image";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -194,7 +196,7 @@ export default function Estoque() {
       stock_qty: p.stock_qty,
       alert_stock: Number((p as any).alert_stock) || 0,
       status: getStatus(p.stock_qty, Number((p as any).alert_stock) || 0),
-      image: (p as any).images?.[0] || null,
+      image: getOptimizedImageUrl((p as any).images?.[0], 80, 70),
     }));
 
     const bikeItems: StockItem[] = bikes.map((b) => ({
@@ -205,16 +207,18 @@ export default function Estoque() {
       stock_qty: Number((b as any).stock_qty) || 0,
       alert_stock: Number((b as any).alert_stock) || 0,
       status: getStatus(Number((b as any).stock_qty) || 0, Number((b as any).alert_stock) || 0),
-      image: (b as any).images?.[0] || null,
+      image: getOptimizedImageUrl((b as any).images?.[0], 80, 70),
     }));
 
     return [...partItems, ...bikeItems];
   }, [parts, bikes]);
 
+  const debouncedSearch = useDebounce(search, 300);
+
   const filtered = useMemo(() => {
     let list = items;
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
       list = list.filter(
         (i) => i.name.toLowerCase().includes(q) || (i.category || "").toLowerCase().includes(q)
       );
@@ -224,7 +228,7 @@ export default function Estoque() {
     const order = { critical: 0, warning: 1, ok: 2 };
     list.sort((a, b) => order[a.status] - order[b.status]);
     return list;
-  }, [items, search, filterStatus, filterType]);
+  }, [items, debouncedSearch, filterStatus, filterType]);
 
   const counts = useMemo(() => ({
     critical: items.filter((i) => i.status === "critical").length,

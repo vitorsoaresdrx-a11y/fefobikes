@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   Search,
   Plus,
@@ -146,12 +147,14 @@ export default function Pecas() {
   const getProfit = (p: Part) =>
     (Number((p as any).sale_price) || 0) - (Number((p as any).unit_cost) || 0);
 
+  const debouncedSearch = useDebounce(search, 300);
+
   const filtered = useMemo(() => {
     let list = parts.filter(
       (p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        (p.category || "").toLowerCase().includes(search.toLowerCase()) ||
-        (p.sku || "").toLowerCase().includes(search.toLowerCase())
+        p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        (p.category || "").toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        (p.sku || "").toLowerCase().includes(debouncedSearch.toLowerCase())
     );
 
     list.sort((a, b) => {
@@ -171,7 +174,7 @@ export default function Pecas() {
     });
 
     return list;
-  }, [parts, search, sortField, sortDir]);
+  }, [parts, debouncedSearch, sortField, sortDir]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));

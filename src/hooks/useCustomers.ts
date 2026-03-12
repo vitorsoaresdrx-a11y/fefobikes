@@ -19,7 +19,7 @@ export function useCustomers() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customers")
-        .select("*")
+        .select("id, name, whatsapp, cpf, notes, created_at, updated_at")
         .order("name");
       if (error) throw error;
       return data as Customer[];
