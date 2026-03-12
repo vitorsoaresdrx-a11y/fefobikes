@@ -196,7 +196,7 @@ export default function Estoque() {
       stock_qty: p.stock_qty,
       alert_stock: Number((p as any).alert_stock) || 0,
       status: getStatus(p.stock_qty, Number((p as any).alert_stock) || 0),
-      image: (p as any).images?.[0] || null,
+      image: getOptimizedImageUrl((p as any).images?.[0], 80, 70),
     }));
 
     const bikeItems: StockItem[] = bikes.map((b) => ({
