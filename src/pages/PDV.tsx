@@ -350,51 +350,54 @@ export default function PDV() {
 
         {/* Carrinho / Empty State */}
         {cart.length === 0 ? (
-          <div className="py-32 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-[40px]">
-            <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700">
-              <Package size={40} />
+          <div className="py-20 md:py-32 flex flex-col items-center text-center space-y-4 md:space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-zinc-900 rounded-2xl md:rounded-[30px] flex items-center justify-center text-zinc-700">
+              <Package size={32} className="md:hidden" />
+              <Package size={40} className="hidden md:block" />
             </div>
             <div className="space-y-2">
-              <h4 className="text-xl font-bold text-zinc-300">Carrinho Vazio</h4>
-              <p className="text-sm text-zinc-500 max-w-xs mx-auto">Inicie uma nova venda selecionando produtos do catálogo.</p>
+              <h4 className="text-base md:text-xl font-bold text-zinc-300">Carrinho Vazio</h4>
+              <p className="text-xs md:text-sm text-zinc-500 max-w-xs mx-auto">Inicie uma nova venda selecionando produtos do catálogo.</p>
             </div>
-            <Btn variant="outline" className="px-10" onClick={openCatalog}>Abrir Catálogo</Btn>
+            <Btn variant="outline" className="px-8 h-10 text-sm" onClick={openCatalog}>Abrir Catálogo</Btn>
           </div>
         ) : (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex items-center justify-between px-4">
-              <h3 className="font-bold text-lg text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                <Layers size={18} /> Itens Selecionados
+          <div className="space-y-3 md:space-y-6 animate-in fade-in duration-500">
+            <div className="flex items-center justify-between px-2 md:px-4">
+              <h3 className="text-xs md:text-lg font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <Layers size={14} className="md:hidden" />
+                <Layers size={18} className="hidden md:block" />
+                Itens Selecionados
               </h3>
-              <span className="text-xs font-black text-[#2952FF] bg-[#2952FF]/10 px-3 py-1 rounded-full">
+              <span className="text-[10px] md:text-xs font-black text-[#2952FF] bg-[#2952FF]/10 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full">
                 {itemCount} Unidades
               </span>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 gap-2 md:gap-4">
               {cart.map((item) => (
                 <div
                   key={item.key}
-                  className="group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex items-center gap-3 md:gap-6 hover:border-zinc-700 transition-all"
+                  className="group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex items-center gap-2 md:gap-6 hover:border-zinc-700 transition-all"
                 >
                   {/* Icon */}
-                  <div className="w-10 h-10 md:w-16 md:h-16 bg-zinc-900 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
-                    {item.type === "bike" ? <BikeIcon size={20} className="md:hidden" /> : <Package size={20} className="md:hidden" />}
+                  <div className="w-9 h-9 md:w-16 md:h-16 bg-zinc-900 rounded-lg md:rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
+                    {item.type === "bike" ? <BikeIcon size={16} className="md:hidden" /> : <Package size={16} className="md:hidden" />}
                     {item.type === "bike" ? <BikeIcon size={32} className="hidden md:block" /> : <Package size={32} className="hidden md:block" />}
                   </div>
 
                   {/* Name + price */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm md:text-xl font-bold text-white truncate">{item.name}</h4>
+                    <h4 className="text-sm md:text-xl font-bold text-white truncate max-w-[120px] md:max-w-none">{item.name}</h4>
                     <p className="text-xs md:text-sm text-zinc-500 font-medium">{formatBRL(item.unit_price)}/un</p>
                     <p className="text-xs font-black text-white md:hidden mt-0.5">{formatBRL(item.quantity * item.unit_price)}</p>
                   </div>
 
                   {/* Qty controls */}
-                  <div className="flex items-center bg-[#0A0A0B] rounded-xl md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
-                    <Btn variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => updateQty(item.key, -1)}><Minus size={14} /></Btn>
-                    <span className="w-7 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
-                    <Btn variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => updateQty(item.key, 1)}><Plus size={14} /></Btn>
+                  <div className="flex items-center gap-1 md:gap-0 bg-[#0A0A0B] rounded-lg md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
+                    <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, -1)}><Minus size={12} className="md:hidden" /><Minus size={14} className="hidden md:block" /></Btn>
+                    <span className="w-5 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
+                    <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, 1)}><Plus size={12} className="md:hidden" /><Plus size={14} className="hidden md:block" /></Btn>
                   </div>
 
                   {/* Subtotal desktop */}
@@ -406,16 +409,16 @@ export default function PDV() {
                   {/* Remove */}
                   <button
                     onClick={() => removeItem(item.key)}
-                    className="p-1.5 md:p-2 text-zinc-700 hover:text-red-500 transition-colors shrink-0"
+                    className="p-1 md:p-2 text-zinc-700 hover:text-red-500 transition-colors shrink-0"
                   >
-                    <X size={16} className="md:hidden" />
+                    <X size={14} className="md:hidden" />
                     <X size={20} className="hidden md:block" />
                   </button>
                 </div>
               ))}
             </div>
 
-            <Btn variant="outline" className="w-full h-12" onClick={openCatalog}>
+            <Btn variant="outline" className="w-full h-10 md:h-12 text-sm" onClick={openCatalog}>
               <Plus className="w-4 h-4 mr-2" /> Adicionar mais itens
             </Btn>
           </div>
