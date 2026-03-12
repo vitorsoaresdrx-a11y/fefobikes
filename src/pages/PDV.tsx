@@ -603,25 +603,25 @@ export default function PDV() {
 
       {/* ── MODAL 2: Pagamento ────────────────────────────────────────────── */}
       {step === "cart" && (
-        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
-          <div className="bg-[#1C1C1E] w-full max-w-2xl rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
-            <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-end md:items-center justify-center p-0 md:p-6">
+          <div className="bg-[#1C1C1E] w-full max-w-2xl rounded-t-3xl md:rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
+            <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8 max-h-[90vh] overflow-y-auto">
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl lg:text-3xl font-black text-white">Finalizar Venda</h2>
-                  <p className="text-zinc-500 text-sm">Escolha a forma de pagamento</p>
+                  <h2 className="text-lg md:text-xl lg:text-3xl font-black text-white">Finalizar Venda</h2>
+                  <p className="text-zinc-500 text-xs md:text-sm">Escolha a forma de pagamento</p>
                 </div>
                 <button
                   onClick={() => setStep("idle")}
-                  className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
 
               {/* Payment cards visuais */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                 <PaymentCard active={paymentMethod === "pix"} onClick={() => setPaymentMethod("pix")} icon={Zap} label="PIX" />
                 <PaymentCard active={paymentMethod === "dinheiro"} onClick={() => setPaymentMethod("dinheiro")} icon={DollarSign} label="Dinheiro" />
                 <PaymentCard active={paymentMethod === "cartão de crédito"} onClick={() => setPaymentMethod("cartão de crédito")} icon={CreditCard} label="Crédito" />
@@ -629,21 +629,21 @@ export default function PDV() {
               </div>
 
               {/* Resumo financeiro */}
-              <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl space-y-4">
+              <div className="p-4 md:p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl md:rounded-3xl space-y-3 md:space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">Resumo Financeiro</span>
+                  <span className="text-zinc-500 font-bold text-[10px] md:text-xs uppercase tracking-widest">Resumo Financeiro</span>
                   <Badge variant="active">Pagamento Seguro</Badge>
                 </div>
                 <div className="space-y-2">
                   {/* Itens do carrinho */}
                   {cart.map((item) => (
-                    <div key={item.key} className="flex justify-between text-zinc-400 text-sm">
-                      <span>{item.name} ×{item.quantity}</span>
-                      <span>{formatBRL(item.quantity * item.unit_price)}</span>
+                    <div key={item.key} className="flex justify-between text-zinc-400 text-xs md:text-sm">
+                      <span className="truncate mr-2">{item.name} ×{item.quantity}</span>
+                      <span className="shrink-0">{formatBRL(item.quantity * item.unit_price)}</span>
                     </div>
                   ))}
                   <div className="h-px bg-zinc-800 my-2" />
-                  <div className="flex justify-between text-zinc-400 text-sm">
+                  <div className="flex justify-between text-zinc-400 text-xs md:text-sm">
                     <span>Subtotal</span>
                     <span>{formatBRL(total)}</span>
                   </div>
@@ -655,8 +655,8 @@ export default function PDV() {
                   )}
                   <div className="h-px bg-zinc-800 my-2" />
                   <div className="flex justify-between items-end text-white">
-                    <span className="font-bold">Valor Total</span>
-                    <span className="text-xl lg:text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
+                    <span className="font-bold text-sm">Valor Total</span>
+                    <span className="text-lg md:text-xl lg:text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
                   </div>
                   {isCardPayment && cardTaxPercent > 0 && (
                     <div className="flex justify-between text-xs">
@@ -667,10 +667,10 @@ export default function PDV() {
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <Btn variant="ghost" className="flex-1 h-16" onClick={() => setStep("idle")}>Revisar Itens</Btn>
-                <Btn variant="primary" className="flex-[2] h-16" onClick={goToCustomer}>
-                  Identificar Cliente <ArrowRight className="ml-2" />
+              <div className="flex gap-3 md:gap-4">
+                <Btn variant="ghost" className="flex-1 h-10 md:h-16 text-sm" onClick={() => setStep("idle")}>Revisar Itens</Btn>
+                <Btn variant="primary" className="flex-[2] h-10 md:h-16 text-sm" onClick={goToCustomer}>
+                  Identificar Cliente <ArrowRight className="ml-1 md:ml-2 w-4 h-4" />
                 </Btn>
               </div>
             </div>
