@@ -5,6 +5,7 @@ import {
   useSendMessage,
   useUpdateConversationStatus,
   useMarkAsRead,
+  useToggleAi,
   type Conversation,
 } from "@/hooks/useWhatsApp";
 import {
@@ -31,6 +32,8 @@ import {
   QrCode,
   Wifi,
   WifiOff,
+  Bot,
+  BotOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -149,7 +152,7 @@ export default function WhatsApp() {
   const sendMessage = useSendMessage();
   const updateStatus = useUpdateConversationStatus();
   const markAsRead = useMarkAsRead();
-
+  const toggleAi = useToggleAi();
   const { session } = useAuth();
   const currentUserName =
     session?.user?.user_metadata?.full_name ||
@@ -402,8 +405,13 @@ export default function WhatsApp() {
                   <p className="text-xs text-zinc-500 truncate font-medium">
                     {conv.last_message}
                   </p>
-                  <div className="pt-1">
+                  <div className="pt-1 flex items-center gap-2">
                     <ConversationBadge status={conv.status} />
+                    {conv.ai_enabled === false && (
+                      <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
+                        IA pausada
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
@@ -452,11 +460,18 @@ export default function WhatsApp() {
                   <h2 className="text-lg font-black text-white italic uppercase tracking-tight leading-none mb-1">
                     {getDisplayContactName(selectedConv, currentUserName)}
                   </h2>
-                  <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
-                    <Hash size={10} className="text-[#2952FF]" />
-                    {getDisplayContactPhone(selectedConv.contact_phone)}
-                  </p>
-                </div>
+                   <div className="flex items-center gap-2">
+                     <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
+                       <Hash size={10} className="text-[#2952FF]" />
+                       {getDisplayContactPhone(selectedConv.contact_phone)}
+                     </p>
+                     {selectedConv.ai_enabled === false && (
+                       <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
+                         IA pausada
+                       </span>
+                     )}
+                   </div>
+                 </div>
               </div>
 
               <div className="flex items-center gap-3">
@@ -492,6 +507,30 @@ export default function WhatsApp() {
                     Reabrir
                   </button>
                 )}
+                <button
+                  onClick={() => {
+                    const newVal = !(selectedConv.ai_enabled !== false);
+                    toggleAi.mutate(
+                      { id: selectedConv.id, ai_enabled: newVal },
+                      {
+                        onSuccess: () =>
+                          setSelectedConv({ ...selectedConv, ai_enabled: newVal }),
+                      }
+                    );
+                  }}
+                  title={selectedConv.ai_enabled !== false ? "Pausar IA" : "Ativar IA"}
+                  className={`h-9 px-4 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
+                    selectedConv.ai_enabled !== false
+                      ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                      : "border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+                  }`}
+                >
+                  {selectedConv.ai_enabled !== false ? (
+                    <><Bot size={14} /> IA Ativa</>
+                  ) : (
+                    <><BotOff size={14} /> IA Pausada</>
+                  )}
+                </button>
                 <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all">
                   <MoreVertical size={18} />
                 </button>

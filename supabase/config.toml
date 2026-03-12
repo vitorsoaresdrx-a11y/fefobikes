@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.zapi-status]
 verify_jwt = false
+
+[functions.ai-responder]
+verify_jwt = false

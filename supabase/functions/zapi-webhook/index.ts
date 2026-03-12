@@ -200,6 +200,13 @@ Deno.serve(async (req) => {
       status:          "delivered",
     });
 
+    // Trigger AI responder for incoming text messages
+    if (type === "text" && content) {
+      supabase.functions.invoke("ai-responder", {
+        body: { conversationId: convId, phone, message: content },
+      }).catch((err: unknown) => console.error("AI responder invoke error:", err));
+    }
+
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

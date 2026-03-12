@@ -11,6 +11,7 @@ export interface Conversation {
   last_message_at: string;
   unread_count: number;
   status: string;
+  ai_enabled: boolean;
   created_at: string;
 }
 
@@ -171,6 +172,22 @@ export function useMarkAsRead() {
         .from("whatsapp_conversations")
         .update({ unread_count: 0 })
         .eq("id", conversationId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
+    },
+  });
+}
+
+export function useToggleAi() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ai_enabled }: { id: string; ai_enabled: boolean }) => {
+      const { error } = await supabase
+        .from("whatsapp_conversations")
+        .update({ ai_enabled })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

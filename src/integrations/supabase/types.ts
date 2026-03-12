@@ -706,6 +706,7 @@ export type Database = {
       }
       whatsapp_conversations: {
         Row: {
+          ai_enabled: boolean
           contact_lid: string | null
           contact_name: string | null
           contact_phone: string
@@ -718,6 +719,7 @@ export type Database = {
           unread_count: number | null
         }
         Insert: {
+          ai_enabled?: boolean
           contact_lid?: string | null
           contact_name?: string | null
           contact_phone: string
@@ -730,6 +732,7 @@ export type Database = {
           unread_count?: number | null
         }
         Update: {
+          ai_enabled?: boolean
           contact_lid?: string | null
           contact_name?: string | null
           contact_phone?: string
