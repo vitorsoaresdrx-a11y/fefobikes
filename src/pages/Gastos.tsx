@@ -305,7 +305,7 @@ export default function Gastos() {
               </div>
             ) : (
               activeList.map((exp) => (
-                <div key={exp.id} className="group p-8 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+                <div key={exp.id} className="group p-4 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors">
                   <div className="flex items-center gap-6">
                     <div className={`p-4 rounded-[20px] ${tab === "fixed" ? "bg-indigo-500/5 text-indigo-400" : "bg-amber-500/5 text-amber-400"}`}>
                       {tab === "fixed" ? <Receipt className="w-6 h-6 stroke-[1.5]" /> : <CreditCard className="w-6 h-6 stroke-[1.5]" />}
