@@ -77,8 +77,8 @@ export default function CashRegister() {
 
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
-  const [openingAmount, setOpeningAmount] = useState("");
-  const [closingAmount, setClosingAmount] = useState("");
+  const [openingAmount, setOpeningAmount] = useState(0);
+  const [closingAmount, setClosingAmount] = useState(0);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
   const isOpen = currentRegister?.status === "open";
