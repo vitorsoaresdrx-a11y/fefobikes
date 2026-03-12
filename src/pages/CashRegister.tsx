@@ -182,7 +182,7 @@ export default function CashRegister() {
               </div>
             </div>
 
-            <Btn variant="destructive" className="w-full h-14 rounded-2xl text-base font-black uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20" onClick={() => { setClosingAmount(""); setShowCloseModal(true); }}>
+            <Btn variant="destructive" className="w-full h-14 rounded-2xl text-base font-black uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20" onClick={() => { setClosingAmount(0); setShowCloseModal(true); }}>
               <Lock className="w-5 h-5 mr-2" /> Fechar Caixa
             </Btn>
           </div>
