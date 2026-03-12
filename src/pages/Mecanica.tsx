@@ -645,15 +645,15 @@ export default function Mecanica() {
                 ))}
             </div>
 
-            {/* Desktop: 4 columns */}
-            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 items-start">
+            {/* Desktop: 4 columns equal height */}
+            <div className="hidden md:flex gap-3 lg:gap-4 items-stretch">
               {columns.map((col) => (
                 <div
                   key={col.key}
-                  className="flex flex-col min-h-[600px] bg-[#111113]/50 rounded-[40px] p-2 border border-zinc-800/30"
+                  className="flex-1 min-w-0 flex flex-col bg-[#111113]/50 rounded-3xl p-2 border border-zinc-800/30"
                 >
                   <ColumnHeader {...col} count={grouped[col.key].length} />
-                  <div className="px-2 space-y-4 pb-10">
+                  <div className="px-1.5 space-y-3 pb-6 flex-1">
                     {grouped[col.key].length > 0 ? (
                       grouped[col.key].map((job) => (
                         <JobCard
@@ -665,9 +665,9 @@ export default function Mecanica() {
                         />
                       ))
                     ) : (
-                      <div className="py-20 text-center space-y-3 opacity-20">
-                        <Layers className="mx-auto" size={40} />
-                        <p className="text-[10px] font-black uppercase tracking-widest">
+                      <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20">
+                        <Layers className="mx-auto" size={32} />
+                        <p className="text-[10px] font-black uppercase tracking-widest mt-3">
                           Coluna Vazia
                         </p>
                       </div>
