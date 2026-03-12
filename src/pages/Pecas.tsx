@@ -259,12 +259,12 @@ export default function Pecas() {
             <table className="w-full">
               <thead>
                 <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-                  <th className="px-8 py-4">
+                  <th className="px-4 md:px-8 py-4">
                     <button type="button" onClick={() => toggleSort("name")} className="flex items-center gap-1">
                       Item <SortIcon field="name" />
                     </button>
                   </th>
-                  <th className="px-8 py-4 text-center">
+                  <th className="px-4 md:px-8 py-4 text-center">
                     <button type="button" onClick={() => toggleSort("stock_qty")} className="flex items-center gap-1 mx-auto">
                       Estoque <SortIcon field="stock_qty" />
                     </button>
