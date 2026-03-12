@@ -206,14 +206,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm">Preço de custo (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={unitCost || ""}
-                  onChange={(e) => form.setValue("unit_cost", parseFloat(e.target.value) || 0)}
-                  className="bg-card border-border h-9 text-sm"
-                  placeholder="0,00"
+                <CurrencyInput
+                  value={unitCost || 0}
+                  onChange={(val) => form.setValue("unit_cost", val)}
+                  className="h-9 text-sm"
                 />
               </div>
             </div>
