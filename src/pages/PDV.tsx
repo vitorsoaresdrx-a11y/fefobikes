@@ -325,7 +325,7 @@ export default function PDV() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-40">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-28 md:pb-40">
       <div className="max-w-5xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}
@@ -368,39 +368,46 @@ export default function PDV() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3 md:gap-4">
               {cart.map((item) => (
                 <div
                   key={item.key}
-                  className="group bg-[#161618] border border-zinc-800 rounded-[32px] p-6 flex items-center justify-between hover:border-zinc-700 transition-all"
+                  className="group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex items-center gap-3 md:gap-6 hover:border-zinc-700 transition-all"
                 >
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
-                      {item.type === "bike" ? <BikeIcon size={32} /> : <Package size={32} />}
-                    </div>
-                    <div>
-                      <h4 className="text-xl font-bold text-white">{item.name}</h4>
-                      <p className="text-sm text-zinc-500 font-medium">{formatBRL(item.unit_price)} por unidade</p>
-                    </div>
+                  {/* Icon */}
+                  <div className="w-10 h-10 md:w-16 md:h-16 bg-zinc-900 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
+                    {item.type === "bike" ? <BikeIcon size={20} className="md:hidden" /> : <Package size={20} className="md:hidden" />}
+                    {item.type === "bike" ? <BikeIcon size={32} className="hidden md:block" /> : <Package size={32} className="hidden md:block" />}
                   </div>
 
-                  <div className="flex items-center gap-6 md:gap-8">
-                    <div className="flex items-center bg-[#0A0A0B] rounded-2xl p-1 border border-zinc-800">
-                      <Btn variant="ghost" size="icon" onClick={() => updateQty(item.key, -1)}><Minus size={16} /></Btn>
-                      <span className="w-10 text-center font-black text-white">{item.quantity}</span>
-                      <Btn variant="ghost" size="icon" onClick={() => updateQty(item.key, 1)}><Plus size={16} /></Btn>
-                    </div>
-                    <div className="text-right min-w-[100px] hidden sm:block">
-                      <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Subtotal</p>
-                      <p className="text-xl font-black text-white">{formatBRL(item.quantity * item.unit_price)}</p>
-                    </div>
-                    <button
-                      onClick={() => removeItem(item.key)}
-                      className="p-2 text-zinc-700 hover:text-red-500 transition-colors"
-                    >
-                      <X size={20} />
-                    </button>
+                  {/* Name + price */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm md:text-xl font-bold text-white truncate">{item.name}</h4>
+                    <p className="text-xs md:text-sm text-zinc-500 font-medium">{formatBRL(item.unit_price)}/un</p>
+                    <p className="text-xs font-black text-white md:hidden mt-0.5">{formatBRL(item.quantity * item.unit_price)}</p>
                   </div>
+
+                  {/* Qty controls */}
+                  <div className="flex items-center bg-[#0A0A0B] rounded-xl md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
+                    <Btn variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => updateQty(item.key, -1)}><Minus size={14} /></Btn>
+                    <span className="w-7 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
+                    <Btn variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => updateQty(item.key, 1)}><Plus size={14} /></Btn>
+                  </div>
+
+                  {/* Subtotal desktop */}
+                  <div className="text-right min-w-[100px] hidden md:block">
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Subtotal</p>
+                    <p className="text-xl font-black text-white">{formatBRL(item.quantity * item.unit_price)}</p>
+                  </div>
+
+                  {/* Remove */}
+                  <button
+                    onClick={() => removeItem(item.key)}
+                    className="p-1.5 md:p-2 text-zinc-700 hover:text-red-500 transition-colors shrink-0"
+                  >
+                    <X size={16} className="md:hidden" />
+                    <X size={20} className="hidden md:block" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -414,23 +421,25 @@ export default function PDV() {
 
       {/* Barra flutuante — estilo iFood */}
       {cart.length > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-[#1C1C1E]/80 backdrop-blur-2xl border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[32px] p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10">
-          <div className="flex items-center gap-6 px-4">
-            <div className="relative">
-              <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <ShoppingCart size={20} />
+        <div className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 w-[94%] md:w-[90%] max-w-4xl bg-[#1C1C1E]/90 backdrop-blur-2xl border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl md:rounded-[32px] p-3 md:p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10">
+          <div className="flex items-center gap-3 md:gap-6 px-1 md:px-4">
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg">
+                <ShoppingCart size={18} />
               </div>
-              <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-[#2952FF] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 md:w-6 md:h-6 bg-white text-[#2952FF] rounded-full flex items-center justify-center text-[10px] md:text-xs font-black shadow-xl">
                 {itemCount}
               </span>
             </div>
-            <div>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total do Pedido</p>
-              <p className="text-2xl font-black text-white tracking-tighter">{formatBRL(total)}</p>
+            <div className="min-w-0">
+              <p className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total</p>
+              <p className="text-lg md:text-2xl font-black text-white tracking-tighter">{formatBRL(total)}</p>
             </div>
           </div>
-          <Btn variant="primary" size="lg" className="h-16 px-12" onClick={() => setStep("cart")}>
-            Revisar e Pagar <ArrowRight className="ml-2 w-5 h-5" />
+          <Btn variant="primary" size="lg" className="h-12 md:h-16 px-5 md:px-12 text-[10px] md:text-base" onClick={() => setStep("cart")}>
+            <span className="hidden md:inline">Revisar e Pagar</span>
+            <span className="md:hidden">Pagar</span>
+            <ArrowRight className="ml-1 md:ml-2 w-4 h-4 md:w-5 md:h-5" />
           </Btn>
         </div>
       )}
@@ -438,7 +447,7 @@ export default function PDV() {
       {/* ── MODAL 1: Catálogo ─────────────────────────────────────────────── */}
       {step === "catalog" && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="h-full flex flex-col max-w-5xl mx-auto p-6 space-y-6">
+          <div className="h-full flex flex-col max-w-5xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
 
             <header className="flex items-center justify-between">
               <button
@@ -453,27 +462,27 @@ export default function PDV() {
             </header>
 
             {/* Search + Tabs */}
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
                 <InputEl
                   autoFocus
                   placeholder="Busque por nome ou categoria..."
-                  className="h-14 pl-12 pr-4"
+                  className="h-12 md:h-14 pl-12 pr-4"
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
                 />
               </div>
-              <div className="flex p-1 bg-[#161618] rounded-2xl border border-zinc-800 shrink-0">
+              <div className="flex p-1 bg-[#161618] rounded-2xl border border-zinc-800 shrink-0 self-start">
                 <button
                   onClick={() => { setCatalogTab("parts"); setCatalogCategory("todas"); }}
-                  className={`px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                  className={`px-5 md:px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
                 >
                   Peças
                 </button>
                 <button
                   onClick={() => { setCatalogTab("bikes"); setCatalogCategory("todas"); }}
-                  className={`px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                  className={`px-5 md:px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
                 >
                   Bikes
                 </button>
@@ -566,18 +575,19 @@ export default function PDV() {
             </div>
 
             {/* Footer do catálogo */}
-            <div className="p-6 bg-[#1C1C1E] border border-zinc-800 rounded-[32px] flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#2952FF]/10 text-[#2952FF] rounded-2xl flex items-center justify-center">
-                  <ShoppingCart size={20} />
+            <div className="p-3 md:p-6 bg-[#1C1C1E] border border-zinc-800 rounded-2xl md:rounded-[32px] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-[#2952FF]/10 text-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
+                  <ShoppingCart size={18} />
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pedido atual</p>
-                  <p className="font-black text-white">{itemCount} itens · {formatBRL(total)}</p>
+                <div className="min-w-0">
+                  <p className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pedido</p>
+                  <p className="font-black text-white text-sm md:text-base truncate">{itemCount} itens · {formatBRL(total)}</p>
                 </div>
               </div>
-              <Btn variant="primary" size="lg" className="px-12" onClick={() => setStep("idle")}>
-                Concluir Seleção
+              <Btn variant="primary" size="lg" className="px-5 md:px-12 h-12 md:h-14 text-[10px] md:text-base shrink-0" onClick={() => setStep("idle")}>
+                <span className="hidden md:inline">Concluir Seleção</span>
+                <span className="md:hidden">Concluir</span>
               </Btn>
             </div>
           </div>
