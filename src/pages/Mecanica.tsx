@@ -698,16 +698,25 @@ export default function Mecanica() {
             </DialogHeader>
 
             <div className="space-y-6">
+              <InputGroup label="Nome da Bike *">
+                <PremiumInput
+                  placeholder="Ex: Caloi Elite Carbon"
+                  value={form.bike_name}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, bike_name: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Nome do Cliente">
+                <PremiumInput
+                  placeholder="Nome completo"
+                  value={form.customer_name}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, customer_name: e.target.value }))
+                  }
+                />
+              </InputGroup>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputGroup label="Nome do Cliente">
-                  <PremiumInput
-                    placeholder="Nome completo"
-                    value={form.customer_name}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, customer_name: e.target.value }))
-                    }
-                  />
-                </InputGroup>
                 <InputGroup label="WhatsApp">
                   <PremiumInput
                     placeholder="(00) 00000-0000"
@@ -717,16 +726,16 @@ export default function Mecanica() {
                     }
                   />
                 </InputGroup>
+                <InputGroup label="CPF (opcional)">
+                  <PremiumInput
+                    placeholder="000.000.000-00"
+                    value={form.customer_cpf}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, customer_cpf: e.target.value }))
+                    }
+                  />
+                </InputGroup>
               </div>
-              <InputGroup label="CPF (opcional)">
-                <PremiumInput
-                  placeholder="000.000.000-00"
-                  value={form.customer_cpf}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, customer_cpf: e.target.value }))
-                  }
-                />
-              </InputGroup>
               <InputGroup label="Diagnóstico Inicial *">
                 <PremiumTextarea
                   rows={4}
