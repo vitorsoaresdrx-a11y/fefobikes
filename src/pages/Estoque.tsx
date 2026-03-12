@@ -288,7 +288,7 @@ export default function Estoque() {
         </header>
 
         {/* Summary Cards — clicáveis como filtros */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
           {(["critical", "warning", "ok"] as StockStatus[]).map((status) => (
             <SummaryCard
               key={status}
