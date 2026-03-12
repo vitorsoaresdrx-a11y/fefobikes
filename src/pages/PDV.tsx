@@ -325,7 +325,7 @@ export default function PDV() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-40">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-28 md:pb-40">
       <div className="max-w-5xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}
