@@ -63,6 +63,8 @@ const navGroups = [
     label: "Operações",
     items: [
       { title: "Mecânica", url: "/mecanica", icon: Wrench },
+      { title: "Mecânicos", url: "/mecanicos", icon: HardHat },
+      { title: "Histórico Mecânicos", url: "/mecanicos/historico", icon: History },
       { title: "Gastos", url: "/gastos", icon: Wallet },
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle },
