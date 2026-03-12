@@ -450,20 +450,21 @@ export default function DRE() {
             <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
 
             {/* Lucro Final */}
-            <div className="mt-4 md:mt-6 p-4 md:p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)]">
-                  <TrendingUp size={28} />
+            <div className="mt-3 md:mt-6 p-3 md:p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)] shrink-0">
+                  <TrendingUp size={20} className="md:hidden" />
+                  <TrendingUp size={28} className="hidden md:block" />
                 </div>
                 <div>
-                  <h4 className="text-white font-black text-xl">Lucro Líquido Final</h4>
-                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
+                  <h4 className="text-white font-black text-sm md:text-xl">Lucro Líquido Final</h4>
+                  <p className="text-zinc-500 text-[9px] md:text-xs font-bold uppercase tracking-widest">
                     Resultado do Exercício de {selectedYear}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className={`text-3xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+              <div className="text-right flex flex-col items-end">
+                <p className={`text-2xl md:text-3xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                   {formatBRL(totals.netProfit)}
                 </p>
                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
