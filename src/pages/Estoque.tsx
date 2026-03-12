@@ -300,8 +300,33 @@ export default function Estoque() {
           </div>
         </header>
 
-        {/* Summary Cards — clicáveis como filtros */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+        {/* Summary Cards — Mobile compact */}
+        <div className="md:hidden grid grid-cols-2 gap-3 mb-0">
+          {(["critical", "warning", "ok"] as StockStatus[]).map((status) => {
+            const cfg = statusConfig[status];
+            const Icon = cfg.icon;
+            return (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(filterStatus === status ? "all" : status)}
+                className={`p-3 rounded-2xl bg-zinc-900 border text-left ${
+                  filterStatus === status ? "border-[#2952FF]" : "border-zinc-800"
+                } ${status === "ok" ? "col-span-2" : ""}`}
+              >
+                <div className={`w-7 h-7 rounded-lg ${cfg.bg} flex items-center justify-center mb-2`}>
+                  <Icon size={14} className={cfg.color} />
+                </div>
+                <p className="text-[9px] uppercase tracking-widest text-zinc-500">{cfg.label}</p>
+                <p className={`text-xl font-black ${cfg.color}`}>
+                  {counts[status]} <span className="text-xs font-normal text-zinc-600">itens</span>
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Summary Cards — Desktop */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           {(["critical", "warning", "ok"] as StockStatus[]).map((status) => (
             <SummaryCard
               key={status}
