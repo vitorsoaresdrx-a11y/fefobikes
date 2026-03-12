@@ -462,27 +462,27 @@ export default function PDV() {
             </header>
 
             {/* Search + Tabs */}
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-3 md:gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
                 <InputEl
                   autoFocus
                   placeholder="Busque por nome ou categoria..."
-                  className="h-14 pl-12 pr-4"
+                  className="h-12 md:h-14 pl-12 pr-4"
                   value={catalogSearch}
                   onChange={(e) => setCatalogSearch(e.target.value)}
                 />
               </div>
-              <div className="flex p-1 bg-[#161618] rounded-2xl border border-zinc-800 shrink-0">
+              <div className="flex p-1 bg-[#161618] rounded-2xl border border-zinc-800 shrink-0 self-start">
                 <button
                   onClick={() => { setCatalogTab("parts"); setCatalogCategory("todas"); }}
-                  className={`px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                  className={`px-5 md:px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
                 >
                   Peças
                 </button>
                 <button
                   onClick={() => { setCatalogTab("bikes"); setCatalogCategory("todas"); }}
-                  className={`px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                  className={`px-5 md:px-8 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
                 >
                   Bikes
                 </button>
