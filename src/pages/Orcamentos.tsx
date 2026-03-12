@@ -333,7 +333,7 @@ export default function Orcamentos() {
   };
 
   const resetForm = () => {
-    setForm({ customer_name: "", customer_cpf: "", customer_whatsapp: "", notes: "" });
+    setForm({ customer_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, notes: "" });
     setLineItems([]);
     setLaborCost(0);
   };
