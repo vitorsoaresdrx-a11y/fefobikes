@@ -204,7 +204,7 @@ export default function Pecas() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">INVENTORY MASTER</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Produtos & Peças</h1>
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Produtos & Peças</h1>
           </div>
           <div className="flex items-center gap-3">
             <Btn variant="secondary" size="lg" onClick={() => setCategoriesOpen(true)}>
