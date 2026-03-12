@@ -434,14 +434,14 @@ export default function WhatsApp() {
       </aside>
 
       {/* ── Chat Area ──────────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col bg-[#0A0A0B] min-w-0">
+      <main className={`flex-1 flex flex-col bg-[#0A0A0B] min-w-0 ${showChatMobile ? "flex" : "hidden md:flex"}`}>
         {!selectedConv ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6">
-            <div className="w-24 h-24 bg-zinc-900 rounded-[40px] flex items-center justify-center text-zinc-800 border border-zinc-800/50 shadow-inner">
-              <MessageCircle size={48} strokeWidth={1} />
+          <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center space-y-6">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-2xl md:rounded-[40px] flex items-center justify-center text-zinc-800 border border-zinc-800/50 shadow-inner">
+              <MessageCircle size={40} strokeWidth={1} />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-zinc-300 uppercase italic tracking-tighter">
+              <h3 className="text-xl md:text-2xl font-black text-zinc-300 uppercase italic tracking-tighter">
                 Hub de Conversas
               </h3>
               <p className="text-sm text-zinc-500 max-w-xs leading-relaxed">
@@ -452,9 +452,16 @@ export default function WhatsApp() {
         ) : (
           <>
             {/* Chat header */}
-            <header className="px-10 py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#111113]/30 backdrop-blur-md shrink-0">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-700 font-bold uppercase">
+            <header className="px-4 md:px-10 py-4 md:py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#111113]/30 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3 md:gap-5">
+                {/* Mobile back button */}
+                <button
+                  onClick={handleBackToList}
+                  className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-700 font-bold uppercase shrink-0">
                   {selectedConv.contact_photo ? (
                     <img
                       src={selectedConv.contact_photo}
