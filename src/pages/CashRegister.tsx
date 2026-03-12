@@ -220,12 +220,10 @@ export default function CashRegister() {
             </div>
             <div className="space-y-3">
               <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Valor inicial em caixa (R$)</p>
-              <InputEl
+              <CurrencyInput
                 autoFocus
-                placeholder="0,00"
                 value={openingAmount}
-                onChange={(e) => setOpeningAmount(e.target.value)}
-                inputMode="decimal"
+                onChange={setOpeningAmount}
               />
             </div>
             <Btn variant="primary" className="w-full h-14 rounded-2xl text-base font-black uppercase tracking-widest" onClick={handleOpen} disabled={openRegister.isPending}>
