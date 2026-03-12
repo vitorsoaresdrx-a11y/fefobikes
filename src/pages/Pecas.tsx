@@ -330,19 +330,19 @@ export default function Pecas() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-8 py-6 text-center">
+                        <td className="px-4 md:px-8 py-4 md:py-6 text-center">
                           <div className="inline-flex flex-col items-center">
                             <span className="text-base font-black text-zinc-100">{part.stock_qty}</span>
                             <span className="text-[8px] font-bold text-zinc-500 uppercase">Unidades</span>
                           </div>
                         </td>
-                        <td className="px-8 py-6 text-right">
+                        <td className="px-4 md:px-8 py-4 md:py-6 text-right hidden sm:table-cell">
                           <span className="text-sm text-zinc-500">{formatBRL(cost)}</span>
                         </td>
-                        <td className="px-8 py-6 text-right">
+                        <td className="px-4 md:px-8 py-4 md:py-6 text-right hidden sm:table-cell">
                           <span className="text-base font-black text-white">{formatBRL(sale)}</span>
                         </td>
-                        <td className="px-8 py-6 text-right">
+                        <td className="px-4 md:px-8 py-4 md:py-6 text-right hidden md:table-cell">
                           <span
                             className={`text-sm font-black px-3 py-1 rounded-lg ${
                               profit >= 0

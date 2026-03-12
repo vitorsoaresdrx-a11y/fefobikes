@@ -415,7 +415,7 @@ export default function Estoque() {
       {/* Modal de Ajuste */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 overflow-hidden shadow-2xl">
+          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-10 space-y-8">
               <div className="flex items-center justify-between">
                 <div>
