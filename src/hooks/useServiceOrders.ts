@@ -48,8 +48,9 @@ export function useCreateServiceOrder() {
       problem: string;
       price?: number;
     }) => {
-      const { error } = await supabase.from("service_orders").insert(order);
+      const { data, error } = await supabase.from("service_orders").insert(order).select().single();
       if (error) throw error;
+      return data as ServiceOrder;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
@@ -87,10 +88,15 @@ export function useFinishServiceOrder() {
   });
 }
 
-export function useServiceOrdersRealtime(onDone?: (order: ServiceOrder) => void) {
+interface RealtimeCallbacks {
+  onDone?: (order: ServiceOrder) => void;
+  onAccepted?: (order: ServiceOrder) => void;
+}
+
+export function useServiceOrdersRealtime(callbacks?: RealtimeCallbacks) {
   const qc = useQueryClient();
-  const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone;
+  const cbRef = useRef(callbacks);
+  cbRef.current = callbacks;
 
   useEffect(() => {
     const channel = supabase
@@ -100,12 +106,14 @@ export function useServiceOrdersRealtime(onDone?: (order: ServiceOrder) => void)
         { event: "*", schema: "public", table: "service_orders" },
         (payload) => {
           qc.invalidateQueries({ queryKey: KEY });
-          if (
-            payload.eventType === "UPDATE" &&
-            (payload.new as any).mechanic_status === "done" &&
-            onDoneRef.current
-          ) {
-            onDoneRef.current(payload.new as ServiceOrder);
+          if (payload.eventType === "UPDATE") {
+            const newOrder = payload.new as ServiceOrder;
+            if (newOrder.mechanic_status === "done" && cbRef.current?.onDone) {
+              cbRef.current.onDone(newOrder);
+            }
+            if (newOrder.mechanic_status === "accepted" && cbRef.current?.onAccepted) {
+              cbRef.current.onAccepted(newOrder);
+            }
           }
         }
       )
