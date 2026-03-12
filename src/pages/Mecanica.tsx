@@ -416,7 +416,7 @@ export default function Mecanica() {
     customer_cpf: "",
     customer_whatsapp: "",
     problem: "",
-    price: "",
+    price: 0,
   });
 
   const [addOpen, setAddOpen] = useState(false);
