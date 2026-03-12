@@ -76,6 +76,37 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+
+  input,
+  textarea,
+  select {
+    background-color: #161618;
+    color: #f4f4f5;
+    border-color: #3f3f46;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #52525b;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: #820AD1;
+    box-shadow: 0 0 0 2px rgba(130, 10, 209, 0.2);
+  }
+
+  input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 100px #161618 inset;
+    -webkit-text-fill-color: #f4f4f5;
+  }
+
+  select option {
+    background-color: #161618;
+    color: #f4f4f5;
+  }
 }
 
 @layer utilities {
