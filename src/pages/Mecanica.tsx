@@ -44,8 +44,7 @@ import { toast } from "sonner";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const formatBRL = (val: number) =>
-  val.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+import { formatBRL } from "@/lib/format";
 
 function getTotalPrice(job: MechanicJob) {
   const base = Number(job.price);

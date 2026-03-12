@@ -91,9 +91,7 @@ const MONTHS = [
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-function formatBRL(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 const fixedSchema = z.object({
   name: z.string().trim().min(1, "Nome é obrigatório").max(100),

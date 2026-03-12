@@ -68,9 +68,7 @@ interface TemplatePart {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatBRL(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 // ─── Sub-components (UI only) ─────────────────────────────────────────────────
 const SectionHeader = ({

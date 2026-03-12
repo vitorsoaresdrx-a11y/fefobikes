@@ -120,9 +120,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
     }
   };
 
-  function formatBRL(value: number) {
-    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  }
+  // formatBRL imported from lib
+  const { formatBRL: _fmt } = { formatBRL: (await import("@/lib/format")).formatBRL };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

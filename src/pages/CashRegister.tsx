@@ -25,9 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatBRL(v: number) {
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 function formatDateTime(d: string) {
   return new Date(d).toLocaleDateString("pt-BR", {
