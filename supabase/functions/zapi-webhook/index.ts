@@ -15,7 +15,6 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body));
 
-    // Z-API sends different payload structures
     const callbackType = String(body.type || "");
     const isStatusOnlyEvent =
       callbackType === "MessageStatusCallback" ||
@@ -40,8 +39,15 @@ Deno.serve(async (req) => {
       .replace("@c.us", "")
       .replace("@lid", "")
       .replace(/\D/g, "");
-    const messageId = body.messageId || body.id?.id || (Array.isArray(body.ids) ? body.ids[0] : "") || "";
-    const rawText = body.text?.message ?? body.text ?? body.body ?? body.message ?? body.caption ?? "";
+
+    const messageId =
+      body.messageId ||
+      body.id?.id ||
+      (Array.isArray(body.ids) ? body.ids[0] : "") ||
+      "";
+
+    const rawText =
+      body.text?.message ?? body.text ?? body.body ?? body.message ?? body.caption ?? "";
     const text =
       typeof rawText === "string"
         ? rawText
@@ -50,14 +56,16 @@ Deno.serve(async (req) => {
           : String(rawText ?? "");
     const content = text.trim();
 
-    const chatName = typeof body.chatName === "string" ? body.chatName.trim() : "";
+    const chatName   = typeof body.chatName   === "string" ? body.chatName.trim()   : "";
     const senderName = typeof body.senderName === "string" ? body.senderName.trim() : "";
-    const pushName = typeof body.pushName === "string" ? body.pushName.trim() : "";
-    const contactName = chatName || (!isFromMe ? senderName || pushName : "") || null;
+    const pushName   = typeof body.pushName   === "string" ? body.pushName.trim()   : "";
 
-    const photo = typeof body.photo === "string" ? body.photo : null;
-    const senderPhoto = typeof body.senderPhoto === "string" ? body.senderPhoto : null;
-    const contactPhoto = photo || (!isFromMe ? senderPhoto : null);
+    // ✅ Fix: remove restrição isFromMe — chatName é sempre o nome do contato
+    const contactName  = chatName || senderName || pushName || null;
+    const contactPhoto =
+      (typeof body.photo       === "string" ? body.photo       : null) ||
+      (typeof body.senderPhoto === "string" ? body.senderPhoto : null) ||
+      null;
 
     const type = body.isMedia
       ? body.mimetype?.startsWith("image")
@@ -66,6 +74,7 @@ Deno.serve(async (req) => {
           ? "audio"
           : "document"
       : "text";
+
     const mediaUrl = body.mediaUrl || null;
 
     if (!phone || (!content && !mediaUrl)) {
@@ -79,7 +88,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Find or create conversation
+    // Busca ou cria conversa
     const { data: existing } = await supabase
       .from("whatsapp_conversations")
       .select("id, unread_count")
@@ -90,13 +99,14 @@ Deno.serve(async (req) => {
 
     if (existing) {
       convId = existing.id;
-        const updates: Record<string, unknown> = {
-          last_message: content || `[${type}]`,
-          last_message_at: new Date().toISOString(),
-        };
-        if (contactName) updates.contact_name = contactName;
-        if (contactPhoto) updates.contact_photo = contactPhoto;
-      if (!isFromMe) updates.unread_count = (existing.unread_count || 0) + 1;
+
+      const updates: Record<string, unknown> = {
+        last_message: content || `[${type}]`,
+        last_message_at: new Date().toISOString(),
+      };
+      if (contactName)  updates.contact_name  = contactName;
+      if (contactPhoto) updates.contact_photo = contactPhoto;
+      if (!isFromMe)    updates.unread_count  = (existing.unread_count || 0) + 1;
 
       await supabase
         .from("whatsapp_conversations")
@@ -106,28 +116,29 @@ Deno.serve(async (req) => {
       const { data: newConv } = await supabase
         .from("whatsapp_conversations")
         .insert({
-            contact_phone: phone,
-            contact_name: contactName,
-            contact_photo: contactPhoto,
-            last_message: content || `[${type}]`,
-            last_message_at: new Date().toISOString(),
-            unread_count: isFromMe ? 0 : 1,
-            status: "open",
-          })
+          contact_phone: phone,
+          contact_name:  contactName,
+          contact_photo: contactPhoto,
+          last_message:  content || `[${type}]`,
+          last_message_at: new Date().toISOString(),
+          unread_count: isFromMe ? 0 : 1,
+          status: "open",
+        })
         .select("id")
         .single();
+
       convId = newConv!.id;
     }
 
-    // Save message
+    // Salva mensagem
     await supabase.from("whatsapp_messages").insert({
       conversation_id: convId,
-      message_id: messageId,
-      from_me: isFromMe,
+      message_id:      messageId,
+      from_me:         isFromMe,
       type,
-      content: content || `[${type}]`,
-      media_url: mediaUrl,
-      status: isFromMe ? "sent" : "delivered",
+      content:         content || `[${type}]`,
+      media_url:       mediaUrl,
+      status:          isFromMe ? "sent" : "delivered",
     });
 
     return new Response(JSON.stringify({ ok: true }), {
