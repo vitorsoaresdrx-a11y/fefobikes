@@ -325,22 +325,25 @@ export default function PDV() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-28 md:pb-40">
-      <div className="max-w-5xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-20 md:pb-40">
+      <div className="max-w-5xl mx-auto w-full p-4 lg:p-8 space-y-3 md:space-y-6 lg:space-y-8">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
-                <ShoppingCart className="w-5 h-5 text-white" />
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+          <div className="space-y-1 md:space-y-2">
+            <div className="flex items-center gap-2 md:gap-3 mb-1">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+                <ShoppingCart size={16} className="md:hidden text-white" />
+                <ShoppingCart size={20} className="hidden md:block text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#2952FF]">CHECKOUT EXPRESS</span>
+              <span className="text-[10px] md:text-sm font-black uppercase tracking-widest text-[#2952FF]">
+                Checkout Express
+              </span>
             </div>
-            <h1 className="text-2xl lg:text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
+            <h1 className="text-lg md:text-2xl lg:text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
           </div>
-          <Btn variant="primary" size="lg" onClick={openCatalog}>
-            <Plus className="w-5 h-5 mr-2 stroke-[3]" />
+          <Btn variant="primary" size="sm" className="w-full md:w-auto md:!h-14 md:!px-8 md:!text-base md:font-black md:uppercase md:tracking-widest h-10 text-sm px-4" onClick={openCatalog}>
+            <Plus className="w-4 h-4 mr-1 md:w-5 md:h-5 md:mr-2 stroke-[3]" />
             Adicionar Itens
           </Btn>
         </header>
