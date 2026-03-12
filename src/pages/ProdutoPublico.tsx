@@ -189,10 +189,10 @@ export default function ProdutoPublico() {
     enabled: !!product && product._type === "bike",
     queryFn: async () => {
       const { data } = await supabase
-        .from("bike_model_parts")
+        .from("bike_model_parts_public" as any)
         .select("*, parts(name)")
         .eq("bike_model_id", product!.id)
-        .order("sort_order");
+        .order("sort_order") as { data: any[] | null };
       return data || [];
     },
   });
