@@ -116,19 +116,19 @@ function ChartContainer({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-4 md:space-y-6">
+    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-3 md:space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5 md:mb-1">{title}</p>
           <div className="flex items-center gap-2">
-            <h3 className="text-2xl font-black text-white tracking-tighter">{value}</h3>
+            <h3 className="text-xl md:text-2xl font-black text-white tracking-tighter">{value}</h3>
             <span className="text-[10px] font-bold text-zinc-500 uppercase bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800">
               {subtitle}
             </span>
           </div>
         </div>
-        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-zinc-600">
-          <Activity size={18} />
+        <div className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg md:rounded-xl flex items-center justify-center text-zinc-600">
+          <Activity size={16} />
         </div>
       </div>
       {children}
