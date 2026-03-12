@@ -382,7 +382,18 @@ function JobCard({
 export default function Mecanica() {
   const { data: jobs = [], isLoading } = useMechanicJobs();
   const create = useCreateMechanicJob();
+  const createServiceOrder = useCreateServiceOrder();
   const createAddition = useCreateAddition();
+
+  // Realtime: when a service order is marked done by a mechanic, play sound
+  const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
+    playNotifySound();
+    toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega!`, {
+      description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined,
+      duration: 8000,
+    });
+  }, []);
+  useServiceOrdersRealtime(handleServiceOrderDone);
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
