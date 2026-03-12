@@ -91,6 +91,7 @@ export function useFinishServiceOrder() {
 interface RealtimeCallbacks {
   onDone?: (order: ServiceOrder) => void;
   onAccepted?: (order: ServiceOrder) => void;
+  onNew?: (order: ServiceOrder) => void;
 }
 
 export function useServiceOrdersRealtime(callbacks?: RealtimeCallbacks) {
@@ -106,6 +107,9 @@ export function useServiceOrdersRealtime(callbacks?: RealtimeCallbacks) {
         { event: "*", schema: "public", table: "service_orders" },
         (payload) => {
           qc.invalidateQueries({ queryKey: KEY });
+          if (payload.eventType === "INSERT" && cbRef.current?.onNew) {
+            cbRef.current.onNew(payload.new as ServiceOrder);
+          }
           if (payload.eventType === "UPDATE") {
             const newOrder = payload.new as ServiceOrder;
             if (newOrder.mechanic_status === "done" && cbRef.current?.onDone) {
