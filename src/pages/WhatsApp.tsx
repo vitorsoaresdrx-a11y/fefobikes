@@ -393,7 +393,7 @@ export default function WhatsApp() {
                           : "text-zinc-300"
                       }`}
                     >
-                      {conv.contact_name || conv.contact_phone}
+                      {getDisplayContactName(conv, currentUserName)}
                     </h4>
                     <span className="text-[9px] font-bold text-zinc-600 uppercase shrink-0 ml-1">
                       {format(new Date(conv.last_message_at), "HH:mm")}
