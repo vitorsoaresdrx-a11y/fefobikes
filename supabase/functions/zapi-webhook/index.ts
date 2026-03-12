@@ -75,12 +75,12 @@ Deno.serve(async (req) => {
 
     if (existing) {
       convId = existing.id;
-      const updates: Record<string, unknown> = {
-        last_message: text || `[${type}]`,
-        last_message_at: new Date().toISOString(),
-      };
-      if (senderName) updates.contact_name = senderName;
-      if (senderPhoto) updates.contact_photo = senderPhoto;
+        const updates: Record<string, unknown> = {
+          last_message: content || `[${type}]`,
+          last_message_at: new Date().toISOString(),
+        };
+        if (contactName) updates.contact_name = contactName;
+        if (contactPhoto) updates.contact_photo = contactPhoto;
       if (!isFromMe) updates.unread_count = (existing.unread_count || 0) + 1;
 
       await supabase
