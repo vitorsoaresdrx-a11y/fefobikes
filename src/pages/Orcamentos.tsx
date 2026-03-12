@@ -467,7 +467,7 @@ export default function Orcamentos() {
       {/* ─── New Quote Dialog ──────────────────────────────────────────────── */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-2xl shadow-2xl w-[90vw] max-h-[90vh] flex flex-col">
-          <div className="p-4 lg:p-8 space-y-6 overflow-y-auto flex-1">
+          <div className="p-4 lg:p-8 space-y-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
               <DialogTitle className="text-xl font-black text-white italic uppercase tracking-tight">
                 Novo Orçamento
