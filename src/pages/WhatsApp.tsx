@@ -599,8 +599,8 @@ export default function WhatsApp() {
             </div>
 
             {/* Input */}
-            <div className="p-8 pt-4 shrink-0">
-              <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-2 flex items-center gap-2 shadow-2xl focus-within:border-[#2952FF]/50 transition-all">
+            <div className="p-3 md:p-8 pt-2 md:pt-4 shrink-0 pb-[env(safe-area-inset-bottom)]">
+              <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2 shadow-2xl focus-within:border-[#2952FF]/50 transition-all">
                 <div className="flex items-center px-2">
                   <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
                     <Paperclip size={20} />
