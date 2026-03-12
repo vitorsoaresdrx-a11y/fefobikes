@@ -222,7 +222,7 @@ export default function Gastos() {
             </div>
           </div>
 
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-5 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
               <CreditCard size={180} />
             </div>
