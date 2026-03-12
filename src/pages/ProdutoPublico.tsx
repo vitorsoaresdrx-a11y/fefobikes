@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePublicPartAttributes } from "@/hooks/usePartAttributes";
 import {
   Bike,
   Package,
@@ -12,6 +13,7 @@ import {
   Info,
   Settings,
   CreditCard,
+  List,
 } from "lucide-react";
 import {
   Carousel,
