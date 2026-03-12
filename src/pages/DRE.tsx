@@ -344,7 +344,7 @@ export default function DRE() {
         </header>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" />
           <StatCard title="Receita Líquida" value={totals.netRevenue} icon={Receipt} tag="Após Taxas" color="text-indigo-400" />
           <StatCard
