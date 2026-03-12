@@ -21,6 +21,7 @@ import {
   type BikeModel,
 } from "@/hooks/useBikes";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import { getOptimizedImageUrl } from "@/lib/image";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 

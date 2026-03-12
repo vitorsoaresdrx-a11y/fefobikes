@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicPartAttributes } from "@/hooks/usePartAttributes";
+import { getOptimizedImageUrl } from "@/lib/image";
 import {
   Bike,
   Package,

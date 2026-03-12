@@ -32,6 +32,7 @@ import { useRealtimeStock } from "@/hooks/useRealtimeStock";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 import { formatBRL } from "@/lib/format";
+import { getOptimizedImageUrl } from "@/lib/image";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
