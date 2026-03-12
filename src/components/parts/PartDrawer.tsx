@@ -121,8 +121,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
     }
   };
 
-  // formatBRL imported from lib
-  const { formatBRL: _fmt } = { formatBRL: (await import("@/lib/format")).formatBRL };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
