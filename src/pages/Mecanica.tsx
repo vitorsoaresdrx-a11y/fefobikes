@@ -132,13 +132,13 @@ const ColumnHeader = ({
   bg: string;
   border: string;
 }) => (
-  <div className={`flex items-center gap-3 p-5 rounded-[24px] border ${border} ${bg} mb-6`}>
-    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} bg-white/5 shadow-inner`}>
-      <Icon size={20} className="stroke-[2.5]" />
+  <div className={`flex items-center gap-2 p-3 lg:p-4 rounded-2xl border ${border} ${bg} mb-4`}>
+    <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center ${color} bg-white/5 shadow-inner shrink-0`}>
+      <Icon size={16} className="stroke-[2.5]" />
     </div>
-    <div>
-      <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">{label}</h3>
-      <p className="text-[10px] font-bold text-zinc-500 uppercase">{count} serviços ativos</p>
+    <div className="min-w-0">
+      <h3 className="text-[10px] lg:text-xs font-black text-white uppercase tracking-wider truncate">{label}</h3>
+      <p className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase">{count} ativos</p>
     </div>
   </div>
 );
@@ -277,47 +277,47 @@ function JobCard({
   const showApprovalActions = columnKey === "in_maintenance";
 
   return (
-    <div className="group bg-[#161618] border border-zinc-800 rounded-2xl lg:rounded-[32px] p-4 md:p-6 space-y-4 md:space-y-5 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+    <div className="group bg-[#161618] border border-zinc-800 rounded-2xl p-3 lg:p-4 space-y-3 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
       {/* Customer info */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-1">
         <div className="space-y-1 min-w-0">
           {job.customer_name && (
-            <div className="flex items-center gap-2">
-              <User size={14} className="text-[#2952FF] shrink-0" />
-              <span className="text-sm font-black tracking-tight text-white uppercase italic truncate">
+            <div className="flex items-center gap-1.5">
+              <User size={12} className="text-[#2952FF] shrink-0" />
+              <span className="text-xs font-black tracking-tight text-white uppercase italic truncate">
                 {job.customer_name}
               </span>
             </div>
           )}
-          <div className="flex flex-wrap gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+          <div className="flex flex-wrap gap-2 text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
             {job.customer_whatsapp && (
-              <span className="flex items-center gap-1">
-                <Phone size={10} /> {job.customer_whatsapp}
+              <span className="flex items-center gap-1 truncate">
+                <Phone size={9} /> {job.customer_whatsapp}
               </span>
             )}
             {job.customer_cpf && (
-              <span className="flex items-center gap-1">
-                <CreditCard size={10} /> {job.customer_cpf}
+              <span className="flex items-center gap-1 truncate">
+                <CreditCard size={9} /> {job.customer_cpf}
               </span>
             )}
           </div>
         </div>
         <button
-          className="p-2 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+          className="p-1.5 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
           onClick={handleDelete}
           disabled={remove.isPending}
         >
           {remove.isPending ? (
-            <Loader2 size={16} className="animate-spin" />
+            <Loader2 size={14} className="animate-spin" />
           ) : (
-            <Trash2 size={16} />
+            <Trash2 size={14} />
           )}
         </button>
       </div>
 
       {/* Problem */}
-      <div className="p-4 bg-[#0A0A0B] rounded-2xl border border-zinc-800/50">
-        <p className="text-xs font-medium text-zinc-400 leading-relaxed">{job.problem}</p>
+      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
+        <p className="text-[11px] font-medium text-zinc-400 leading-relaxed line-clamp-3">{job.problem}</p>
       </div>
 
       {/* Additions */}
@@ -333,29 +333,29 @@ function JobCard({
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex flex-col">
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex flex-col min-w-0">
           <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">
-            Orçamento Total
+            Total
           </span>
-          <span className="text-lg font-black text-white tracking-tighter">
+          <span className="text-sm lg:text-base font-black text-white tracking-tighter">
             {formatBRL(total)}
           </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 shrink-0">
           <button
             onClick={() => onAddRepair(job)}
-            className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            className="w-7 h-7 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
           >
-            <Plus size={14} />
+            <Plus size={12} />
           </button>
 
           {!isLast ? (
             <button
               onClick={handleAdvance}
               disabled={advance.isPending}
-              className="h-8 rounded-xl px-4 bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.2)] text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              className="h-7 rounded-lg px-2.5 bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.2)] text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
             >
               {advance.isPending ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -369,13 +369,13 @@ function JobCard({
             <button
               onClick={handleDelete}
               disabled={remove.isPending}
-              className="h-8 rounded-xl px-4 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
+              className="h-7 rounded-lg px-2.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
             >
               {remove.isPending ? (
-                <Loader2 size={12} className="animate-spin" />
+                <Loader2 size={10} className="animate-spin" />
               ) : (
                 <>
-                  Concluir <Check size={12} />
+                  Concluir <Check size={10} />
                 </>
               )}
             </button>
@@ -645,15 +645,15 @@ export default function Mecanica() {
                 ))}
             </div>
 
-            {/* Desktop: 4 columns */}
-            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 items-start">
+            {/* Desktop: 4 columns equal height */}
+            <div className="hidden md:flex gap-3 lg:gap-4 items-stretch">
               {columns.map((col) => (
                 <div
                   key={col.key}
-                  className="flex flex-col min-h-[600px] bg-[#111113]/50 rounded-[40px] p-2 border border-zinc-800/30"
+                  className="flex-1 min-w-0 flex flex-col bg-[#111113]/50 rounded-3xl p-2 border border-zinc-800/30"
                 >
                   <ColumnHeader {...col} count={grouped[col.key].length} />
-                  <div className="px-2 space-y-4 pb-10">
+                  <div className="px-1.5 space-y-3 pb-6 flex-1">
                     {grouped[col.key].length > 0 ? (
                       grouped[col.key].map((job) => (
                         <JobCard
@@ -665,9 +665,9 @@ export default function Mecanica() {
                         />
                       ))
                     ) : (
-                      <div className="py-20 text-center space-y-3 opacity-20">
-                        <Layers className="mx-auto" size={40} />
-                        <p className="text-[10px] font-black uppercase tracking-widest">
+                      <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20">
+                        <Layers className="mx-auto" size={32} />
+                        <p className="text-[10px] font-black uppercase tracking-widest mt-3">
                           Coluna Vazia
                         </p>
                       </div>
