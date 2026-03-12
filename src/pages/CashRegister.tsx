@@ -342,8 +342,8 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
               </span>
             )}
           </div>
-          {/* Linha 2: 3 valores empilhados */}
-          <div className="flex justify-between">
+          {/* Linha 3: 3 valores empilhados */}
+          <div className="flex justify-between px-1 pt-1">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] text-zinc-500">Inicial</p>
               <p className="text-sm font-bold">{formatBRL(Number(register.opening_amount))}</p>
