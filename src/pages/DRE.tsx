@@ -324,7 +324,7 @@ export default function DRE() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">PERFORMANCE HUB</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Análise DRE</h1>
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Análise DRE</h1>
           </div>
 
           <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-2xl p-1">
