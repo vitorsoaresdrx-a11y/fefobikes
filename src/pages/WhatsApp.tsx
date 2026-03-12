@@ -201,12 +201,24 @@ export default function WhatsApp() {
     });
   };
 
+  // Mobile: show chat full screen when conversation selected
+  const [showChatMobile, setShowChatMobile] = useState(false);
+
+  const handleSelectConv = (conv: Conversation) => {
+    setSelectedConv(conv);
+    setShowChatMobile(true);
+  };
+
+  const handleBackToList = () => {
+    setShowChatMobile(false);
+  };
+
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-[#0A0A0B] text-zinc-100 overflow-hidden rounded-[40px] border border-zinc-800/50 shadow-2xl">
+    <div className="flex h-[calc(100vh-4rem)] bg-[#0A0A0B] text-zinc-100 overflow-hidden rounded-2xl md:rounded-[40px] border border-zinc-800/50 shadow-2xl">
 
       {/* ── Sidebar: Conversas ─────────────────────────────────────────────── */}
-      <aside className="w-96 flex flex-col border-r border-zinc-800/50 bg-[#111113]/50 shrink-0">
+      <aside className={`w-full md:w-96 flex flex-col border-r border-zinc-800/50 bg-[#111113]/50 md:shrink-0 ${showChatMobile ? "hidden md:flex" : "flex"}`}>
 
         {/* Header */}
         <div className="p-8 space-y-6">
