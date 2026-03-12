@@ -351,10 +351,10 @@ export default function Estoque() {
               <table className="w-full">
                 <thead>
                   <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-                    <th className="px-8 py-4">Item / Categoria</th>
-                    <th className="px-8 py-4">Tipo</th>
-                    <th className="px-8 py-4 text-center">Disponível</th>
-                    <th className="px-8 py-4 text-center">Alerta</th>
+                    <th className="px-4 md:px-8 py-4">Item / Categoria</th>
+                    <th className="px-4 md:px-8 py-4 hidden sm:table-cell">Tipo</th>
+                    <th className="px-4 md:px-8 py-4 text-center">Disponível</th>
+                    <th className="px-4 md:px-8 py-4 text-center hidden md:table-cell">Alerta</th>
                     <th className="px-8 py-4 text-right">Status</th>
                   </tr>
                 </thead>
