@@ -191,8 +191,13 @@ export default function PDV() {
   const filteredCustomers = useMemo(() => {
     if (!custSearch.trim()) return [];
     const q = custSearch.toLowerCase();
+    const qDigits = custSearch.replace(/\D/g, "");
     return customers
-      .filter((c) => c.name.toLowerCase().includes(q) || (c.whatsapp && c.whatsapp.includes(q)))
+      .filter((c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.whatsapp && c.whatsapp.includes(q)) ||
+        (c.cpf && c.cpf.replace(/\D/g, "").includes(qDigits))
+      )
       .slice(0, 6);
   }, [customers, custSearch]);
 
@@ -674,7 +679,7 @@ export default function PDV() {
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
                   <InputEl
-                    placeholder="Buscar cliente por nome ou WhatsApp..."
+                    placeholder="Buscar por nome, WhatsApp ou CPF..."
                     className="h-14 pl-12 pr-4"
                     value={custSearch}
                     onChange={(e) => {
@@ -706,7 +711,9 @@ export default function PDV() {
                       >
                         <div>
                           <p className="font-bold text-white">{c.name}</p>
-                          <p className="text-[10px] uppercase tracking-widest">{c.whatsapp}</p>
+                          <p className="text-[10px] uppercase tracking-widest">
+                            {[c.whatsapp, c.cpf].filter(Boolean).join(" · ")}
+                          </p>
                         </div>
                         {selectedCustomerId === c.id && <CheckCircle2 className="text-[#2952FF]" />}
                       </button>

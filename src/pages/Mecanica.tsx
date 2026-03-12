@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
+import type { Customer } from "@/hooks/useCustomers";
 import {
   Wrench,
   Settings,
@@ -707,17 +709,32 @@ export default function Mecanica() {
                   }
                 />
               </InputGroup>
-              <InputGroup label="Nome do Cliente">
-                <PremiumInput
-                  placeholder="Nome completo"
-                  value={form.customer_name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, customer_name: e.target.value }))
+              <InputGroup label="Cliente">
+                <CustomerAutocomplete
+                  customerName={form.customer_name}
+                  customerWhatsapp={form.customer_whatsapp}
+                  customerCpf={form.customer_cpf}
+                  onSelect={(c: Customer) =>
+                    setForm((f) => ({
+                      ...f,
+                      customer_name: c.name,
+                      customer_whatsapp: c.whatsapp || "",
+                      customer_cpf: c.cpf || "",
+                    }))
                   }
+                  onChange={(field, value) => {
+                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
+                    setForm((f) => ({ ...f, [key]: value }));
+                  }}
                 />
-              </InputGroup>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputGroup label="WhatsApp">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                  <PremiumInput
+                    placeholder="Nome completo"
+                    value={form.customer_name}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, customer_name: e.target.value }))
+                    }
+                  />
                   <PremiumInput
                     placeholder="(00) 00000-0000"
                     value={form.customer_whatsapp}
@@ -725,17 +742,15 @@ export default function Mecanica() {
                       setForm((f) => ({ ...f, customer_whatsapp: e.target.value }))
                     }
                   />
-                </InputGroup>
-                <InputGroup label="CPF (opcional)">
                   <PremiumInput
-                    placeholder="000.000.000-00"
+                    placeholder="CPF (opcional)"
                     value={form.customer_cpf}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, customer_cpf: e.target.value }))
                     }
                   />
-                </InputGroup>
-              </div>
+                </div>
+              </InputGroup>
               <InputGroup label="Diagnóstico Inicial *">
                 <PremiumTextarea
                   rows={4}
