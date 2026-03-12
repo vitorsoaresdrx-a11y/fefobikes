@@ -95,9 +95,11 @@ export default function Historico() {
     );
   }, [sales]);
 
+  const debouncedSearch = useDebounce(search, 300);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return customerGroups;
-    const q = search.toLowerCase();
+    if (!debouncedSearch.trim()) return customerGroups;
+    const q = debouncedSearch.toLowerCase();
     return customerGroups.filter((g) =>
       g.customerName.toLowerCase().includes(q) ||
       (g.customerWhatsapp && g.customerWhatsapp.includes(q)) ||

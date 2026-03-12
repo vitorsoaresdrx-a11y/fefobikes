@@ -212,10 +212,12 @@ export default function Estoque() {
     return [...partItems, ...bikeItems];
   }, [parts, bikes]);
 
+  const debouncedSearch = useDebounce(search, 300);
+
   const filtered = useMemo(() => {
     let list = items;
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
       list = list.filter(
         (i) => i.name.toLowerCase().includes(q) || (i.category || "").toLowerCase().includes(q)
       );
@@ -225,7 +227,7 @@ export default function Estoque() {
     const order = { critical: 0, warning: 1, ok: 2 };
     list.sort((a, b) => order[a.status] - order[b.status]);
     return list;
-  }, [items, search, filterStatus, filterType]);
+  }, [items, debouncedSearch, filterStatus, filterType]);
 
   const counts = useMemo(() => ({
     critical: items.filter((i) => i.status === "critical").length,
