@@ -219,7 +219,7 @@ export default function Pecas() {
         </header>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           <StatCard title="Total de Itens" value={filtered.length} icon={Package} tag="Variedade" />
           <StatCard title="Peças em Estoque" value={totalStock} icon={Layers} tag="Volume" color="text-indigo-400" />
           <StatCard title="Lucro Potencial" value={totalProfit} icon={TrendingUp} tag="Rentabilidade" color="text-emerald-400" isCurrency />
