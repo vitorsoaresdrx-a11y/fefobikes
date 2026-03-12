@@ -385,7 +385,7 @@ export default function Mecanica() {
   const createServiceOrder = useCreateServiceOrder();
   const createAddition = useCreateAddition();
 
-  // Realtime: when a service order is marked done by a mechanic, play sound
+  // Realtime: react to service_order changes
   const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
     playNotifySound();
     toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega!`, {
@@ -393,7 +393,22 @@ export default function Mecanica() {
       duration: 8000,
     });
   }, []);
-  useServiceOrdersRealtime(handleServiceOrderDone);
+
+  const handleServiceOrderAccepted = useCallback((order: ServiceOrder) => {
+    playAcceptSound();
+    toast.info(`⚙️ ${order.bike_name || "OS"} aceita por ${order.mechanic_name || "mecânico"}`, {
+      duration: 5000,
+    });
+    // Auto-advance matching mechanic_job to in_maintenance
+    const matchingJob = jobs.find(
+      (j) => j.problem === order.problem && j.status === "in_repair"
+    );
+    if (matchingJob) {
+      advance.mutate({ id: matchingJob.id, status: matchingJob.status });
+    }
+  }, [jobs]);
+
+  useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
