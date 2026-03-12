@@ -488,6 +488,7 @@ export default function Orcamentos() {
                     customer_name: c.name,
                     customer_whatsapp: c.whatsapp || "",
                     customer_cpf: c.cpf || "",
+                    customer_id: c.id,
                   })
                 }
                 onChange={(field, value) => {
