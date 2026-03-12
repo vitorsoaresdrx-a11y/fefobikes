@@ -11,6 +11,7 @@ export interface Conversation {
   last_message_at: string;
   unread_count: number;
   status: string;
+  ai_enabled: boolean;
   created_at: string;
 }
 
