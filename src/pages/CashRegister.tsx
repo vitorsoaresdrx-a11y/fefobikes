@@ -35,6 +35,12 @@ function formatDateTime(d: string) {
   });
 }
 
+function formatDateOnly(d: string) {
+  return new Date(d).toLocaleDateString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+  });
+}
+
 function formatTime(d: string) {
   return new Date(d).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
@@ -167,16 +173,16 @@ export default function CashRegister() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5">
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Valor Inicial</p>
                 <p className="text-2xl font-black text-white">{formatBRL(currentRegister!.opening_amount)}</p>
               </div>
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5">
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Vendas em Dinheiro</p>
                 <p className="text-2xl font-black text-white">{cashTotals?.count || 0} vendas</p>
                 <p className="text-sm text-zinc-500 font-bold">{formatBRL(cashTotals?.total || 0)}</p>
               </div>
-              <div className="bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl p-5">
+              <div className="bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl p-6">
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Esperado em Caixa</p>
                 <p className="text-2xl font-black text-[#2952FF]">{formatBRL(expectedAmount)}</p>
               </div>
@@ -314,11 +320,11 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
         {/* Mobile Layout: Stacked */}
         <div className="p-4 space-y-3 md:hidden">
           {/* Linha 1: data */}
-          <div className="text-sm font-bold text-white">
-            {formatDateTime(register.opened_at)}
+          <div className="text-sm font-bold text-white px-1">
+            {formatDateOnly(register.opened_at)}
           </div>
           {/* Linha 2: horário de fechamento + badge */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between px-1">
             <span className="text-xs text-zinc-500">
               {register.closed_at ? `Fechado às ${formatTime(register.closed_at)}` : ""}
             </span>
@@ -336,8 +342,8 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
               </span>
             )}
           </div>
-          {/* Linha 2: 3 valores empilhados */}
-          <div className="flex justify-between">
+          {/* Linha 3: 3 valores empilhados */}
+          <div className="flex justify-between px-1 pt-1">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] text-zinc-500">Inicial</p>
               <p className="text-sm font-bold">{formatBRL(Number(register.opening_amount))}</p>
