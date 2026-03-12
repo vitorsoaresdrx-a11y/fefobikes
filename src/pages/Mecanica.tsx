@@ -445,6 +445,7 @@ export default function Mecanica() {
     const map: Record<string, MechanicJob[]> = {
       in_repair: [],
       in_maintenance: [],
+      in_analysis: [],
       ready: [],
     };
     jobs.forEach((j) => {
