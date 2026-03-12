@@ -214,8 +214,8 @@ export default function Gastos() {
               </div>
               <div>
                 <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Mensal</p>
-                <h2 className="text-4xl font-black tracking-tighter">
-                  {isLoading ? <span className="text-zinc-700 text-2xl">Carregando...</span> : formatBRL(fixedTotal)}
+                <h2 className="text-2xl lg:text-4xl font-black tracking-tighter">
+                  {isLoading ? <span className="text-zinc-700 text-lg lg:text-2xl">Carregando...</span> : formatBRL(fixedTotal)}
                 </h2>
               </div>
             </div>
