@@ -420,8 +420,8 @@ export default function DRE() {
         </div>
 
         {/* DRE Detalhado */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
+        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 className="font-bold text-lg">Demonstrativo Detalhado</h3>
             <div className="flex items-center gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800">
               <Btn onClick={prevMonth}>
