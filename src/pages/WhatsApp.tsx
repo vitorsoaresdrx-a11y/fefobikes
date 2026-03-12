@@ -150,14 +150,20 @@ export default function WhatsApp() {
   const updateStatus = useUpdateConversationStatus();
   const markAsRead = useMarkAsRead();
 
+  const { session } = useAuth();
+  const currentUserName =
+    session?.user?.user_metadata?.full_name ||
+    session?.user?.user_metadata?.name ||
+    null;
+
   const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return conversations.filter(
-      (c) =>
-        (c.contact_name || "").toLowerCase().includes(q) ||
-        c.contact_phone.includes(q)
-    );
-  }, [conversations, search]);
+    const q = search.toLowerCase().trim();
+    return conversations.filter((c) => {
+      const displayName = getDisplayContactName(c, currentUserName).toLowerCase();
+      const displayPhone = getDisplayContactPhone(c.contact_phone).toLowerCase();
+      return displayName.includes(q) || displayPhone.includes(q);
+    });
+  }, [conversations, search, currentUserName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
