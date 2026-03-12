@@ -185,9 +185,13 @@ export function useTotalUnread() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("whatsapp_conversations")
-        .select("unread_count");
+        .select("unread_count, contact_phone");
       if (error) throw error;
-      return (data || []).reduce((sum, c) => sum + (c.unread_count || 0), 0);
+      return (data || []).reduce((sum, c) => {
+        const normalizedPhone = (c.contact_phone || "").replace(/\D/g, "");
+        if (normalizedPhone.length < 8) return sum;
+        return sum + (c.unread_count || 0);
+      }, 0);
     },
   });
 }
