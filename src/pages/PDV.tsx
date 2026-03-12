@@ -27,6 +27,7 @@ import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { useCurrentCashRegister, useLinkSaleToCashRegister } from "@/hooks/useCashRegister";
+import { useRealtimeStock } from "@/hooks/useRealtimeStock";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -131,6 +132,7 @@ export default function PDV() {
   const { toast } = useToast();
   const { data: bikes = [] } = useBikeModels();
   const { data: parts = [] } = useParts();
+  useRealtimeStock();
   const { data: customers = [] } = useCustomers();
   const { data: cardTaxes } = useCardTaxes();
   const createCustomer = useCreateCustomer();
@@ -205,7 +207,18 @@ export default function PDV() {
 
   // ── Cart actions ───────────────────────────────────────────────────────────
 
+  const getStockQty = (id: string, type: "bike" | "part"): number => {
+    if (type === "part") return parts.find((p) => p.id === id)?.stock_qty ?? 0;
+    return bikes.find((b) => b.id === id)?.stock_qty ?? 0;
+  };
+
   const addToCart = (id: string, type: "bike" | "part", name: string, price: number, category: string | null) => {
+    const stock = getStockQty(id, type);
+    const currentQty = getCartQty(id, type);
+    if (currentQty >= stock) {
+      toast({ title: "Estoque insuficiente", variant: "destructive" });
+      return;
+    }
     setCart((prev) => {
       const existing = prev.find((i) => i.id === id && i.type === type);
       if (existing) return prev.map((i) => (i.id === id && i.type === type ? { ...i, quantity: i.quantity + 1 } : i));
@@ -394,11 +407,17 @@ export default function PDV() {
                   </div>
 
                   {/* Qty controls */}
-                  <div className="flex items-center gap-1 md:gap-0 bg-[#0A0A0B] rounded-lg md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
-                    <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, -1)}><Minus size={12} className="md:hidden" /><Minus size={14} className="hidden md:block" /></Btn>
-                    <span className="w-5 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
-                    <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, 1)}><Plus size={12} className="md:hidden" /><Plus size={14} className="hidden md:block" /></Btn>
-                  </div>
+                  {(() => {
+                    const stock = getStockQty(item.id, item.type);
+                    const atMax = item.quantity >= stock;
+                    return (
+                      <div className="flex items-center gap-1 md:gap-0 bg-[#0A0A0B] rounded-lg md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
+                        <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, -1)}><Minus size={12} className="md:hidden" /><Minus size={14} className="hidden md:block" /></Btn>
+                        <span className="w-5 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
+                        <Btn variant="ghost" size="icon" className={`!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg ${atMax ? "opacity-30 cursor-not-allowed" : ""}`} onClick={() => { if (!atMax) updateQty(item.key, 1); }}><Plus size={12} className="md:hidden" /><Plus size={14} className="hidden md:block" /></Btn>
+                      </div>
+                    );
+                  })()}
 
                   {/* Subtotal desktop */}
                   <div className="text-right min-w-[100px] hidden md:block">
@@ -525,11 +544,14 @@ export default function PDV() {
                   const type = isBike ? "bike" : "part";
                   const price = Number(item.sale_price) || 0;
                   const qty = getCartQty(item.id, type as "bike" | "part");
+                  const stock = item.stock_qty ?? 0;
+                  const outOfStock = stock <= 0;
+                  const atLimit = qty >= stock;
 
                   return (
                     <div
                       key={item.id}
-                      className="w-full min-w-0 overflow-hidden bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex flex-col justify-between space-y-2 md:space-y-4 hover:border-zinc-700 transition-all"
+                      className={`w-full min-w-0 overflow-hidden bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex flex-col justify-between space-y-2 md:space-y-4 transition-all ${outOfStock ? "opacity-40 grayscale pointer-events-none" : "hover:border-zinc-700"}`}
                     >
                       <div className="space-y-2 md:space-y-3">
                         {item.images && item.images.length > 0 ? (
@@ -548,16 +570,18 @@ export default function PDV() {
                           {item.category && <Badge variant="outline">{item.category}</Badge>}
                           <h4 className="text-sm md:text-lg font-bold text-white mt-1 truncate">{item.name}</h4>
                           <p className="text-sm md:text-xl font-bold md:font-black text-[#2952FF] mt-0.5 md:mt-1">{formatBRL(price)}</p>
-                          {!isBike && (
-                            <p className="text-[10px] text-zinc-600 mt-0.5 uppercase tracking-widest">
-                              Estoque: {item.stock_qty}
-                            </p>
-                          )}
+                          <p className={`text-[10px] mt-0.5 uppercase tracking-widest ${outOfStock ? "text-red-500 font-bold" : "text-zinc-600"}`}>
+                            {outOfStock ? "Sem estoque" : `Estoque: ${stock}`}
+                          </p>
                         </div>
                       </div>
 
                       <div className="mt-2">
-                        {qty > 0 ? (
+                        {outOfStock ? (
+                          <div className="w-full h-8 rounded-xl bg-zinc-900 text-xs font-bold text-zinc-600 flex items-center justify-center cursor-not-allowed">
+                            Indisponível
+                          </div>
+                        ) : qty > 0 ? (
                           <div className="flex items-center justify-between bg-zinc-800 rounded-xl px-3 py-2">
                             <button
                               className="w-6 h-6 flex items-center justify-center text-white"
@@ -567,8 +591,9 @@ export default function PDV() {
                             </button>
                             <span className="text-sm font-bold text-white">{qty}</span>
                             <button
-                              className="w-6 h-6 flex items-center justify-center text-white"
-                              onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
+                              className={`w-6 h-6 flex items-center justify-center ${atLimit ? "text-zinc-600 cursor-not-allowed" : "text-white"}`}
+                              onClick={() => !atLimit && addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
+                              disabled={atLimit}
                             >
                               <Plus size={14} />
                             </button>
