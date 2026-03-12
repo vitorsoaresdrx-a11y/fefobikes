@@ -578,7 +578,7 @@ export default function BikeForm() {
           </div>
 
           {/* ── Ficha Técnica (full width) ──────────────────────────────────── */}
-          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl space-y-8">
+          <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-8">
             <SectionHeader title="Ficha Técnica" icon={Maximize2} />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <SmallInput
