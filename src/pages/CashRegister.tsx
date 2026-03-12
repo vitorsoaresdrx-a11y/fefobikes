@@ -263,12 +263,10 @@ export default function CashRegister() {
 
             <div className="space-y-3">
               <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Valor presente no caixa (R$)</p>
-              <InputEl
+              <CurrencyInput
                 autoFocus
-                placeholder="0,00"
                 value={closingAmount}
-                onChange={(e) => setClosingAmount(e.target.value)}
-                inputMode="decimal"
+                onChange={setClosingAmount}
               />
             </div>
 
