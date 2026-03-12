@@ -264,8 +264,21 @@ export default function Estoque() {
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Header — Mobile */}
+        <header className="md:hidden flex items-center justify-between gap-2 mb-0">
+          <h1 className="text-lg font-black">Estoque Geral</h1>
+          <div className="flex gap-2 shrink-0">
+            <button className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 whitespace-nowrap flex items-center gap-1.5">
+              <History size={14} /> Histórico
+            </button>
+            <button className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white whitespace-nowrap flex items-center gap-1.5">
+              <Plus size={14} /> Entrada Manual
+            </button>
+          </div>
+        </header>
+
+        {/* Header — Desktop */}
+        <header className="hidden md:flex md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
@@ -273,7 +286,7 @@ export default function Estoque() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">HUB DE OPERAÇÕES</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
           <div className="flex items-center gap-3">
             <Btn variant="secondary" size="lg" className="rounded-2xl">
@@ -287,8 +300,33 @@ export default function Estoque() {
           </div>
         </header>
 
-        {/* Summary Cards — clicáveis como filtros */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+        {/* Summary Cards — Mobile compact */}
+        <div className="md:hidden grid grid-cols-2 gap-3 mb-0">
+          {(["critical", "warning", "ok"] as StockStatus[]).map((status) => {
+            const cfg = statusConfig[status];
+            const Icon = cfg.icon;
+            return (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(filterStatus === status ? "all" : status)}
+                className={`p-3 rounded-2xl bg-zinc-900 border text-left ${
+                  filterStatus === status ? "border-[#2952FF]" : "border-zinc-800"
+                } ${status === "ok" ? "col-span-2" : ""}`}
+              >
+                <div className={`w-7 h-7 rounded-lg ${cfg.bg} flex items-center justify-center mb-2`}>
+                  <Icon size={14} className={cfg.color} />
+                </div>
+                <p className="text-[9px] uppercase tracking-widest text-zinc-500">{cfg.label}</p>
+                <p className={`text-xl font-black ${cfg.color}`}>
+                  {counts[status]} <span className="text-xs font-normal text-zinc-600">itens</span>
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Summary Cards — Desktop */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           {(["critical", "warning", "ok"] as StockStatus[]).map((status) => (
             <SummaryCard
               key={status}
@@ -301,7 +339,7 @@ export default function Estoque() {
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-col md:flex-row items-center gap-4 pt-4">
+        <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 md:pt-4">
           <div className="flex-1 w-full relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <input
@@ -309,15 +347,15 @@ export default function Estoque() {
               placeholder="Buscar por nome ou categoria..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+              className="w-full h-11 md:h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
             />
           </div>
-          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
+          <div className="flex w-full md:w-auto p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
             {(["all", "Peça", "Bike"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterType(t)}
-                className={`px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
                   filterType === t ? "bg-[#2C2C2E] text-white" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
@@ -327,89 +365,124 @@ export default function Estoque() {
           </div>
         </div>
 
-        {/* Tabela */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <h3 className="font-bold text-base md:text-lg">Itens em Inventário</h3>
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-              {filtered.length} {filtered.length !== 1 ? "itens" : "item"} filtrado{filtered.length !== 1 ? "s" : ""}
-            </span>
+        {/* Loading / Empty */}
+        {isLoading ? (
+          <div className="p-20 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-20 text-center text-zinc-600 text-sm">
+            {search || filterStatus !== "all" || filterType !== "all"
+              ? "Nenhum item encontrado com esses filtros"
+              : "Nenhum item cadastrado"}
+          </div>
+        ) : (
+          <>
+            {/* Mobile Cards */}
+            <div className="block md:hidden space-y-2">
+              {filtered.map((item) => {
+                const cfg = statusConfig[item.status];
+                return (
+                  <button
+                    key={`m-${item.type}-${item.id}`}
+                    onClick={() => openModal(item)}
+                    className="w-full flex items-center gap-3 p-3 rounded-2xl bg-zinc-900 border border-zinc-800 text-left"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-600 overflow-hidden shrink-0">
+                      {item.image ? (
+                        <img src={item.image} alt="" className="w-full h-full object-cover" />
+                      ) : item.type === "Bike" ? (
+                        <Bike size={20} />
+                      ) : (
+                        <Package size={20} />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate">{item.name}</p>
+                      <p className="text-[10px] text-zinc-500 uppercase">{item.category || "Sem Categoria"}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400 block mb-1">
+                        {item.type}
+                      </span>
+                      <p className={`text-sm font-black ${cfg.color}`}>{item.stock_qty}</p>
+                      <p className="text-[9px] text-zinc-600">un.</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-          <div className="overflow-x-auto">
-            {isLoading ? (
-              <div className="p-20 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
+              <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between gap-2">
+                <h3 className="font-bold text-lg">Itens em Inventário</h3>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  {filtered.length} {filtered.length !== 1 ? "itens" : "item"} filtrado{filtered.length !== 1 ? "s" : ""}
+                </span>
               </div>
-            ) : filtered.length === 0 ? (
-              <div className="p-20 text-center text-zinc-600 text-sm">
-                {search || filterStatus !== "all" || filterType !== "all"
-                  ? "Nenhum item encontrado com esses filtros"
-                  : "Nenhum item cadastrado"}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
+                      <th className="px-8 py-4">Item / Categoria</th>
+                      <th className="px-8 py-4">Tipo</th>
+                      <th className="px-8 py-4 text-center">Disponível</th>
+                      <th className="px-8 py-4 text-center">Alerta</th>
+                      <th className="px-8 py-4 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/30 text-sm">
+                    {filtered.map((item) => {
+                      const cfg = statusConfig[item.status];
+                      const StatusIcon = cfg.icon;
+                      return (
+                        <tr
+                          key={`d-${item.type}-${item.id}`}
+                          onClick={() => openModal(item)}
+                          className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
+                        >
+                          <td className="px-8 py-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors overflow-hidden shrink-0">
+                                {item.image ? (
+                                  <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                ) : item.type === "Bike" ? (
+                                  <Bike className="w-6 h-6" />
+                                ) : (
+                                  <Package className="w-6 h-6" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-bold text-zinc-100">{item.name}</p>
+                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                                  {item.category || "Sem Categoria"}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6"><BadgeEl>{item.type}</BadgeEl></td>
+                          <td className="px-8 py-6 text-center">
+                            <span className={`text-lg font-black ${cfg.color}`}>{item.stock_qty}</span>
+                          </td>
+                          <td className="px-8 py-6 text-center text-zinc-500 font-medium">
+                            {item.alert_stock > 0 ? item.alert_stock : "—"}
+                          </td>
+                          <td className="px-8 py-6">
+                            <div className={`flex items-center justify-end gap-2 ${cfg.color} font-bold text-xs uppercase tracking-tighter`}>
+                              {cfg.label}
+                              <StatusIcon className="w-4 h-4" />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-                    <th className="px-4 md:px-8 py-4">Item / Categoria</th>
-                    <th className="px-4 md:px-8 py-4 hidden sm:table-cell">Tipo</th>
-                    <th className="px-4 md:px-8 py-4 text-center">Disponível</th>
-                    <th className="px-4 md:px-8 py-4 text-center hidden md:table-cell">Alerta</th>
-                    <th className="px-8 py-4 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/30 text-sm">
-                  {filtered.map((item) => {
-                    const cfg = statusConfig[item.status];
-                    const StatusIcon = cfg.icon;
-                    return (
-                      <tr
-                        key={`${item.type}-${item.id}`}
-                        onClick={() => openModal(item)}
-                        className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
-                      >
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors overflow-hidden shrink-0">
-                              {item.image ? (
-                                <img src={item.image} alt="" className="w-full h-full object-cover" />
-                              ) : item.type === "Bike" ? (
-                                <Bike className="w-6 h-6" />
-                              ) : (
-                                <Package className="w-6 h-6" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-bold text-zinc-100">{item.name}</p>
-                              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                                {item.category || "Sem Categoria"}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6">
-                          <BadgeEl>{item.type}</BadgeEl>
-                        </td>
-                        <td className="px-8 py-6 text-center">
-                          <span className={`text-lg font-black ${cfg.color}`}>{item.stock_qty}</span>
-                        </td>
-                        <td className="px-8 py-6 text-center text-zinc-500 font-medium">
-                          {item.alert_stock > 0 ? item.alert_stock : "—"}
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className={`flex items-center justify-end gap-2 ${cfg.color} font-bold text-xs uppercase tracking-tighter`}>
-                            {cfg.label}
-                            <StatusIcon className="w-4 h-4" />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modal de Ajuste */}
