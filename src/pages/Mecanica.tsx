@@ -369,13 +369,13 @@ function JobCard({
             <button
               onClick={handleDelete}
               disabled={remove.isPending}
-              className="h-8 rounded-xl px-4 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
+              className="h-7 rounded-lg px-2.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
             >
               {remove.isPending ? (
-                <Loader2 size={12} className="animate-spin" />
+                <Loader2 size={10} className="animate-spin" />
               ) : (
                 <>
-                  Concluir <Check size={12} />
+                  Concluir <Check size={10} />
                 </>
               )}
             </button>
