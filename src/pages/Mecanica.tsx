@@ -489,6 +489,7 @@ export default function Mecanica() {
           bike_name: "",
           customer_cpf: "",
           customer_whatsapp: "",
+          customer_id: null,
           problem: "",
           price: 0,
         });
