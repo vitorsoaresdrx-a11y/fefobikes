@@ -35,6 +35,12 @@ function formatDateTime(d: string) {
   });
 }
 
+function formatDateOnly(d: string) {
+  return new Date(d).toLocaleDateString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+  });
+}
+
 function formatTime(d: string) {
   return new Date(d).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
