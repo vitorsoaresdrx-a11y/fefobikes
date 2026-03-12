@@ -61,7 +61,10 @@ export function useConversations(statusFilter?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Conversation[];
+      return (data as Conversation[]).filter((conversation) => {
+        const normalizedPhone = (conversation.contact_phone || "").replace(/\D/g, "");
+        return normalizedPhone.length >= 8;
+      });
     },
   });
 }
