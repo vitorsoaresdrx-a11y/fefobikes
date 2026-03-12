@@ -515,9 +515,10 @@ export default function PDV() {
             )}
 
             {/* Grid de itens */}
-            <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 w-full">
               {catalogItems.length === 0 ? (
-                <div className="col-span-3 py-20 text-center text-zinc-600 text-sm">Nenhum item encontrado</div>
+                <div className="col-span-full py-20 text-center text-zinc-600 text-sm">Nenhum item encontrado</div>
               ) : (
                 catalogItems.map((item: any) => {
                   const isBike = catalogTab === "bikes";
@@ -528,7 +529,7 @@ export default function PDV() {
                   return (
                     <div
                       key={item.id}
-                      className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex flex-col justify-between space-y-2 md:space-y-4 hover:border-zinc-700 transition-all"
+                      className="w-full min-w-0 overflow-hidden bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex flex-col justify-between space-y-2 md:space-y-4 hover:border-zinc-700 transition-all"
                     >
                       <div className="space-y-2 md:space-y-3">
                         {item.images && item.images.length > 0 ? (
@@ -543,7 +544,7 @@ export default function PDV() {
                             {isBike ? <BikeIcon size={64} className="hidden md:block" /> : <Package size={64} className="hidden md:block" />}
                           </div>
                         )}
-                        <div>
+                        <div className="min-w-0">
                           {item.category && <Badge variant="outline">{item.category}</Badge>}
                           <h4 className="text-sm md:text-lg font-bold text-white mt-1 truncate">{item.name}</h4>
                           <p className="text-sm md:text-xl font-bold md:font-black text-[#2952FF] mt-0.5 md:mt-1">{formatBRL(price)}</p>
@@ -555,29 +556,37 @@ export default function PDV() {
                         </div>
                       </div>
 
-                      {qty > 0 ? (
-                        <div className="flex items-center justify-between bg-[#0A0A0B] rounded-xl md:rounded-2xl p-1 border border-zinc-800">
-                          <Btn variant="ghost" size="icon" className="!h-7 !w-7 md:!h-10 md:!w-10" onClick={() => updateQty(cart.find((i) => i.id === item.id && i.type === type)!.key, -1)}>
-                            <Minus size={14} />
-                          </Btn>
-                          <span className="font-black text-white text-sm">{qty}</span>
-                          <Btn variant="ghost" size="icon" className="!h-7 !w-7 md:!h-10 md:!w-10" onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}>
-                            <Plus size={14} />
-                          </Btn>
-                        </div>
-                      ) : (
-                        <Btn
-                          variant="secondary"
-                          className="w-full h-8 text-xs md:h-12 md:text-sm"
-                          onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
-                        >
-                          <Plus className="mr-1 w-3 h-3 md:mr-2 md:w-4 md:h-4" /> Adicionar
-                        </Btn>
-                      )}
+                      <div className="mt-2">
+                        {qty > 0 ? (
+                          <div className="flex items-center justify-between bg-zinc-800 rounded-xl px-3 py-2">
+                            <button
+                              className="w-6 h-6 flex items-center justify-center text-white"
+                              onClick={() => updateQty(cart.find((i) => i.id === item.id && i.type === type)!.key, -1)}
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="text-sm font-bold text-white">{qty}</span>
+                            <button
+                              className="w-6 h-6 flex items-center justify-center text-white"
+                              onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="w-full h-8 rounded-xl bg-zinc-800 text-xs font-bold text-white hover:bg-zinc-700 transition-colors"
+                            onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
+                          >
+                            + Adicionar
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })
               )}
+              </div>
             </div>
 
             {/* Footer do catálogo */}
