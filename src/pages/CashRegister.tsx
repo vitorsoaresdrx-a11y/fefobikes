@@ -173,16 +173,16 @@ export default function CashRegister() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5">
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Valor Inicial</p>
                 <p className="text-2xl font-black text-white">{formatBRL(currentRegister!.opening_amount)}</p>
               </div>
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5">
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Vendas em Dinheiro</p>
                 <p className="text-2xl font-black text-white">{cashTotals?.count || 0} vendas</p>
                 <p className="text-sm text-zinc-500 font-bold">{formatBRL(cashTotals?.total || 0)}</p>
               </div>
-              <div className="bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl p-5">
+              <div className="bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl p-6">
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Esperado em Caixa</p>
                 <p className="text-2xl font-black text-[#2952FF]">{formatBRL(expectedAmount)}</p>
               </div>
