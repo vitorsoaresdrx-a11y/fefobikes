@@ -228,7 +228,7 @@ export default function Bikes() {
 
                     <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
                       {firstImage ? (
-                        <img src={firstImage} alt={bike.name} className="w-full h-full object-cover" />
+                        <img src={getOptimizedImageUrl(firstImage, 400, 80) || firstImage} alt={bike.name} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
                         <Package className="w-16 h-16 text-zinc-800" />
                       )}

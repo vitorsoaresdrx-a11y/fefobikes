@@ -207,7 +207,7 @@ export default function Estoque() {
       stock_qty: Number((b as any).stock_qty) || 0,
       alert_stock: Number((b as any).alert_stock) || 0,
       status: getStatus(Number((b as any).stock_qty) || 0, Number((b as any).alert_stock) || 0),
-      image: (b as any).images?.[0] || null,
+      image: getOptimizedImageUrl((b as any).images?.[0], 80, 70),
     }));
 
     return [...partItems, ...bikeItems];

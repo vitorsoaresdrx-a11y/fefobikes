@@ -467,7 +467,7 @@ export default function WhatsApp() {
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-700 font-bold uppercase shrink-0">
                   {selectedConv.contact_photo ? (
                     <img
-                      src={selectedConv.contact_photo}
+                      src={getOptimizedImageUrl(selectedConv.contact_photo, 80, 70) || selectedConv.contact_photo}
                       className="w-full h-full object-cover rounded-xl"
                       alt=""
                     />

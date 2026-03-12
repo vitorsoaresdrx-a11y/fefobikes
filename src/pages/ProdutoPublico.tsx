@@ -334,8 +334,9 @@ export default function ProdutoPublico() {
                   <CarouselItem key={i}>
                     <div className="aspect-[4/3] rounded-[40px] overflow-hidden bg-[#161618] border border-zinc-800 shadow-2xl">
                       <img
-                        src={img}
+                        src={getOptimizedImageUrl(img, 800, 85) || img}
                         alt={`${product.name} ${i + 1}`}
+                        loading={i === 0 ? "eager" : "lazy"}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                     </div>
