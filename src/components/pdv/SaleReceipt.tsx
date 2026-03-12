@@ -118,7 +118,57 @@ function buildWhatsAppMessage(data: ReceiptData) {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
-  const handlePrint = useCallback(() => window.print(), []);
+  const handlePrint = useCallback(() => {
+    const receiptEl = document.getElementById("receipt-content");
+    if (!receiptEl) return;
+
+    const printWindow = window.open("", "_blank", "width=400,height=600");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Recibo - FeFo Bikes</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: 'Courier New', monospace;
+              font-size: 12px;
+              color: #000;
+              background: #fff;
+              width: 80mm;
+              padding: 4mm;
+            }
+            .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+            .header h1 { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+            .header p { font-size: 10px; margin-top: 2px; }
+            .section { border-top: 1px dashed #000; padding: 6px 0; margin-bottom: 4px; }
+            .label { font-size: 9px; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+            .row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
+            .row .name { flex: 1; padding-right: 8px; }
+            .row .value { white-space: nowrap; }
+            .qty { font-size: 9px; color: #555; margin-bottom: 6px; }
+            .total-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; margin-top: 4px; }
+            .footer { border-top: 1px dashed #000; padding-top: 8px; text-align: center; margin-top: 4px; }
+            .footer p { font-size: 10px; margin-bottom: 2px; }
+            .footer .small { font-size: 9px; color: #555; }
+          </style>
+        </head>
+        <body>
+          ${receiptEl.innerHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 300);
+  }, []);
 
   const handleWhatsApp = useCallback(() => {
     const msg = encodeURIComponent(buildWhatsAppMessage(data));
@@ -141,7 +191,7 @@ export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
         {/* Receipt card — white bg, black text to simulate thermal print */}
         <div className="overflow-y-auto max-h-[85vh] rounded-2xl">
           <div
-            id="sale-receipt-print"
+            id="receipt-content"
             className="receipt bg-white text-black rounded-2xl p-5 w-full"
           >
             {/* Header */}
