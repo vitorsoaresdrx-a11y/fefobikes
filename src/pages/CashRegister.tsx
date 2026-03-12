@@ -139,7 +139,7 @@ export default function CashRegister() {
 
         {/* ── Status Section ──────────────────────────────────────────── */}
         {!isOpen ? (
-          <div className="py-20 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-[40px]">
+          <div className="py-12 md:py-20 flex flex-col items-center text-center space-y-4 md:space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
             <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700">
               <Lock size={40} />
             </div>
