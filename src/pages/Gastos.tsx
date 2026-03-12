@@ -439,10 +439,7 @@ export default function Gastos() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Valor (R$) *</Label>
-                    <div className="relative">
-                      <Input type="number" step="0.01" min={0} value={vAmount} onChange={(e) => setVAmount(e.target.value)} placeholder="0,00" className="pl-12" />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-600 text-xs">R$</span>
-                    </div>
+                    <CurrencyInput value={vAmount} onChange={setVAmount} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Data</Label>
