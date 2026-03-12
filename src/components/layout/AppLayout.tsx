@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { BottomNav } from "@/components/layout/BottomNav";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -38,19 +39,18 @@ export function AppLayout() {
     crumbs.push({ label, path: currentPath });
   }
 
-  const pageTitle = crumbs.length > 0
-    ? crumbs[crumbs.length - 1].label
-    : "Dashboard";
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background text-foreground">
-        <AppSidebar />
+        {/* Sidebar hidden on mobile, visible on lg+ */}
+        <div className="hidden lg:flex">
+          <AppSidebar />
+        </div>
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top bar */}
           <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="h-4 w-px bg-border" />
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground hidden lg:flex" />
+            <div className="h-4 w-px bg-border hidden lg:block" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -78,11 +78,14 @@ export function AppLayout() {
             </Breadcrumb>
           </header>
 
-          {/* Main content */}
-          <main className="flex-1 overflow-auto p-6">
+          {/* Main content - pb for bottom nav on mobile */}
+          <main className="flex-1 overflow-auto p-4 md:p-6 pb-20 lg:pb-6">
             <Outlet />
           </main>
         </div>
+
+        {/* Bottom nav for mobile */}
+        <BottomNav />
       </div>
     </SidebarProvider>
   );
