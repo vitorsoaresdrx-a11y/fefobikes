@@ -368,39 +368,46 @@ export default function PDV() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3 md:gap-4">
               {cart.map((item) => (
                 <div
                   key={item.key}
-                  className="group bg-[#161618] border border-zinc-800 rounded-[32px] p-6 flex items-center justify-between hover:border-zinc-700 transition-all"
+                  className="group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex items-center gap-3 md:gap-6 hover:border-zinc-700 transition-all"
                 >
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
-                      {item.type === "bike" ? <BikeIcon size={32} /> : <Package size={32} />}
-                    </div>
-                    <div>
-                      <h4 className="text-xl font-bold text-white">{item.name}</h4>
-                      <p className="text-sm text-zinc-500 font-medium">{formatBRL(item.unit_price)} por unidade</p>
-                    </div>
+                  {/* Icon */}
+                  <div className="w-10 h-10 md:w-16 md:h-16 bg-zinc-900 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
+                    {item.type === "bike" ? <BikeIcon size={20} className="md:hidden" /> : <Package size={20} className="md:hidden" />}
+                    {item.type === "bike" ? <BikeIcon size={32} className="hidden md:block" /> : <Package size={32} className="hidden md:block" />}
                   </div>
 
-                  <div className="flex items-center gap-6 md:gap-8">
-                    <div className="flex items-center bg-[#0A0A0B] rounded-2xl p-1 border border-zinc-800">
-                      <Btn variant="ghost" size="icon" onClick={() => updateQty(item.key, -1)}><Minus size={16} /></Btn>
-                      <span className="w-10 text-center font-black text-white">{item.quantity}</span>
-                      <Btn variant="ghost" size="icon" onClick={() => updateQty(item.key, 1)}><Plus size={16} /></Btn>
-                    </div>
-                    <div className="text-right min-w-[100px] hidden sm:block">
-                      <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Subtotal</p>
-                      <p className="text-xl font-black text-white">{formatBRL(item.quantity * item.unit_price)}</p>
-                    </div>
-                    <button
-                      onClick={() => removeItem(item.key)}
-                      className="p-2 text-zinc-700 hover:text-red-500 transition-colors"
-                    >
-                      <X size={20} />
-                    </button>
+                  {/* Name + price */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm md:text-xl font-bold text-white truncate">{item.name}</h4>
+                    <p className="text-xs md:text-sm text-zinc-500 font-medium">{formatBRL(item.unit_price)}/un</p>
+                    <p className="text-xs font-black text-white md:hidden mt-0.5">{formatBRL(item.quantity * item.unit_price)}</p>
                   </div>
+
+                  {/* Qty controls */}
+                  <div className="flex items-center bg-[#0A0A0B] rounded-xl md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
+                    <Btn variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => updateQty(item.key, -1)}><Minus size={14} /></Btn>
+                    <span className="w-7 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
+                    <Btn variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => updateQty(item.key, 1)}><Plus size={14} /></Btn>
+                  </div>
+
+                  {/* Subtotal desktop */}
+                  <div className="text-right min-w-[100px] hidden md:block">
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Subtotal</p>
+                    <p className="text-xl font-black text-white">{formatBRL(item.quantity * item.unit_price)}</p>
+                  </div>
+
+                  {/* Remove */}
+                  <button
+                    onClick={() => removeItem(item.key)}
+                    className="p-1.5 md:p-2 text-zinc-700 hover:text-red-500 transition-colors shrink-0"
+                  >
+                    <X size={16} className="md:hidden" />
+                    <X size={20} className="hidden md:block" />
+                  </button>
                 </div>
               ))}
             </div>
