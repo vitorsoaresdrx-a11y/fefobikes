@@ -151,7 +151,7 @@ export default function CashRegister() {
             </Btn>
           </div>
         ) : (
-          <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-4 md:space-y-6">
+          <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-6 md:p-8 space-y-4 md:space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="relative flex h-3 w-3">
