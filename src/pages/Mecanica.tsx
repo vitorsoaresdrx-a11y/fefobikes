@@ -277,40 +277,40 @@ function JobCard({
   const showApprovalActions = columnKey === "in_maintenance";
 
   return (
-    <div className="group bg-[#161618] border border-zinc-800 rounded-2xl lg:rounded-[32px] p-4 md:p-6 space-y-4 md:space-y-5 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+    <div className="group bg-[#161618] border border-zinc-800 rounded-2xl p-3 lg:p-4 space-y-3 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
       {/* Customer info */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-1">
         <div className="space-y-1 min-w-0">
           {job.customer_name && (
-            <div className="flex items-center gap-2">
-              <User size={14} className="text-[#2952FF] shrink-0" />
-              <span className="text-sm font-black tracking-tight text-white uppercase italic truncate">
+            <div className="flex items-center gap-1.5">
+              <User size={12} className="text-[#2952FF] shrink-0" />
+              <span className="text-xs font-black tracking-tight text-white uppercase italic truncate">
                 {job.customer_name}
               </span>
             </div>
           )}
-          <div className="flex flex-wrap gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+          <div className="flex flex-wrap gap-2 text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
             {job.customer_whatsapp && (
-              <span className="flex items-center gap-1">
-                <Phone size={10} /> {job.customer_whatsapp}
+              <span className="flex items-center gap-1 truncate">
+                <Phone size={9} /> {job.customer_whatsapp}
               </span>
             )}
             {job.customer_cpf && (
-              <span className="flex items-center gap-1">
-                <CreditCard size={10} /> {job.customer_cpf}
+              <span className="flex items-center gap-1 truncate">
+                <CreditCard size={9} /> {job.customer_cpf}
               </span>
             )}
           </div>
         </div>
         <button
-          className="p-2 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+          className="p-1.5 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
           onClick={handleDelete}
           disabled={remove.isPending}
         >
           {remove.isPending ? (
-            <Loader2 size={16} className="animate-spin" />
+            <Loader2 size={14} className="animate-spin" />
           ) : (
-            <Trash2 size={16} />
+            <Trash2 size={14} />
           )}
         </button>
       </div>
