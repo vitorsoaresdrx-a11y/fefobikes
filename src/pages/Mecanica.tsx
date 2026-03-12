@@ -645,8 +645,8 @@ export default function Mecanica() {
                 ))}
             </div>
 
-            {/* Desktop: 3 columns */}
-            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 lg:gap-8 items-start">
+            {/* Desktop: 4 columns */}
+            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 items-start">
               {columns.map((col) => (
                 <div
                   key={col.key}
