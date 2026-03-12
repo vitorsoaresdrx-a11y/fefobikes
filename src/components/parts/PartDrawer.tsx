@@ -229,14 +229,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             {/* PIX / Dinheiro price */}
             <div className="space-y-2">
               <Label className="text-sm">Preço no PIX / Dinheiro (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min={0}
-                value={form.watch("pix_price") || ""}
-                onChange={(e) => form.setValue("pix_price", parseFloat(e.target.value) || 0)}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="0,00"
+              <CurrencyInput
+                value={form.watch("pix_price") || 0}
+                onChange={(val) => form.setValue("pix_price", val)}
+                className="h-9 text-sm"
               />
               <p className="text-[10px] text-muted-foreground">Preço com desconto para pagamento à vista</p>
             </div>
