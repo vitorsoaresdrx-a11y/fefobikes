@@ -135,4 +135,26 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .scrollbar-dark::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-dark::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 9999px;
+  }
+}
+
+/* Global: force dark scrollbars on all dialogs */
+[role="dialog"]::-webkit-scrollbar {
+  width: 6px;
+}
+[role="dialog"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+[role="dialog"]::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 9999px;
 }
