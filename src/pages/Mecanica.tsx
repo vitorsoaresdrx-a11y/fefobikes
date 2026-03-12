@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import {
   Wrench,
   Settings,
