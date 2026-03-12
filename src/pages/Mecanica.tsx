@@ -785,21 +785,10 @@ export default function Mecanica() {
                   />
                 </InputGroup>
                 <InputGroup label="Custo Adicional">
-                  <div className="relative">
-                    <PremiumInput
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      placeholder="0,00"
-                      value={addForm.price}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, price: e.target.value }))
-                      }
-                    />
-                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 text-xs font-bold pointer-events-none">
-                      R$
-                    </span>
-                  </div>
+                  <CurrencyInput
+                    value={addForm.price}
+                    onChange={(val) => setAddForm((f) => ({ ...f, price: val }))}
+                  />
                 </InputGroup>
               </div>
             )}
