@@ -72,6 +72,7 @@ function AuthGate() {
         <Route path="/mecanicos" element={<GuardedRoute module="mecanica"><Mecanicos /></GuardedRoute>} />
         <Route path="/mecanicos/historico" element={<GuardedRoute module="mecanica"><MecanicosHistorico /></GuardedRoute>} />
         <Route path="/clientes" element={<GuardedRoute module="clientes"><Clientes /></GuardedRoute>} />
+        <Route path="/clientes/:id" element={<GuardedRoute module="clientes"><ClienteDetalhe /></GuardedRoute>} />
         <Route path="/orcamentos" element={<GuardedRoute module="mecanica"><Orcamentos /></GuardedRoute>} />
         <Route path="/configuracoes" element={<GuardedRoute module="configuracoes"><Configuracoes /></GuardedRoute>} />
         <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><WhatsAppPage /></GuardedRoute>} />
