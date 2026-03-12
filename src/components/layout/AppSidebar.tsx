@@ -13,6 +13,8 @@ import {
   Landmark,
   MessageCircle,
   Shield,
+  HardHat,
+  History,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
