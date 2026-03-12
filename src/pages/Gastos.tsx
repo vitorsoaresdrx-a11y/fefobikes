@@ -134,8 +134,8 @@ export default function Gastos() {
   const [vDate, setVDate] = useState("");
   const [vNotes, setVNotes] = useState("");
 
-  const resetFixed = () => { setFName(""); setFAmount(""); setFNotes(""); };
-  const resetVar = () => { setVName(""); setVAmount(""); setVDate(""); setVNotes(""); };
+  const resetFixed = () => { setFName(""); setFAmount(0); setFNotes(""); };
+  const resetVar = () => { setVName(""); setVAmount(0); setVDate(""); setVNotes(""); };
 
   const filteredVariable = useMemo(() =>
     variableExpenses.filter((e) => {
