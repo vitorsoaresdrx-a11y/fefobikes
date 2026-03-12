@@ -20,6 +20,7 @@ import {
   Layers,
   History,
   TrendingUp,
+  Search,
 } from "lucide-react";
 import {
   Dialog,
