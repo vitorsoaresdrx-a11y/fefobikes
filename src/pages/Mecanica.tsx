@@ -464,6 +464,7 @@ export default function Mecanica() {
       customer_name: form.customer_name || undefined,
       customer_cpf: form.customer_cpf || undefined,
       customer_whatsapp: form.customer_whatsapp || undefined,
+      bike_name: form.bike_name || undefined,
       problem: form.problem,
       price: form.price,
     };
@@ -472,11 +473,12 @@ export default function Mecanica() {
         // Also create a service_order for the mechanics panel
         createServiceOrder.mutate({
           ...orderData,
-          bike_name: form.customer_name || undefined,
+          bike_name: form.bike_name || undefined,
         });
         toast.success("Manutenção criada!");
         setForm({
           customer_name: "",
+          bike_name: "",
           customer_cpf: "",
           customer_whatsapp: "",
           problem: "",
