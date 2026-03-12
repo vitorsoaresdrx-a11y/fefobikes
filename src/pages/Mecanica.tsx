@@ -316,8 +316,8 @@ function JobCard({
       </div>
 
       {/* Problem */}
-      <div className="p-4 bg-[#0A0A0B] rounded-2xl border border-zinc-800/50">
-        <p className="text-xs font-medium text-zinc-400 leading-relaxed">{job.problem}</p>
+      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
+        <p className="text-[11px] font-medium text-zinc-400 leading-relaxed line-clamp-3">{job.problem}</p>
       </div>
 
       {/* Additions */}
