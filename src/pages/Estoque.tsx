@@ -328,9 +328,9 @@ export default function Estoque() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
-            <h3 className="font-bold text-lg">Itens em Inventário</h3>
+        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 className="font-bold text-base md:text-lg">Itens em Inventário</h3>
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
               {filtered.length} {filtered.length !== 1 ? "itens" : "item"} filtrado{filtered.length !== 1 ? "s" : ""}
             </span>
