@@ -307,7 +307,7 @@ export default function Pecas() {
                     const profit = sale - cost;
                     return (
                       <tr key={part.id} className="group hover:bg-white/[0.02] transition-colors">
-                        <td className="px-8 py-6">
+                        <td className="px-4 md:px-8 py-4 md:py-6">
                           <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors shrink-0">
                               <Box className="w-6 h-6" />
