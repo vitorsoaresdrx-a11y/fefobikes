@@ -243,14 +243,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Valor da parcela (R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    value={form.watch("installment_price") || ""}
-                    onChange={(e) => form.setValue("installment_price", parseFloat(e.target.value) || 0)}
-                    className="bg-card border-border h-9 text-sm"
-                    placeholder="0,00"
+                  <CurrencyInput
+                    value={form.watch("installment_price") || 0}
+                    onChange={(val) => form.setValue("installment_price", val)}
+                    className="h-9 text-sm"
                   />
                 </div>
                 <div className="space-y-1">
