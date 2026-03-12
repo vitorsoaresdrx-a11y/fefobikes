@@ -166,14 +166,14 @@ export default function ProdutoPublico() {
     enabled: !!sku,
     queryFn: async () => {
       const { data: part } = await supabase
-        .from("parts")
+        .from("parts_public" as any)
         .select("*")
         .eq("sku", sku!)
         .maybeSingle();
       if (part) return { ...part, _type: "part" as const };
 
       const { data: bike } = await supabase
-        .from("bike_models")
+        .from("bike_models_public" as any)
         .select("*")
         .eq("sku", sku!)
         .maybeSingle();
