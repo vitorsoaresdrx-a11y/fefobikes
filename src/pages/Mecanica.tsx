@@ -402,7 +402,7 @@ export default function Mecanica() {
       description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined,
       duration: 8000,
     });
-    // Auto-advance matching mechanic_job to "ready"
+    // Auto-advance matching mechanic_job to "in_analysis"
     const matchingJob = jobs.find(
       (j) => j.problem === order.problem && j.status === "in_maintenance"
     );
