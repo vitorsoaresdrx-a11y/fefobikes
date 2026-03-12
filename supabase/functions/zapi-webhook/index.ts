@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
           contact_photo: contactPhoto,
           last_message:  content || `[${type}]`,
           last_message_at: new Date().toISOString(),
-          unread_count: isFromMe ? 0 : 1,
+          unread_count: 1,
           status: "open",
         })
         .select("id")
