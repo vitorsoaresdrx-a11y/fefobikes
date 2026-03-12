@@ -407,11 +407,17 @@ export default function PDV() {
                   </div>
 
                   {/* Qty controls */}
-                  <div className="flex items-center gap-1 md:gap-0 bg-[#0A0A0B] rounded-lg md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
-                    <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, -1)}><Minus size={12} className="md:hidden" /><Minus size={14} className="hidden md:block" /></Btn>
-                    <span className="w-5 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
-                    <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, 1)}><Plus size={12} className="md:hidden" /><Plus size={14} className="hidden md:block" /></Btn>
-                  </div>
+                  {(() => {
+                    const stock = getStockQty(item.id, item.type);
+                    const atMax = item.quantity >= stock;
+                    return (
+                      <div className="flex items-center gap-1 md:gap-0 bg-[#0A0A0B] rounded-lg md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
+                        <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, -1)}><Minus size={12} className="md:hidden" /><Minus size={14} className="hidden md:block" /></Btn>
+                        <span className="w-5 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
+                        <Btn variant="ghost" size="icon" className={`!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg ${atMax ? "opacity-30 cursor-not-allowed" : ""}`} onClick={() => { if (!atMax) updateQty(item.key, 1); }}><Plus size={12} className="md:hidden" /><Plus size={14} className="hidden md:block" /></Btn>
+                      </div>
+                    );
+                  })()}
 
                   {/* Subtotal desktop */}
                   <div className="text-right min-w-[100px] hidden md:block">
