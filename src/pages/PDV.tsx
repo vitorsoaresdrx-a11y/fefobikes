@@ -447,7 +447,7 @@ export default function PDV() {
       {/* ── MODAL 1: Catálogo ─────────────────────────────────────────────── */}
       {step === "catalog" && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="h-full flex flex-col max-w-5xl mx-auto p-6 space-y-6">
+          <div className="h-full flex flex-col max-w-5xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
 
             <header className="flex items-center justify-between">
               <button
