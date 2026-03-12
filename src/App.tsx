@@ -26,6 +26,7 @@ import WhatsAppPage from "@/pages/WhatsApp";
 import Permissoes from "@/pages/Permissoes";
 import Placeholder from "@/pages/Placeholder";
 import NotFound from "@/pages/NotFound";
+import Orcamentos from "@/pages/Orcamentos";
 import ProdutoPublico from "@/pages/ProdutoPublico";
 import { Loader2 } from "lucide-react";
 
