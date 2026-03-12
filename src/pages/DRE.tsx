@@ -422,12 +422,12 @@ export default function DRE() {
         {/* DRE Detalhado */}
         <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
           <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h3 className="font-bold text-lg">Demonstrativo Detalhado</h3>
-            <div className="flex items-center gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800">
+            <h3 className="text-base md:text-lg font-black">Demonstrativo Detalhado</h3>
+            <div className="flex items-center gap-1 md:gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800 self-start">
               <Btn onClick={prevMonth}>
                 <ChevronLeft size={16} />
               </Btn>
-              <span className="text-[10px] font-black uppercase tracking-widest px-4 min-w-[100px] text-center">
+              <span className="text-[10px] font-black uppercase tracking-widest px-2 md:px-4 min-w-[80px] md:min-w-[100px] text-center">
                 {MONTHS_FULL[selectedMonth]}
               </span>
               <Btn onClick={nextMonth} disabled={isAtCurrentMonth}>
