@@ -17,6 +17,7 @@ export interface Quote {
   customer_name: string | null;
   customer_cpf: string | null;
   customer_whatsapp: string | null;
+  customer_id: string | null;
   notes: string | null;
   labor_cost: number;
   total: number;
@@ -64,6 +65,7 @@ export function useCreateQuote() {
       customer_name?: string;
       customer_cpf?: string;
       customer_whatsapp?: string;
+      customer_id?: string | null;
       notes?: string;
       labor_cost: number;
       total: number;

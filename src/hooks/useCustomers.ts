@@ -43,6 +43,23 @@ export function useCreateCustomer() {
   });
 }
 
+export function useUpdateCustomer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; name?: string; whatsapp?: string | null; cpf?: string | null; notes?: string | null }) => {
+      const { data, error } = await supabase
+        .from("customers")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as Customer;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: CUSTOMERS_KEY }),
+  });
+}
+
 export function useCustomerWithSales(customerId: string | undefined) {
   return useQuery({
     queryKey: ["customer_sales", customerId],
@@ -51,6 +68,54 @@ export function useCustomerWithSales(customerId: string | undefined) {
       const { data, error } = await supabase
         .from("sales")
         .select("*, sale_items(*)")
+        .eq("customer_id", customerId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCustomerServiceOrders(customerId: string | undefined) {
+  return useQuery({
+    queryKey: ["customer_service_orders", customerId],
+    enabled: !!customerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_orders")
+        .select("*")
+        .eq("customer_id", customerId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCustomerMechanicJobs(customerId: string | undefined) {
+  return useQuery({
+    queryKey: ["customer_mechanic_jobs", customerId],
+    enabled: !!customerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mechanic_jobs" as any)
+        .select("*")
+        .eq("customer_id", customerId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCustomerQuotes(customerId: string | undefined) {
+  return useQuery({
+    queryKey: ["customer_quotes", customerId],
+    enabled: !!customerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("*, quote_items(*)")
         .eq("customer_id", customerId!)
         .order("created_at", { ascending: false });
       if (error) throw error;

@@ -7,6 +7,7 @@ export interface ServiceOrder {
   customer_name: string | null;
   customer_cpf: string | null;
   customer_whatsapp: string | null;
+  customer_id: string | null;
   bike_name: string | null;
   problem: string;
   price: number;
@@ -44,6 +45,7 @@ export function useCreateServiceOrder() {
       customer_name?: string;
       customer_cpf?: string;
       customer_whatsapp?: string;
+      customer_id?: string | null;
       bike_name?: string;
       problem: string;
       price?: number;
