@@ -1,0 +1,311 @@
+import { useState, useEffect } from "react";
+import {
+  Wrench,
+  CheckCircle2,
+  Clock,
+  User,
+  Phone,
+  CreditCard,
+  Loader2,
+  Check,
+  Hash,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  useServiceOrders,
+  useAcceptServiceOrder,
+  useFinishServiceOrder,
+  useServiceOrdersRealtime,
+  type ServiceOrder,
+} from "@/hooks/useServiceOrders";
+import { useActiveMechanics } from "@/hooks/useMechanics";
+import { useCreateBikeServiceRecord } from "@/hooks/useBikeServiceHistory";
+import { playDoneSound } from "@/lib/sounds";
+import { toast } from "sonner";
+
+export default function Mecanicos() {
+  const { data: orders = [], isLoading } = useServiceOrders(["pending", "accepted", "done"]);
+  const acceptOrder = useAcceptServiceOrder();
+  const finishOrder = useFinishServiceOrder();
+  const { data: mechanics = [] } = useActiveMechanics();
+  const createHistory = useCreateBikeServiceRecord();
+
+  useServiceOrdersRealtime();
+
+  // Accept modal
+  const [acceptOpen, setAcceptOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
+
+  // Frame number per order
+  const [frameNumbers, setFrameNumbers] = useState<Record<string, string>>({});
+
+  // Done orders auto-hide
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const doneOrders = orders.filter((o) => o.mechanic_status === "done" && !hiddenIds.has(o.id));
+    doneOrders.forEach((o) => {
+      const timer = setTimeout(() => {
+        setHiddenIds((prev) => new Set(prev).add(o.id));
+      }, 10000);
+      return () => clearTimeout(timer);
+    });
+  }, [orders, hiddenIds]);
+
+  const handleAcceptClick = (order: ServiceOrder) => {
+    setSelectedOrder(order);
+    setAcceptOpen(true);
+  };
+
+  const handleSelectMechanic = (mechanicId: string, mechanicName: string) => {
+    if (!selectedOrder) return;
+    acceptOrder.mutate(
+      { id: selectedOrder.id, mechanic_id: mechanicId, mechanic_name: mechanicName },
+      {
+        onSuccess: () => {
+          toast.success("OS aceita!");
+          setAcceptOpen(false);
+          setSelectedOrder(null);
+        },
+        onError: () => toast.error("Erro ao aceitar OS"),
+      }
+    );
+  };
+
+  const handleFinish = async (order: ServiceOrder) => {
+    const frame = frameNumbers[order.id]?.trim();
+    if (!frame) {
+      toast.error("Preencha o número do quadro");
+      return;
+    }
+
+    try {
+      await finishOrder.mutateAsync({ id: order.id, frame_number: frame });
+
+      // Create bike service history record
+      await createHistory.mutateAsync({
+        frame_number: frame,
+        bike_name: order.bike_name || "Bike",
+        customer_name: order.customer_name || undefined,
+        customer_cpf: order.customer_cpf || undefined,
+        customer_phone: order.customer_whatsapp || undefined,
+        problem: order.problem,
+        mechanic_id: order.mechanic_id || undefined,
+        mechanic_name: order.mechanic_name || undefined,
+        service_order_id: order.id,
+        status: "done",
+        completed_at: new Date().toISOString(),
+      });
+
+      playDoneSound();
+      toast.success("Serviço finalizado!");
+    } catch {
+      toast.error("Erro ao finalizar");
+    }
+  };
+
+  const visibleOrders = orders.filter((o) => !hiddenIds.has(o.id));
+  const pending = visibleOrders.filter((o) => o.mechanic_status === "pending");
+  const accepted = visibleOrders.filter((o) => o.mechanic_status === "accepted");
+  const done = visibleOrders.filter((o) => o.mechanic_status === "done");
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
+      <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-8">
+        {/* Header */}
+        <header className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <Wrench className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-sm font-black tracking-widest text-[#2952FF]">MECÂNICOS</span>
+          </div>
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
+            Painel do Mecânico
+          </h1>
+          <p className="text-zinc-500 font-medium text-sm">Ordens de serviço em tempo real</p>
+        </header>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-[#161618] border border-amber-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Pendentes</p>
+            <p className="text-2xl font-black text-amber-400">{pending.length}</p>
+          </div>
+          <div className="bg-[#161618] border border-indigo-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Em Andamento</p>
+            <p className="text-2xl font-black text-indigo-400">{accepted.length}</p>
+          </div>
+          <div className="bg-[#161618] border border-emerald-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Concluídos</p>
+            <p className="text-2xl font-black text-emerald-400">{done.length}</p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Pending */}
+            {pending.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock size={16} className="text-amber-400" />
+                  <h2 className="text-xs font-black text-amber-400 uppercase tracking-widest">Pendentes</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {pending.map((order) => (
+                    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
+                      <div className="space-y-1">
+                        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+                        {order.customer_name && (
+                          <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                            <User size={12} /> {order.customer_name}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
+                        <p className="text-xs text-zinc-400">{order.problem}</p>
+                      </div>
+                      <button
+                        onClick={() => handleAcceptClick(order)}
+                        className="w-full h-10 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-amber-500/20"
+                      >
+                        Aceitar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Accepted */}
+            {accepted.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wrench size={16} className="text-indigo-400" />
+                  <h2 className="text-xs font-black text-indigo-400 uppercase tracking-widest">Em Andamento</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {accepted.map((order) => (
+                    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
+                      <div className="space-y-1">
+                        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+                        {order.customer_name && (
+                          <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                            <User size={12} /> {order.customer_name}
+                          </div>
+                        )}
+                        {order.mechanic_name && (
+                          <div className="flex items-center gap-2 text-indigo-400 text-xs">
+                            <Wrench size={12} /> {order.mechanic_name}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
+                        <p className="text-xs text-zinc-400">{order.problem}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Hash size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+                          <input
+                            className="w-full h-10 bg-[#0A0A0B] border border-zinc-800 rounded-xl pl-9 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+                            placeholder="Número do quadro"
+                            value={frameNumbers[order.id] || ""}
+                            onChange={(e) => setFrameNumbers((prev) => ({ ...prev, [order.id]: e.target.value }))}
+                          />
+                        </div>
+                        <button
+                          onClick={() => handleFinish(order)}
+                          disabled={finishOrder.isPending || createHistory.isPending}
+                          className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
+                        >
+                          {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Done */}
+            {done.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-400" />
+                  <h2 className="text-xs font-black text-emerald-400 uppercase tracking-widest">Concluídos</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {done.map((order) => (
+                    <div key={order.id} className="bg-[#161618] border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+                          {order.mechanic_name && (
+                            <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                              <Wrench size={12} /> {order.mechanic_name}
+                            </div>
+                          )}
+                        </div>
+                        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
+                          Concluído
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {visibleOrders.length === 0 && (
+              <div className="text-center py-20 space-y-3 opacity-30">
+                <Wrench className="mx-auto" size={40} />
+                <p className="text-xs font-black uppercase tracking-widest">Nenhuma OS no momento</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Mechanic selection modal */}
+      <Dialog open={acceptOpen} onOpenChange={setAcceptOpen}>
+        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl">
+          <div className="p-8 space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black text-white italic uppercase tracking-tight">
+                Selecionar Mecânico
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              {mechanics.length === 0 ? (
+                <p className="text-zinc-500 text-sm text-center py-4">Nenhum mecânico cadastrado</p>
+              ) : (
+                mechanics.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => handleSelectMechanic(m.id, m.name)}
+                    disabled={acceptOrder.isPending}
+                    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-left text-sm font-bold text-white hover:border-[#2952FF] hover:bg-[#2952FF]/5 transition-all flex items-center gap-3 disabled:opacity-50"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-[#2952FF]/10 flex items-center justify-center">
+                      <User size={16} className="text-[#2952FF]" />
+                    </div>
+                    {m.name}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

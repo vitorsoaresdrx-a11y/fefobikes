@@ -137,6 +137,69 @@ export type Database = {
         }
         Relationships: []
       }
+      bike_service_history: {
+        Row: {
+          bike_name: string
+          completed_at: string | null
+          created_at: string | null
+          customer_cpf: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          frame_number: string
+          id: string
+          mechanic_id: string | null
+          mechanic_name: string | null
+          problem: string
+          service_order_id: string | null
+          status: string | null
+        }
+        Insert: {
+          bike_name: string
+          completed_at?: string | null
+          created_at?: string | null
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          frame_number: string
+          id?: string
+          mechanic_id?: string | null
+          mechanic_name?: string | null
+          problem: string
+          service_order_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          bike_name?: string
+          completed_at?: string | null
+          created_at?: string | null
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          frame_number?: string
+          id?: string
+          mechanic_id?: string | null
+          mechanic_name?: string | null
+          problem?: string
+          service_order_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bike_service_history_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bike_service_history_service_order_id_fkey"
+            columns: ["service_order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cash_register_sales: {
         Row: {
           amount: number
@@ -364,6 +427,27 @@ export type Database = {
           problem?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      mechanics: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -596,6 +680,68 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_orders: {
+        Row: {
+          bike_name: string | null
+          completed_at: string | null
+          created_at: string | null
+          customer_cpf: string | null
+          customer_name: string | null
+          customer_whatsapp: string | null
+          frame_number: string | null
+          id: string
+          mechanic_id: string | null
+          mechanic_name: string | null
+          mechanic_status: string | null
+          price: number | null
+          problem: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bike_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_whatsapp?: string | null
+          frame_number?: string | null
+          id?: string
+          mechanic_id?: string | null
+          mechanic_name?: string | null
+          mechanic_status?: string | null
+          price?: number | null
+          problem: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bike_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_whatsapp?: string | null
+          frame_number?: string | null
+          id?: string
+          mechanic_id?: string | null
+          mechanic_name?: string | null
+          mechanic_status?: string | null
+          price?: number | null
+          problem?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
             referencedColumns: ["id"]
           },
         ]

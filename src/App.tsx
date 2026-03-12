@@ -19,6 +19,8 @@ import Estoque from "@/pages/Estoque";
 import DRE from "@/pages/DRE";
 import Gastos from "@/pages/Gastos";
 import Mecanica from "@/pages/Mecanica";
+import Mecanicos from "@/pages/Mecanicos";
+import MecanicosHistorico from "@/pages/MecanicosHistorico";
 import CashRegister from "@/pages/CashRegister";
 import WhatsAppPage from "@/pages/WhatsApp";
 import Permissoes from "@/pages/Permissoes";
@@ -65,6 +67,8 @@ function AuthGate() {
         <Route path="/dre" element={<GuardedRoute module="dre"><DRE /></GuardedRoute>} />
         <Route path="/gastos" element={<GuardedRoute module="gastos"><Gastos /></GuardedRoute>} />
         <Route path="/mecanica" element={<GuardedRoute module="mecanica"><Mecanica /></GuardedRoute>} />
+        <Route path="/mecanicos" element={<GuardedRoute module="mecanica"><Mecanicos /></GuardedRoute>} />
+        <Route path="/mecanicos/historico" element={<GuardedRoute module="mecanica"><MecanicosHistorico /></GuardedRoute>} />
         <Route path="/clientes" element={<GuardedRoute module="clientes"><Clientes /></GuardedRoute>} />
         <Route path="/configuracoes" element={<GuardedRoute module="configuracoes"><Configuracoes /></GuardedRoute>} />
         <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><WhatsAppPage /></GuardedRoute>} />

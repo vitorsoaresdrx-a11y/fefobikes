@@ -1,22 +1,33 @@
 import { useState } from "react";
-import { CreditCard, Save } from "lucide-react";
+import { CreditCard, Save, HardHat, Plus, Power } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCardTaxes, useUpdateCardTaxes } from "@/hooks/useSettings";
+import { useMechanics, useCreateMechanic, useToggleMechanic } from "@/hooks/useMechanics";
+import { useMyPermissions } from "@/hooks/usePermissions";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Configuracoes() {
   const { toast } = useToast();
   const { data: taxes, isLoading } = useCardTaxes();
   const updateTaxes = useUpdateCardTaxes();
+  const { data: permsData } = useMyPermissions();
+  const isOwner = permsData?.isOwner ?? false;
 
+  // Card settings
   const [showCardSettings, setShowCardSettings] = useState(false);
   const [creditTax, setCreditTax] = useState<number | null>(null);
   const [debitTax, setDebitTax] = useState<number | null>(null);
-
   const effectiveCredit = creditTax ?? taxes?.credit_tax ?? 0;
   const effectiveDebit = debitTax ?? taxes?.debit_tax ?? 0;
+
+  // Mechanics settings
+  const [showMechanicsSettings, setShowMechanicsSettings] = useState(false);
+  const [newMechanicName, setNewMechanicName] = useState("");
+  const { data: mechanics = [] } = useMechanics();
+  const createMechanic = useCreateMechanic();
+  const toggleMechanic = useToggleMechanic();
 
   const handleSaveTaxes = async () => {
     try {
@@ -29,6 +40,17 @@ export default function Configuracoes() {
       setDebitTax(null);
     } catch {
       toast({ title: "Erro ao salvar taxas", variant: "destructive" });
+    }
+  };
+
+  const handleAddMechanic = async () => {
+    if (!newMechanicName.trim()) return;
+    try {
+      await createMechanic.mutateAsync(newMechanicName.trim());
+      toast({ title: "Mecânico adicionado" });
+      setNewMechanicName("");
+    } catch {
+      toast({ title: "Erro ao adicionar mecânico", variant: "destructive" });
     }
   };
 
@@ -118,6 +140,98 @@ export default function Configuracoes() {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Mechanics settings - Owner only */}
+      {isOwner && (
+        <>
+          {!showMechanicsSettings ? (
+            <button
+              type="button"
+              onClick={() => setShowMechanicsSettings(true)}
+              className="w-full text-left p-4 border border-border rounded-lg bg-card hover:bg-muted/20 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+                  <HardHat className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Mecânicos</p>
+                  <p className="text-xs text-muted-foreground">
+                    Gerencie os mecânicos cadastrados no sistema
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 ml-[52px]">
+                <span className="text-xs text-muted-foreground">
+                  {mechanics.filter((m) => m.active).length} ativo(s) de {mechanics.length} cadastrado(s)
+                </span>
+              </div>
+            </button>
+          ) : (
+            <div className="border border-border rounded-lg bg-card p-4 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+                  <HardHat className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Mecânicos</p>
+                  <p className="text-xs text-muted-foreground">
+                    Adicione ou desative mecânicos
+                  </p>
+                </div>
+              </div>
+
+              {/* Add new mechanic */}
+              <div className="flex gap-2 ml-[52px]">
+                <Input
+                  placeholder="Nome do mecânico"
+                  value={newMechanicName}
+                  onChange={(e) => setNewMechanicName(e.target.value)}
+                  className="bg-background border-border h-9 text-sm"
+                  onKeyDown={(e) => e.key === "Enter" && handleAddMechanic()}
+                />
+                <Button size="sm" className="gap-1.5 shrink-0" onClick={handleAddMechanic} disabled={createMechanic.isPending}>
+                  <Plus className="h-3.5 w-3.5" />
+                  Adicionar
+                </Button>
+              </div>
+
+              {/* List */}
+              <div className="ml-[52px] space-y-2">
+                {mechanics.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${m.active ? "border-border bg-background" : "border-border/50 bg-muted/10 opacity-60"}`}
+                  >
+                    <span className={`text-sm font-medium ${m.active ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                      {m.name}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      onClick={() => toggleMechanic.mutate({ id: m.id, active: !m.active })}
+                      disabled={toggleMechanic.isPending}
+                    >
+                      <Power className="h-3.5 w-3.5" />
+                      {m.active ? "Desativar" : "Reativar"}
+                    </Button>
+                  </div>
+                ))}
+                {mechanics.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">Nenhum mecânico cadastrado</p>
+                )}
+              </div>
+
+              <div className="ml-[52px]">
+                <Button variant="outline" size="sm" onClick={() => setShowMechanicsSettings(false)}>
+                  Voltar
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

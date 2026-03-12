@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Wrench,
   Settings,
@@ -38,6 +38,8 @@ import {
   type MechanicJob,
   type MechanicJobAddition,
 } from "@/hooks/useMechanicJobs";
+import { useServiceOrdersRealtime, useCreateServiceOrder, type ServiceOrder } from "@/hooks/useServiceOrders";
+import { playNotifySound } from "@/lib/sounds";
 import { toast } from "sonner";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -380,7 +382,18 @@ function JobCard({
 export default function Mecanica() {
   const { data: jobs = [], isLoading } = useMechanicJobs();
   const create = useCreateMechanicJob();
+  const createServiceOrder = useCreateServiceOrder();
   const createAddition = useCreateAddition();
+
+  // Realtime: when a service order is marked done by a mechanic, play sound
+  const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
+    playNotifySound();
+    toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega!`, {
+      description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined,
+      duration: 8000,
+    });
+  }, []);
+  useServiceOrdersRealtime(handleServiceOrderDone);
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -412,29 +425,32 @@ export default function Mecanica() {
       toast.error("Descreva o problema");
       return;
     }
-    create.mutate(
-      {
-        customer_name: form.customer_name || undefined,
-        customer_cpf: form.customer_cpf || undefined,
-        customer_whatsapp: form.customer_whatsapp || undefined,
-        problem: form.problem,
-        price: Number(form.price) || 0,
+    const orderData = {
+      customer_name: form.customer_name || undefined,
+      customer_cpf: form.customer_cpf || undefined,
+      customer_whatsapp: form.customer_whatsapp || undefined,
+      problem: form.problem,
+      price: Number(form.price) || 0,
+    };
+    create.mutate(orderData, {
+      onSuccess: () => {
+        // Also create a service_order for the mechanics panel
+        createServiceOrder.mutate({
+          ...orderData,
+          bike_name: form.customer_name || undefined,
+        });
+        toast.success("Manutenção criada!");
+        setForm({
+          customer_name: "",
+          customer_cpf: "",
+          customer_whatsapp: "",
+          problem: "",
+          price: "",
+        });
+        setOpen(false);
       },
-      {
-        onSuccess: () => {
-          toast.success("Manutenção criada!");
-          setForm({
-            customer_name: "",
-            customer_cpf: "",
-            customer_whatsapp: "",
-            problem: "",
-            price: "",
-          });
-          setOpen(false);
-        },
-        onError: () => toast.error("Erro ao criar"),
-      }
-    );
+      onError: () => toast.error("Erro ao criar"),
+    });
   };
 
   const handleAddRepair = (job: MechanicJob) => {
