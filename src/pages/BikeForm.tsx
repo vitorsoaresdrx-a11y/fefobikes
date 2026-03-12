@@ -477,19 +477,10 @@ export default function BikeForm() {
                     <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
                       Valor da Parcela
                     </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      value={installmentPrice || ""}
-                      onChange={(e) =>
-                        form.setValue(
-                          "installment_price",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
-                      placeholder="0,00"
+                    <CurrencyInput
+                      value={installmentPrice || 0}
+                      onChange={(val) => form.setValue("installment_price", val)}
+                      className="h-11 rounded-xl"
                     />
                   </div>
                   <div className="space-y-1.5">
