@@ -29,6 +29,13 @@ Deno.serve(async (req) => {
 
     const isFromMe = body.fromMe === true;
     const rawPhone = body.phone || body.chatId || body.chatLid || "";
+
+    if (String(rawPhone).includes("status@broadcast")) {
+      return new Response(JSON.stringify({ ok: true, ignored: "status_broadcast" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const phone = String(rawPhone)
       .replace("@c.us", "")
       .replace("@lid", "")
@@ -42,8 +49,16 @@ Deno.serve(async (req) => {
           ? String((rawText as { message?: unknown }).message ?? "")
           : String(rawText ?? "");
     const content = text.trim();
-    const contactName = body.chatName || body.senderName || body.pushName || null;
-    const contactPhoto = body.senderPhoto || body.photo || null;
+
+    const chatName = typeof body.chatName === "string" ? body.chatName.trim() : "";
+    const senderName = typeof body.senderName === "string" ? body.senderName.trim() : "";
+    const pushName = typeof body.pushName === "string" ? body.pushName.trim() : "";
+    const contactName = chatName || (!isFromMe ? senderName || pushName : "") || null;
+
+    const photo = typeof body.photo === "string" ? body.photo : null;
+    const senderPhoto = typeof body.senderPhoto === "string" ? body.senderPhoto : null;
+    const contactPhoto = photo || (!isFromMe ? senderPhoto : null);
+
     const type = body.isMedia
       ? body.mimetype?.startsWith("image")
         ? "image"
