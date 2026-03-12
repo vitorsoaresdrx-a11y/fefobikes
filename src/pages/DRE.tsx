@@ -364,13 +364,13 @@ export default function DRE() {
         </div>
 
         {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
           <ChartContainer
             title="Faturamento Diário"
             subtitle={MONTHS_FULL[selectedMonth]}
             value={formatBRL(dailyChartData.reduce((s, d) => s + d.revenue, 0))}
           >
-            <div className="h-[280px] w-full">
+            <div className="h-40 md:h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={dailyChartData}>
                   <defs>
@@ -401,7 +401,7 @@ export default function DRE() {
             subtitle={MONTHS_FULL[selectedMonth]}
             value={formatBRL(dailyChartData.reduce((s, d) => s + d.netProfit, 0))}
           >
-            <div className="h-[280px] w-full">
+            <div className="h-40 md:h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyChartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C1C1E" />
