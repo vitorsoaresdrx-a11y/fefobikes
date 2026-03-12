@@ -711,7 +711,9 @@ export default function PDV() {
                       >
                         <div>
                           <p className="font-bold text-white">{c.name}</p>
-                          <p className="text-[10px] uppercase tracking-widest">{c.whatsapp}</p>
+                          <p className="text-[10px] uppercase tracking-widest">
+                            {[c.whatsapp, c.cpf].filter(Boolean).join(" · ")}
+                          </p>
                         </div>
                         {selectedCustomerId === c.id && <CheckCircle2 className="text-[#2952FF]" />}
                       </button>
