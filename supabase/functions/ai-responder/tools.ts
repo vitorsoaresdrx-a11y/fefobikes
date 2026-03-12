@@ -17,8 +17,12 @@ export const toolDefinitions = [
             enum: ["bike_completa", "quadro"],
             description: "Tipo de carga: bike_completa (15.5kg) ou quadro (6kg)",
           },
+          valor_nf: {
+            type: "number",
+            description: "Valor declarado da mercadoria em reais (R$)",
+          },
         },
-        required: ["cep_destino", "tipo_carga"],
+        required: ["cep_destino", "tipo_carga", "valor_nf"],
       },
     },
   },
@@ -34,8 +38,9 @@ interface FreteResult {
 export async function executeCalcularFrete(args: {
   cep_destino: string;
   tipo_carga: "bike_completa" | "quadro";
+  valor_nf: number;
 }): Promise<FreteResult> {
-  const { cep_destino, tipo_carga } = args;
+  const { cep_destino, tipo_carga, valor_nf } = args;
   const cep = cep_destino.replace(/\D/g, "");
   const peso = tipo_carga === "bike_completa" ? 15.5 : 6;
 
@@ -101,6 +106,7 @@ export async function executeCalcularFrete(args: {
         Largura: 20,
         Comprimento: 148,
         PesoPorVolume: peso,
+        ValorNF: valor_nf,
       }),
     }
   );
