@@ -529,15 +529,15 @@ export default function Mecanica() {
             <p className="text-zinc-500 font-medium text-sm">Gerencie os serviços de manutenção</p>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0">
-            <button className="h-10 md:h-12 px-4 md:px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-xs md:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-              <History size={16} /> Histórico de O.S
+          <div className="flex items-center gap-2 shrink-0">
+            <button className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0">
+              <History size={14} className="shrink-0" /> <span className="truncate">Histórico de O.S</span>
             </button>
             <button
               onClick={() => setOpen(true)}
-              className="h-10 md:h-12 px-5 md:px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs md:text-sm font-bold flex items-center gap-2 transition-all active:scale-95 whitespace-nowrap"
+              className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 whitespace-nowrap min-w-0"
             >
-              <Plus size={16} className="stroke-[3]" /> Nova Manutenção
+              <Plus size={14} className="stroke-[3] shrink-0" /> <span className="truncate">Nova Manutenção</span>
             </button>
           </div>
         </header>
