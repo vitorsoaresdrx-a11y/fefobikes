@@ -587,7 +587,7 @@ export default function PDV() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-black text-white">Finalizar Venda</h2>
+                  <h2 className="text-xl lg:text-3xl font-black text-white">Finalizar Venda</h2>
                   <p className="text-zinc-500 text-sm">Escolha a forma de pagamento</p>
                 </div>
                 <button
