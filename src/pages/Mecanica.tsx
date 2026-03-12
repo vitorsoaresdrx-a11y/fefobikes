@@ -428,8 +428,9 @@ export default function Mecanica() {
   useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
+   const [form, setForm] = useState({
     customer_name: "",
+    bike_name: "",
     customer_cpf: "",
     customer_whatsapp: "",
     problem: "",
