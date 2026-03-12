@@ -446,7 +446,7 @@ export default function Mecanica() {
       customer_cpf: form.customer_cpf || undefined,
       customer_whatsapp: form.customer_whatsapp || undefined,
       problem: form.problem,
-      price: Number(form.price) || 0,
+      price: form.price,
     };
     create.mutate(orderData, {
       onSuccess: () => {
