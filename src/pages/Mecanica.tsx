@@ -38,6 +38,8 @@ import {
   type MechanicJob,
   type MechanicJobAddition,
 } from "@/hooks/useMechanicJobs";
+import { useServiceOrdersRealtime, useCreateServiceOrder, type ServiceOrder } from "@/hooks/useServiceOrders";
+import { playNotifySound } from "@/lib/sounds";
 import { toast } from "sonner";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
