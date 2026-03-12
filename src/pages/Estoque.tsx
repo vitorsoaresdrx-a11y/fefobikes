@@ -273,7 +273,7 @@ export default function Estoque() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">HUB DE OPERAÇÕES</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
           <div className="flex items-center gap-3">
             <Btn variant="secondary" size="lg" className="rounded-2xl">
