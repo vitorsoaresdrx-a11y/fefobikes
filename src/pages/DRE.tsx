@@ -83,7 +83,7 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
+    <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
       <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
         <Icon size={160} />
       </div>
