@@ -35,6 +35,7 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +48,37 @@ import {
 function getInitials(name?: string | null, phone?: string) {
   if (name) return name.slice(0, 2).toUpperCase();
   return (phone || "?").slice(-2);
+}
+
+function getDisplayContactPhone(phone?: string | null) {
+  const rawPhone = (phone || "").trim();
+  if (!rawPhone || rawPhone.includes("status@broadcast") || rawPhone.includes("@lid")) {
+    return "Telefone desconhecido";
+  }
+
+  const digits = rawPhone.replace(/\D/g, "");
+  if (digits.length < 10 || digits.length > 13) {
+    return "Telefone desconhecido";
+  }
+
+  return digits;
+}
+
+function getDisplayContactName(
+  conversation: Conversation,
+  currentUserName?: string | null
+) {
+  const candidate = (conversation.contact_name || "").trim();
+  const normalizedCurrentUserName = (currentUserName || "").trim().toLowerCase();
+
+  if (
+    candidate &&
+    (!normalizedCurrentUserName || candidate.toLowerCase() !== normalizedCurrentUserName)
+  ) {
+    return candidate;
+  }
+
+  return getDisplayContactPhone(conversation.contact_phone);
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -118,14 +150,20 @@ export default function WhatsApp() {
   const updateStatus = useUpdateConversationStatus();
   const markAsRead = useMarkAsRead();
 
+  const { session } = useAuth();
+  const currentUserName =
+    session?.user?.user_metadata?.full_name ||
+    session?.user?.user_metadata?.name ||
+    null;
+
   const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return conversations.filter(
-      (c) =>
-        (c.contact_name || "").toLowerCase().includes(q) ||
-        c.contact_phone.includes(q)
-    );
-  }, [conversations, search]);
+    const q = search.toLowerCase().trim();
+    return conversations.filter((c) => {
+      const displayName = getDisplayContactName(c, currentUserName).toLowerCase();
+      const displayPhone = getDisplayContactPhone(c.contact_phone).toLowerCase();
+      return displayName.includes(q) || displayPhone.includes(q);
+    });
+  }, [conversations, search, currentUserName]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -329,7 +367,10 @@ export default function WhatsApp() {
                         alt=""
                       />
                     ) : (
-                      getInitials(conv.contact_name, conv.contact_phone)
+                      getInitials(
+                        getDisplayContactName(conv, currentUserName),
+                        getDisplayContactPhone(conv.contact_phone)
+                      )
                     )}
                   </div>
                   <span
@@ -352,7 +393,7 @@ export default function WhatsApp() {
                           : "text-zinc-300"
                       }`}
                     >
-                      {conv.contact_name || conv.contact_phone}
+                      {getDisplayContactName(conv, currentUserName)}
                     </h4>
                     <span className="text-[9px] font-bold text-zinc-600 uppercase shrink-0 ml-1">
                       {format(new Date(conv.last_message_at), "HH:mm")}
@@ -401,16 +442,19 @@ export default function WhatsApp() {
                       alt=""
                     />
                   ) : (
-                    getInitials(selectedConv.contact_name, selectedConv.contact_phone)
+                    getInitials(
+                      getDisplayContactName(selectedConv, currentUserName),
+                      getDisplayContactPhone(selectedConv.contact_phone)
+                    )
                   )}
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-white italic uppercase tracking-tight leading-none mb-1">
-                    {selectedConv.contact_name || selectedConv.contact_phone}
+                    {getDisplayContactName(selectedConv, currentUserName)}
                   </h2>
                   <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
                     <Hash size={10} className="text-[#2952FF]" />
-                    {selectedConv.contact_phone}
+                    {getDisplayContactPhone(selectedConv.contact_phone)}
                   </p>
                 </div>
               </div>
