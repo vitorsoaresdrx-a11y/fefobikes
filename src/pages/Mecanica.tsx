@@ -543,7 +543,7 @@ export default function Mecanica() {
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
           <SummaryStat
             title="Total em Oficina"
             value={jobs.length}
