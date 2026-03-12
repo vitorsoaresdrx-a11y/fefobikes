@@ -16,6 +16,7 @@ import {
 import { useParts, useUpdatePart } from "@/hooks/useParts";
 import { useBikeModels, useUpdateBikeModel } from "@/hooks/useBikes";
 import { useToast } from "@/hooks/use-toast";
+import { getOptimizedImageUrl } from "@/lib/image";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
