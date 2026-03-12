@@ -27,6 +27,15 @@ Deno.serve(async (req) => {
     }
 
     const isFromMe = body.fromMe === true;
+
+    // Skip outgoing messages — they are already saved by zapi-send-message
+    // Z-API sends LID (not real phone) for fromMe messages, causing duplicate conversations
+    if (isFromMe) {
+      return new Response(JSON.stringify({ ok: true, ignored: "from_me" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const rawPhone = body.phone || body.chatId || body.chatLid || "";
 
     if (String(rawPhone).includes("status@broadcast")) {
@@ -106,7 +115,7 @@ Deno.serve(async (req) => {
       };
       if (contactName)  updates.contact_name  = contactName;
       if (contactPhoto) updates.contact_photo = contactPhoto;
-      if (!isFromMe)    updates.unread_count  = (existing.unread_count || 0) + 1;
+      updates.unread_count = (existing.unread_count || 0) + 1;
 
       await supabase
         .from("whatsapp_conversations")
@@ -121,7 +130,7 @@ Deno.serve(async (req) => {
           contact_photo: contactPhoto,
           last_message:  content || `[${type}]`,
           last_message_at: new Date().toISOString(),
-          unread_count: isFromMe ? 0 : 1,
+          unread_count: 1,
           status: "open",
         })
         .select("id")
