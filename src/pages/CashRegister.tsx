@@ -310,32 +310,73 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
 
   return (
     <div className="bg-[#161618] border border-zinc-800 rounded-[24px] overflow-hidden">
-      <button type="button" onClick={onToggle} className="w-full flex items-center justify-between p-6 text-left hover:bg-zinc-800/20 transition-colors">
-        <div className="flex-1 min-w-0 space-y-1">
-          <p className="text-sm font-bold text-white">
-            {formatDateTime(register.opened_at)} — {register.closed_at ? formatTime(register.closed_at) : ""}
-          </p>
-          <div className="flex items-center gap-3 text-xs text-zinc-500">
-            <span>Inicial: {formatBRL(Number(register.opening_amount))}</span>
-            <span>Esperado: {formatBRL(Number(register.expected_amount) || 0)}</span>
-            <span>Informado: {formatBRL(Number(register.closing_amount) || 0)}</span>
+      <button type="button" onClick={onToggle} className="w-full text-left hover:bg-zinc-800/20 transition-colors">
+        {/* Mobile Layout: Stacked */}
+        <div className="p-4 space-y-3 md:hidden">
+          {/* Linha 1: data + badge */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-white">
+              {formatDateTime(register.opened_at)} — {register.closed_at ? formatTime(register.closed_at) : ""}
+            </span>
+            {diff === 0 ? (
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <CheckCircle2 size={12} /> Conferido
+              </span>
+            ) : diff < 0 ? (
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">
+                <AlertTriangle size={12} /> Quebra
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                <TrendingUp size={12} /> Sobra
+              </span>
+            )}
+          </div>
+          {/* Linha 2: 3 valores empilhados */}
+          <div className="flex justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] text-zinc-500">Inicial</p>
+              <p className="text-sm font-bold">{formatBRL(Number(register.opening_amount))}</p>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] text-zinc-500">Esperado</p>
+              <p className="text-sm font-bold">{formatBRL(Number(register.expected_amount) || 0)}</p>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] text-zinc-500">Informado</p>
+              <p className="text-sm font-bold">{formatBRL(Number(register.closing_amount) || 0)}</p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 ml-4">
-          {diff === 0 ? (
-            <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <CheckCircle2 size={12} /> Conferido
-            </span>
-          ) : diff < 0 ? (
-            <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">
-              <AlertTriangle size={12} /> Quebra {formatBRL(Math.abs(diff))}
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-              <TrendingUp size={12} /> Sobra {formatBRL(diff)}
-            </span>
-          )}
-          {expanded ? <ChevronUp className="h-4 w-4 text-zinc-600" /> : <ChevronDown className="h-4 w-4 text-zinc-600" />}
+
+        {/* Desktop Layout: Horizontal */}
+        <div className="hidden md:flex items-center justify-between p-6">
+          <div className="flex-1 min-w-0 space-y-1">
+            <p className="text-sm font-bold text-white">
+              {formatDateTime(register.opened_at)} — {register.closed_at ? formatTime(register.closed_at) : ""}
+            </p>
+            <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <span>Inicial: {formatBRL(Number(register.opening_amount))}</span>
+              <span>Esperado: {formatBRL(Number(register.expected_amount) || 0)}</span>
+              <span>Informado: {formatBRL(Number(register.closing_amount) || 0)}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 ml-4">
+            {diff === 0 ? (
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <CheckCircle2 size={12} /> Conferido
+              </span>
+            ) : diff < 0 ? (
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20">
+                <AlertTriangle size={12} /> Quebra {formatBRL(Math.abs(diff))}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                <TrendingUp size={12} /> Sobra {formatBRL(diff)}
+              </span>
+            )}
+            {expanded ? <ChevronUp className="h-4 w-4 text-zinc-600" /> : <ChevronDown className="h-4 w-4 text-zinc-600" />}
+          </div>
         </div>
       </button>
 
