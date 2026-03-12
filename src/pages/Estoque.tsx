@@ -264,8 +264,21 @@ export default function Estoque() {
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Header — Mobile */}
+        <header className="md:hidden flex items-center justify-between gap-2 mb-0">
+          <h1 className="text-lg font-black">Estoque Geral</h1>
+          <div className="flex gap-2 shrink-0">
+            <button className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 whitespace-nowrap flex items-center gap-1.5">
+              <History size={14} /> Histórico
+            </button>
+            <button className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white whitespace-nowrap flex items-center gap-1.5">
+              <Plus size={14} /> Entrada Manual
+            </button>
+          </div>
+        </header>
+
+        {/* Header — Desktop */}
+        <header className="hidden md:flex md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
@@ -273,7 +286,7 @@ export default function Estoque() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">HUB DE OPERAÇÕES</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
           <div className="flex items-center gap-3">
             <Btn variant="secondary" size="lg" className="rounded-2xl">
