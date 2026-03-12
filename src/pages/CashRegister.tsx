@@ -84,7 +84,7 @@ export default function CashRegister() {
   const isOpen = currentRegister?.status === "open";
 
   const handleOpen = async () => {
-    const amount = parseFloat(openingAmount.replace(",", ".")) || 0;
+    const amount = openingAmount;
     try {
       await openRegister.mutateAsync(amount);
       toast({ title: "Caixa aberto com sucesso!" });
