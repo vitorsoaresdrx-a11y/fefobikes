@@ -427,22 +427,22 @@ export default function PDV() {
 
       {/* Barra flutuante — estilo iFood */}
       {cart.length > 0 && (
-        <div className="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 w-[94%] md:w-[90%] max-w-4xl bg-[#1C1C1E]/90 backdrop-blur-2xl border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl md:rounded-[32px] p-3 md:p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10">
-          <div className="flex items-center gap-3 md:gap-6 px-1 md:px-4">
-            <div className="relative shrink-0">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg">
+        <div className="fixed bottom-0 md:bottom-8 left-1/2 -translate-x-1/2 w-full md:w-[90%] max-w-4xl bg-[#1C1C1E]/95 backdrop-blur-2xl border-t md:border border-white/5 shadow-[0_-4px_30px_rgba(0,0,0,0.5)] md:shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:rounded-[32px] h-16 md:h-auto px-4 md:p-4 flex items-center justify-between z-50 animate-in slide-in-from-bottom-10" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="flex items-center gap-3 md:gap-6 md:px-4">
+            <div className="relative shrink-0 hidden md:block">
+              <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-lg">
                 <ShoppingCart size={18} />
               </div>
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 md:w-6 md:h-6 bg-white text-[#2952FF] rounded-full flex items-center justify-center text-[10px] md:text-xs font-black shadow-xl">
+              <span className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-white text-[#2952FF] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
                 {itemCount}
               </span>
             </div>
             <div className="min-w-0">
-              <p className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total</p>
-              <p className="text-lg md:text-2xl font-black text-white tracking-tighter">{formatBRL(total)}</p>
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total</p>
+              <p className="text-sm md:text-2xl font-bold md:font-black text-white tracking-tighter">{formatBRL(total)}</p>
             </div>
           </div>
-          <Btn variant="primary" size="lg" className="h-12 md:h-16 px-5 md:px-12 text-[10px] md:text-base" onClick={() => setStep("cart")}>
+          <Btn variant="primary" size="sm" className="h-10 px-6 text-sm font-black md:!h-16 md:!px-12 md:!text-base" onClick={() => setStep("cart")}>
             <span className="hidden md:inline">Revisar e Pagar</span>
             <span className="md:hidden">Pagar</span>
             <ArrowRight className="ml-1 md:ml-2 w-4 h-4 md:w-5 md:h-5" />
