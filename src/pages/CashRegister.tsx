@@ -320,8 +320,8 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
         {/* Mobile Layout: Stacked */}
         <div className="p-4 space-y-3 md:hidden">
           {/* Linha 1: data */}
-          <div className="text-sm font-bold text-white">
-            {formatDateTime(register.opened_at)}
+          <div className="text-sm font-bold text-white px-1">
+            {formatDateOnly(register.opened_at)}
           </div>
           {/* Linha 2: horário de fechamento + badge */}
           <div className="flex items-center justify-between">
