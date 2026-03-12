@@ -81,22 +81,23 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
+    <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
       <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
-        <Icon size={160} />
+        <Icon size={120} className="md:hidden" />
+        <Icon size={160} className="hidden md:block" />
       </div>
-      <div className="relative z-10 flex flex-col justify-between h-full space-y-10">
+      <div className="relative z-10 flex flex-col justify-between h-full space-y-4 md:space-y-10">
         <div className="flex items-center justify-between">
-          <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-zinc-400">
-            <Icon size={22} />
+          <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-400">
+            <Icon size={18} />
           </div>
-          <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full uppercase tracking-widest">
+          <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest">
             {tag}
           </span>
         </div>
         <div>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
-          <h2 className={`text-2xl font-black tracking-tighter ${color}`}>{formatBRL(value)}</h2>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-tight mb-0.5 md:mb-1">{title}</p>
+          <h2 className={`text-lg md:text-2xl font-black tracking-tighter ${color}`}>{formatBRL(value)}</h2>
         </div>
       </div>
     </div>
@@ -115,19 +116,19 @@ function ChartContainer({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-4 md:space-y-6">
+    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-3 md:space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5 md:mb-1">{title}</p>
           <div className="flex items-center gap-2">
-            <h3 className="text-2xl font-black text-white tracking-tighter">{value}</h3>
+            <h3 className="text-xl md:text-2xl font-black text-white tracking-tighter">{value}</h3>
             <span className="text-[10px] font-bold text-zinc-500 uppercase bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800">
               {subtitle}
             </span>
           </div>
         </div>
-        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-zinc-600">
-          <Activity size={18} />
+        <div className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg md:rounded-xl flex items-center justify-center text-zinc-600">
+          <Activity size={16} />
         </div>
       </div>
       {children}
@@ -150,24 +151,24 @@ function DRELineRow({
   const isSubtotal = type === "subtotal";
   return (
     <div
-      className={`flex items-center justify-between p-4 rounded-2xl transition-colors ${
+      className={`flex items-center justify-between p-3 md:p-4 rounded-xl md:rounded-2xl transition-colors ${
         isSubtotal ? "bg-zinc-900 border border-zinc-800" : "hover:bg-white/[0.02]"
       }`}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
         <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 ${
             isSubtotal ? "bg-[#2952FF]/10 text-[#2952FF]" : "bg-zinc-900 text-zinc-500"
           }`}
         >
-          <Icon size={18} />
+          <Icon size={16} />
         </div>
-        <span className={`text-sm font-bold ${isSubtotal ? "text-white" : "text-zinc-400"}`}>
+        <span className={`text-xs md:text-sm font-bold leading-snug min-w-0 ${isSubtotal ? "text-white" : "text-zinc-400"}`}>
           {label}
         </span>
       </div>
       <span
-        className={`text-sm font-black tabular-nums ${
+        className={`text-xs md:text-sm font-black tabular-nums text-right shrink-0 ml-2 whitespace-nowrap ${
           isDeduction
             ? "text-red-400/80"
             : isSubtotal
@@ -311,25 +312,26 @@ export default function DRE() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
-      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
+      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-3 md:space-y-6 lg:space-y-8">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
-                <Activity className="w-5 h-5 text-white" />
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+          <div className="space-y-1 md:space-y-2">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+                <Activity size={16} className="md:hidden text-white" />
+                <Activity size={20} className="hidden md:block text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#2952FF]">PERFORMANCE HUB</span>
+              <span className="text-[10px] md:text-sm font-black tracking-widest text-[#2952FF] uppercase">Performance Hub</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Análise DRE</h1>
+            <h1 className="text-lg md:text-2xl lg:text-4xl font-black md:font-extrabold tracking-tight">Análise DRE</h1>
           </div>
 
-          <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-2xl p-1">
+          <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-xl md:rounded-2xl p-1 h-10 md:h-auto self-start">
             <Btn onClick={() => setSelectedYear((y) => y - 1)}>
               <ChevronLeft className="w-4 h-4" />
             </Btn>
-            <span className="text-xs font-black uppercase tracking-widest px-6 min-w-[100px] text-center">
+            <span className="text-xs font-black uppercase tracking-widest px-4 md:px-6 min-w-[80px] md:min-w-[100px] text-center">
               {selectedYear}
             </span>
             <Btn
@@ -362,13 +364,13 @@ export default function DRE() {
         </div>
 
         {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
           <ChartContainer
             title="Faturamento Diário"
             subtitle={MONTHS_FULL[selectedMonth]}
             value={formatBRL(dailyChartData.reduce((s, d) => s + d.revenue, 0))}
           >
-            <div className="h-[280px] w-full">
+            <div className="h-40 md:h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={dailyChartData}>
                   <defs>
@@ -399,7 +401,7 @@ export default function DRE() {
             subtitle={MONTHS_FULL[selectedMonth]}
             value={formatBRL(dailyChartData.reduce((s, d) => s + d.netProfit, 0))}
           >
-            <div className="h-[280px] w-full">
+            <div className="h-40 md:h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyChartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1C1C1E" />
@@ -420,12 +422,12 @@ export default function DRE() {
         {/* DRE Detalhado */}
         <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
           <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h3 className="font-bold text-lg">Demonstrativo Detalhado</h3>
-            <div className="flex items-center gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800">
+            <h3 className="text-base md:text-lg font-black">Demonstrativo Detalhado</h3>
+            <div className="flex items-center gap-1 md:gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800 self-start">
               <Btn onClick={prevMonth}>
                 <ChevronLeft size={16} />
               </Btn>
-              <span className="text-[10px] font-black uppercase tracking-widest px-4 min-w-[100px] text-center">
+              <span className="text-[10px] font-black uppercase tracking-widest px-2 md:px-4 min-w-[80px] md:min-w-[100px] text-center">
                 {MONTHS_FULL[selectedMonth]}
               </span>
               <Btn onClick={nextMonth} disabled={isAtCurrentMonth}>
@@ -448,20 +450,21 @@ export default function DRE() {
             <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
 
             {/* Lucro Final */}
-            <div className="mt-4 md:mt-6 p-4 md:p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)]">
-                  <TrendingUp size={28} />
+            <div className="mt-3 md:mt-6 p-3 md:p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)] shrink-0">
+                  <TrendingUp size={20} className="md:hidden" />
+                  <TrendingUp size={28} className="hidden md:block" />
                 </div>
                 <div>
-                  <h4 className="text-white font-black text-xl">Lucro Líquido Final</h4>
-                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
+                  <h4 className="text-white font-black text-sm md:text-xl">Lucro Líquido Final</h4>
+                  <p className="text-zinc-500 text-[9px] md:text-xs font-bold uppercase tracking-widest">
                     Resultado do Exercício de {selectedYear}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className={`text-3xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+              <div className="text-right flex flex-col items-end">
+                <p className={`text-2xl md:text-3xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                   {formatBRL(totals.netProfit)}
                 </p>
                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
