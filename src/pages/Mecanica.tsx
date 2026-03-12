@@ -618,7 +618,7 @@ export default function Mecanica() {
             </DialogHeader>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputGroup label="Nome do Cliente">
                   <PremiumInput
                     placeholder="Nome completo"
