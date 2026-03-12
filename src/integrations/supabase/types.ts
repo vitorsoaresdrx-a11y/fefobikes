@@ -505,6 +505,7 @@ export type Database = {
           bike_name: string | null
           created_at: string
           customer_cpf: string | null
+          customer_id: string | null
           customer_name: string | null
           customer_whatsapp: string | null
           id: string
@@ -518,6 +519,7 @@ export type Database = {
           bike_name?: string | null
           created_at?: string
           customer_cpf?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_whatsapp?: string | null
           id?: string
@@ -531,6 +533,7 @@ export type Database = {
           bike_name?: string | null
           created_at?: string
           customer_cpf?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_whatsapp?: string | null
           id?: string
@@ -541,6 +544,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "mechanic_jobs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mechanic_jobs_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -802,6 +812,7 @@ export type Database = {
         Row: {
           created_at: string
           customer_cpf: string | null
+          customer_id: string | null
           customer_name: string | null
           customer_whatsapp: string | null
           id: string
@@ -815,6 +826,7 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_cpf?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_whatsapp?: string | null
           id?: string
@@ -828,6 +840,7 @@ export type Database = {
         Update: {
           created_at?: string
           customer_cpf?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_whatsapp?: string | null
           id?: string
@@ -839,6 +852,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quotes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quotes_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -981,6 +1001,7 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           customer_cpf: string | null
+          customer_id: string | null
           customer_name: string | null
           customer_whatsapp: string | null
           frame_number: string | null
@@ -999,6 +1020,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           customer_cpf?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_whatsapp?: string | null
           frame_number?: string | null
@@ -1017,6 +1039,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           customer_cpf?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           customer_whatsapp?: string | null
           frame_number?: string | null
@@ -1031,6 +1054,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "service_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "service_orders_mechanic_id_fkey"
             columns: ["mechanic_id"]
