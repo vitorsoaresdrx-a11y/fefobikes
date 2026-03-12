@@ -117,58 +117,128 @@ function buildWhatsAppMessage(data: ReceiptData) {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
+// ─── Print HTML builder ─────────────────────────────────────────────────────
+
+function buildPrintHTML(data: ReceiptData) {
+  const detail = paymentDetail(data);
+  const itemsHTML = data.items
+    .map(
+      (item) => `
+      <div class="row small">
+        <span class="left">${item.name}</span>
+        <span class="right">${formatBRL(item.quantity * item.unit_price)}</span>
+      </div>
+      <p class="xsmall mt4">${item.quantity}x ${formatBRL(item.unit_price)}</p>`
+    )
+    .join("");
+
+  const customerHTML = data.customerName
+    ? `
+      <div class="divider"></div>
+      <p class="section-label">Cliente</p>
+      <p class="small bold">${data.customerName}</p>
+      ${data.customerWhatsapp ? `<p class="small">${data.customerWhatsapp}</p>` : ""}`
+    : "";
+
+  const discountHTML =
+    data.discount > 0
+      ? `<div class="row small"><span>Desconto</span><span>-${formatBRL(data.discount)}</span></div>`
+      : "";
+
+  const detailHTML = detail ? `<p class="xsmall mt4">${detail}</p>` : "";
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Recibo - FeFo Bikes</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Courier New',Courier,monospace;font-size:12px;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm}
+    .center{text-align:center}
+    .bold{font-weight:bold}
+    .big{font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:2px}
+    .small{font-size:11px}
+    .xsmall{font-size:9px;color:#444}
+    .divider{border-top:1px dashed #000;margin:6px 0}
+    .row{display:flex;justify-content:space-between;margin-bottom:2px}
+    .row .left{flex:1;padding-right:6px}
+    .row .right{white-space:nowrap}
+    .section-label{font-size:9px;text-transform:uppercase;font-weight:bold;margin-bottom:4px}
+    .total{font-size:14px;font-weight:900}
+    .mt4{margin-top:4px}
+    .mt8{margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="center">
+    <p class="big">FeFo Bikes</p>
+    <p class="small mt4">Av. Ipanema, 1036 — Sorocaba, SP</p>
+    <p class="small">CEP: 18070-671</p>
+    <p class="small">(15) 99612-8054</p>
+    <p class="small">CNPJ: 27.291.055/0001-54</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="row small">
+    <span>PEDIDO #${data.orderNumber}</span>
+    <span>${formatDate(data.timestamp)} ${formatTime(data.timestamp)}</span>
+  </div>
+
+  ${customerHTML}
+
+  <div class="divider"></div>
+  <p class="section-label">Itens</p>
+  ${itemsHTML}
+
+  <div class="divider"></div>
+
+  <div class="row small">
+    <span>Subtotal</span>
+    <span>${formatBRL(data.subtotal)}</span>
+  </div>
+  ${discountHTML}
+  <div class="row total mt4">
+    <span>TOTAL</span>
+    <span>${formatBRL(data.total)}</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <p class="section-label">Pagamento</p>
+  <div class="row small">
+    <span>${paymentLabelSimple(data)}</span>
+    <span>${formatBRL(data.total)}</span>
+  </div>
+  ${detailHTML}
+
+  <div class="divider"></div>
+
+  <div class="center mt8">
+    <p class="small">Obrigado pela preferência!</p>
+    <p class="xsmall mt4">GARANTIA DE 90 DIAS EM MÃO DE OBRA</p>
+    <p class="xsmall mt4">${new Date().toLocaleString("pt-BR")}</p>
+  </div>
+</body>
+</html>`;
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
   const handlePrint = useCallback(() => {
-    const receiptEl = document.getElementById("receipt-content");
-    if (!receiptEl) return;
-
-    const printWindow = window.open("", "_blank", "width=400,height=600");
+    const html = buildPrintHTML(data);
+    const printWindow = window.open("", "_blank", "width=400,height=700");
     if (!printWindow) return;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>Recibo - FeFo Bikes</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-              font-family: 'Courier New', monospace;
-              font-size: 12px;
-              color: #000;
-              background: #fff;
-              width: 80mm;
-              padding: 4mm;
-            }
-            .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-            .header h1 { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
-            .header p { font-size: 10px; margin-top: 2px; }
-            .section { border-top: 1px dashed #000; padding: 6px 0; margin-bottom: 4px; }
-            .label { font-size: 9px; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
-            .row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
-            .row .name { flex: 1; padding-right: 8px; }
-            .row .value { white-space: nowrap; }
-            .qty { font-size: 9px; color: #555; margin-bottom: 6px; }
-            .total-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; margin-top: 4px; }
-            .footer { border-top: 1px dashed #000; padding-top: 8px; text-align: center; margin-top: 4px; }
-            .footer p { font-size: 10px; margin-bottom: 2px; }
-            .footer .small { font-size: 9px; color: #555; }
-          </style>
-        </head>
-        <body>
-          ${receiptEl.innerHTML}
-        </body>
-      </html>
-    `);
-
+    printWindow.document.write(html);
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
     }, 300);
-  }, []);
+  }, [data]);
 
   const handleWhatsApp = useCallback(() => {
     const msg = encodeURIComponent(buildWhatsAppMessage(data));
@@ -190,10 +260,7 @@ export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
       >
         {/* Receipt card — white bg, black text to simulate thermal print */}
         <div className="overflow-y-auto max-h-[85vh] rounded-2xl">
-          <div
-            id="receipt-content"
-            className="receipt bg-white text-black rounded-2xl p-5 w-full"
-          >
+          <div className="bg-white text-black rounded-2xl p-5 w-full">
             {/* Header */}
             <div className="text-center border-b border-dashed border-black pb-3 mb-3">
               <p className="text-lg font-black uppercase tracking-widest">FeFo Bikes</p>
