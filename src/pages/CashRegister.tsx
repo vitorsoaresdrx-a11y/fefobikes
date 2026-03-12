@@ -357,9 +357,12 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
         <div className="hidden md:flex items-center justify-between p-6">
           <div className="flex-1 min-w-0 space-y-1">
             <p className="text-sm font-bold text-white">
-              {formatDateTime(register.opened_at)} — {register.closed_at ? formatTime(register.closed_at) : ""}
+              {formatDateTime(register.opened_at)}
             </p>
-            <div className="flex items-center gap-3 text-xs text-zinc-500">
+            <p className="text-xs text-zinc-500">
+              {register.closed_at ? `Fechado às ${formatTime(register.closed_at)}` : ""}
+            </p>
+            <div className="flex items-center gap-3 text-xs text-zinc-500 pt-1">
               <span>Inicial: {formatBRL(Number(register.opening_amount))}</span>
               <span>Esperado: {formatBRL(Number(register.expected_amount) || 0)}</span>
               <span>Informado: {formatBRL(Number(register.closing_amount) || 0)}</span>
