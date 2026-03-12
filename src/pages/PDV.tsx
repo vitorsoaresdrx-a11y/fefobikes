@@ -679,7 +679,7 @@ export default function PDV() {
                 <div className="relative">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
                   <InputEl
-                    placeholder="Buscar cliente por nome ou WhatsApp..."
+                    placeholder="Buscar por nome, WhatsApp ou CPF..."
                     className="h-14 pl-12 pr-4"
                     value={custSearch}
                     onChange={(e) => {
