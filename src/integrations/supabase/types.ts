@@ -733,6 +733,121 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          created_at: string
+          id: string
+          part_id: string | null
+          part_name: string
+          quantity: number
+          quote_id: string
+          tenant_id: string | null
+          unit_cost: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          part_name: string
+          quantity?: number
+          quote_id: string
+          tenant_id?: string | null
+          unit_cost?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          part_name?: string
+          quantity?: number
+          quote_id?: string
+          tenant_id?: string | null
+          unit_cost?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          created_at: string
+          customer_cpf: string | null
+          customer_name: string | null
+          customer_whatsapp: string | null
+          id: string
+          labor_cost: number
+          notes: string | null
+          status: string
+          tenant_id: string | null
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_whatsapp?: string | null
+          id?: string
+          labor_cost?: number
+          notes?: string | null
+          status?: string
+          tenant_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_cpf?: string | null
+          customer_name?: string | null
+          customer_whatsapp?: string | null
+          id?: string
+          labor_cost?: number
+          notes?: string | null
+          status?: string
+          tenant_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sale_items: {
         Row: {
           bike_model_id: string | null
