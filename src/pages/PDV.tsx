@@ -132,6 +132,7 @@ export default function PDV() {
   const { toast } = useToast();
   const { data: bikes = [] } = useBikeModels();
   const { data: parts = [] } = useParts();
+  useRealtimeStock();
   const { data: customers = [] } = useCustomers();
   const { data: cardTaxes } = useCardTaxes();
   const createCustomer = useCreateCustomer();
