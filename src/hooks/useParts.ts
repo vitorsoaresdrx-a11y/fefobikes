@@ -17,6 +17,13 @@ export interface Part {
   stock_qty: number;
   visible_on_storefront: boolean;
   notes: string | null;
+  unit_cost: number | null;
+  sale_price: number | null;
+  pix_price: number | null;
+  installment_price: number | null;
+  installment_count: number | null;
+  alert_stock: number;
+  images: string[] | null;
   created_at: string;
   updated_at: string;
 }
