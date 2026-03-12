@@ -166,17 +166,17 @@ export default function ProdutoPublico() {
     enabled: !!sku,
     queryFn: async () => {
       const { data: part } = await supabase
-        .from("parts")
+        .from("parts_public" as any)
         .select("*")
         .eq("sku", sku!)
-        .maybeSingle();
+        .maybeSingle() as { data: any };
       if (part) return { ...part, _type: "part" as const };
 
       const { data: bike } = await supabase
-        .from("bike_models")
+        .from("bike_models_public" as any)
         .select("*")
         .eq("sku", sku!)
-        .maybeSingle();
+        .maybeSingle() as { data: any };
       if (bike) return { ...bike, _type: "bike" as const };
 
       return null;
@@ -189,10 +189,10 @@ export default function ProdutoPublico() {
     enabled: !!product && product._type === "bike",
     queryFn: async () => {
       const { data } = await supabase
-        .from("bike_model_parts")
+        .from("bike_model_parts_public" as any)
         .select("*, parts(name)")
         .eq("bike_model_id", product!.id)
-        .order("sort_order");
+        .order("sort_order") as { data: any[] | null };
       return data || [];
     },
   });

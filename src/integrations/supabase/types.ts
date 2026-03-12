@@ -54,10 +54,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bike_model_parts_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bike_model_parts_part_id_fkey"
             columns: ["part_id"]
             isOneToOne: false
             referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bike_model_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_public"
             referencedColumns: ["id"]
           },
         ]
@@ -628,10 +642,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "sale_items_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "sale_items_part_id_fkey"
             columns: ["part_id"]
             isOneToOne: false
             referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_public"
             referencedColumns: ["id"]
           },
           {
@@ -938,7 +966,194 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      bike_model_parts_public: {
+        Row: {
+          bike_model_id: string | null
+          id: string | null
+          notes: string | null
+          part_id: string | null
+          part_name_override: string | null
+          quantity: number | null
+          sort_order: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bike_model_parts_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bike_model_parts_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bike_model_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bike_model_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bike_models_public: {
+        Row: {
+          alert_stock: number | null
+          brand: string | null
+          category: string | null
+          color: string | null
+          cost_mode: string | null
+          created_at: string | null
+          description: string | null
+          frame_size: string | null
+          id: string | null
+          images: string[] | null
+          installment_count: number | null
+          installment_price: number | null
+          name: string | null
+          pix_price: number | null
+          rim_size: string | null
+          sale_price: number | null
+          sku: string | null
+          stock_qty: number | null
+          updated_at: string | null
+          visible_on_storefront: boolean | null
+          weight_kg: number | null
+        }
+        Insert: {
+          alert_stock?: number | null
+          brand?: string | null
+          category?: string | null
+          color?: string | null
+          cost_mode?: string | null
+          created_at?: string | null
+          description?: string | null
+          frame_size?: string | null
+          id?: string | null
+          images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
+          name?: string | null
+          pix_price?: number | null
+          rim_size?: string | null
+          sale_price?: number | null
+          sku?: string | null
+          stock_qty?: number | null
+          updated_at?: string | null
+          visible_on_storefront?: boolean | null
+          weight_kg?: number | null
+        }
+        Update: {
+          alert_stock?: number | null
+          brand?: string | null
+          category?: string | null
+          color?: string | null
+          cost_mode?: string | null
+          created_at?: string | null
+          description?: string | null
+          frame_size?: string | null
+          id?: string | null
+          images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
+          name?: string | null
+          pix_price?: number | null
+          rim_size?: string | null
+          sale_price?: number | null
+          sku?: string | null
+          stock_qty?: number | null
+          updated_at?: string | null
+          visible_on_storefront?: boolean | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      parts_public: {
+        Row: {
+          alert_stock: number | null
+          category: string | null
+          color: string | null
+          created_at: string | null
+          frame_size: string | null
+          gears: string | null
+          hub_style: string | null
+          id: string | null
+          images: string[] | null
+          installment_count: number | null
+          installment_price: number | null
+          material: string | null
+          name: string | null
+          notes: string | null
+          pix_price: number | null
+          rim_size: string | null
+          sale_price: number | null
+          sku: string | null
+          stock_qty: number | null
+          updated_at: string | null
+          visible_on_storefront: boolean | null
+          weight_capacity_kg: number | null
+        }
+        Insert: {
+          alert_stock?: number | null
+          category?: string | null
+          color?: string | null
+          created_at?: string | null
+          frame_size?: string | null
+          gears?: string | null
+          hub_style?: string | null
+          id?: string | null
+          images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
+          material?: string | null
+          name?: string | null
+          notes?: string | null
+          pix_price?: number | null
+          rim_size?: string | null
+          sale_price?: number | null
+          sku?: string | null
+          stock_qty?: number | null
+          updated_at?: string | null
+          visible_on_storefront?: boolean | null
+          weight_capacity_kg?: number | null
+        }
+        Update: {
+          alert_stock?: number | null
+          category?: string | null
+          color?: string | null
+          created_at?: string | null
+          frame_size?: string | null
+          gears?: string | null
+          hub_style?: string | null
+          id?: string | null
+          images?: string[] | null
+          installment_count?: number | null
+          installment_price?: number | null
+          material?: string | null
+          name?: string | null
+          notes?: string | null
+          pix_price?: number | null
+          rim_size?: string | null
+          sale_price?: number | null
+          sku?: string | null
+          stock_qty?: number | null
+          updated_at?: string | null
+          visible_on_storefront?: boolean | null
+          weight_capacity_kg?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
