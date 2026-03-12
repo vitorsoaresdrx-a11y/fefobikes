@@ -364,7 +364,7 @@ export default function DRE() {
         </div>
 
         {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <ChartContainer
             title="Faturamento Diário"
             subtitle={MONTHS_FULL[selectedMonth]}
