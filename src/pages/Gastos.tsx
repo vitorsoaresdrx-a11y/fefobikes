@@ -130,7 +130,7 @@ export default function Gastos() {
   const [fAmount, setFAmount] = useState(0);
   const [fNotes, setFNotes] = useState("");
   const [vName, setVName] = useState("");
-  const [vAmount, setVAmount] = useState("");
+  const [vAmount, setVAmount] = useState(0);
   const [vDate, setVDate] = useState("");
   const [vNotes, setVNotes] = useState("");
 
