@@ -75,7 +75,7 @@ export function usePublicPartAttributes(partId: string | undefined) {
         .eq("part_id", partId!)
         .order("sort_order");
       if (error) throw error;
-      return (data || []) as PartAttribute[];
+      return (data || []) as unknown as PartAttribute[];
     },
   });
 }
