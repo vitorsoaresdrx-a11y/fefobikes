@@ -178,7 +178,7 @@ export default function Bikes() {
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-6">
           <StatCard title="Total de Modelos" value={bikes.length} icon={<Package className="w-5 h-5" />} />
           <StatCard
             title="Visíveis na Loja"
