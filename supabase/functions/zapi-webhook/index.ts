@@ -91,14 +91,14 @@ Deno.serve(async (req) => {
       const { data: newConv } = await supabase
         .from("whatsapp_conversations")
         .insert({
-          contact_phone: phone,
-          contact_name: senderName,
-          contact_photo: senderPhoto,
-          last_message: text || `[${type}]`,
-          last_message_at: new Date().toISOString(),
-          unread_count: isFromMe ? 0 : 1,
-          status: "open",
-        })
+            contact_phone: phone,
+            contact_name: contactName,
+            contact_photo: contactPhoto,
+            last_message: content || `[${type}]`,
+            last_message_at: new Date().toISOString(),
+            unread_count: isFromMe ? 0 : 1,
+            status: "open",
+          })
         .select("id")
         .single();
       convId = newConv!.id;
