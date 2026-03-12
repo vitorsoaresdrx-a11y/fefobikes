@@ -32,6 +32,8 @@ import {
   QrCode,
   Wifi,
   WifiOff,
+  Bot,
+  BotOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
