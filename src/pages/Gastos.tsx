@@ -398,10 +398,7 @@ export default function Gastos() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Valor Mensal (R$) *</Label>
-                  <div className="relative">
-                    <Input type="number" step="0.01" min={0} value={fAmount} onChange={(e) => setFAmount(e.target.value)} placeholder="0,00" className="pl-12" />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-600 text-xs">R$</span>
-                  </div>
+                  <CurrencyInput value={fAmount} onChange={setFAmount} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
