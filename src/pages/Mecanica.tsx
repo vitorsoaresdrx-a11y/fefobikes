@@ -609,8 +609,8 @@ export default function Mecanica() {
 
       {/* ── New Maintenance Modal ────────────────────────────────────────────── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl">
-          <div className="p-10 space-y-8">
+        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 md:p-10 space-y-6 md:space-y-8">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
                 Nova Ordem de Serviço
@@ -618,7 +618,7 @@ export default function Mecanica() {
             </DialogHeader>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputGroup label="Nome do Cliente">
                   <PremiumInput
                     placeholder="Nome completo"
@@ -702,8 +702,8 @@ export default function Mecanica() {
 
       {/* ── Add Repair Modal ─────────────────────────────────────────────────── */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl">
-          <div className="p-10 space-y-8">
+        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 md:p-10 space-y-6 md:space-y-8">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
                 Adicionar Reparo Extra

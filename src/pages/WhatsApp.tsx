@@ -201,15 +201,27 @@ export default function WhatsApp() {
     });
   };
 
+  // Mobile: show chat full screen when conversation selected
+  const [showChatMobile, setShowChatMobile] = useState(false);
+
+  const handleSelectConv = (conv: Conversation) => {
+    setSelectedConv(conv);
+    setShowChatMobile(true);
+  };
+
+  const handleBackToList = () => {
+    setShowChatMobile(false);
+  };
+
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-[#0A0A0B] text-zinc-100 overflow-hidden rounded-[40px] border border-zinc-800/50 shadow-2xl">
+    <div className="flex h-[calc(100vh-4rem)] bg-[#0A0A0B] text-zinc-100 overflow-hidden rounded-2xl md:rounded-[40px] border border-zinc-800/50 shadow-2xl">
 
       {/* ── Sidebar: Conversas ─────────────────────────────────────────────── */}
-      <aside className="w-96 flex flex-col border-r border-zinc-800/50 bg-[#111113]/50 shrink-0">
+      <aside className={`w-full md:w-96 flex flex-col border-r border-zinc-800/50 bg-[#111113]/50 md:shrink-0 ${showChatMobile ? "hidden md:flex" : "flex"}`}>
 
         {/* Header */}
-        <div className="p-8 space-y-6">
+        <div className="p-4 md:p-8 space-y-4 md:space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
@@ -353,8 +365,8 @@ export default function WhatsApp() {
             filtered.map((conv) => (
               <button
                 key={conv.id}
-                onClick={() => setSelectedConv(conv)}
-                className={`w-full p-5 rounded-[28px] border transition-all flex items-center gap-4 group ${
+                onClick={() => handleSelectConv(conv)}
+                className={`w-full p-4 md:p-5 rounded-2xl md:rounded-[28px] border transition-all flex items-center gap-3 md:gap-4 group ${
                   selectedConv?.id === conv.id
                     ? "bg-[#1C1C1E] border-[#2952FF]/30 shadow-xl"
                     : "bg-transparent border-transparent hover:bg-white/[0.03]"
@@ -422,14 +434,14 @@ export default function WhatsApp() {
       </aside>
 
       {/* ── Chat Area ──────────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col bg-[#0A0A0B] min-w-0">
+      <main className={`flex-1 flex flex-col bg-[#0A0A0B] min-w-0 ${showChatMobile ? "flex" : "hidden md:flex"}`}>
         {!selectedConv ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6">
-            <div className="w-24 h-24 bg-zinc-900 rounded-[40px] flex items-center justify-center text-zinc-800 border border-zinc-800/50 shadow-inner">
-              <MessageCircle size={48} strokeWidth={1} />
+          <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center space-y-6">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-2xl md:rounded-[40px] flex items-center justify-center text-zinc-800 border border-zinc-800/50 shadow-inner">
+              <MessageCircle size={40} strokeWidth={1} />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-zinc-300 uppercase italic tracking-tighter">
+              <h3 className="text-xl md:text-2xl font-black text-zinc-300 uppercase italic tracking-tighter">
                 Hub de Conversas
               </h3>
               <p className="text-sm text-zinc-500 max-w-xs leading-relaxed">
@@ -440,9 +452,16 @@ export default function WhatsApp() {
         ) : (
           <>
             {/* Chat header */}
-            <header className="px-10 py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#111113]/30 backdrop-blur-md shrink-0">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-700 font-bold uppercase">
+            <header className="px-4 md:px-10 py-4 md:py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#111113]/30 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3 md:gap-5">
+                {/* Mobile back button */}
+                <button
+                  onClick={handleBackToList}
+                  className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-700 font-bold uppercase shrink-0">
                   {selectedConv.contact_photo ? (
                     <img
                       src={selectedConv.contact_photo}
@@ -474,7 +493,7 @@ export default function WhatsApp() {
                  </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3 shrink-0">
                 {selectedConv.status !== "resolved" ? (
                   <button
                     onClick={() =>
@@ -486,10 +505,10 @@ export default function WhatsApp() {
                         }
                       )
                     }
-                    className="h-9 px-4 rounded-xl border border-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-800 flex items-center gap-2 transition-all"
+                    className="h-9 px-3 md:px-4 rounded-xl border border-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-800 flex items-center gap-1.5 md:gap-2 transition-all"
                   >
                     <CircleDot size={14} className="text-emerald-400" />
-                    Resolver Caso
+                    <span className="hidden sm:inline">Resolver Caso</span>
                   </button>
                 ) : (
                   <button
@@ -519,7 +538,7 @@ export default function WhatsApp() {
                     );
                   }}
                   title={selectedConv.ai_enabled !== false ? "Pausar IA" : "Ativar IA"}
-                  className={`h-9 px-4 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
+                  className={`h-9 px-3 md:px-4 rounded-xl border text-xs font-bold flex items-center gap-1.5 md:gap-2 transition-all hidden sm:flex ${
                     selectedConv.ai_enabled !== false
                       ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
                       : "border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
@@ -531,14 +550,14 @@ export default function WhatsApp() {
                     <><BotOff size={14} /> IA Pausada</>
                   )}
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all">
+                <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all hidden sm:flex">
                   <MoreVertical size={18} />
                 </button>
               </div>
             </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-10 space-y-6 scrollbar-none">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-4 md:space-y-6 scrollbar-none">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -580,8 +599,8 @@ export default function WhatsApp() {
             </div>
 
             {/* Input */}
-            <div className="p-8 pt-4 shrink-0">
-              <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-2 flex items-center gap-2 shadow-2xl focus-within:border-[#2952FF]/50 transition-all">
+            <div className="p-3 md:p-8 pt-2 md:pt-4 shrink-0 pb-[env(safe-area-inset-bottom)]">
+              <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2 shadow-2xl focus-within:border-[#2952FF]/50 transition-all">
                 <div className="flex items-center px-2">
                   <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
                     <Paperclip size={20} />

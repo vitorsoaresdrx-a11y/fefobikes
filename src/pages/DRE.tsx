@@ -83,7 +83,7 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
+    <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
       <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
         <Icon size={160} />
       </div>
@@ -117,7 +117,7 @@ function ChartContainer({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-8 space-y-6">
+    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-4 md:space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
@@ -313,7 +313,7 @@ export default function DRE() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
-      <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-6xl mx-auto p-4 md:p-12 space-y-6 md:space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -324,7 +324,7 @@ export default function DRE() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">PERFORMANCE HUB</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Análise DRE</h1>
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Análise DRE</h1>
           </div>
 
           <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-2xl p-1">
@@ -344,7 +344,7 @@ export default function DRE() {
         </header>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" />
           <StatCard title="Receita Líquida" value={totals.netRevenue} icon={Receipt} tag="Após Taxas" color="text-indigo-400" />
           <StatCard
@@ -364,7 +364,7 @@ export default function DRE() {
         </div>
 
         {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <ChartContainer
             title="Faturamento Diário"
             subtitle={MONTHS_FULL[selectedMonth]}
@@ -420,8 +420,8 @@ export default function DRE() {
         </div>
 
         {/* DRE Detalhado */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
+        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 className="font-bold text-lg">Demonstrativo Detalhado</h3>
             <div className="flex items-center gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800">
               <Btn onClick={prevMonth}>
@@ -450,7 +450,7 @@ export default function DRE() {
             <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
 
             {/* Lucro Final */}
-            <div className="mt-6 p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-[24px] flex items-center justify-between">
+            <div className="mt-4 md:mt-6 p-4 md:p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)]">
                   <TrendingUp size={28} />

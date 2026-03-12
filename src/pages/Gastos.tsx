@@ -181,7 +181,7 @@ export default function Gastos() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
-      <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-5xl mx-auto p-4 md:p-12 space-y-6 md:space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -192,17 +192,17 @@ export default function Gastos() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">GESTÃO</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Finanças</h1>
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Finanças</h1>
           </div>
-          <Btn variant="primary" size="lg" onClick={() => tab === "fixed" ? setFixedModal(true) : setVarModal(true)}>
+          <Btn variant="primary" size="lg" className="w-full sm:w-auto" onClick={() => tab === "fixed" ? setFixedModal(true) : setVarModal(true)}>
             <Plus className="w-5 h-5 mr-2 stroke-[3]" />
             Adicionar Lançamento
           </Btn>
         </header>
 
         {/* Cards Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-5 md:p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
               <Repeat size={180} />
             </div>
@@ -222,7 +222,7 @@ export default function Gastos() {
             </div>
           </div>
 
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-[32px] p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-5 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
               <CreditCard size={180} />
             </div>
@@ -279,9 +279,9 @@ export default function Gastos() {
         </div>
 
         {/* Lista */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
-            <h3 className="font-bold text-lg">Histórico de Lançamentos</h3>
+        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex items-center justify-between">
+            <h3 className="font-bold text-base md:text-lg">Histórico de Lançamentos</h3>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tempo Real</span>
@@ -305,7 +305,7 @@ export default function Gastos() {
               </div>
             ) : (
               activeList.map((exp) => (
-                <div key={exp.id} className="group p-8 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+                <div key={exp.id} className="group p-4 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors">
                   <div className="flex items-center gap-6">
                     <div className={`p-4 rounded-[20px] ${tab === "fixed" ? "bg-indigo-500/5 text-indigo-400" : "bg-amber-500/5 text-amber-400"}`}>
                       {tab === "fixed" ? <Receipt className="w-6 h-6 stroke-[1.5]" /> : <CreditCard className="w-6 h-6 stroke-[1.5]" />}
@@ -381,8 +381,8 @@ export default function Gastos() {
       {/* Modal Fixo */}
       {fixedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
-            <div className="p-10 space-y-8">
+          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="p-6 md:p-10 space-y-6 md:space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-white">Novo Gasto Fixo</h2>
@@ -424,8 +424,8 @@ export default function Gastos() {
       {/* Modal Variável */}
       {varModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
-            <div className="p-10 space-y-8">
+          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="p-6 md:p-10 space-y-6 md:space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-white">Novo Gasto Variável</h2>
@@ -440,7 +440,7 @@ export default function Gastos() {
                   <Label>Nome *</Label>
                   <Input value={vName} onChange={(e) => setVName(e.target.value)} placeholder="Ex: Manutenção, Frete..." maxLength={100} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Valor (R$) *</Label>
                     <div className="relative">

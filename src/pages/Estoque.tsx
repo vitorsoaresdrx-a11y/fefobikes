@@ -142,7 +142,7 @@ function SummaryCard({
   return (
     <button
       onClick={onClick}
-      className={`relative group p-8 rounded-[32px] border transition-all duration-500 text-left overflow-hidden ${
+      className={`relative group p-5 md:p-8 rounded-2xl md:rounded-[32px] border transition-all duration-500 text-left overflow-hidden ${
         active
           ? "bg-[#161618] border-[#2952FF] shadow-[0_0_30px_rgba(41,82,255,0.1)]"
           : "bg-[#161618] border-zinc-800 hover:border-zinc-700"
@@ -262,7 +262,7 @@ export default function Estoque() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
-      <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-6xl mx-auto p-4 md:p-12 space-y-6 md:space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -273,7 +273,7 @@ export default function Estoque() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">HUB DE OPERAÇÕES</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
           <div className="flex items-center gap-3">
             <Btn variant="secondary" size="lg" className="rounded-2xl">
@@ -288,7 +288,7 @@ export default function Estoque() {
         </header>
 
         {/* Summary Cards — clicáveis como filtros */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
           {(["critical", "warning", "ok"] as StockStatus[]).map((status) => (
             <SummaryCard
               key={status}
@@ -328,9 +328,9 @@ export default function Estoque() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
-            <h3 className="font-bold text-lg">Itens em Inventário</h3>
+        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 className="font-bold text-base md:text-lg">Itens em Inventário</h3>
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
               {filtered.length} {filtered.length !== 1 ? "itens" : "item"} filtrado{filtered.length !== 1 ? "s" : ""}
             </span>
@@ -351,10 +351,10 @@ export default function Estoque() {
               <table className="w-full">
                 <thead>
                   <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-                    <th className="px-8 py-4">Item / Categoria</th>
-                    <th className="px-8 py-4">Tipo</th>
-                    <th className="px-8 py-4 text-center">Disponível</th>
-                    <th className="px-8 py-4 text-center">Alerta</th>
+                    <th className="px-4 md:px-8 py-4">Item / Categoria</th>
+                    <th className="px-4 md:px-8 py-4 hidden sm:table-cell">Tipo</th>
+                    <th className="px-4 md:px-8 py-4 text-center">Disponível</th>
+                    <th className="px-4 md:px-8 py-4 text-center hidden md:table-cell">Alerta</th>
                     <th className="px-8 py-4 text-right">Status</th>
                   </tr>
                 </thead>
@@ -415,7 +415,7 @@ export default function Estoque() {
       {/* Modal de Ajuste */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 overflow-hidden shadow-2xl">
+          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-10 space-y-8">
               <div className="flex items-center justify-between">
                 <div>

@@ -124,7 +124,7 @@ export default function CashRegister() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-20">
-      <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-4xl mx-auto p-4 md:p-12 space-y-6 md:space-y-10">
 
         {/* Header */}
         <header className="space-y-2">
@@ -134,12 +134,12 @@ export default function CashRegister() {
             </div>
             <span className="text-sm font-black tracking-widest text-[#2952FF]">CONTROLE DE CAIXA</span>
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Caixa</h1>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Caixa</h1>
         </header>
 
         {/* ── Status Section ──────────────────────────────────────────── */}
         {!isOpen ? (
-          <div className="py-20 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-[40px]">
+          <div className="py-12 md:py-20 flex flex-col items-center text-center space-y-4 md:space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
             <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700">
               <Lock size={40} />
             </div>
@@ -152,7 +152,7 @@ export default function CashRegister() {
             </Btn>
           </div>
         ) : (
-          <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-8 space-y-6">
+          <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-4 md:space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="relative flex h-3 w-3">
@@ -167,7 +167,7 @@ export default function CashRegister() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5">
                 <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Valor Inicial</p>
                 <p className="text-2xl font-black text-white">{formatBRL(currentRegister!.opening_amount)}</p>

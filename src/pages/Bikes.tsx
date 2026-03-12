@@ -86,7 +86,7 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-6 flex items-center gap-5">
+    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-6 flex items-center gap-3 md:gap-5">
       <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${color}`}>
         {icon}
       </div>
@@ -145,7 +145,7 @@ export default function Bikes() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
-      <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-6xl mx-auto p-4 md:p-12 space-y-6 md:space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -156,7 +156,7 @@ export default function Bikes() {
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">CATÁLOGO</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight">Modelos de Bikes</h1>
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Modelos de Bikes</h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -178,7 +178,7 @@ export default function Bikes() {
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-6">
           <StatCard title="Total de Modelos" value={bikes.length} icon={<Package className="w-5 h-5" />} />
           <StatCard
             title="Visíveis na Loja"
@@ -206,7 +206,7 @@ export default function Bikes() {
             Nenhum resultado para "{search}"
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {filtered.map((bike) => {
               const firstImage = (bike as any).images?.[0];
               return (
