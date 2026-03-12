@@ -106,6 +106,7 @@ export async function executeCalcularFrete(args: {
         Largura: 20,
         Comprimento: 148,
         PesoPorVolume: peso,
+        ValorNF: valor_nf,
       }),
     }
   );
