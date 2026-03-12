@@ -405,8 +405,13 @@ export default function WhatsApp() {
                   <p className="text-xs text-zinc-500 truncate font-medium">
                     {conv.last_message}
                   </p>
-                  <div className="pt-1">
+                  <div className="pt-1 flex items-center gap-2">
                     <ConversationBadge status={conv.status} />
+                    {conv.ai_enabled === false && (
+                      <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
+                        IA pausada
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
