@@ -271,7 +271,7 @@ export default function CashRegister() {
             </div>
 
             {/* Difference preview */}
-            {closingAmount && (
+            {closingAmount > 0 && (
               <div className={`rounded-2xl p-4 border text-center ${
                 diff === 0
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
