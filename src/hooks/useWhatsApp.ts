@@ -102,7 +102,15 @@ export function useMessages(conversationId: string | null) {
         .eq("conversation_id", conversationId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data as Message[];
+      return (data as Message[]).filter((msg) => {
+        const isGhostStatusMessage =
+          msg.type === "text" &&
+          !msg.message_id &&
+          !msg.media_url &&
+          (!msg.content || msg.content === "[text]" || msg.content === "text");
+
+        return !isGhostStatusMessage;
+      });
     },
   });
 }
