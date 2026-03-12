@@ -660,16 +660,10 @@ export default function BikeForm() {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                   Preço de Custo (R$)
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={costPrice || ""}
-                  onChange={(e) =>
-                    form.setValue("cost_price", parseFloat(e.target.value) || 0)
-                  }
-                  className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                  placeholder="0,00"
+                <CurrencyInput
+                  value={costPrice || 0}
+                  onChange={(val) => form.setValue("cost_price", val)}
+                  className="h-16 text-xl rounded-2xl"
                 />
               </div>
             )}
