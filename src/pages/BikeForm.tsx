@@ -317,7 +317,7 @@ export default function BikeForm() {
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 pb-32">
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-12">
+        <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8 lg:space-y-10">
 
           {/* ── Topbar ────────────────────────────────────────────────────── */}
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#161618] p-6 rounded-[32px] border border-zinc-800 shadow-2xl">
