@@ -99,11 +99,13 @@ export function useMessages(conversationId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("whatsapp_messages")
-        .select("*")
+        .select("id, conversation_id, message_id, from_me, type, content, media_url, status, created_at")
         .eq("conversation_id", conversationId!)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false })
+        .limit(50);
       if (error) throw error;
-      return (data as Message[]).filter((msg) => {
+      const reversed = (data as Message[]).reverse();
+      return reversed.filter((msg) => {
         const isGhostStatusMessage =
           msg.type === "text" &&
           !msg.message_id &&

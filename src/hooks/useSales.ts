@@ -52,7 +52,7 @@ export function useSales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("*, sale_items(*), customers(*)")
+        .select("id, created_at, customer_id, total, payment_method, card_fee, card_tax_percent, notes, sale_items(id, description, quantity, unit_price, part_id, bike_model_id), customers(id, name, whatsapp, cpf)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
