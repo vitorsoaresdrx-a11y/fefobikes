@@ -365,24 +365,32 @@ export default function DRE() {
         </header>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-          <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" />
-          <StatCard title="Receita Líquida" value={totals.netRevenue} icon={Receipt} tag="Após Taxas" color="text-indigo-400" />
-          <StatCard
-            title="Despesas Totais"
-            value={totals.fixedExpenses + totals.variableExpenses}
-            icon={TrendingDown}
-            tag="Saídas"
-            color="text-red-400"
-          />
-          <StatCard
-            title="Lucro Líquido"
-            value={totals.netProfit}
-            icon={totals.netProfit >= 0 ? TrendingUp : TrendingDown}
-            tag="Resultado"
-            color={totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}
-          />
-        </div>
+        {(() => {
+          const kpiValues = [totals.revenue, totals.netRevenue, totals.fixedExpenses + totals.variableExpenses, totals.netProfit];
+          const hasLargeValue = kpiValues.some((v) => Math.abs(v) >= 100000);
+          return (
+            <div className={hasLargeValue ? "flex flex-col gap-3 md:grid md:grid-cols-4 md:gap-6" : "grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6"}>
+              <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" compact={hasLargeValue} />
+              <StatCard title="Receita Líquida" value={totals.netRevenue} icon={Receipt} tag="Após Taxas" color="text-indigo-400" compact={hasLargeValue} />
+              <StatCard
+                title="Despesas Totais"
+                value={totals.fixedExpenses + totals.variableExpenses}
+                icon={TrendingDown}
+                tag="Saídas"
+                color="text-red-400"
+                compact={hasLargeValue}
+              />
+              <StatCard
+                title="Lucro Líquido"
+                value={totals.netProfit}
+                icon={totals.netProfit >= 0 ? TrendingUp : TrendingDown}
+                tag="Resultado"
+                color={totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}
+                compact={hasLargeValue}
+              />
+            </div>
+          );
+        })()}
 
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
