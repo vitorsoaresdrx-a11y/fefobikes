@@ -454,7 +454,7 @@ export default function WhatsApp() {
                   </h2>
                   <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
                     <Hash size={10} className="text-[#2952FF]" />
-                    {selectedConv.contact_phone}
+                    {getDisplayContactPhone(selectedConv.contact_phone)}
                   </p>
                 </div>
               </div>
