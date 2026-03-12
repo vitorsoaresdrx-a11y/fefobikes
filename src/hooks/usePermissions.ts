@@ -65,6 +65,8 @@ export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/caixa": "caixa",
   "/historico": "historico",
   "/mecanica": "mecanica",
+  "/mecanicos": "mecanica",
+  "/mecanicos/historico": "mecanica",
   "/gastos": "gastos",
   "/clientes": "clientes",
   "/whatsapp": "whatsapp",
