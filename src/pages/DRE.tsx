@@ -117,7 +117,7 @@ function ChartContainer({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-8 space-y-6">
+    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-4 md:space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
