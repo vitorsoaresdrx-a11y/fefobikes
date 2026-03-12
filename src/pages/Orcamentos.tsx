@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
+import type { Customer } from "@/hooks/useCustomers";
 import {
   FileText,
   Plus,
