@@ -221,7 +221,7 @@ export default function WhatsApp() {
       <aside className={`w-full md:w-96 flex flex-col border-r border-zinc-800/50 bg-[#111113]/50 md:shrink-0 ${showChatMobile ? "hidden md:flex" : "flex"}`}>
 
         {/* Header */}
-        <div className="p-8 space-y-6">
+        <div className="p-4 md:p-8 space-y-4 md:space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">

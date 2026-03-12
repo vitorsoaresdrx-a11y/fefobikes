@@ -14,7 +14,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-// ─── Data (do original) ───────────────────────────────────────────────────────
 const primaryActions = [
   {
     label: "Registrar Venda",
@@ -46,7 +45,6 @@ const secondaryActions = [
   { icon: <Monitor size={18} />, label: "Site Público", to: "/site" },
 ];
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
 type ColorTheme = "primary" | "amber" | "indigo";
 
 const themes: Record<ColorTheme, string> = {
@@ -88,23 +86,23 @@ const QuickActionCard = ({
 }) => (
   <button
     onClick={onClick}
-    className={`group relative flex flex-col items-start gap-6 p-8 rounded-[40px] bg-[#161618] border transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:-translate-y-2 text-left overflow-hidden ${themes[color]} ${hoverBg[color]}`}
+    className={`group relative flex flex-col items-start gap-4 md:gap-6 p-5 md:p-8 rounded-2xl md:rounded-[40px] bg-[#161618] border transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:-translate-y-2 text-left overflow-hidden ${themes[color]} ${hoverBg[color]}`}
   >
-    {/* Background ghost icon */}
-    <div className="absolute -right-6 -bottom-6 opacity-[0.03] text-zinc-600 transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12">
+    <div className="absolute -right-6 -bottom-6 opacity-[0.03] text-zinc-600 transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12 hidden md:block">
       <Icon size={180} />
     </div>
 
-    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 ${iconColors[color]}`}>
-      <Icon size={28} className="stroke-[2.5]" />
+    <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 ${iconColors[color]}`}>
+      <Icon size={24} className="stroke-[2.5] md:hidden" />
+      <Icon size={28} className="stroke-[2.5] hidden md:block" />
     </div>
 
-    <div className="space-y-2 relative z-10">
-      <h3 className="text-2xl font-black text-white tracking-tighter uppercase italic">{label}</h3>
-      <p className="text-sm text-zinc-500 font-medium leading-relaxed max-w-[200px]">{description}</p>
+    <div className="space-y-1 md:space-y-2 relative z-10">
+      <h3 className="text-lg md:text-2xl font-black text-white tracking-tighter uppercase italic">{label}</h3>
+      <p className="text-xs md:text-sm text-zinc-500 font-medium leading-relaxed max-w-[200px]">{description}</p>
     </div>
 
-    <div className={`mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 ${actionTextColor[color]}`}>
+    <div className={`mt-2 md:mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 ${actionTextColor[color]}`}>
       Iniciar Agora <ChevronRight size={12} />
     </div>
   </button>
@@ -121,9 +119,9 @@ const SecondaryAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-4 p-5 bg-[#161618] border border-zinc-800 rounded-2xl hover:border-[#2952FF]/50 hover:bg-[#2952FF]/5 transition-all text-left group"
+    className="flex items-center gap-3 md:gap-4 p-4 md:p-5 bg-[#161618] border border-zinc-800 rounded-xl md:rounded-2xl hover:border-[#2952FF]/50 hover:bg-[#2952FF]/5 transition-all text-left group"
   >
-    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 group-hover:text-[#2952FF] transition-colors">
+    <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 group-hover:text-[#2952FF] transition-colors shrink-0">
       {icon}
     </div>
     <span className="text-xs font-bold text-zinc-400 group-hover:text-white uppercase tracking-wider transition-colors">
@@ -132,7 +130,6 @@ const SecondaryAction = ({
   </button>
 );
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
@@ -146,21 +143,22 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
 
       {/* Topbar */}
-      <div className="px-12 py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0B]/50 backdrop-blur-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
-            <Activity size={20} className="text-white" />
+      <div className="px-4 md:px-12 py-4 md:py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0B]/50 backdrop-blur-xl">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-9 h-9 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
+            <Activity size={18} className="text-white md:hidden" />
+            <Activity size={20} className="text-white hidden md:block" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1">
+            <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1">
               Terminal de Balcão
             </p>
-            <h2 className="text-sm font-bold text-white uppercase italic">Fefo Bikes Hub</h2>
+            <h2 className="text-xs md:text-sm font-bold text-white uppercase italic">Fefo Bikes Hub</h2>
           </div>
         </div>
 
-        <div className="flex items-center gap-8">
-          <div className="text-right">
+        <div className="flex items-center gap-4 md:gap-8">
+          <div className="text-right hidden sm:block">
             <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1">
               Status do Sistema
             </p>
@@ -169,30 +167,30 @@ export default function Dashboard() {
               <span className="text-xs font-bold text-emerald-500 uppercase italic">Online</span>
             </div>
           </div>
-          <div className="h-10 w-px bg-zinc-800" />
-          <div className="flex items-center gap-4">
-            <Clock size={20} className="text-zinc-500" />
-            <span className="text-2xl font-black text-white tracking-tighter tabular-nums">
+          <div className="h-10 w-px bg-zinc-800 hidden sm:block" />
+          <div className="flex items-center gap-2 md:gap-4">
+            <Clock size={18} className="text-zinc-500" />
+            <span className="text-lg md:text-2xl font-black text-white tracking-tighter tabular-nums">
               {time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
             </span>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto p-12 space-y-12">
+      <main className="max-w-7xl mx-auto p-4 md:p-12 space-y-8 md:space-y-12">
 
         {/* Welcome */}
         <div className="space-y-2">
-          <h1 className="text-5xl font-black text-white tracking-tighter leading-none italic uppercase">
+          <h1 className="text-2xl md:text-5xl font-black text-white tracking-tighter leading-none italic uppercase">
             O que vamos <span className="text-[#2952FF]">resolver</span> hoje?
           </h1>
-          <p className="text-zinc-500 text-lg font-medium">
+          <p className="text-zinc-500 text-sm md:text-lg font-medium">
             Selecione uma ação rápida para iniciar o atendimento.
           </p>
         </div>
 
         {/* Primary Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
           {primaryActions.map((action) => (
             <QuickActionCard
               key={action.label}
@@ -206,14 +204,14 @@ export default function Dashboard() {
         </div>
 
         {/* Secondary Actions */}
-        <div className="pt-12 border-t border-zinc-800/50">
-          <div className="flex items-center gap-2 mb-8">
+        <div className="pt-8 md:pt-12 border-t border-zinc-800/50">
+          <div className="flex items-center gap-2 mb-6 md:mb-8">
             <Plus size={16} className="text-[#2952FF]" />
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
               Outros Procedimentos
             </h4>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {secondaryActions.map((action) => (
               <SecondaryAction
                 key={action.label}
@@ -225,12 +223,6 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
-
-      <footer className="fixed bottom-8 left-12 opacity-30">
-        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 italic">
-          Precision Dashboard v2.0 // Fefo Bikes
-        </p>
-      </footer>
     </div>
   );
 }
