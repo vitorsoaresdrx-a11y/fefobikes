@@ -450,7 +450,7 @@ export default function WhatsApp() {
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-white italic uppercase tracking-tight leading-none mb-1">
-                    {selectedConv.contact_name || selectedConv.contact_phone}
+                    {getDisplayContactName(selectedConv, currentUserName)}
                   </h2>
                   <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
                     <Hash size={10} className="text-[#2952FF]" />
