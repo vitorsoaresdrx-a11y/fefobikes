@@ -339,7 +339,7 @@ export default function Estoque() {
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-col md:flex-row items-center gap-4 pt-4">
+        <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 md:pt-4">
           <div className="flex-1 w-full relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <input
@@ -347,15 +347,15 @@ export default function Estoque() {
               placeholder="Buscar por nome ou categoria..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+              className="w-full h-11 md:h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
             />
           </div>
-          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
+          <div className="flex w-full md:w-auto p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
             {(["all", "Peça", "Bike"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterType(t)}
-                className={`px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
                   filterType === t ? "bg-[#2C2C2E] text-white" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
