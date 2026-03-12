@@ -99,14 +99,14 @@ function PaymentCard({
     <button
       type="button"
       onClick={onClick}
-      className={`h-24 rounded-3xl border flex flex-col items-center justify-center gap-2 transition-all ${
+      className={`h-16 md:h-24 rounded-2xl md:rounded-3xl border flex flex-col items-center justify-center gap-1.5 md:gap-2 transition-all ${
         active
           ? "bg-[#2952FF]/10 border-[#2952FF] text-white shadow-[0_0_20px_rgba(41,82,255,0.2)]"
           : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
       }`}
     >
-      <Icon size={20} />
-      <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+      <Icon size={18} />
+      <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">{label}</span>
     </button>
   );
 }
