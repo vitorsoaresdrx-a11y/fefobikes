@@ -471,6 +471,7 @@ export default function Mecanica() {
       customer_name: form.customer_name || undefined,
       customer_cpf: form.customer_cpf || undefined,
       customer_whatsapp: form.customer_whatsapp || undefined,
+      customer_id: form.customer_id || undefined,
       bike_name: form.bike_name || undefined,
       problem: form.problem,
       price: form.price,
