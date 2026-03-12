@@ -5,6 +5,7 @@ import {
   useSendMessage,
   useUpdateConversationStatus,
   useMarkAsRead,
+  useToggleAi,
   type Conversation,
 } from "@/hooks/useWhatsApp";
 import {
