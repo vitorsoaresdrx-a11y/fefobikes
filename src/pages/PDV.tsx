@@ -794,8 +794,8 @@ export default function PDV() {
 
               <Btn
                 variant="primary"
-                size="lg"
-                className="w-full h-16"
+                size="sm"
+                className="w-full h-10 md:!h-16 md:!text-base md:font-black md:uppercase md:tracking-widest text-sm font-bold"
                 onClick={handleFinalize}
                 disabled={(!custName.trim() && !selectedCustomerId) || createSale.isPending}
               >
