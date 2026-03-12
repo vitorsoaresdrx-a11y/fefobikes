@@ -278,29 +278,12 @@ function JobCard({
 
   return (
     <div className="group bg-[#161618] border border-zinc-800 rounded-2xl p-3 lg:p-4 space-y-3 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
-      {/* Customer info */}
+      {/* Bike name (prominent) + delete */}
       <div className="flex items-start justify-between gap-1">
-        <div className="space-y-1 min-w-0">
-          {job.customer_name && (
-            <div className="flex items-center gap-1.5">
-              <User size={12} className="text-[#2952FF] shrink-0" />
-              <span className="text-xs font-black tracking-tight text-white uppercase italic truncate">
-                {job.customer_name}
-              </span>
-            </div>
-          )}
-          <div className="flex flex-wrap gap-2 text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
-            {job.customer_whatsapp && (
-              <span className="flex items-center gap-1 truncate">
-                <Phone size={9} /> {job.customer_whatsapp}
-              </span>
-            )}
-            {job.customer_cpf && (
-              <span className="flex items-center gap-1 truncate">
-                <CreditCard size={9} /> {job.customer_cpf}
-              </span>
-            )}
-          </div>
+        <div className="min-w-0">
+          <p className="text-sm font-black tracking-tight text-white uppercase italic leading-tight break-words">
+            {job.bike_name || "Sem bike"}
+          </p>
         </div>
         <button
           className="p-1.5 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
@@ -314,6 +297,27 @@ function JobCard({
           )}
         </button>
       </div>
+
+      {/* Customer info (secondary) */}
+      {(job.customer_name || job.customer_whatsapp || job.customer_cpf) && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
+          {job.customer_name && (
+            <span className="flex items-center gap-1">
+              <User size={9} className="text-zinc-600 shrink-0" /> {job.customer_name}
+            </span>
+          )}
+          {job.customer_whatsapp && (
+            <span className="flex items-center gap-1">
+              <Phone size={9} className="shrink-0" /> {job.customer_whatsapp}
+            </span>
+          )}
+          {job.customer_cpf && (
+            <span className="flex items-center gap-1">
+              <CreditCard size={9} className="shrink-0" /> {job.customer_cpf}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Problem */}
       <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
@@ -428,8 +432,9 @@ export default function Mecanica() {
   useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
+   const [form, setForm] = useState({
     customer_name: "",
+    bike_name: "",
     customer_cpf: "",
     customer_whatsapp: "",
     problem: "",
@@ -463,6 +468,7 @@ export default function Mecanica() {
       customer_name: form.customer_name || undefined,
       customer_cpf: form.customer_cpf || undefined,
       customer_whatsapp: form.customer_whatsapp || undefined,
+      bike_name: form.bike_name || undefined,
       problem: form.problem,
       price: form.price,
     };
@@ -471,11 +477,12 @@ export default function Mecanica() {
         // Also create a service_order for the mechanics panel
         createServiceOrder.mutate({
           ...orderData,
-          bike_name: form.customer_name || undefined,
+          bike_name: form.bike_name || undefined,
         });
         toast.success("Manutenção criada!");
         setForm({
           customer_name: "",
+          bike_name: "",
           customer_cpf: "",
           customer_whatsapp: "",
           problem: "",
@@ -691,16 +698,25 @@ export default function Mecanica() {
             </DialogHeader>
 
             <div className="space-y-6">
+              <InputGroup label="Nome da Bike *">
+                <PremiumInput
+                  placeholder="Ex: Caloi Elite Carbon"
+                  value={form.bike_name}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, bike_name: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Nome do Cliente">
+                <PremiumInput
+                  placeholder="Nome completo"
+                  value={form.customer_name}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, customer_name: e.target.value }))
+                  }
+                />
+              </InputGroup>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputGroup label="Nome do Cliente">
-                  <PremiumInput
-                    placeholder="Nome completo"
-                    value={form.customer_name}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, customer_name: e.target.value }))
-                    }
-                  />
-                </InputGroup>
                 <InputGroup label="WhatsApp">
                   <PremiumInput
                     placeholder="(00) 00000-0000"
@@ -710,16 +726,16 @@ export default function Mecanica() {
                     }
                   />
                 </InputGroup>
+                <InputGroup label="CPF (opcional)">
+                  <PremiumInput
+                    placeholder="000.000.000-00"
+                    value={form.customer_cpf}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, customer_cpf: e.target.value }))
+                    }
+                  />
+                </InputGroup>
               </div>
-              <InputGroup label="CPF (opcional)">
-                <PremiumInput
-                  placeholder="000.000.000-00"
-                  value={form.customer_cpf}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, customer_cpf: e.target.value }))
-                  }
-                />
-              </InputGroup>
               <InputGroup label="Diagnóstico Inicial *">
                 <PremiumTextarea
                   rows={4}
