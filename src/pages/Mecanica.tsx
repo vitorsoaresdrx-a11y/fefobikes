@@ -20,6 +20,7 @@ import {
   Layers,
   History,
   TrendingUp,
+  Search,
 } from "lucide-react";
 import {
   Dialog,
@@ -73,6 +74,14 @@ const columns = [
     color: "text-indigo-400",
     bg: "bg-indigo-400/5",
     border: "border-indigo-400/20",
+  },
+  {
+    key: "in_analysis" as const,
+    label: "Em Análise",
+    icon: Search,
+    color: "text-orange-400",
+    bg: "bg-orange-400/5",
+    border: "border-orange-400/20",
   },
   {
     key: "ready" as const,
@@ -393,7 +402,7 @@ export default function Mecanica() {
       description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined,
       duration: 8000,
     });
-    // Auto-advance matching mechanic_job to "ready"
+    // Auto-advance matching mechanic_job to "in_analysis"
     const matchingJob = jobs.find(
       (j) => j.problem === order.problem && j.status === "in_maintenance"
     );
@@ -430,12 +439,13 @@ export default function Mecanica() {
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
   const [addForm, setAddForm] = useState({ problem: "", price: 0 });
-  const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "ready">("in_repair");
+  const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_repair");
 
   const grouped = useMemo(() => {
     const map: Record<string, MechanicJob[]> = {
       in_repair: [],
       in_maintenance: [],
+      in_analysis: [],
       ready: [],
     };
     jobs.forEach((j) => {
@@ -635,8 +645,8 @@ export default function Mecanica() {
                 ))}
             </div>
 
-            {/* Desktop: 3 columns */}
-            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 lg:gap-8 items-start">
+            {/* Desktop: 4 columns */}
+            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 items-start">
               {columns.map((col) => (
                 <div
                   key={col.key}
