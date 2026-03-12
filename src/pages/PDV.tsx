@@ -575,18 +575,19 @@ export default function PDV() {
             </div>
 
             {/* Footer do catálogo */}
-            <div className="p-6 bg-[#1C1C1E] border border-zinc-800 rounded-[32px] flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#2952FF]/10 text-[#2952FF] rounded-2xl flex items-center justify-center">
-                  <ShoppingCart size={20} />
+            <div className="p-3 md:p-6 bg-[#1C1C1E] border border-zinc-800 rounded-2xl md:rounded-[32px] flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-[#2952FF]/10 text-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
+                  <ShoppingCart size={18} />
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pedido atual</p>
-                  <p className="font-black text-white">{itemCount} itens · {formatBRL(total)}</p>
+                <div className="min-w-0">
+                  <p className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pedido</p>
+                  <p className="font-black text-white text-sm md:text-base truncate">{itemCount} itens · {formatBRL(total)}</p>
                 </div>
               </div>
-              <Btn variant="primary" size="lg" className="px-12" onClick={() => setStep("idle")}>
-                Concluir Seleção
+              <Btn variant="primary" size="lg" className="px-5 md:px-12 h-12 md:h-14 text-[10px] md:text-base shrink-0" onClick={() => setStep("idle")}>
+                <span className="hidden md:inline">Concluir Seleção</span>
+                <span className="md:hidden">Concluir</span>
               </Btn>
             </div>
           </div>
