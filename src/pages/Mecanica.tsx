@@ -76,6 +76,14 @@ const columns = [
     border: "border-indigo-400/20",
   },
   {
+    key: "in_analysis" as const,
+    label: "Em Análise",
+    icon: Search,
+    color: "text-orange-400",
+    bg: "bg-orange-400/5",
+    border: "border-orange-400/20",
+  },
+  {
     key: "ready" as const,
     label: "Pronta pra Retirada",
     icon: CheckCircle2,
