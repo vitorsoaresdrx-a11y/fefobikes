@@ -246,9 +246,9 @@ export default function Pecas() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between">
-            <h3 className="font-bold text-lg">Catálogo de Produtos</h3>
+        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 className="font-bold text-base md:text-lg">Catálogo de Produtos</h3>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estoque Atualizado</span>
