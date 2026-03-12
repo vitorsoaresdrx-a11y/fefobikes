@@ -110,7 +110,7 @@ export default function CashRegister() {
   };
 
   const expectedAmount = isOpen ? (currentRegister!.opening_amount || 0) + (cashTotals?.total || 0) : 0;
-  const closingNum = parseFloat(closingAmount.replace(",", ".")) || 0;
+  const closingNum = closingAmount;
   const diff = closingNum - expectedAmount;
 
   if (isLoading) {
