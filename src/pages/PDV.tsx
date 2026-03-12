@@ -191,8 +191,13 @@ export default function PDV() {
   const filteredCustomers = useMemo(() => {
     if (!custSearch.trim()) return [];
     const q = custSearch.toLowerCase();
+    const qDigits = custSearch.replace(/\D/g, "");
     return customers
-      .filter((c) => c.name.toLowerCase().includes(q) || (c.whatsapp && c.whatsapp.includes(q)))
+      .filter((c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.whatsapp && c.whatsapp.includes(q)) ||
+        (c.cpf && c.cpf.replace(/\D/g, "").includes(qDigits))
+      )
       .slice(0, 6);
   }, [customers, custSearch]);
 
