@@ -550,7 +550,7 @@ export default function WhatsApp() {
                     <><BotOff size={14} /> IA Pausada</>
                   )}
                 </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all">
+                <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all hidden sm:flex">
                   <MoreVertical size={18} />
                 </button>
               </div>
