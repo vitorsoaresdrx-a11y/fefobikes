@@ -313,10 +313,14 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
       <button type="button" onClick={onToggle} className="w-full text-left hover:bg-zinc-800/20 transition-colors">
         {/* Mobile Layout: Stacked */}
         <div className="p-4 space-y-3 md:hidden">
-          {/* Linha 1: data + badge */}
+          {/* Linha 1: data */}
+          <div className="text-sm font-bold text-white">
+            {formatDateTime(register.opened_at)}
+          </div>
+          {/* Linha 2: horário de fechamento + badge */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-white">
-              {formatDateTime(register.opened_at)} — {register.closed_at ? formatTime(register.closed_at) : ""}
+            <span className="text-xs text-zinc-500">
+              {register.closed_at ? `Fechado às ${formatTime(register.closed_at)}` : ""}
             </span>
             {diff === 0 ? (
               <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
