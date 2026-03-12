@@ -367,7 +367,10 @@ export default function WhatsApp() {
                         alt=""
                       />
                     ) : (
-                      getInitials(conv.contact_name, conv.contact_phone)
+                      getInitials(
+                        getDisplayContactName(conv, currentUserName),
+                        getDisplayContactPhone(conv.contact_phone)
+                      )
                     )}
                   </div>
                   <span
