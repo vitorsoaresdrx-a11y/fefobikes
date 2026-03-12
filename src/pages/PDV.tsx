@@ -426,8 +426,8 @@ export default function PDV() {
       </div>
 
       {/* Barra flutuante — estilo iFood */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-14 md:bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-[90%] max-w-4xl bg-[#1C1C1E]/95 backdrop-blur-2xl border md:border border-white/10 shadow-[0_-4px_30px_rgba(0,0,0,0.5)] md:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl md:rounded-[32px] h-16 md:h-auto px-4 md:p-4 flex items-center justify-between z-[55] animate-in slide-in-from-bottom-10 lg:bottom-8 mb-[env(safe-area-inset-bottom)]">
+      {cart.length > 0 && step === "idle" && (
+        <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-[90%] max-w-4xl bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)] md:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl md:rounded-[32px] h-16 md:h-auto px-4 md:p-4 flex items-center justify-between z-[55] animate-in slide-in-from-bottom-10 lg:bottom-8" style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
           <div className="flex items-center gap-3 md:gap-6 md:px-4">
             <div className="relative shrink-0 hidden md:block">
               <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-lg">
