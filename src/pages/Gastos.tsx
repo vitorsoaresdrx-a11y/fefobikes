@@ -194,7 +194,7 @@ export default function Gastos() {
             </div>
             <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Finanças</h1>
           </div>
-          <Btn variant="primary" size="lg" onClick={() => tab === "fixed" ? setFixedModal(true) : setVarModal(true)}>
+          <Btn variant="primary" size="lg" className="w-full sm:w-auto" onClick={() => tab === "fixed" ? setFixedModal(true) : setVarModal(true)}>
             <Plus className="w-5 h-5 mr-2 stroke-[3]" />
             Adicionar Lançamento
           </Btn>
