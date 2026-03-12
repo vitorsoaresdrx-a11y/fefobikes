@@ -313,7 +313,7 @@ export default function DRE() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
-      <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-6xl mx-auto p-4 md:p-12 space-y-6 md:space-y-10">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
