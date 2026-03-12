@@ -17,6 +17,7 @@ export interface Part {
   stock_qty: number;
   visible_on_storefront: boolean;
   notes: string | null;
+  description: string | null;
   unit_cost: number | null;
   sale_price: number | null;
   pix_price: number | null;
