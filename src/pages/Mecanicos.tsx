@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Wrench,
   CheckCircle2,
@@ -9,6 +9,7 @@ import {
   Loader2,
   Check,
   Hash,
+  Bell,
 } from "lucide-react";
 import {
   Dialog,
@@ -25,7 +26,7 @@ import {
 } from "@/hooks/useServiceOrders";
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { useCreateBikeServiceRecord } from "@/hooks/useBikeServiceHistory";
-import { playDoneSound } from "@/lib/sounds";
+import { playDoneSound, playNewOrderSound } from "@/lib/sounds";
 import { toast } from "sonner";
 
 export default function Mecanicos() {
@@ -35,7 +36,16 @@ export default function Mecanicos() {
   const { data: mechanics = [] } = useActiveMechanics();
   const createHistory = useCreateBikeServiceRecord();
 
-  useServiceOrdersRealtime();
+  // Play sound when a NEW service order arrives
+  const handleNewOrder = useCallback((order: ServiceOrder) => {
+    playNewOrderSound();
+    toast.info(`🔔 Nova OS recebida!`, {
+      description: order.bike_name || order.problem?.slice(0, 50),
+      duration: 6000,
+    });
+  }, []);
+
+  useServiceOrdersRealtime({ onNew: handleNewOrder });
 
   // Accept modal
   const [acceptOpen, setAcceptOpen] = useState(false);
