@@ -190,7 +190,7 @@ export default function Dashboard() {
         </div>
 
         {/* Primary Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
           {primaryActions.map((action) => (
             <QuickActionCard
               key={action.label}
