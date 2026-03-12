@@ -10,6 +10,7 @@ function formatDate(d: string) {
 }
 
 export default function Clientes() {
+  const navigate = useNavigate();
   const { data: customers = [], isLoading } = useCustomers();
   const [search, setSearch] = useState("");
 
