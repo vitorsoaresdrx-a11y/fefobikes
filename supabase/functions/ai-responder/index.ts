@@ -185,17 +185,43 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Send response via zapi-send-message
-    const { error: sendError } = await supabase.functions.invoke(
-      "zapi-send-message",
+    // Send response directly via Z-API and save to DB
+    const instanceId = Deno.env.get("ZAPI_INSTANCE_ID")!;
+    const zapiToken = Deno.env.get("ZAPI_TOKEN")!;
+    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN")!;
+
+    const zapiRes = await fetch(
+      `https://api.z-api.io/instances/${instanceId}/token/${zapiToken}/send-text`,
       {
-        body: { phone, message: responseText },
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "client-token": clientToken,
+        },
+        body: JSON.stringify({ phone, message: responseText }),
       }
     );
 
-    if (sendError) {
-      console.error("Error sending AI response:", sendError);
-    }
+    const zapiData = await zapiRes.json();
+
+    // Save AI message to DB
+    await supabase.from("whatsapp_messages").insert({
+      conversation_id: conversationId,
+      message_id: zapiData?.messageId || null,
+      from_me: true,
+      type: "text",
+      content: responseText,
+      status: "sent",
+    });
+
+    // Update conversation
+    await supabase
+      .from("whatsapp_conversations")
+      .update({
+        last_message: responseText,
+        last_message_at: new Date().toISOString(),
+      })
+      .eq("id", conversationId);
 
     return new Response(
       JSON.stringify({ ok: true, response: responseText }),
