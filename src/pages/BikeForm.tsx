@@ -441,7 +441,7 @@ export default function BikeForm() {
             </div>
 
             {/* Financeiro */}
-            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-10 shadow-2xl space-y-6">
+            <div className="bg-[#161618] border border-zinc-800 rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-6">
               <SectionHeader title="Financeiro" icon={DollarSign} />
 
               {/* PIX price */}
