@@ -583,7 +583,7 @@ export default function PDV() {
       {step === "cart" && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
           <div className="bg-[#1C1C1E] w-full max-w-2xl rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
-            <div className="p-10 space-y-8">
+            <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 max-h-[90vh] overflow-y-auto">
 
               <div className="flex items-center justify-between">
                 <div>
