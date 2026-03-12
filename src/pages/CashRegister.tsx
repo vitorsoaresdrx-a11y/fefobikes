@@ -144,15 +144,15 @@ export default function CashRegister() {
 
         {/* ── Status Section ──────────────────────────────────────────── */}
         {!isOpen ? (
-          <div className="py-12 md:py-20 flex flex-col items-center text-center space-y-4 md:space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
-            <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700">
+          <div className="p-6 md:p-8 flex flex-col items-center text-center gap-4 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
+            <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700 mt-2 mb-1">
               <Lock size={40} />
             </div>
             <div className="space-y-2">
               <h4 className="text-xl font-bold text-zinc-300">Caixa Fechado</h4>
               <p className="text-sm text-zinc-500 max-w-xs mx-auto">Abra o caixa para começar a registrar vendas em dinheiro.</p>
             </div>
-            <Btn variant="primary" className="w-full h-11 text-sm font-black uppercase tracking-widest" onClick={() => setShowOpenModal(true)}>
+            <Btn variant="primary" className="w-full md:w-auto h-11 text-sm font-black uppercase tracking-widest" onClick={() => setShowOpenModal(true)}>
               <Unlock className="w-4 h-4 mr-2" /> Abrir Caixa
             </Btn>
           </div>
