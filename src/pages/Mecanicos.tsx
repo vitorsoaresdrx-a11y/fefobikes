@@ -162,6 +162,7 @@ export default function Mecanicos() {
             <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
             {/* Pending Column */}
             <section className="bg-[#111113]/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
