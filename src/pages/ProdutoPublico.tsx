@@ -344,9 +344,12 @@ export default function ProdutoPublico() {
             <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
               <Info size={14} className="text-[#820AD1]" /> Sobre o Produto
             </h2>
-            <p className="text-zinc-400 text-sm leading-relaxed">{(product as any).description}</p>
+            <p className="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">{(product as any).description}</p>
           </section>
         )}
+
+        {/* Custom Attributes — only for parts */}
+        {product._type === "part" && <PartAttributesSection partId={product.id} />}
 
         {/* Ficha Técnica */}
         {specs.length > 0 && (
