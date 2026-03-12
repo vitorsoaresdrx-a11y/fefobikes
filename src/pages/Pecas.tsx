@@ -191,13 +191,34 @@ export default function Pecas() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
-      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
+      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-4 lg:space-y-8">
 
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Header — mobile */}
+        <header className="md:hidden">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <h1 className="text-lg font-black">Produtos & Peças</h1>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => setCategoriesOpen(true)}
+                className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <Tags size={14} /> Categorias
+              </button>
+              <button
+                onClick={handleNew}
+                className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <Plus size={14} /> Novo
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Header — desktop */}
+        <header className="hidden md:flex flex-row items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Box className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-black tracking-widest text-[#2952FF]">INVENTORY MASTER</span>
@@ -216,37 +237,134 @@ export default function Pecas() {
           </div>
         </header>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+        {/* KPIs — mobile: 2 cols compact */}
+        <div className="grid grid-cols-2 gap-3 md:hidden">
+          <div className="p-3 rounded-2xl bg-zinc-900 border border-zinc-800">
+            <p className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Total de Itens</p>
+            <p className="text-2xl font-black">{filtered.length}</p>
+            <span className="text-[9px] text-zinc-600 uppercase">Variedade</span>
+          </div>
+          <div className="p-3 rounded-2xl bg-zinc-900 border border-zinc-800">
+            <p className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Peças em Estoque</p>
+            <p className="text-2xl font-black text-indigo-400">{totalStock}</p>
+            <span className="text-[9px] text-zinc-600 uppercase">Volume</span>
+          </div>
+        </div>
+
+        {/* KPIs — desktop */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard title="Total de Itens" value={filtered.length} icon={Package} tag="Variedade" />
           <StatCard title="Peças em Estoque" value={totalStock} icon={Layers} tag="Volume" color="text-indigo-400" />
           <StatCard title="Lucro Potencial" value={totalProfit} icon={TrendingUp} tag="Rentabilidade" color="text-emerald-400" isCurrency />
         </div>
 
-        {/* Toolbar */}
-        <div className="flex flex-col md:flex-row items-center gap-4 pt-4">
-          <div className="flex-1 w-full relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-            <input
-              type="text"
-              placeholder="Buscar por nome, SKU ou categoria..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
-            />
-          </div>
-          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
-            <SortButton active={sortField === "profit"} onClick={() => toggleSort("profit")}>Lucro</SortButton>
-            <SortButton active={sortField === "stock_qty"} onClick={() => toggleSort("stock_qty")}>Qtd</SortButton>
-            <SortButton active={sortField === "unit_cost"} onClick={() => toggleSort("unit_cost")}>Custo</SortButton>
-            <SortButton active={sortField === "sale_price"} onClick={() => toggleSort("sale_price")}>Venda</SortButton>
-          </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Buscar por nome, SKU ou categoria..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-11 md:h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+          />
         </div>
 
-        {/* Tabela */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <h3 className="font-bold text-base md:text-lg">Catálogo de Produtos</h3>
+        {/* Sort buttons — mobile: horizontal scroll */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 md:hidden">
+          {([
+            ["profit", "Lucro"],
+            ["stock_qty", "Qtd"],
+            ["unit_cost", "Custo"],
+            ["sale_price", "Venda"],
+          ] as [SortField, string][]).map(([field, label]) => (
+            <button
+              key={field}
+              onClick={() => toggleSort(field)}
+              className={`h-8 px-3 text-[10px] font-bold uppercase tracking-widest rounded-full border whitespace-nowrap shrink-0 transition-all ${
+                sortField === field
+                  ? "bg-[#2C2C2E] border-zinc-600 text-white"
+                  : "border-zinc-700 text-zinc-500"
+              }`}
+            >
+              {label} {sortField === field && (sortDir === "asc" ? "↑" : "↓")}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort buttons — desktop */}
+        <div className="hidden md:flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0 w-fit">
+          <SortButton active={sortField === "profit"} onClick={() => toggleSort("profit")}>Lucro</SortButton>
+          <SortButton active={sortField === "stock_qty"} onClick={() => toggleSort("stock_qty")}>Qtd</SortButton>
+          <SortButton active={sortField === "unit_cost"} onClick={() => toggleSort("unit_cost")}>Custo</SortButton>
+          <SortButton active={sortField === "sale_price"} onClick={() => toggleSort("sale_price")}>Venda</SortButton>
+        </div>
+
+        {/* Mobile card list */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            <p className="text-center text-zinc-500 py-10 text-sm">Carregando...</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-zinc-600 py-10 text-sm">
+              {search ? `Nenhuma peça encontrada para "${search}"` : "Nenhuma peça cadastrada"}
+            </p>
+          ) : (
+            filtered.map((part) => {
+              const cost = Number((part as any).unit_cost) || 0;
+              const sale = Number((part as any).sale_price) || 0;
+              const profit = sale - cost;
+              return (
+                <div
+                  key={part.id}
+                  className="p-3 rounded-2xl bg-zinc-900 border border-zinc-800 active:bg-zinc-800 transition-colors"
+                  onClick={() => handleEdit(part)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0">
+                      <Package size={20} className="text-zinc-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate">{part.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {part.category && (
+                          <span className="text-[10px] text-[#2952FF] font-bold uppercase">{part.category}</span>
+                        )}
+                        {part.sku && (
+                          <span className="text-[10px] text-zinc-600">{part.sku}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-base font-black">{part.stock_qty}</p>
+                      <p className="text-[9px] text-zinc-500 uppercase">un.</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between mt-3 pt-3 border-t border-zinc-800">
+                    <div>
+                      <p className="text-[9px] text-zinc-500 uppercase">Custo</p>
+                      <p className="text-xs font-bold">{formatBRL(cost)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-zinc-500 uppercase">Venda</p>
+                      <p className="text-xs font-bold">{formatBRL(sale)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] text-zinc-500 uppercase">Lucro</p>
+                      <p className={`text-xs font-bold ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        {formatBRL(profit)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between gap-2">
+            <h3 className="font-bold text-lg">Catálogo de Produtos</h3>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estoque Atualizado</span>
@@ -257,32 +375,32 @@ export default function Pecas() {
             <table className="w-full">
               <thead>
                 <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
-                  <th className="px-4 md:px-8 py-4">
+                  <th className="px-8 py-4">
                     <button type="button" onClick={() => toggleSort("name")} className="flex items-center gap-1">
                       Item <SortIcon field="name" />
                     </button>
                   </th>
-                  <th className="px-4 md:px-8 py-4 text-center">
+                  <th className="px-8 py-4 text-center">
                     <button type="button" onClick={() => toggleSort("stock_qty")} className="flex items-center gap-1 mx-auto">
                       Estoque <SortIcon field="stock_qty" />
                     </button>
                   </th>
-                  <th className="px-4 md:px-8 py-4 text-right hidden sm:table-cell">
+                  <th className="px-8 py-4 text-right">
                     <button type="button" onClick={() => toggleSort("unit_cost")} className="flex items-center gap-1 ml-auto">
                       Custo <SortIcon field="unit_cost" />
                     </button>
                   </th>
-                  <th className="px-4 md:px-8 py-4 text-right hidden sm:table-cell">
+                  <th className="px-8 py-4 text-right">
                     <button type="button" onClick={() => toggleSort("sale_price")} className="flex items-center gap-1 ml-auto">
                       Venda <SortIcon field="sale_price" />
                     </button>
                   </th>
-                  <th className="px-4 md:px-8 py-4 text-right hidden md:table-cell">
+                  <th className="px-8 py-4 text-right">
                     <button type="button" onClick={() => toggleSort("profit")} className="flex items-center gap-1 ml-auto">
                       Lucro Un. <SortIcon field="profit" />
                     </button>
                   </th>
-                  <th className="px-4 md:px-8 py-4 w-28" />
+                  <th className="px-8 py-4 w-28" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/30 text-sm">
@@ -305,7 +423,7 @@ export default function Pecas() {
                     const profit = sale - cost;
                     return (
                       <tr key={part.id} className="group hover:bg-white/[0.02] transition-colors">
-                        <td className="px-4 md:px-8 py-4 md:py-6">
+                        <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors shrink-0">
                               <Box className="w-6 h-6" />
@@ -328,19 +446,19 @@ export default function Pecas() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 md:px-8 py-4 md:py-6 text-center">
+                        <td className="px-8 py-6 text-center">
                           <div className="inline-flex flex-col items-center">
                             <span className="text-base font-black text-zinc-100">{part.stock_qty}</span>
                             <span className="text-[8px] font-bold text-zinc-500 uppercase">Unidades</span>
                           </div>
                         </td>
-                        <td className="px-4 md:px-8 py-4 md:py-6 text-right hidden sm:table-cell">
+                        <td className="px-8 py-6 text-right">
                           <span className="text-sm text-zinc-500">{formatBRL(cost)}</span>
                         </td>
-                        <td className="px-4 md:px-8 py-4 md:py-6 text-right hidden sm:table-cell">
+                        <td className="px-8 py-6 text-right">
                           <span className="text-base font-black text-white">{formatBRL(sale)}</span>
                         </td>
-                        <td className="px-4 md:px-8 py-4 md:py-6 text-right hidden md:table-cell">
+                        <td className="px-8 py-6 text-right">
                           <span
                             className={`text-sm font-black px-3 py-1 rounded-lg ${
                               profit >= 0
@@ -389,7 +507,6 @@ export default function Pecas() {
             </table>
           </div>
 
-          {/* Footer da tabela */}
           {filtered.length > 0 && (
             <div className="p-8 bg-black/20 flex items-center justify-between border-t border-zinc-800/30">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
