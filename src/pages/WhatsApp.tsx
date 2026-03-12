@@ -50,6 +50,37 @@ function getInitials(name?: string | null, phone?: string) {
   return (phone || "?").slice(-2);
 }
 
+function getDisplayContactPhone(phone?: string | null) {
+  const rawPhone = (phone || "").trim();
+  if (!rawPhone || rawPhone.includes("status@broadcast") || rawPhone.includes("@lid")) {
+    return "Telefone desconhecido";
+  }
+
+  const digits = rawPhone.replace(/\D/g, "");
+  if (digits.length < 10 || digits.length > 13) {
+    return "Telefone desconhecido";
+  }
+
+  return digits;
+}
+
+function getDisplayContactName(
+  conversation: Conversation,
+  currentUserName?: string | null
+) {
+  const candidate = (conversation.contact_name || "").trim();
+  const normalizedCurrentUserName = (currentUserName || "").trim().toLowerCase();
+
+  if (
+    candidate &&
+    (!normalizedCurrentUserName || candidate.toLowerCase() !== normalizedCurrentUserName)
+  ) {
+    return candidate;
+  }
+
+  return getDisplayContactPhone(conversation.contact_phone);
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const STATUS_FILTERS = [
