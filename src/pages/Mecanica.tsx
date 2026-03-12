@@ -484,7 +484,7 @@ export default function Mecanica() {
       {
         job_id: addJob.id,
         problem: addForm.problem,
-        price: Number(addForm.price) || 0,
+        price: addForm.price,
       },
       {
         onSuccess: () => {
