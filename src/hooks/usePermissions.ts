@@ -48,6 +48,7 @@ export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
   "/mecanica": "mecanica",
   "/mecanicos": "mecanica",
   "/mecanicos/historico": "mecanica",
+  "/orcamentos": "mecanica",
   "/gastos": "gastos",
   "/clientes": "clientes",
   "/whatsapp": "whatsapp",
