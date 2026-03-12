@@ -333,29 +333,29 @@ function JobCard({
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex flex-col">
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex flex-col min-w-0">
           <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">
-            Orçamento Total
+            Total
           </span>
-          <span className="text-lg font-black text-white tracking-tighter">
+          <span className="text-sm lg:text-base font-black text-white tracking-tighter">
             {formatBRL(total)}
           </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 shrink-0">
           <button
             onClick={() => onAddRepair(job)}
-            className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            className="w-7 h-7 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
           >
-            <Plus size={14} />
+            <Plus size={12} />
           </button>
 
           {!isLast ? (
             <button
               onClick={handleAdvance}
               disabled={advance.isPending}
-              className="h-8 rounded-xl px-4 bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.2)] text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              className="h-7 rounded-lg px-2.5 bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.2)] text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
             >
               {advance.isPending ? (
                 <Loader2 size={12} className="animate-spin" />
