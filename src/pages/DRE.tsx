@@ -81,22 +81,23 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
+    <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
       <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
-        <Icon size={160} />
+        <Icon size={120} className="md:hidden" />
+        <Icon size={160} className="hidden md:block" />
       </div>
-      <div className="relative z-10 flex flex-col justify-between h-full space-y-10">
+      <div className="relative z-10 flex flex-col justify-between h-full space-y-4 md:space-y-10">
         <div className="flex items-center justify-between">
-          <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-zinc-400">
-            <Icon size={22} />
+          <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-400">
+            <Icon size={18} />
           </div>
-          <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full uppercase tracking-widest">
+          <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest">
             {tag}
           </span>
         </div>
         <div>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{title}</p>
-          <h2 className={`text-2xl font-black tracking-tighter ${color}`}>{formatBRL(value)}</h2>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-tight mb-0.5 md:mb-1">{title}</p>
+          <h2 className={`text-lg md:text-2xl font-black tracking-tighter ${color}`}>{formatBRL(value)}</h2>
         </div>
       </div>
     </div>
