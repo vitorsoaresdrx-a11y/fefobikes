@@ -127,7 +127,7 @@ export default function Gastos() {
   const [varYear, setVarYear] = useState(now.getFullYear());
 
   const [fName, setFName] = useState("");
-  const [fAmount, setFAmount] = useState("");
+  const [fAmount, setFAmount] = useState(0);
   const [fNotes, setFNotes] = useState("");
   const [vName, setVName] = useState("");
   const [vAmount, setVAmount] = useState("");
