@@ -73,7 +73,7 @@ export async function executeCalcularFrete(args: {
         username: RODONAVES_USER,
         password: RODONAVES_PASS,
         companyId: "1",
-        auth_type: "dev",
+        auth_type: "DEV",
       }).toString(),
     }
   );
