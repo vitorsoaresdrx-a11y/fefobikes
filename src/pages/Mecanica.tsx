@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import {
   Wrench,
   Settings,
@@ -44,8 +45,7 @@ import { toast } from "sonner";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const formatBRL = (val: number) =>
-  val.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+import { formatBRL } from "@/lib/format";
 
 function getTotalPrice(job: MechanicJob) {
   const base = Number(job.price);
@@ -417,12 +417,12 @@ export default function Mecanica() {
     customer_cpf: "",
     customer_whatsapp: "",
     problem: "",
-    price: "",
+    price: 0,
   });
 
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
-  const [addForm, setAddForm] = useState({ problem: "", price: "" });
+  const [addForm, setAddForm] = useState({ problem: "", price: 0 });
   const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "ready">("in_repair");
 
   const grouped = useMemo(() => {
@@ -447,7 +447,7 @@ export default function Mecanica() {
       customer_cpf: form.customer_cpf || undefined,
       customer_whatsapp: form.customer_whatsapp || undefined,
       problem: form.problem,
-      price: Number(form.price) || 0,
+      price: form.price,
     };
     create.mutate(orderData, {
       onSuccess: () => {
@@ -462,7 +462,7 @@ export default function Mecanica() {
           customer_cpf: "",
           customer_whatsapp: "",
           problem: "",
-          price: "",
+          price: 0,
         });
         setOpen(false);
       },
@@ -472,7 +472,7 @@ export default function Mecanica() {
 
   const handleAddRepair = (job: MechanicJob) => {
     setAddJob(job);
-    setAddForm({ problem: "", price: "" });
+    setAddForm({ problem: "", price: 0 });
     setAddOpen(true);
   };
 
@@ -485,7 +485,7 @@ export default function Mecanica() {
       {
         job_id: addJob.id,
         problem: addForm.problem,
-        price: Number(addForm.price) || 0,
+        price: addForm.price,
       },
       {
         onSuccess: () => {
@@ -714,22 +714,10 @@ export default function Mecanica() {
                 />
               </InputGroup>
               <InputGroup label="Valor do Serviço">
-                <div className="relative">
-                  <PremiumInput
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    placeholder="0,00"
-                    className="pl-12"
-                    value={form.price}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, price: e.target.value }))
-                    }
-                  />
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 text-xs font-bold pointer-events-none">
-                    R$
-                  </span>
-                </div>
+                <CurrencyInput
+                  value={form.price}
+                  onChange={(val) => setForm((f) => ({ ...f, price: val }))}
+                />
               </InputGroup>
             </div>
 
@@ -797,21 +785,10 @@ export default function Mecanica() {
                   />
                 </InputGroup>
                 <InputGroup label="Custo Adicional">
-                  <div className="relative">
-                    <PremiumInput
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      placeholder="0,00"
-                      value={addForm.price}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, price: e.target.value }))
-                      }
-                    />
-                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 text-xs font-bold pointer-events-none">
-                      R$
-                    </span>
-                  </div>
+                  <CurrencyInput
+                    value={addForm.price}
+                    onChange={(val) => setAddForm((f) => ({ ...f, price: val }))}
+                  />
                 </InputGroup>
               </div>
             )}

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,9 +69,7 @@ interface TemplatePart {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatBRL(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 // ─── Sub-components (UI only) ─────────────────────────────────────────────────
 const SectionHeader = ({
@@ -453,18 +452,11 @@ export default function BikeForm() {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">
                   Preço PIX / Dinheiro
                 </label>
-                <div className="flex items-baseline gap-2 relative z-10">
-                  <span className="text-xl font-bold text-[#2952FF]">R$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    className="bg-transparent border-none outline-none text-4xl font-black text-white w-full tracking-tighter"
-                    value={pixPrice || ""}
-                    onChange={(e) =>
-                      form.setValue("pix_price", parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0"
+                <div className="relative z-10">
+                  <CurrencyInput
+                    value={pixPrice || 0}
+                    onChange={(val) => form.setValue("pix_price", val)}
+                    className="text-4xl font-black h-16 rounded-2xl"
                   />
                 </div>
                 <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
@@ -485,19 +477,10 @@ export default function BikeForm() {
                     <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">
                       Valor da Parcela
                     </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      value={installmentPrice || ""}
-                      onChange={(e) =>
-                        form.setValue(
-                          "installment_price",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                      className="w-full h-11 bg-[#1C1C1E] border border-zinc-800 rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
-                      placeholder="0,00"
+                    <CurrencyInput
+                      value={installmentPrice || 0}
+                      onChange={(val) => form.setValue("installment_price", val)}
+                      className="h-11 rounded-xl"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -677,16 +660,10 @@ export default function BikeForm() {
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#2952FF] transition-colors">
                   Preço de Custo (R$)
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={costPrice || ""}
-                  onChange={(e) =>
-                    form.setValue("cost_price", parseFloat(e.target.value) || 0)
-                  }
-                  className="w-full h-16 bg-[#1C1C1E] border border-zinc-800 rounded-2xl px-6 text-xl font-bold text-white outline-none focus:border-[#2952FF] transition-all"
-                  placeholder="0,00"
+                <CurrencyInput
+                  value={costPrice || 0}
+                  onChange={(val) => form.setValue("cost_price", val)}
+                  className="h-16 text-xl rounded-2xl"
                 />
               </div>
             )}

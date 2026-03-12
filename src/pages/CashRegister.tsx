@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import {
   Lock,
   Unlock,
@@ -25,9 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatBRL(v: number) {
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 function formatDateTime(d: string) {
   return new Date(d).toLocaleDateString("pt-BR", {
@@ -78,19 +77,19 @@ export default function CashRegister() {
 
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
-  const [openingAmount, setOpeningAmount] = useState("");
-  const [closingAmount, setClosingAmount] = useState("");
+  const [openingAmount, setOpeningAmount] = useState(0);
+  const [closingAmount, setClosingAmount] = useState(0);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
   const isOpen = currentRegister?.status === "open";
 
   const handleOpen = async () => {
-    const amount = parseFloat(openingAmount.replace(",", ".")) || 0;
+    const amount = openingAmount;
     try {
       await openRegister.mutateAsync(amount);
       toast({ title: "Caixa aberto com sucesso!" });
       setShowOpenModal(false);
-      setOpeningAmount("");
+      setOpeningAmount(0);
     } catch {
       toast({ title: "Erro ao abrir caixa", variant: "destructive" });
     }
@@ -98,20 +97,20 @@ export default function CashRegister() {
 
   const handleClose = async () => {
     if (!currentRegister) return;
-    const closing = parseFloat(closingAmount.replace(",", ".")) || 0;
+    const closing = closingAmount;
     const expected = (currentRegister.opening_amount || 0) + (cashTotals?.total || 0);
     try {
       await closeRegister.mutateAsync({ id: currentRegister.id, closingAmount: closing, expectedAmount: expected });
       toast({ title: "Caixa fechado com sucesso!" });
       setShowCloseModal(false);
-      setClosingAmount("");
+      setClosingAmount(0);
     } catch {
       toast({ title: "Erro ao fechar caixa", variant: "destructive" });
     }
   };
 
   const expectedAmount = isOpen ? (currentRegister!.opening_amount || 0) + (cashTotals?.total || 0) : 0;
-  const closingNum = parseFloat(closingAmount.replace(",", ".")) || 0;
+  const closingNum = closingAmount;
   const diff = closingNum - expectedAmount;
 
   if (isLoading) {
@@ -183,7 +182,7 @@ export default function CashRegister() {
               </div>
             </div>
 
-            <Btn variant="destructive" className="w-full h-14 rounded-2xl text-base font-black uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20" onClick={() => { setClosingAmount(""); setShowCloseModal(true); }}>
+            <Btn variant="destructive" className="w-full h-14 rounded-2xl text-base font-black uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20" onClick={() => { setClosingAmount(0); setShowCloseModal(true); }}>
               <Lock className="w-5 h-5 mr-2" /> Fechar Caixa
             </Btn>
           </div>
@@ -221,12 +220,10 @@ export default function CashRegister() {
             </div>
             <div className="space-y-3">
               <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Valor inicial em caixa (R$)</p>
-              <InputEl
+              <CurrencyInput
                 autoFocus
-                placeholder="0,00"
                 value={openingAmount}
-                onChange={(e) => setOpeningAmount(e.target.value)}
-                inputMode="decimal"
+                onChange={setOpeningAmount}
               />
             </div>
             <Btn variant="primary" className="w-full h-14 rounded-2xl text-base font-black uppercase tracking-widest" onClick={handleOpen} disabled={openRegister.isPending}>
@@ -266,17 +263,15 @@ export default function CashRegister() {
 
             <div className="space-y-3">
               <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Valor presente no caixa (R$)</p>
-              <InputEl
+              <CurrencyInput
                 autoFocus
-                placeholder="0,00"
                 value={closingAmount}
-                onChange={(e) => setClosingAmount(e.target.value)}
-                inputMode="decimal"
+                onChange={setClosingAmount}
               />
             </div>
 
             {/* Difference preview */}
-            {closingAmount && (
+            {closingAmount > 0 && (
               <div className={`rounded-2xl p-4 border text-center ${
                 diff === 0
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"

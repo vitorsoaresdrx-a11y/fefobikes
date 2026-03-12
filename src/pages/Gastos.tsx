@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -91,9 +92,7 @@ const MONTHS = [
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-function formatBRL(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 const fixedSchema = z.object({
   name: z.string().trim().min(1, "Nome é obrigatório").max(100),
@@ -128,15 +127,15 @@ export default function Gastos() {
   const [varYear, setVarYear] = useState(now.getFullYear());
 
   const [fName, setFName] = useState("");
-  const [fAmount, setFAmount] = useState("");
+  const [fAmount, setFAmount] = useState(0);
   const [fNotes, setFNotes] = useState("");
   const [vName, setVName] = useState("");
-  const [vAmount, setVAmount] = useState("");
+  const [vAmount, setVAmount] = useState(0);
   const [vDate, setVDate] = useState("");
   const [vNotes, setVNotes] = useState("");
 
-  const resetFixed = () => { setFName(""); setFAmount(""); setFNotes(""); };
-  const resetVar = () => { setVName(""); setVAmount(""); setVDate(""); setVNotes(""); };
+  const resetFixed = () => { setFName(""); setFAmount(0); setFNotes(""); };
+  const resetVar = () => { setVName(""); setVAmount(0); setVDate(""); setVNotes(""); };
 
   const filteredVariable = useMemo(() =>
     variableExpenses.filter((e) => {
@@ -399,10 +398,7 @@ export default function Gastos() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Valor Mensal (R$) *</Label>
-                  <div className="relative">
-                    <Input type="number" step="0.01" min={0} value={fAmount} onChange={(e) => setFAmount(e.target.value)} placeholder="0,00" className="pl-12" />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-600 text-xs">R$</span>
-                  </div>
+                  <CurrencyInput value={fAmount} onChange={setFAmount} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
@@ -443,10 +439,7 @@ export default function Gastos() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Valor (R$) *</Label>
-                    <div className="relative">
-                      <Input type="number" step="0.01" min={0} value={vAmount} onChange={(e) => setVAmount(e.target.value)} placeholder="0,00" className="pl-12" />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-600 text-xs">R$</span>
-                    </div>
+                    <CurrencyInput value={vAmount} onChange={setVAmount} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Data</Label>

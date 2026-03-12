@@ -33,9 +33,7 @@ interface SaleReceiptProps {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatBRL(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 function formatDate(date: Date) {
   return date.toLocaleDateString("pt-BR", {

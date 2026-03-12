@@ -1,3 +1,5 @@
+import { formatBRL } from "@/lib/format";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -120,9 +122,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
     }
   };
 
-  function formatBRL(value: number) {
-    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -207,14 +206,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm">Preço de custo (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={unitCost || ""}
-                  onChange={(e) => form.setValue("unit_cost", parseFloat(e.target.value) || 0)}
-                  className="bg-card border-border h-9 text-sm"
-                  placeholder="0,00"
+                <CurrencyInput
+                  value={unitCost || 0}
+                  onChange={(val) => form.setValue("unit_cost", val)}
+                  className="h-9 text-sm"
                 />
               </div>
             </div>
@@ -234,14 +229,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             {/* PIX / Dinheiro price */}
             <div className="space-y-2">
               <Label className="text-sm">Preço no PIX / Dinheiro (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min={0}
-                value={form.watch("pix_price") || ""}
-                onChange={(e) => form.setValue("pix_price", parseFloat(e.target.value) || 0)}
-                className="bg-card border-border h-9 text-sm"
-                placeholder="0,00"
+              <CurrencyInput
+                value={form.watch("pix_price") || 0}
+                onChange={(val) => form.setValue("pix_price", val)}
+                className="h-9 text-sm"
               />
               <p className="text-[10px] text-muted-foreground">Preço com desconto para pagamento à vista</p>
             </div>
@@ -252,14 +243,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Valor da parcela (R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    value={form.watch("installment_price") || ""}
-                    onChange={(e) => form.setValue("installment_price", parseFloat(e.target.value) || 0)}
-                    className="bg-card border-border h-9 text-sm"
-                    placeholder="0,00"
+                  <CurrencyInput
+                    value={form.watch("installment_price") || 0}
+                    onChange={(val) => form.setValue("installment_price", val)}
+                    className="h-9 text-sm"
                   />
                 </div>
                 <div className="space-y-1">

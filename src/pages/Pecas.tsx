@@ -55,9 +55,7 @@ const Btn = ({
   );
 };
 
-function formatBRL(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { formatBRL } from "@/lib/format";
 
 type SortField = "name" | "stock_qty" | "unit_cost" | "sale_price" | "profit";
 type SortDir = "asc" | "desc";
