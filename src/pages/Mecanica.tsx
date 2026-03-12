@@ -132,13 +132,13 @@ const ColumnHeader = ({
   bg: string;
   border: string;
 }) => (
-  <div className={`flex items-center gap-3 p-5 rounded-[24px] border ${border} ${bg} mb-6`}>
-    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} bg-white/5 shadow-inner`}>
-      <Icon size={20} className="stroke-[2.5]" />
+  <div className={`flex items-center gap-2 p-3 lg:p-4 rounded-2xl border ${border} ${bg} mb-4`}>
+    <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center ${color} bg-white/5 shadow-inner shrink-0`}>
+      <Icon size={16} className="stroke-[2.5]" />
     </div>
-    <div>
-      <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">{label}</h3>
-      <p className="text-[10px] font-bold text-zinc-500 uppercase">{count} serviços ativos</p>
+    <div className="min-w-0">
+      <h3 className="text-[10px] lg:text-xs font-black text-white uppercase tracking-wider truncate">{label}</h3>
+      <p className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase">{count} ativos</p>
     </div>
   </div>
 );
