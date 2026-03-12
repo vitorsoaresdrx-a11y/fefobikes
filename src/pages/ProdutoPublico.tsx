@@ -285,7 +285,7 @@ export default function ProdutoPublico() {
               </span>
               <div className="h-px flex-1 bg-zinc-800/50" />
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tighter leading-none">
+            <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-none">
               {product.name}
             </h1>
           </div>
