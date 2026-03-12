@@ -16,18 +16,47 @@ Deno.serve(async (req) => {
     console.log("Webhook received:", JSON.stringify(body));
 
     // Z-API sends different payload structures
+    const callbackType = String(body.type || "");
+    const isStatusOnlyEvent =
+      callbackType === "MessageStatusCallback" ||
+      (Array.isArray(body.ids) && !body.messageId && !body.text && !body.body && !body.caption);
+
+    if (isStatusOnlyEvent) {
+      return new Response(JSON.stringify({ ok: true, ignored: "status_callback" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const isFromMe = body.fromMe === true;
-    const phone = body.phone || body.chatId?.replace("@c.us", "") || "";
-    const messageId = body.messageId || body.id?.id || "";
-    const rawText = body.text?.message || body.text || body.body || body.message || body.caption || "";
-    const text = typeof rawText === "string" ? rawText : (rawText?.message || JSON.stringify(rawText) || "");
-    const senderName = body.senderName || body.chatName || null;
-    const senderPhoto = body.senderPhoto || null;
-    const type = body.isMedia ? (body.mimetype?.startsWith("image") ? "image" : body.mimetype?.startsWith("audio") ? "audio" : "document") : "text";
+    const rawPhone = body.phone || body.chatId || body.chatLid || "";
+    const phone = String(rawPhone)
+      .replace("@c.us", "")
+      .replace("@lid", "")
+      .replace(/\D/g, "");
+    const messageId = body.messageId || body.id?.id || (Array.isArray(body.ids) ? body.ids[0] : "") || "";
+    const rawText = body.text?.message ?? body.text ?? body.body ?? body.message ?? body.caption ?? "";
+    const text =
+      typeof rawText === "string"
+        ? rawText
+        : typeof rawText === "object" && rawText !== null
+          ? String((rawText as { message?: unknown }).message ?? "")
+          : String(rawText ?? "");
+    const content = text.trim();
+    const contactName = body.chatName || body.senderName || body.pushName || null;
+    const contactPhoto = body.senderPhoto || body.photo || null;
+    const type = body.isMedia
+      ? body.mimetype?.startsWith("image")
+        ? "image"
+        : body.mimetype?.startsWith("audio")
+          ? "audio"
+          : "document"
+      : "text";
     const mediaUrl = body.mediaUrl || null;
 
-    if (!phone) {
-      return new Response(JSON.stringify({ ok: true }), { headers: corsHeaders });
+    if (!phone || (!content && !mediaUrl)) {
+      return new Response(JSON.stringify({ ok: true, ignored: "empty_payload" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabase = createClient(
