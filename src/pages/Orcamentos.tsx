@@ -287,6 +287,7 @@ export default function Orcamentos() {
     customer_name: "",
     customer_cpf: "",
     customer_whatsapp: "",
+    customer_id: null as string | null,
     notes: "",
   });
   const [lineItems, setLineItems] = useState<QuoteLineItem[]>([]);
@@ -332,7 +333,7 @@ export default function Orcamentos() {
   };
 
   const resetForm = () => {
-    setForm({ customer_name: "", customer_cpf: "", customer_whatsapp: "", notes: "" });
+    setForm({ customer_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, notes: "" });
     setLineItems([]);
     setLaborCost(0);
   };
@@ -352,6 +353,7 @@ export default function Orcamentos() {
         customer_name: form.customer_name || undefined,
         customer_cpf: form.customer_cpf || undefined,
         customer_whatsapp: form.customer_whatsapp || undefined,
+        customer_id: form.customer_id || undefined,
         notes: form.notes || undefined,
         labor_cost: laborCost,
         total: grandTotal,
@@ -364,6 +366,7 @@ export default function Orcamentos() {
             customer_name: form.customer_name || undefined,
             customer_cpf: form.customer_cpf || undefined,
             customer_whatsapp: form.customer_whatsapp || undefined,
+            customer_id: form.customer_id || undefined,
             problem: problemDescription,
             price: grandTotal,
           };
@@ -485,6 +488,7 @@ export default function Orcamentos() {
                     customer_name: c.name,
                     customer_whatsapp: c.whatsapp || "",
                     customer_cpf: c.cpf || "",
+                    customer_id: c.id,
                   })
                 }
                 onChange={(field, value) => {

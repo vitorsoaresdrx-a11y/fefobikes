@@ -439,6 +439,7 @@ export default function Mecanica() {
     bike_name: "",
     customer_cpf: "",
     customer_whatsapp: "",
+    customer_id: null as string | null,
     problem: "",
     price: 0,
   });
@@ -470,6 +471,7 @@ export default function Mecanica() {
       customer_name: form.customer_name || undefined,
       customer_cpf: form.customer_cpf || undefined,
       customer_whatsapp: form.customer_whatsapp || undefined,
+      customer_id: form.customer_id || undefined,
       bike_name: form.bike_name || undefined,
       problem: form.problem,
       price: form.price,
@@ -487,6 +489,7 @@ export default function Mecanica() {
           bike_name: "",
           customer_cpf: "",
           customer_whatsapp: "",
+          customer_id: null,
           problem: "",
           price: 0,
         });
@@ -720,6 +723,7 @@ export default function Mecanica() {
                       customer_name: c.name,
                       customer_whatsapp: c.whatsapp || "",
                       customer_cpf: c.cpf || "",
+                      customer_id: c.id,
                     }))
                   }
                   onChange={(field, value) => {
