@@ -17,8 +17,12 @@ export const toolDefinitions = [
             enum: ["bike_completa", "quadro"],
             description: "Tipo de carga: bike_completa (15.5kg) ou quadro (6kg)",
           },
+          valor_nf: {
+            type: "number",
+            description: "Valor declarado da mercadoria em reais (R$)",
+          },
         },
-        required: ["cep_destino", "tipo_carga"],
+        required: ["cep_destino", "tipo_carga", "valor_nf"],
       },
     },
   },
