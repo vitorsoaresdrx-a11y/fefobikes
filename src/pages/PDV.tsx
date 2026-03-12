@@ -207,7 +207,18 @@ export default function PDV() {
 
   // ── Cart actions ───────────────────────────────────────────────────────────
 
+  const getStockQty = (id: string, type: "bike" | "part"): number => {
+    if (type === "part") return parts.find((p) => p.id === id)?.stock_qty ?? 0;
+    return bikes.find((b) => b.id === id)?.stock_qty ?? 0;
+  };
+
   const addToCart = (id: string, type: "bike" | "part", name: string, price: number, category: string | null) => {
+    const stock = getStockQty(id, type);
+    const currentQty = getCartQty(id, type);
+    if (currentQty >= stock) {
+      toast({ title: "Estoque insuficiente", variant: "destructive" });
+      return;
+    }
     setCart((prev) => {
       const existing = prev.find((i) => i.id === id && i.type === type);
       if (existing) return prev.map((i) => (i.id === id && i.type === type ? { ...i, quantity: i.quantity + 1 } : i));
