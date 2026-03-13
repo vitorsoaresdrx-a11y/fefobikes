@@ -19,10 +19,12 @@ import {
   AlertCircle,
   Activity,
   ChevronRight,
+  ChevronLeft,
   Layers,
   History,
   TrendingUp,
   Search,
+  Pencil,
 } from "lucide-react";
 import {
   Dialog,
