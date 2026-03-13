@@ -5,6 +5,9 @@ import { Search, Download, Phone, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCustomers } from "@/hooks/useCustomers";
+import { EmptyState } from "@/components/EmptyState";
+import { PaginationBar } from "@/components/PaginationBar";
+import { usePagination } from "@/hooks/usePagination";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("pt-BR");
