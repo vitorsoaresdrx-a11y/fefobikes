@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
