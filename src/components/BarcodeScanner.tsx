@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from "@zxing/library";
 import { X, ScanLine } from "lucide-react";
 
@@ -9,74 +9,79 @@ interface BarcodeScannerProps {
 export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    return () => {
-      stopScan();
-    };
-  }, []);
-
-  const stopScan = () => {
+  const stopScan = useCallback(() => {
     if (readerRef.current) {
       readerRef.current.reset();
       readerRef.current = null;
     }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((t) => t.stop());
       videoRef.current.srcObject = null;
     }
     setScanning(false);
-  };
+    setCameraReady(false);
+  }, []);
 
-  const startScan = async () => {
-    if (scanning) return;
-    try {
-      setScanning(true);
-      setError(null);
+  useEffect(() => {
+    return () => { stopScan(); };
+  }, [stopScan]);
 
-      const hints = new Map();
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.ITF,
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.CODABAR,
-      ]);
-      hints.set(DecodeHintType.TRY_HARDER, true);
+  // Once scanning is true and video element is in DOM, start decoding
+  useEffect(() => {
+    if (!cameraReady || !videoRef.current) return;
 
-      readerRef.current = new BrowserMultiFormatReader(hints);
+    const hints = new Map();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.ITF,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.CODABAR,
+    ]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
 
-      readerRef.current.decodeFromVideoDevice(
-        undefined,
-        videoRef.current!,
-        (result, _err) => {
-          if (result) {
-            const text = result.getText();
-            if (text) {
-              onScanned(text);
-              stopScan();
-            }
-          }
+    const reader = new BrowserMultiFormatReader(hints);
+    readerRef.current = reader;
+
+    reader.decodeFromVideoDevice(undefined, videoRef.current, (result) => {
+      if (result) {
+        const text = result.getText();
+        if (text) {
+          onScanned(text);
+          stopScan();
         }
-      );
-    } catch {
+      }
+    }).catch(() => {
       setError("Não foi possível acessar a câmera.");
       stopScan();
-    }
+    });
+  }, [cameraReady, onScanned, stopScan]);
+
+  const startScan = () => {
+    if (scanning) return;
+    setError(null);
+    setScanning(true);
   };
+
+  // Called when video element mounts via ref callback
+  const handleVideoRef = useCallback((el: HTMLVideoElement | null) => {
+    (videoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el;
+    if (el) {
+      setCameraReady(true);
+    }
+  }, []);
 
   return (
     <div className="space-y-3">
       {scanning ? (
         <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
-          <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
+          <video ref={handleVideoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-3/4 h-16 border-2 border-primary rounded-xl opacity-80 relative">
               <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary rounded-tl-xl" />
