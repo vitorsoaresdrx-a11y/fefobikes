@@ -541,6 +541,8 @@ export type Database = {
       }
       internal_calls: {
         Row: {
+          audio_duration: number | null
+          audio_url: string | null
           created_at: string | null
           created_by: string
           created_by_name: string
@@ -552,6 +554,8 @@ export type Database = {
           tenant_id: string | null
         }
         Insert: {
+          audio_duration?: number | null
+          audio_url?: string | null
           created_at?: string | null
           created_by: string
           created_by_name: string
@@ -563,6 +567,8 @@ export type Database = {
           tenant_id?: string | null
         }
         Update: {
+          audio_duration?: number | null
+          audio_url?: string | null
           created_at?: string | null
           created_by?: string
           created_by_name?: string
