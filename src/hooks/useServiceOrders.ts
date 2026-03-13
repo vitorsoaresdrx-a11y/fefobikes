@@ -99,18 +99,16 @@ interface RealtimeCallbacks {
 }
 
 export function useServiceOrdersRealtime(callbacks?: RealtimeCallbacks) {
-  const qc = useQueryClient();
   const cbRef = useRef(callbacks);
   cbRef.current = callbacks;
 
   useEffect(() => {
     const channel = supabase
-      .channel("service_orders_realtime")
+      .channel("service_orders_callbacks")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "service_orders" },
         (payload) => {
-          qc.invalidateQueries({ queryKey: KEY });
           if (payload.eventType === "INSERT" && cbRef.current?.onNew) {
             cbRef.current.onNew(payload.new as ServiceOrder);
           }
@@ -130,5 +128,5 @@ export function useServiceOrdersRealtime(callbacks?: RealtimeCallbacks) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, []);
 }
