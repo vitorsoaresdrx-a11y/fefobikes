@@ -98,8 +98,9 @@ export function BillPhotoCapture({ onExtracted }: BillPhotoCaptureProps) {
         barcode: parsed.barcode || "",
       });
     } catch (err) {
-      console.error("Extraction error:", err);
-      setError("Não foi possível extrair os dados. Tente uma foto mais nítida.");
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      console.error("Extraction error:", msg, err);
+      setError(`Falha: ${msg}`);
     } finally {
       setLoading(false);
     }
