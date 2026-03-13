@@ -123,12 +123,12 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: values.stock_qty,
       alert_stock: values.alert_stock,
       unit_cost: values.unit_cost,
-      sale_price: values.pix_price,
-      pix_price: values.pix_price,
-      installment_price: values.installment_price,
-      installment_count: values.installment_count,
+      sale_price: values.sale_price,
+      pix_price: values.sale_price,
+      installment_price: null,
+      installment_count: null,
       description: values.description || null,
-      notes: values.description || null, // keep notes in sync
+      notes: values.description || null,
       weight_capacity_kg: null,
       material: null,
       gears: null,
@@ -136,7 +136,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       color: null,
       rim_size: null,
       frame_size: null,
-      visible_on_storefront: false,
+      visible_on_storefront: values.visible_on_storefront,
       images: partImages,
     };
     if (isEditing && values.sku) {
