@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useInternalCalls, useMarkAsViewed, useCallReplies, useSendReply } from "@/hooks/useInternalCalls";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, Loader2, MessageSquare, Send } from "lucide-react";
+import { AudioPlayer } from "@/components/AudioPlayer";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 
@@ -121,9 +122,16 @@ export function CallsOverlay() {
             </div>
 
             {/* Message */}
-            <p className="text-base font-bold text-foreground leading-relaxed mb-4">
-              {call.message}
-            </p>
+            {call.message && (
+              <p className="text-base font-bold text-foreground leading-relaxed mb-4">
+                {call.message}
+              </p>
+            )}
+
+            {/* Audio */}
+            {call.audio_url && (
+              <AudioPlayer url={call.audio_url} duration={call.audio_duration} autoPlay />
+            )}
 
             {/* Replies from others (visible to recipients, not to the reply author) */}
             {replyingTo === call.id && replies.length > 0 && (

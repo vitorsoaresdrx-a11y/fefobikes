@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useSendCall, useAllCalls, type InternalCallReply } from "@/hooks/useInternalCalls";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, Send, Users, Eye, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { Bell, Send, Users, Eye, MessageSquare, ChevronDown, ChevronUp, Mic } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { AudioRecorder } from "@/components/AudioRecorder";
+import { AudioPlayer } from "@/components/AudioPlayer";
 
 const TARGET_OPTIONS = [
   { key: "all", label: "Todos" },
@@ -19,6 +21,8 @@ export default function Chamadas() {
   const [selected, setSelected] = useState("all");
   const [targetUserId, setTargetUserId] = useState("");
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioDuration, setAudioDuration] = useState(0);
   const { session } = useAuth();
   const { mutateAsync: sendCall, isPending } = useSendCall();
   const { data: history = [] } = useAllCalls();
@@ -53,7 +57,7 @@ export default function Chamadas() {
   });
 
   const handleSend = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() && !audioBlob) return;
 
     let targetType = "all";
     let targetRole: string | undefined;
@@ -71,8 +75,12 @@ export default function Chamadas() {
         targetType,
         targetRole,
         targetUserId: targetUserId || undefined,
+        audioBlob: audioBlob || undefined,
+        audioDuration: audioBlob ? audioDuration : undefined,
       });
       setMessage("");
+      setAudioBlob(null);
+      setAudioDuration(0);
       toast.success("Chamada enviada!");
     } catch {
       toast.error("Erro ao enviar chamada");
@@ -153,9 +161,24 @@ export default function Chamadas() {
           className="w-full h-28 bg-secondary border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 resize-none outline-none focus:border-primary transition-colors"
         />
 
+        <AudioRecorder
+          onRecorded={(blob, dur) => {
+            setAudioBlob(blob);
+            setAudioDuration(dur);
+          }}
+          onCleared={() => {
+            setAudioBlob(null);
+            setAudioDuration(0);
+          }}
+        />
+
+        <p className="text-[10px] text-muted-foreground text-center">
+          Texto, áudio, ou ambos
+        </p>
+
         <button
           onClick={handleSend}
-          disabled={!message.trim() || isPending}
+          disabled={(!message.trim() && !audioBlob) || isPending}
           className="w-full h-11 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-black transition-all disabled:opacity-40 flex items-center justify-center gap-2"
         >
           <Send size={16} />
@@ -193,7 +216,10 @@ export default function Chamadas() {
                   {format(new Date(call.created_at), "dd/MM HH:mm")}
                 </span>
               </div>
-              <p className="text-sm text-foreground">{call.message}</p>
+              {call.message && <p className="text-sm text-foreground">{call.message}</p>}
+              {call.audio_url && (
+                <AudioPlayer url={call.audio_url} duration={call.audio_duration} />
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                   <Users size={10} />
