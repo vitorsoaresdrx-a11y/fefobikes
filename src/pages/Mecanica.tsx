@@ -54,11 +54,19 @@ import { toast } from "sonner";
 
 import { formatBRL } from "@/lib/format";
 
+function getAdditionTotal(a: MechanicJobAddition) {
+  const partsTotal = (a.parts_used || []).reduce(
+    (sum, p) => sum + p.quantity * p.unit_price,
+    0
+  );
+  return Number(a.labor_cost || 0) + partsTotal;
+}
+
 function getTotalPrice(job: MechanicJob) {
   const base = Number(job.price);
   const accepted = (job.additions || [])
     .filter((a) => a.approval === "accepted")
-    .reduce((sum, a) => sum + Number(a.price), 0);
+    .reduce((sum, a) => sum + getAdditionTotal(a), 0);
   return base + accepted;
 }
 
