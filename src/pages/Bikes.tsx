@@ -22,6 +22,7 @@ import {
 } from "@/hooks/useBikes";
 import { QRCodeModal } from "@/components/QRCodeModal";
 import { getOptimizedImageUrl } from "@/lib/image";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
