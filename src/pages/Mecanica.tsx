@@ -256,11 +256,15 @@ function JobCard({
   isLast,
   columnKey,
   onAddRepair,
+  onEdit,
+  onRetreat,
 }: {
   job: MechanicJob;
   isLast: boolean;
   columnKey: string;
   onAddRepair: (job: MechanicJob) => void;
+  onEdit: (job: MechanicJob) => void;
+  onRetreat?: (job: MechanicJob) => void;
 }) {
   const advance = useAdvanceMechanicJob();
   const remove = useDeleteMechanicJob();
@@ -281,27 +285,37 @@ function JobCard({
 
   const total = getTotalPrice(job);
   const showApprovalActions = columnKey === "in_maintenance";
+  const showRetreat = columnKey === "in_analysis";
 
   return (
     <div className="group bg-card border border-border rounded-2xl p-3 lg:p-4 space-y-3 hover:border-border/80 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
-      {/* Bike name (prominent) + delete */}
+      {/* Bike name (prominent) + actions */}
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0">
           <p className="text-sm font-black tracking-tight text-white uppercase italic leading-tight break-words">
             {job.bike_name || "Sem bike"}
           </p>
         </div>
-        <button
-          className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-          onClick={handleDelete}
-          disabled={remove.isPending}
-        >
-          {remove.isPending ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Trash2 size={14} />
-          )}
-        </button>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button
+            className="p-1.5 text-muted-foreground/50 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+            onClick={() => onEdit(job)}
+            title="Editar"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+            onClick={handleDelete}
+            disabled={remove.isPending}
+          >
+            {remove.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Trash2 size={14} />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Customer info (secondary) */}
@@ -357,9 +371,21 @@ function JobCard({
           <button
             onClick={() => onAddRepair(job)}
             className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
+            title="Adicionar reparo"
           >
             <Plus size={12} />
           </button>
+
+          {/* Retreat button (only in_analysis) */}
+          {showRetreat && onRetreat && (
+            <button
+              onClick={() => onRetreat(job)}
+              className="h-7 rounded-lg px-2.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 border border-amber-500/20"
+              title="Retroceder para Na Mecânica"
+            >
+              <ChevronLeft size={12} /> Voltar
+            </button>
+          )}
 
           {!isLast ? (
             <button
