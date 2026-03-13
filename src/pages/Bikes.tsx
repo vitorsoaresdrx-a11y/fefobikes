@@ -79,42 +79,38 @@ const Badge = ({
 function StatCard({
   title,
   value,
-  icon,
-  color = "text-[#2952FF]",
+  color = "text-white",
 }: {
   title: string;
   value: number;
-  icon: React.ReactNode;
   color?: string;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-6 flex items-center gap-3 md:gap-5">
-      <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{title}</p>
-        <p className="text-2xl font-black text-white">{value}</p>
-      </div>
+    <div className="p-3 rounded-2xl bg-[#161618] border border-zinc-800">
+      <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-500 leading-tight mb-1">{title}</p>
+      <p className={`text-xl font-black ${color}`}>{value}</p>
     </div>
   );
 }
 
 function EmptyState({ onNew }: { onNew: () => void }) {
   return (
-    <div className="py-24 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-[40px]">
-      <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700">
-        <Bike size={40} />
+    <div className="py-16 md:py-24 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
+      <div className="w-16 h-16 md:w-20 md:h-20 bg-zinc-900 rounded-2xl md:rounded-[30px] flex items-center justify-center text-zinc-700">
+        <Bike size={32} className="md:w-10 md:h-10" />
       </div>
       <div className="space-y-2">
-        <h4 className="text-xl font-bold text-zinc-300">Nenhuma bike no catálogo</h4>
-        <p className="text-sm text-zinc-500 max-w-xs mx-auto">
+        <h4 className="text-base md:text-xl font-bold text-zinc-300">Nenhuma bike no catálogo</h4>
+        <p className="text-xs md:text-sm text-zinc-500 max-w-xs mx-auto px-4">
           Comece adicionando modelos de bicicletas para gerenciar peças e visibilidade.
         </p>
       </div>
-      <Btn variant="outline" className="rounded-2xl px-10" onClick={onNew}>
+      <button 
+        className="h-10 px-6 rounded-xl bg-transparent border border-zinc-700 text-zinc-300 text-sm font-medium hover:bg-zinc-800 transition-colors"
+        onClick={onNew}
+      >
         Cadastrar Primeiro Modelo
-      </Btn>
+      </button>
     </div>
   );
 }
@@ -148,10 +144,22 @@ export default function Bikes() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
-      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
+      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-4">
 
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Header Mobile */}
+        <header className="flex items-center justify-between mb-4 md:hidden">
+          <h1 className="text-lg font-black">Modelos de Bikes</h1>
+          <button 
+            className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white whitespace-nowrap flex items-center gap-1.5 shrink-0"
+            onClick={() => navigate("/bikes/nova")}
+          >
+            <Plus size={14} />
+            Nova Bike
+          </button>
+        </header>
+
+        {/* Header Desktop */}
+        <header className="hidden md:flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
@@ -180,19 +188,32 @@ export default function Bikes() {
           </div>
         </header>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-6">
-          <StatCard title="Total de Modelos" value={bikes.length} icon={<Package className="w-5 h-5" />} />
+        {/* Stats Mobile */}
+        <div className="grid grid-cols-3 gap-2 md:hidden">
+          <StatCard title="Total de Modelos" value={bikes.length} />
           <StatCard
             title="Visíveis na Loja"
             value={bikes.filter((b) => b.visible_on_storefront).length}
-            icon={<Eye className="w-5 h-5" />}
             color="text-emerald-400"
           />
           <StatCard
             title="Total de Peças"
             value={totalParts}
-            icon={<TrendingUp className="w-5 h-5" />}
+            color="text-[#2952FF]"
+          />
+        </div>
+
+        {/* Stats Desktop */}
+        <div className="hidden md:grid grid-cols-3 gap-6">
+          <StatCard title="Total de Modelos" value={bikes.length} />
+          <StatCard
+            title="Visíveis na Loja"
+            value={bikes.filter((b) => b.visible_on_storefront).length}
+            color="text-emerald-400"
+          />
+          <StatCard
+            title="Total de Peças"
+            value={totalParts}
             color="text-[#2952FF]"
           />
         </div>
@@ -215,11 +236,26 @@ export default function Bikes() {
               return (
                 <div
                   key={bike.id}
-                  className="group relative bg-[#161618] border border-zinc-800 rounded-[40px] overflow-hidden hover:border-[#2952FF]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
+                  className="group relative bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[40px] overflow-hidden hover:border-[#2952FF]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
                   onClick={() => navigate(`/bikes/${bike.id}`)}
                 >
-                  {/* Imagem */}
-                  <div className="aspect-[4/3] bg-zinc-900 relative overflow-hidden">
+                  {/* Imagem Mobile */}
+                  <div className="md:hidden relative">
+                    <img 
+                      src={firstImage || undefined} 
+                      alt={bike.name} 
+                      loading="lazy" 
+                      className="w-full h-44 object-cover" 
+                    />
+                    {bike.visible_on_storefront && (
+                      <span className="absolute top-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase">
+                        No Ar
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Imagem Desktop */}
+                  <div className="hidden md:block aspect-[4/3] bg-zinc-900 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-[#161618] via-transparent to-transparent z-10" />
                     <div className="absolute top-4 right-4 z-20">
                       <Badge variant={bike.visible_on_storefront ? "active" : "default"}>
@@ -229,13 +265,13 @@ export default function Bikes() {
 
                     <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
                       {firstImage ? (
-                        <img src={getOptimizedImageUrl(firstImage, 400, 80) || firstImage} alt={bike.name} loading="lazy" className="w-full h-full object-cover" />
+                        <img src={firstImage} alt={bike.name} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
                         <Package className="w-16 h-16 text-zinc-800" />
                       )}
                     </div>
 
-                    {/* Hover Actions */}
+                    {/* Hover Actions Desktop */}
                     <div
                       className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-30 transition-all backdrop-blur-sm bg-black/20"
                       onClick={(e) => e.stopPropagation()}
@@ -267,8 +303,50 @@ export default function Bikes() {
                     </div>
                   </div>
 
-                  {/* Conteúdo */}
-                  <div className="p-8 space-y-4">
+                  {/* Conteúdo Mobile */}
+                  <div className="p-4 md:hidden">
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className="text-sm font-black truncate pr-2">{bike.name}</h3>
+                      <button
+                        className="text-zinc-600 hover:text-red-400 transition-colors shrink-0 ml-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteBike.mutate(bike.id);
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-bold text-[#2952FF] uppercase">
+                        {bike.category || "Sem categoria"}
+                      </span>
+                      {bike.sku && (
+                        <>
+                          <span className="text-zinc-700">•</span>
+                          <span className="text-[10px] text-zinc-500">{bike.sku}</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 flex items-center gap-1">
+                        <TrendingUp size={12} /> {(partsCounts as Record<string, number>)[bike.id] || 0} Peças
+                      </span>
+                      <button 
+                        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggle(bike.id, bike.visible_on_storefront);
+                        }}
+                      >
+                        {bike.visible_on_storefront ? 'Desativar' : 'Ativar'}
+                        <Eye size={14} className={bike.visible_on_storefront ? 'text-emerald-400' : 'text-zinc-600'} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Conteúdo Desktop */}
+                  <div className="hidden md:block p-8 space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="text-xl font-black text-white truncate pr-2">{bike.name}</h3>
