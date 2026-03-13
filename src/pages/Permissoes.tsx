@@ -410,12 +410,12 @@ export default function Permissoes() {
                   {m.role === "owner" ? (
                     <Crown size={14} className="text-amber-400" />
                   ) : (
-                    (m.email || m.user_id).slice(0, 2).toUpperCase()
+                    getMemberInitials(m)
                   )}
                 </div>
                 <div className="text-left min-w-0">
                   <p className="text-sm font-bold text-foreground/80 truncate">
-                    {m.email || m.user_id.slice(0, 12) + "..."}
+                    {getMemberDisplayName(m)}
                   </p>
                   <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-widest">
                     {m.role === "owner" ? "Proprietário" : "Membro"}
