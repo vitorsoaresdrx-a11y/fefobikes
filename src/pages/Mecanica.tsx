@@ -45,6 +45,8 @@ import {
   useUpdateAdditionApproval,
   useRetreatMechanicJob,
   useUpdateMechanicJobDetails,
+  useUpdateAddition,
+  useDeleteAddition,
   type MechanicJob,
   type MechanicJobAddition,
   type AdditionPart,
@@ -585,6 +587,302 @@ function AddRepairPartSelector({
         )}
       </div>
     </div>
+  );
+}
+
+// ─── Edit Job Modal with Additions Management ────────────────────────────────
+
+function EditJobModal({
+  open,
+  onOpenChange,
+  editJob,
+  editForm,
+  setEditForm,
+  onSave,
+  isSaving,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  editJob: MechanicJob | null;
+  editForm: { customer_name: string; bike_name: string; customer_cpf: string; customer_whatsapp: string; customer_id: string | null; problem: string; price: number };
+  setEditForm: React.Dispatch<React.SetStateAction<typeof editForm>>;
+  onSave: () => void;
+  isSaving: boolean;
+}) {
+  const updateAddition = useUpdateAddition();
+  const deleteAddition = useDeleteAddition();
+  const [editingAddition, setEditingAddition] = useState<string | null>(null);
+  const [additionEdits, setAdditionEdits] = useState<Record<string, { problem: string; labor_cost: number; parts: AdditionPart[] }>>({});
+  const [deleteAdditionDialog, setDeleteAdditionDialog] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: "", name: "" });
+
+  const startEditAddition = (a: MechanicJobAddition) => {
+    setEditingAddition(a.id);
+    setAdditionEdits((prev) => ({
+      ...prev,
+      [a.id]: {
+        problem: a.problem,
+        labor_cost: Number(a.labor_cost || 0),
+        parts: (a.parts_used || []).map((p) => ({ ...p })),
+      },
+    }));
+  };
+
+  const saveAddition = (a: MechanicJobAddition) => {
+    const edits = additionEdits[a.id];
+    if (!edits || !edits.problem.trim()) {
+      toast.error("Descreva o problema");
+      return;
+    }
+    const partsTotal = edits.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
+    updateAddition.mutate(
+      {
+        id: a.id,
+        problem: edits.problem,
+        price: edits.labor_cost + partsTotal,
+        labor_cost: edits.labor_cost,
+        parts_used: edits.parts,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Reparo atualizado!");
+          setEditingAddition(null);
+        },
+        onError: () => toast.error("Erro ao atualizar reparo"),
+      }
+    );
+  };
+
+  const confirmDeleteAddition = () => {
+    deleteAddition.mutate(deleteAdditionDialog.id, {
+      onSuccess: () => {
+        toast.success("Reparo excluído!");
+        setDeleteAdditionDialog({ open: false, id: "", name: "" });
+      },
+      onError: () => toast.error("Erro ao excluir reparo"),
+    });
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
+          <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+                Editar Serviço
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              <InputGroup label="Nome da Bike *">
+                <PremiumInput
+                  placeholder="Ex: Caloi Elite Carbon"
+                  value={editForm.bike_name}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, bike_name: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Cliente">
+                <CustomerAutocomplete
+                  customerName={editForm.customer_name}
+                  customerWhatsapp={editForm.customer_whatsapp}
+                  customerCpf={editForm.customer_cpf}
+                  onSelect={(c: Customer) =>
+                    setEditForm((f) => ({
+                      ...f,
+                      customer_name: c.name,
+                      customer_whatsapp: c.whatsapp || "",
+                      customer_cpf: c.cpf || "",
+                      customer_id: c.id,
+                    }))
+                  }
+                  onChange={(field, value) => {
+                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
+                    setEditForm((f) => ({ ...f, [key]: value }));
+                  }}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                  <PremiumInput
+                    placeholder="Nome completo"
+                    value={editForm.customer_name}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_name: e.target.value }))
+                    }
+                  />
+                  <PremiumInput
+                    placeholder="(00) 00000-0000"
+                    value={editForm.customer_whatsapp}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_whatsapp: e.target.value }))
+                    }
+                  />
+                  <PremiumInput
+                    placeholder="CPF (opcional)"
+                    value={editForm.customer_cpf}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_cpf: e.target.value }))
+                    }
+                  />
+                </div>
+              </InputGroup>
+              <InputGroup label="Diagnóstico *">
+                <PremiumTextarea
+                  rows={4}
+                  placeholder="Descreva o que precisa ser feito..."
+                  value={editForm.problem}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, problem: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Valor do Serviço">
+                <CurrencyInput
+                  value={editForm.price}
+                  onChange={(val) => setEditForm((f) => ({ ...f, price: val }))}
+                />
+              </InputGroup>
+
+              {/* Additions section */}
+              {editJob && editJob.additions && editJob.additions.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">
+                    Reparos Extras ({editJob.additions.length})
+                  </p>
+                  {editJob.additions.map((a) => {
+                    const isEditing = editingAddition === a.id;
+                    const edits = additionEdits[a.id];
+
+                    return (
+                      <div key={a.id} className="p-3 bg-background rounded-xl border border-border space-y-2">
+                        {isEditing && edits ? (
+                          <>
+                            <PremiumInput
+                              placeholder="Descrição do reparo"
+                              value={edits.problem}
+                              onChange={(e) =>
+                                setAdditionEdits((prev) => ({
+                                  ...prev,
+                                  [a.id]: { ...prev[a.id], problem: e.target.value },
+                                }))
+                              }
+                            />
+                            <InputGroup label="Peças">
+                              <AddRepairPartSelector
+                                selectedParts={edits.parts}
+                                onChange={(parts) =>
+                                  setAdditionEdits((prev) => ({
+                                    ...prev,
+                                    [a.id]: { ...prev[a.id], parts },
+                                  }))
+                                }
+                              />
+                            </InputGroup>
+                            <InputGroup label="Mão de Obra">
+                              <CurrencyInput
+                                value={edits.labor_cost}
+                                onChange={(val) =>
+                                  setAdditionEdits((prev) => ({
+                                    ...prev,
+                                    [a.id]: { ...prev[a.id], labor_cost: val },
+                                  }))
+                                }
+                              />
+                            </InputGroup>
+                            <div className="flex gap-2 pt-1">
+                              <button
+                                onClick={() => setEditingAddition(null)}
+                                className="flex-1 h-8 rounded-xl border border-border text-muted-foreground hover:bg-muted text-xs font-bold transition-all"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                onClick={() => saveAddition(a)}
+                                disabled={updateAddition.isPending}
+                                className="flex-1 h-8 rounded-xl bg-primary text-white hover:bg-primary/80 text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-1"
+                              >
+                                {updateAddition.isPending ? <Loader2 size={12} className="animate-spin" /> : <><Check size={12} /> Salvar</>}
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-foreground truncate">{a.problem}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {formatBRL(getAdditionTotal(a))}
+                                  {a.approval === "accepted" && " ✅"}
+                                  {a.approval === "refused" && " ❌"}
+                                  {a.approval === "pending" && " ⏳"}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  onClick={() => startEditAddition(a)}
+                                  className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors"
+                                  title="Editar reparo"
+                                >
+                                  <Pencil size={12} />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteAdditionDialog({ open: true, id: a.id, name: a.problem })}
+                                  className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
+                                  title="Excluir reparo"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                            {(a.parts_used || []).length > 0 && (
+                              <div className="pl-2 space-y-0.5">
+                                {a.parts_used.map((p, i) => (
+                                  <p key={i} className="text-[9px] text-muted-foreground">
+                                    {p.quantity}x {p.part_name} — {formatBRL(p.quantity * p.unit_price)}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => onOpenChange(false)}
+                className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={onSave}
+                disabled={isSaving}
+                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  "Salvar Alterações"
+                )}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        open={deleteAdditionDialog.open}
+        onOpenChange={(v) => setDeleteAdditionDialog((d) => ({ ...d, open: v }))}
+        onConfirm={confirmDeleteAddition}
+        title="Excluir reparo extra"
+        description={`Tem certeza que deseja excluir o reparo "${deleteAdditionDialog.name}"? Esta ação não pode ser desfeita.`}
+      />
+    </>
   );
 }
 
@@ -1242,108 +1540,15 @@ export default function Mecanica() {
       </Dialog>
 
       {/* ── Edit Job Modal ───────────────────────────────────────────────────── */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
-          <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
-                Editar Serviço
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              <InputGroup label="Nome da Bike *">
-                <PremiumInput
-                  placeholder="Ex: Caloi Elite Carbon"
-                  value={editForm.bike_name}
-                  onChange={(e) =>
-                    setEditForm((f) => ({ ...f, bike_name: e.target.value }))
-                  }
-                />
-              </InputGroup>
-              <InputGroup label="Cliente">
-                <CustomerAutocomplete
-                  customerName={editForm.customer_name}
-                  customerWhatsapp={editForm.customer_whatsapp}
-                  customerCpf={editForm.customer_cpf}
-                  onSelect={(c: Customer) =>
-                    setEditForm((f) => ({
-                      ...f,
-                      customer_name: c.name,
-                      customer_whatsapp: c.whatsapp || "",
-                      customer_cpf: c.cpf || "",
-                      customer_id: c.id,
-                    }))
-                  }
-                  onChange={(field, value) => {
-                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
-                    setEditForm((f) => ({ ...f, [key]: value }));
-                  }}
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                  <PremiumInput
-                    placeholder="Nome completo"
-                    value={editForm.customer_name}
-                    onChange={(e) =>
-                      setEditForm((f) => ({ ...f, customer_name: e.target.value }))
-                    }
-                  />
-                  <PremiumInput
-                    placeholder="(00) 00000-0000"
-                    value={editForm.customer_whatsapp}
-                    onChange={(e) =>
-                      setEditForm((f) => ({ ...f, customer_whatsapp: e.target.value }))
-                    }
-                  />
-                  <PremiumInput
-                    placeholder="CPF (opcional)"
-                    value={editForm.customer_cpf}
-                    onChange={(e) =>
-                      setEditForm((f) => ({ ...f, customer_cpf: e.target.value }))
-                    }
-                  />
-                </div>
-              </InputGroup>
-              <InputGroup label="Diagnóstico *">
-                <PremiumTextarea
-                  rows={4}
-                  placeholder="Descreva o que precisa ser feito..."
-                  value={editForm.problem}
-                  onChange={(e) =>
-                    setEditForm((f) => ({ ...f, problem: e.target.value }))
-                  }
-                />
-              </InputGroup>
-              <InputGroup label="Valor do Serviço">
-                <CurrencyInput
-                  value={editForm.price}
-                  onChange={(val) => setEditForm((f) => ({ ...f, price: val }))}
-                />
-              </InputGroup>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setEditOpen(false)}
-                className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                disabled={updateDetails.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
-              >
-                {updateDetails.isPending ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  "Salvar Alterações"
-                )}
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <EditJobModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        editJob={editJob}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        onSave={handleSaveEdit}
+        isSaving={updateDetails.isPending}
+      />
 
       {/* ── Na Mecânica Modal ────────────────────────────────────────────────── */}
       <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
