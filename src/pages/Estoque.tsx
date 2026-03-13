@@ -182,9 +182,12 @@ function SummaryCard({
 export default function Estoque() {
   const { data: parts = [], isLoading: partsLoading } = useParts();
   const { data: bikes = [], isLoading: bikesLoading } = useBikeModels();
+  const { data: stockChanges = [] } = useStockChanges();
   const updatePart = useUpdatePart();
   const updateBike = useUpdateBikeModel();
   const { toast } = useToast();
+  const currentUserName = useCurrentUserName();
+  const [showHistory, setShowHistory] = useState(false);
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
