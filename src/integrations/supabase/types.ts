@@ -455,6 +455,51 @@ export type Database = {
           },
         ]
       }
+      internal_call_replies: {
+        Row: {
+          call_id: string
+          created_at: string | null
+          created_by: string
+          created_by_name: string
+          id: string
+          message: string
+          tenant_id: string | null
+        }
+        Insert: {
+          call_id: string
+          created_at?: string | null
+          created_by: string
+          created_by_name: string
+          id?: string
+          message: string
+          tenant_id?: string | null
+        }
+        Update: {
+          call_id?: string
+          created_at?: string | null
+          created_by?: string
+          created_by_name?: string
+          id?: string
+          message?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_call_replies_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "internal_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_call_replies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_call_views: {
         Row: {
           call_id: string
