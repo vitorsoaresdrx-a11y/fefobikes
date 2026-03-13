@@ -121,30 +121,30 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-5 py-5">
-        <div className="flex items-center gap-2">
+      <SidebarHeader className="px-4 py-4 border-b border-sidebar-border">
+        <div className="flex items-center gap-2.5">
           <Bike className="h-6 w-6 text-primary shrink-0" />
           {!collapsed && (
-            <span className="font-semibold text-sm tracking-tight text-foreground">
+            <span className="font-semibold text-sm tracking-tight text-sidebar-foreground">
               Fefo Bikes
             </span>
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="py-2">
         {navGroups.map((group) => {
           const visibleItems = group.items.filter((item) => canAccessModule(item.url));
           if (visibleItems.length === 0) return null;
 
           return (
-            <SidebarGroup key={group.label}>
+            <SidebarGroup key={group.label} className="py-1.5 px-2">
               {!collapsed && (
-                <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/30 px-4 mb-1">
+                <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-muted-foreground/60 px-2 mb-0.5">
                   {group.label}
                 </SidebarGroupLabel>
               )}
               <SidebarGroupContent>
-                <SidebarMenu className="px-2 space-y-0.5">
+                <SidebarMenu>
                   {visibleItems.map((item) => {
                     const active = isActive(item.url);
                     return (
@@ -155,17 +155,17 @@ export function AppSidebar() {
                           tooltip={item.title}
                           className={
                             active
-                              ? "!bg-[linear-gradient(to_left,hsl(225_100%_52%/0.15),transparent_70%)] border-r-2 !border-r-[#2952FF]"
-                              : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                              : "text-sidebar-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                           }
                         >
                           <button
                             onClick={() => handleNavClick(item.url)}
-                            className="flex items-center gap-2 w-full"
+                            className="flex items-center gap-2.5 w-full"
                           >
                             <item.icon className="h-4 w-4 shrink-0" />
                             {!collapsed && (
-                               <span className="flex items-center gap-2">
+                              <span className="flex items-center gap-2 truncate">
                                 {item.title}
                                 {item.title === "Caixa" && isCashOpen && (
                                   <span className="relative flex h-2 w-2">
@@ -192,13 +192,13 @@ export function AppSidebar() {
         })}
 
         {/* Logout */}
-        <SidebarGroup className="mt-auto pb-4">
+        <SidebarGroup className="mt-auto py-2 px-2 border-t border-sidebar-border">
           <SidebarGroupContent>
-            <SidebarMenu className="px-2">
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   tooltip="Sair"
-                  className="text-sidebar-foreground/40 hover:text-destructive"
+                  className="text-sidebar-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   onClick={() => supabase.auth.signOut()}
                 >
                   <LogOut className="h-4 w-4 shrink-0" />
