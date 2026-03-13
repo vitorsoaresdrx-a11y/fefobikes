@@ -70,9 +70,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: 0,
       alert_stock: 0,
       unit_cost: 0,
-      pix_price: 0,
-      installment_price: 0,
-      installment_count: 1,
+      sale_price: 0,
+      visible_on_storefront: false,
       description: "",
     },
   });
