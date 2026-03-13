@@ -97,7 +97,7 @@ function StatCard({
               <p className="text-[10px] md:text-xs text-zinc-400 leading-tight">{title}</p>
             </div>
           </div>
-          <span className={`text-base md:text-2xl font-black tracking-tighter shrink-0 ml-3 ${color}`}>{formatBRL(value)}</span>
+          <span className={`text-base md:text-2xl font-black tracking-tighter shrink-0 ml-3 ${color}`}>{formatValue(value)}</span>
         </div>
       </div>
     );
