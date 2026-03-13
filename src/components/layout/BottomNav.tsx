@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingCart, Wrench, MessageCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 const tabs = [
   { label: "Início", path: "/", icon: LayoutDashboard },
@@ -28,13 +29,18 @@ export function BottomNav() {
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className="flex flex-col items-center justify-center gap-1 flex-1 h-full"
+              className="flex flex-col items-center justify-center gap-1 flex-1 h-full relative"
             >
-              <tab.icon
-                size={20}
-                strokeWidth={active ? 2.5 : 1.5}
-                className={active ? "text-[#2952FF]" : "text-zinc-500"}
-              />
+              <motion.div
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              >
+                <tab.icon
+                  size={20}
+                  strokeWidth={active ? 2.5 : 1.5}
+                  className={active ? "text-[#2952FF]" : "text-zinc-500"}
+                />
+              </motion.div>
               <span
                 className={`text-[9px] font-bold uppercase tracking-widest ${
                   active ? "text-[#2952FF]" : "text-zinc-600"
