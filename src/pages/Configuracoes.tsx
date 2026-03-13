@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { CreditCard, Save, HardHat, Plus, Power, MonitorSmartphone, Users, X } from "lucide-react";
+import { CreditCard, Save, HardHat, Plus, Power, Lock, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   useCardTaxes,
   useUpdateCardTaxes,
-  useStationLogins,
-  useUpdateStationLogins,
+  useStationPasswords,
+  useUpdateStationPasswords,
   useSalaoNames,
   useUpdateSalaoNames,
-  type StationLogins,
+  type StationPasswords,
 } from "@/hooks/useSettings";
 import { useMechanics, useCreateMechanic, useToggleMechanic } from "@/hooks/useMechanics";
 import { useMyPermissions } from "@/hooks/usePermissions";
@@ -37,12 +37,12 @@ export default function Configuracoes() {
   const createMechanic = useCreateMechanic();
   const toggleMechanic = useToggleMechanic();
 
-  // Station logins settings
+  // Station passwords settings
   const [showStationSettings, setShowStationSettings] = useState(false);
-  const { data: stationLogins } = useStationLogins();
-  const updateStationLogins = useUpdateStationLogins();
-  const [stationEmails, setStationEmails] = useState<StationLogins | null>(null);
-  const effectiveStationEmails: StationLogins = stationEmails ?? stationLogins ?? { admin: "", salao: "", mecanica: "" };
+  const { data: stationPasswords } = useStationPasswords();
+  const updateStationPasswords = useUpdateStationPasswords();
+  const [stationPwds, setStationPwds] = useState<StationPasswords | null>(null);
+  const effectiveStationPwds: StationPasswords = stationPwds ?? stationPasswords ?? { admin: "", salao: "", mecanica: "" };
 
   // Salão names settings
   const [showSalaoNames, setShowSalaoNames] = useState(false);
