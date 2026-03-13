@@ -77,6 +77,7 @@ export function useCreateMechanicJob() {
       bike_name?: string;
       problem: string;
       price: number;
+      status?: string;
     }) => {
       const { data, error } = await supabase
         .from("mechanic_jobs" as any)
