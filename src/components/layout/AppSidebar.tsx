@@ -91,21 +91,20 @@ export function AppSidebar() {
   const { data: totalUnread = 0 } = useTotalUnread();
   const { data: permsData } = useMyPermissions();
 
-  const isOwner = permsData?.isOwner ?? true; // default to true while loading
+  const isOwner = permsData?.isOwner ?? true;
   const permissions = permsData?.permissions ?? [];
 
+  // Close mobile sidebar on route change
+  React.useEffect(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [location.pathname]);
+
   const canAccessModule = (url: string): boolean => {
-    // Owners can see everything
     if (isOwner) return true;
-
     const moduleKey = NAV_MODULE_MAP[url] as AppModule | undefined;
-    if (!moduleKey) return true; // Unknown routes are always visible
-
-    // Permissões page is only for owners
+    if (!moduleKey) return true;
     if (url === "/permissoes") return false;
-
     const perm = permissions.find((p) => p.module === moduleKey);
-    // If no permission record exists, deny by default for members
     return perm?.can_access ?? false;
   };
 
@@ -115,10 +114,8 @@ export function AppSidebar() {
   };
 
   const handleNavClick = (path: string) => {
-    if (isMobile) setOpenMobile(false);
-    requestAnimationFrame(() => {
-      navigate(path);
-    });
+    setOpenMobile(false);
+    navigate(path);
   };
 
   return (
