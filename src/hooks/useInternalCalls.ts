@@ -114,6 +114,7 @@ export function useMarkAsViewed() {
       });
       if (error && !error.message.includes("duplicate")) throw error;
     },
+    retry: 2,
     onSuccess: () => qc.invalidateQueries({ queryKey: CALLS_KEY }),
   });
 }

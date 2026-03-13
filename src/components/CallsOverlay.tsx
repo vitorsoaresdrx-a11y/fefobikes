@@ -1,16 +1,20 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInternalCalls, useMarkAsViewed } from "@/hooks/useInternalCalls";
-import { Bell } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 
 export function CallsOverlay() {
-  const { data: pendingCalls = [] } = useInternalCalls();
-  const { mutate: markAsViewed } = useMarkAsViewed();
+  const { data: pendingCalls = [], refetch } = useInternalCalls();
+  const { mutateAsync: markAsViewed } = useMarkAsViewed();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
+
+  const visibleCalls = pendingCalls.filter((c) => !dismissedIds.has(c.id));
 
   useEffect(() => {
-    if (pendingCalls.length === 0) {
+    if (visibleCalls.length === 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       return;
     }
@@ -38,14 +42,41 @@ export function CallsOverlay() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [pendingCalls.length]);
+  }, [visibleCalls.length]);
 
-  if (pendingCalls.length === 0) return null;
+  const handleMarkAsViewed = async (callId: string) => {
+    if (loadingIds.has(callId)) return;
+
+    // Optimistically dismiss
+    setDismissedIds((prev) => new Set(prev).add(callId));
+    setLoadingIds((prev) => new Set(prev).add(callId));
+
+    try {
+      await markAsViewed(callId);
+      // Force refetch to sync state
+      await refetch();
+    } catch {
+      // Revert optimistic dismiss on failure
+      setDismissedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(callId);
+        return next;
+      });
+    } finally {
+      setLoadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(callId);
+        return next;
+      });
+    }
+  };
+
+  if (visibleCalls.length === 0) return null;
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 gap-4 overflow-y-auto">
       <AnimatePresence>
-        {pendingCalls.map((call, i) => (
+        {visibleCalls.map((call, i) => (
           <motion.div
             key={call.id}
             initial={{ opacity: 0, y: 20 }}
@@ -74,9 +105,13 @@ export function CallsOverlay() {
 
             {/* Mark as viewed */}
             <button
-              onClick={() => markAsViewed(call.id)}
-              className="w-full h-11 rounded-2xl bg-destructive hover:bg-destructive/90 text-destructive-foreground text-sm font-black transition-all active:scale-95"
+              onClick={() => handleMarkAsViewed(call.id)}
+              disabled={loadingIds.has(call.id)}
+              className="w-full h-11 rounded-2xl bg-destructive hover:bg-destructive/90 text-destructive-foreground text-sm font-black transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
             >
+              {loadingIds.has(call.id) ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : null}
               Marcar como visto
             </button>
           </motion.div>
