@@ -959,22 +959,44 @@ export default function Mecanica() {
                   </div>
                 </div>
 
-                <InputGroup label="Problema Encontrado *">
+                <InputGroup label="Problema / Descrição *">
                   <PremiumTextarea
-                    rows={3}
-                    placeholder="Descreva a nova peça ou serviço necessário..."
+                    rows={2}
+                    placeholder="Ex: Troca de corrente e ajuste de câmbio..."
                     value={addForm.problem}
                     onChange={(e) =>
                       setAddForm((f) => ({ ...f, problem: e.target.value }))
                     }
                   />
                 </InputGroup>
-                <InputGroup label="Custo Adicional">
-                  <CurrencyInput
-                    value={addForm.price}
-                    onChange={(val) => setAddForm((f) => ({ ...f, price: val }))}
+
+                {/* Parts selector */}
+                <InputGroup label="Peças Utilizadas">
+                  <AddRepairPartSelector
+                    selectedParts={addForm.parts}
+                    onChange={(parts) => setAddForm((f) => ({ ...f, parts }))}
                   />
                 </InputGroup>
+
+                <InputGroup label="Mão de Obra">
+                  <CurrencyInput
+                    value={addForm.labor_cost}
+                    onChange={(val) => setAddForm((f) => ({ ...f, labor_cost: val }))}
+                  />
+                </InputGroup>
+
+                {/* Total preview */}
+                <div className="p-4 bg-background rounded-2xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total deste reparo</span>
+                    <span className="text-lg font-black text-white">
+                      {formatBRL(
+                        addForm.labor_cost +
+                        addForm.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0)
+                      )}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
