@@ -42,7 +42,7 @@ export function BillPhotoCapture({ onExtracted }: BillPhotoCaptureProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-4-scout-17b-16e-instruct",
+          model: "llama-4-scout-17b-16e-instruct",
           max_tokens: 500,
           messages: [
             {
@@ -56,14 +56,7 @@ export function BillPhotoCapture({ onExtracted }: BillPhotoCaptureProps) {
                 },
                 {
                   type: "text",
-                  text: `Analise este boleto/conta e extraia as informações. Responda APENAS com JSON, sem texto adicional, sem markdown: {
-  "beneficiary": "nome do beneficiário ou empresa",
-  "amount": 0.00,
-  "due_date": "YYYY-MM-DD",
-  "bank_name": "nome do banco se visível",
-  "barcode": "código de barras numérico se visível",
-  "type": "boleto" | "concessionaria" | "cartao"
-} Se algum campo não for encontrado, use null.`,
+                  text: `Analise este boleto/conta e extraia as informações. Responda APENAS com JSON puro, sem texto adicional, sem markdown, sem crases: {"beneficiary": "nome do beneficiário ou empresa", "amount": 0.00, "due_date": "YYYY-MM-DD", "bank_name": "nome do banco se visível", "barcode": "código de barras numérico se visível", "type": "boleto ou concessionaria ou cartao"} Se algum campo não for encontrado, use null.`,
                 },
               ],
             },
@@ -71,7 +64,11 @@ export function BillPhotoCapture({ onExtracted }: BillPhotoCaptureProps) {
         }),
       });
 
-      if (!response.ok) throw new Error(`Erro da API: ${response.statusText}`);
+      if (!response.ok) {
+        const errBody = await response.text();
+        console.error("Groq API error:", response.status, errBody);
+        throw new Error(`Erro da API: ${response.status}`);
+      }
 
       const data = await response.json();
       let text = data.choices?.[0]?.message?.content?.trim();
