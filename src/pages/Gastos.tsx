@@ -350,11 +350,7 @@ export default function Gastos() {
                       variant="destructive"
                       size="icon"
                       className="rounded-xl w-8 h-8 md:w-9 md:h-9"
-                      onClick={() =>
-                        tab === "fixed"
-                          ? deleteFixed.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                          : deleteVariable.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                      }
+                      onClick={() => setDeleteTarget({ id: exp.id, type: tab })}
                     >
                       <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     </Btn>
