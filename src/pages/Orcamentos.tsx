@@ -392,10 +392,17 @@ export default function Orcamentos() {
   };
 
   const handleDelete = (id: string) => {
-    deleteQuote.mutate(id, {
+    setDeleteTargetId(id);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTargetId) return;
+    deleteQuote.mutate(deleteTargetId, {
       onSuccess: () => toast.success("Orçamento excluído"),
       onError: () => toast.error("Erro ao excluir"),
     });
+    setDeleteTargetId(null);
+  };
   };
 
   return (
