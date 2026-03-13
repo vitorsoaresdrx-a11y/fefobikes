@@ -465,7 +465,16 @@ function JobCard({
           )}
         </div>
       </div>
-    </div>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar exclusão"
+        description={`Tem certeza que deseja excluir o serviço "${job.bike_name || "Sem bike"}"? Esta ação não pode ser desfeita.`}
+      />
+    </>
   );
 }
 
