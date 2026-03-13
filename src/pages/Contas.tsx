@@ -1,0 +1,344 @@
+import { useState } from "react";
+import { Receipt, Zap, Droplets, CreditCard, FileText, Copy, CheckCircle, Trash2, MoreVertical, ScanLine } from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { formatBRL } from "@/lib/format";
+import { parseBarcode, type ParsedBill } from "@/lib/barcode-parser";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { useBills, useCreateBill, useUpdateBillStatus, useDeleteBill, useAutoUpdateOverdue, useBillAlerts, type Bill } from "@/hooks/useBills";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const TYPE_CONFIG: Record<string, { icon: typeof Receipt; bg: string; color: string }> = {
+  boleto: { icon: FileText, bg: "bg-primary/10", color: "text-primary" },
+  concessionaria: { icon: Zap, bg: "bg-amber-500/10", color: "text-amber-500" },
+  cartao: { icon: CreditCard, bg: "bg-blue-500/10", color: "text-blue-500" },
+  desconhecido: { icon: Receipt, bg: "bg-muted", color: "text-muted-foreground" },
+};
+
+const FILTERS = [
+  { key: "all", label: "Todas" },
+  { key: "pending", label: "Pendentes" },
+  { key: "overdue", label: "Vencidas" },
+  { key: "paid", label: "Pagas" },
+];
+
+function StatusBadge({ status, dueDate }: { status: string; dueDate: string | null }) {
+  if (status === "paid") {
+    return <span className="text-[9px] font-bold uppercase text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Pago</span>;
+  }
+  if (status === "overdue") {
+    return <span className="text-[9px] font-bold uppercase text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">Vencida</span>;
+  }
+  return <span className="text-[9px] font-bold uppercase text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">Pendente</span>;
+}
+
+export default function Contas() {
+  const { data: bills = [], isLoading } = useBills();
+  const { mutateAsync: createBill, isPending: isCreating } = useCreateBill();
+  const { mutateAsync: updateStatus } = useUpdateBillStatus();
+  const { mutateAsync: deleteBill } = useDeleteBill();
+
+  useAutoUpdateOverdue();
+  useBillAlerts(bills);
+
+  const [filter, setFilter] = useState("all");
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [parsed, setParsed] = useState<ParsedBill | null>(null);
+  const [editBeneficiary, setEditBeneficiary] = useState("");
+  const [editAmount, setEditAmount] = useState<number | null>(null);
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualBarcode, setManualBarcode] = useState("");
+
+  // KPIs
+  const totalPending = bills.filter((b) => b.status === "pending").reduce((s, b) => s + (b.amount || 0), 0);
+  const totalOverdue = bills.filter((b) => b.status === "overdue").reduce((s, b) => s + (b.amount || 0), 0);
+  const totalPaid = bills.filter((b) => b.status === "paid").reduce((s, b) => s + (b.amount || 0), 0);
+
+  const filtered = filter === "all" ? bills : bills.filter((b) => b.status === filter);
+
+  const handleScanned = (code: string) => {
+    const result = parseBarcode(code);
+    setParsed(result);
+    setEditBeneficiary(result.beneficiary || "");
+    setEditAmount(result.amount);
+    setEditDueDate(result.due_date || "");
+    setEditNotes("");
+    setShowScanModal(true);
+  };
+
+  const handleManualSubmit = () => {
+    if (!manualBarcode.trim()) return;
+    handleScanned(manualBarcode.trim());
+    setManualBarcode("");
+    setShowManualInput(false);
+  };
+
+  const handleSave = async () => {
+    if (!parsed) return;
+    try {
+      await createBill({
+        barcode: parsed.barcode,
+        barcode_type: parsed.type,
+        bank_name: parsed.bank_name,
+        beneficiary: editBeneficiary || parsed.beneficiary,
+        amount: editAmount,
+        due_date: editDueDate || null,
+        notes: editNotes || null,
+      });
+      toast.success("Conta salva!");
+      setShowScanModal(false);
+      setParsed(null);
+    } catch {
+      toast.error("Erro ao salvar conta");
+    }
+  };
+
+  const handleMarkAsPaid = async (id: string) => {
+    try {
+      await updateStatus({ id, status: "paid" });
+      toast.success("Conta marcada como paga!");
+    } catch {
+      toast.error("Erro ao atualizar");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteBill(id);
+      toast.success("Conta excluída");
+    } catch {
+      toast.error("Erro ao excluir");
+    }
+  };
+
+  const copyBarcode = (barcode: string) => {
+    navigator.clipboard.writeText(barcode);
+    toast.success("Código copiado!");
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <Receipt size={20} className="text-primary" />
+        </div>
+        <div>
+          <h1 className="text-lg font-black uppercase tracking-tight text-foreground">Contas</h1>
+          <p className="text-xs text-muted-foreground">Gerencie suas contas a pagar</p>
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="p-3 rounded-2xl bg-card border border-border">
+          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">A Pagar</p>
+          <p className="text-lg font-black text-foreground">{formatBRL(totalPending)}</p>
+        </div>
+        <div className="p-3 rounded-2xl bg-card border border-border">
+          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Vencidas</p>
+          <p className="text-lg font-black text-destructive">{formatBRL(totalOverdue)}</p>
+        </div>
+        <div className="p-3 rounded-2xl bg-card border border-border">
+          <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">Pagas</p>
+          <p className="text-lg font-black text-emerald-400">{formatBRL(totalPaid)}</p>
+        </div>
+      </div>
+
+      {/* Scanner */}
+      <BarcodeScanner onScanned={handleScanned} />
+
+      {/* Manual input toggle */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowManualInput(!showManualInput)}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+        >
+          Digitar código manualmente
+        </button>
+      </div>
+
+      {showManualInput && (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={manualBarcode}
+            onChange={(e) => setManualBarcode(e.target.value)}
+            placeholder="Cole ou digite o código de barras..."
+            className="flex-1 h-10 px-3 rounded-xl bg-secondary border border-border text-sm text-foreground"
+          />
+          <button
+            onClick={handleManualSubmit}
+            disabled={!manualBarcode.trim()}
+            className="h-10 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-bold disabled:opacity-40"
+          >
+            OK
+          </button>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`h-8 px-3 rounded-xl text-xs font-bold border transition-all ${
+              filter === f.key
+                ? "bg-primary border-primary text-primary-foreground"
+                : "bg-secondary border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Bills list */}
+      <div className="space-y-2">
+        {isLoading && <p className="text-sm text-muted-foreground text-center py-8">Carregando...</p>}
+        {!isLoading && filtered.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">Nenhuma conta encontrada.</p>
+        )}
+        {filtered.map((bill) => {
+          const cfg = TYPE_CONFIG[bill.barcode_type] || TYPE_CONFIG.desconhecido;
+          const Icon = cfg.icon;
+          return (
+            <div key={bill.id} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.bg}`}>
+                <Icon size={18} className={cfg.color} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate text-foreground">
+                  {bill.beneficiary || bill.bank_name || "Conta"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {bill.due_date ? `Vence ${format(new Date(bill.due_date + "T12:00:00"), "dd/MM/yyyy")}` : "Sem vencimento"}
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-sm font-black text-foreground">{formatBRL(bill.amount)}</p>
+                <StatusBadge status={bill.status} dueDate={bill.due_date} />
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 text-muted-foreground hover:text-foreground transition-colors">
+                    <MoreVertical size={16} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => copyBarcode(bill.barcode)}>
+                    <Copy size={14} className="mr-2" /> Copiar código
+                  </DropdownMenuItem>
+                  {bill.status !== "paid" && (
+                    <DropdownMenuItem onClick={() => handleMarkAsPaid(bill.id)}>
+                      <CheckCircle size={14} className="mr-2" /> Marcar como pago
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => handleDelete(bill.id)} className="text-destructive">
+                    <Trash2 size={14} className="mr-2" /> Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Scan confirmation modal */}
+      <Dialog open={showScanModal} onOpenChange={setShowScanModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base font-black">Confirmar Conta</DialogTitle>
+          </DialogHeader>
+          {parsed && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Tipo</p>
+                  <p className="text-sm font-bold capitalize text-foreground">{parsed.type}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Banco</p>
+                  <p className="text-sm font-bold text-foreground">{parsed.bank_name || "—"}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Valor</p>
+                <CurrencyInput
+                  value={editAmount ?? undefined}
+                  onChange={(val) => setEditAmount(val)}
+                  placeholder="R$ 0,00"
+                />
+              </div>
+
+              <div>
+                <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Vencimento</p>
+                <input
+                  type="date"
+                  value={editDueDate}
+                  onChange={(e) => setEditDueDate(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl bg-secondary border border-border text-sm text-foreground"
+                />
+              </div>
+
+              <div>
+                <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Beneficiário</p>
+                <input
+                  value={editBeneficiary}
+                  onChange={(e) => setEditBeneficiary(e.target.value)}
+                  placeholder="Ex: Copasa, Enel, Claro..."
+                  className="w-full h-10 px-3 rounded-xl bg-secondary border border-border text-sm text-foreground"
+                />
+              </div>
+
+              <div>
+                <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Observações</p>
+                <input
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Anotações opcionais..."
+                  className="w-full h-10 px-3 rounded-xl bg-secondary border border-border text-sm text-foreground"
+                />
+              </div>
+
+              {/* Código copiável */}
+              <div className="bg-secondary border border-border rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+                <p className="text-[10px] text-muted-foreground truncate flex-1 font-mono">{parsed.barcode}</p>
+                <button
+                  onClick={() => copyBarcode(parsed.barcode)}
+                  className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+
+              <button
+                onClick={handleSave}
+                disabled={isCreating}
+                className="w-full h-11 rounded-2xl bg-primary text-primary-foreground text-sm font-black disabled:opacity-40"
+              >
+                Salvar Conta
+              </button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
