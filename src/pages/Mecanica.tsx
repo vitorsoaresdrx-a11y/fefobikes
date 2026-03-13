@@ -27,6 +27,9 @@ import {
   Pencil,
   FileCheck,
   ChevronDown,
+  Bike,
+  HelpCircle,
+  CheckCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -335,27 +338,49 @@ function JobCard({
   const total = getTotalPrice(job);
   const showApprovalActions = columnKey === "in_maintenance";
   const showRetreat = columnKey === "in_analysis";
+  const hasBike = !!job.bike_name;
+
+  const statusLabels: Record<string, { text: string; cls: string }> = {
+    in_approval: { text: "Aguardando", cls: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
+    in_repair: { text: "Na Mecânica", cls: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    in_maintenance: { text: "Em Manutenção", cls: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
+    in_analysis: { text: "Em Análise", cls: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
+    ready: { text: "Pronta", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+  };
+  const statusInfo = statusLabels[job.status] || statusLabels.in_approval;
 
   return (
     <>
-      <div className="group bg-card border border-border rounded-2xl p-3 lg:p-4 space-y-3 hover:border-border/80 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
-        {/* Bike name (prominent) + actions */}
-        <div className="flex items-start justify-between gap-1">
-          <div className="min-w-0">
-            <p className="text-sm font-black tracking-tight text-white uppercase italic leading-tight break-words">
-              {job.bike_name || "Sem bike"}
-            </p>
+      <div className="rounded-2xl bg-card border border-border overflow-hidden mb-3">
+        {/* Header do card */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border/50">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center shrink-0">
+              {hasBike ? (
+                <Bike size={16} className="text-blue-400" />
+              ) : (
+                <HelpCircle size={16} className="text-muted-foreground" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-black text-foreground truncate">
+                {job.bike_name || "Bike não informada"}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-0.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className={`text-[9px] font-black px-2 py-1 rounded-full border uppercase ${statusInfo.cls}`}>
+              {statusInfo.text}
+            </span>
             <button
-              className="p-1.5 text-muted-foreground/50 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+              className="p-1.5 text-muted-foreground/50 hover:text-primary transition-colors"
               onClick={() => onEdit(job)}
               title="Editar"
             >
               <Pencil size={14} />
             </button>
             <button
-              className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+              className="p-1.5 text-muted-foreground/50 hover:text-destructive transition-colors"
               onClick={handleDeleteClick}
               disabled={remove.isPending}
             >
@@ -368,71 +393,67 @@ function JobCard({
           </div>
         </div>
 
-        {/* Customer info (secondary) */}
-        {(job.customer_name || job.customer_whatsapp || job.customer_cpf) && (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-            {job.customer_name && (
-              <span className="flex items-center gap-1">
-                <User size={9} className="text-muted-foreground/70 shrink-0" /> {job.customer_name}
-              </span>
-            )}
-            {job.customer_whatsapp && (
-              <span className="flex items-center gap-1">
-                <Phone size={9} className="shrink-0" /> {job.customer_whatsapp}
-              </span>
-            )}
-            {job.customer_cpf && (
-              <span className="flex items-center gap-1">
-                <CreditCard size={9} className="shrink-0" /> {job.customer_cpf}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Corpo */}
+        <div className="px-4 py-3 space-y-3">
+          {/* Cliente */}
+          {(job.customer_name || job.customer_whatsapp) && (
+            <div className="flex items-center gap-4">
+              {job.customer_name && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <User size={12} className="text-muted-foreground/60" />
+                  {job.customer_name}
+                </div>
+              )}
+              {job.customer_whatsapp && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Phone size={12} className="text-muted-foreground/60" />
+                  {job.customer_whatsapp}
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Problem */}
-        <div className="p-3 bg-background rounded-xl border border-border/50">
-          <p className="text-[11px] font-medium text-muted-foreground leading-relaxed line-clamp-3">{job.problem}</p>
+          {/* Problema */}
+          <div className="bg-muted/50 rounded-xl px-3 py-2">
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-1 font-black">Problema relatado</p>
+            <p className="text-sm text-muted-foreground">{job.problem}</p>
+          </div>
+
+          {/* Reparos extras */}
+          {job.additions && job.additions.length > 0 && (
+            <div>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-2 font-black">Reparos extras</p>
+              <div className="space-y-1.5">
+                {job.additions.map((a) => (
+                  <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Additions */}
-        {job.additions && job.additions.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-[0.2em] ml-1">
-              Reparos Extras
-            </p>
-            {job.additions.map((a) => (
-              <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />
-            ))}
-          </div>
-        )}
-
         {/* Footer */}
-        <div className="flex flex-col items-end pt-1 gap-1.5">
-          <div className="flex flex-col items-end">
-            <span className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-widest">
-              Total
-            </span>
-            <span className="text-sm lg:text-base font-black text-white tracking-tighter">
-              {formatBRL(total)}
-            </span>
+        <div className="flex items-center justify-between px-4 pb-4 pt-2">
+          <div>
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 font-black">Total</p>
+            <p className="text-base font-black text-foreground">{formatBRL(total)}</p>
           </div>
-
-          <div className="flex gap-1">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => onAddRepair(job)}
-              className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
+              className="w-9 h-9 rounded-xl border border-border bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all"
               title="Adicionar reparo"
             >
-              <Plus size={10} />
+              <Plus size={16} />
             </button>
 
             {showRetreat && onRetreat && (
               <button
                 onClick={() => onRetreat(job)}
-                className="h-6 rounded-md px-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 border border-amber-500/20"
+                className="h-9 px-4 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 border border-amber-500/20 uppercase"
                 title="Retroceder para Em Manutenção"
               >
-                <ChevronLeft size={10} /> Voltar
+                <ChevronLeft size={14} /> Voltar
               </button>
             )}
 
@@ -440,13 +461,13 @@ function JobCard({
               <button
                 onClick={handleAdvance}
                 disabled={advanceMutation.isPending}
-                className="h-6 rounded-md px-1.5 bg-primary text-white hover:bg-primary/80 shadow-primary/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50"
+                className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/80 text-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 uppercase"
               >
                 {advanceMutation.isPending ? (
-                  <Loader2 size={10} className="animate-spin" />
+                  <Loader2 size={14} className="animate-spin" />
                 ) : (
                   <>
-                    Avançar <ChevronRight size={10} />
+                    Avançar <ChevronRight size={14} />
                   </>
                 )}
               </button>
@@ -454,13 +475,13 @@ function JobCard({
               <button
                 onClick={handleDeleteClick}
                 disabled={remove.isPending}
-                className="h-6 rounded-md px-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
+                className="h-9 px-4 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20 uppercase"
               >
                 {remove.isPending ? (
-                  <Loader2 size={10} className="animate-spin" />
+                  <Loader2 size={14} className="animate-spin" />
                 ) : (
                   <>
-                    Concluir <Check size={10} />
+                    Concluir <Check size={14} />
                   </>
                 )}
               </button>
@@ -469,13 +490,12 @@ function JobCard({
         </div>
       </div>
 
-      {/* Confirm Delete Dialog */}
       <ConfirmDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
         title="Confirmar exclusão"
-        description={`Tem certeza que deseja excluir o serviço "${job.bike_name || "Sem bike"}"? Esta ação não pode ser desfeita.`}
+        description={`Tem certeza que deseja excluir o serviço "${job.bike_name || "Bike não informada"}"? Esta ação não pode ser desfeita.`}
       />
     </>
   );
@@ -668,7 +688,7 @@ function EditJobModal({
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">
                 Editar Serviço
               </DialogTitle>
             </DialogHeader>
@@ -1156,7 +1176,7 @@ export default function Mecanica() {
                 SERVICE CENTER
               </span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight uppercase text-foreground">
               Mecânica
             </h1>
             <p className="text-muted-foreground font-medium text-sm">Gerencie os serviços de manutenção</p>
@@ -1318,7 +1338,7 @@ export default function Mecanica() {
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">
                 Nova Ordem de Serviço
               </DialogTitle>
             </DialogHeader>
@@ -1450,7 +1470,7 @@ export default function Mecanica() {
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">
                 Adicionar Reparo Extra
               </DialogTitle>
             </DialogHeader>
@@ -1466,7 +1486,7 @@ export default function Mecanica() {
                     <p className="font-bold text-white leading-none mb-1 truncate">
                       {addJob.customer_name || "Cliente"}
                     </p>
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest italic truncate">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest truncate">
                       {addJob.problem}
                     </p>
                     <p className="text-xs font-bold text-muted-foreground mt-1">
@@ -1552,13 +1572,27 @@ export default function Mecanica() {
 
       {/* ── Na Mecânica Modal ────────────────────────────────────────────────── */}
       <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
-        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
-          <div className="p-6 md:p-8 space-y-4 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl font-black text-white italic uppercase tracking-tight">
-                <Wrench size={18} className="text-amber-400" /> Na Mecânica
-              </DialogTitle>
-            </DialogHeader>
+        <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[85vh]">
+          <div className="overflow-y-auto max-h-[85vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+            {/* Custom header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Wrench size={18} className="text-amber-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-foreground uppercase tracking-tight">Na Mecânica</h2>
+                  <p className="text-[10px] text-muted-foreground">{grouped.in_repair.length} OS em andamento</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setMechanicCardOpen(false)}
+                className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
 
             <div className="space-y-3">
               {grouped.in_repair.length > 0 ? (
