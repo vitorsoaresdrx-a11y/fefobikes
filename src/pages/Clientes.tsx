@@ -50,7 +50,7 @@ export default function Clientes() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24 lg:pb-0">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-foreground">Clientes</h1>
         <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCSV}>

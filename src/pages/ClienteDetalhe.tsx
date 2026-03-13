@@ -90,7 +90,7 @@ export default function ClienteDetalhe() {
   ];
 
   return (
-    <div className="min-h-full bg-background text-foreground">
+    <div className="min-h-full bg-background text-foreground pb-24 lg:pb-0">
       <div className="w-full max-w-4xl mx-auto p-4 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">

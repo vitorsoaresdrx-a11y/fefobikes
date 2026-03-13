@@ -141,7 +141,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-full bg-background text-foreground selection:bg-primary/30">
+    <div className="min-h-full bg-background text-foreground selection:bg-primary/30 pb-24 lg:pb-0">
 
       {/* Topbar */}
       <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-border/50 flex items-center justify-between bg-background/50 backdrop-blur-xl">

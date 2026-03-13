@@ -218,7 +218,7 @@ export default function WhatsApp() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden rounded-2xl md:rounded-[40px] border border-border/50 shadow-2xl">
+    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden rounded-2xl md:rounded-[40px] border border-border/50 shadow-2xl pb-24 lg:pb-0">
 
       {/* ── Sidebar: Conversas ─────────────────────────────────────────────── */}
       <aside className={`w-full md:w-96 flex flex-col border-r border-border/50 bg-card/50 md:shrink-0 ${showChatMobile ? "hidden md:flex" : "flex"}`}>

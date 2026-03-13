@@ -128,7 +128,7 @@ export default function CashRegister() {
   }
 
   return (
-    <div className="min-h-full bg-background text-foreground font-sans selection:bg-primary/30 pb-20">
+    <div className="min-h-full bg-background text-foreground font-sans selection:bg-primary/30 pb-24 lg:pb-0">
       <div className="max-w-4xl mx-auto w-full p-5 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}
