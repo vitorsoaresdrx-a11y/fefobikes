@@ -194,6 +194,8 @@ export default function Pecas() {
   const handleEdit = (part: Part) => { setEditingPart(part); setDrawerOpen(true); };
   const handleNew = () => { setEditingPart(null); setDrawerOpen(true); };
 
+  const pagination = usePagination(filtered);
+
   const totalStock = filtered.reduce((s, p) => s + p.stock_qty, 0);
   const totalProfit = filtered.reduce((s, p) => s + getProfit(p) * p.stock_qty, 0);
 
