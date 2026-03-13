@@ -613,7 +613,7 @@ export default function PDV() {
             )}
 
             {/* Grid de itens */}
-            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted">
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 w-full">
               {catalogItems.length === 0 ? (
                 <div className="col-span-full py-20 text-center text-muted-foreground/70 text-sm">Nenhum item encontrado</div>
@@ -641,7 +641,7 @@ export default function PDV() {
                             className="w-full h-32 md:aspect-square rounded-xl md:rounded-2xl object-cover border border-border"
                           />
                         ) : (
-                          <div className="w-full h-32 md:aspect-square bg-background rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-800 border border-border">
+                          <div className="w-full h-32 md:aspect-square bg-background rounded-xl md:rounded-2xl flex items-center justify-center text-muted border border-border">
                             {isBike ? <BikeIcon size={32} className="md:hidden" /> : <Package size={32} className="md:hidden" />}
                             {isBike ? <BikeIcon size={64} className="hidden md:block" /> : <Package size={64} className="hidden md:block" />}
                           </div>
@@ -680,7 +680,7 @@ export default function PDV() {
                           </div>
                         ) : (
                           <button
-                            className="w-full h-8 rounded-xl bg-muted text-xs font-bold text-white hover:bg-zinc-700 transition-colors"
+                            className="w-full h-8 rounded-xl bg-muted text-xs font-bold text-white hover:bg-muted/80 transition-colors"
                             onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
                           >
                             + Adicionar

@@ -34,7 +34,7 @@ export function ConfirmDeleteDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-muted border-border/80 text-foreground/80 hover:bg-zinc-700">
+          <AlertDialogCancel className="bg-muted border-border/80 text-foreground/80 hover:bg-muted/80">
             Cancelar
           </AlertDialogCancel>
           <AlertDialogAction

@@ -149,7 +149,7 @@ function PriceSection({ product }: { product: any }) {
               </p>
             </div>
           </div>
-          <div className="text-zinc-800">
+          <div className="text-muted">
             <ChevronRight size={20} />
           </div>
         </div>
@@ -352,7 +352,7 @@ export default function ProdutoPublico() {
               )}
             </Carousel>
           ) : (
-            <div className="aspect-[4/3] rounded-[40px] bg-card border border-border flex items-center justify-center text-zinc-800 relative overflow-hidden">
+            <div className="aspect-[4/3] rounded-[40px] bg-card border border-border flex items-center justify-center text-muted relative overflow-hidden">
               {product._type === "bike" ? (
                 <Bike size={80} strokeWidth={1} />
               ) : (

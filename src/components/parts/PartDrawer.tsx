@@ -378,7 +378,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               <button
                 type="button"
                 onClick={addAttribute}
-                className="h-7 px-3 text-[10px] font-bold rounded-lg bg-muted border border-border/80 text-foreground/80 flex items-center gap-1 hover:bg-zinc-700 transition-colors"
+                className="h-7 px-3 text-[10px] font-bold rounded-lg bg-muted border border-border/80 text-foreground/80 flex items-center gap-1 hover:bg-muted/80 transition-colors"
               >
                 <Plus size={12} /> Adicionar
               </button>

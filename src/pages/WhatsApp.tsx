@@ -104,7 +104,7 @@ const statusBadgeConfig: Record<string, string> = {
 const statusDotConfig: Record<string, string> = {
   open: "bg-emerald-500",
   waiting: "bg-amber-500",
-  resolved: "bg-zinc-500",
+  resolved: "bg-muted-foreground",
 };
 
 const statusLabel: Record<string, string> = {
@@ -393,7 +393,7 @@ export default function WhatsApp() {
                     )}
                   </div>
                   <span
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${statusDotConfig[conv.status] || "bg-zinc-500"}`}
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${statusDotConfig[conv.status] || "bg-muted-foreground"}`}
                   />
                   {conv.unread_count > 0 && (
                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-background">
@@ -441,7 +441,7 @@ export default function WhatsApp() {
       <main className={`flex-1 flex flex-col bg-background min-w-0 ${showChatMobile ? "flex" : "hidden md:flex"}`}>
         {!selectedConv ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center space-y-6">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-background rounded-2xl md:rounded-[40px] flex items-center justify-center text-zinc-800 border border-border/50 shadow-inner">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-background rounded-2xl md:rounded-[40px] flex items-center justify-center text-muted border border-border/50 shadow-inner">
               <MessageCircle size={40} strokeWidth={1} />
             </div>
             <div className="space-y-2">

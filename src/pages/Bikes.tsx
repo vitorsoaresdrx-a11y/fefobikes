@@ -310,7 +310,7 @@ export default function Bikes() {
                       {firstImage ? (
                         <img src={firstImage} alt={bike.name} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
-                        <Package className="w-16 h-16 text-zinc-800" />
+                        <Package className="w-16 h-16 text-muted" />
                       )}
                     </div>
 
