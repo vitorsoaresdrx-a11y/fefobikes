@@ -63,6 +63,7 @@ export default function Contas() {
   const [editNotes, setEditNotes] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualBarcode, setManualBarcode] = useState("");
+  const [inputMode, setInputMode] = useState<"scan" | "photo">("scan");
 
   // KPIs
   const totalPending = bills.filter((b) => b.status === "pending").reduce((s, b) => s + (b.amount || 0), 0);
