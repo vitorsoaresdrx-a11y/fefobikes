@@ -524,6 +524,7 @@ export default function Pecas() {
               </tbody>
             </table>
           </div>
+          <PaginationBar {...pagination} onPrev={pagination.prev} onNext={pagination.next} totalItems={pagination.totalItems} />
 
           {filtered.length > 0 && (
             <div className="p-8 bg-black/20 flex items-center justify-between border-t border-zinc-800/30">
