@@ -354,7 +354,7 @@ export default function Bikes() {
                         className="text-zinc-600 hover:text-red-400 transition-colors shrink-0 ml-2"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteBike.mutate(bike.id);
+                          setDeleteTarget(bike.id);
                         }}
                       >
                         <Trash2 size={16} />
