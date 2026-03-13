@@ -372,12 +372,15 @@ export default function Historico() {
           </div>
         )}
 
-        {/* Footer summary */}
+        {/* Pagination */}
         {!isLoading && filtered.length > 0 && (
-          <div className="flex justify-between items-center px-1 py-3 text-[10px] text-zinc-600 uppercase tracking-widest">
-            <span>{filtered.length} clientes</span>
-            <span>{totalSalesCount} vendas</span>
-          </div>
+          <>
+            <PaginationBar {...pagination} onPrev={pagination.prev} onNext={pagination.next} />
+            <div className="flex justify-between items-center px-1 text-[10px] text-zinc-600 uppercase tracking-widest">
+              <span>{filtered.length} clientes</span>
+              <span>{totalSalesCount} vendas</span>
+            </div>
+          </>
         )}
 
         {/* Receipt modal */}
