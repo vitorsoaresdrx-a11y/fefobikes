@@ -125,16 +125,28 @@ export default function Bikes() {
   const navigate = useNavigate();
   const [qrBike, setQrBike] = useState<BikeModel | null>(null);
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const handleToggle = (id: string, current: boolean) => {
     updateBike.mutate({ id, visible_on_storefront: !current });
   };
 
+  const categories = useMemo(() => {
+    const cats = bikes.map((b) => b.category || "").filter(Boolean);
+    return [...new Set(cats)].sort();
+  }, [bikes]);
+
   const debouncedSearch = useDebounce(search, 300);
-  const filtered = bikes.filter(
-    (b) =>
-      b.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      (b.category || "").toLowerCase().includes(debouncedSearch.toLowerCase())
+  const filtered = useMemo(() => 
+    bikes.filter((b) => {
+      const matchesSearch =
+        b.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        (b.category || "").toLowerCase().includes(debouncedSearch.toLowerCase());
+      const matchesCategory =
+        categoryFilter === "all" || (b.category || "") === categoryFilter;
+      return matchesSearch && matchesCategory;
+    }),
+    [bikes, debouncedSearch, categoryFilter]
   );
 
   const totalParts = Object.values(partsCounts as Record<string, number>).reduce(
