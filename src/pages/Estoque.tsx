@@ -274,8 +274,11 @@ export default function Estoque() {
         <header className="md:hidden flex items-center justify-between gap-2 mb-0">
           <h1 className="text-lg font-black">Estoque Geral</h1>
           <div className="flex gap-2 shrink-0">
-            <button className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 whitespace-nowrap flex items-center gap-1.5">
-              <History size={14} /> Histórico
+            <button
+              onClick={() => exportInventoryCSV(parts, bikes as any[])}
+              className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 whitespace-nowrap flex items-center gap-1.5"
+            >
+              <Download size={14} /> Exportar
             </button>
             <button className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white whitespace-nowrap flex items-center gap-1.5">
               <Plus size={14} /> Entrada Manual
