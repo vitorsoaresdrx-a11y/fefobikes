@@ -55,6 +55,11 @@ function GuardedRoute({ module, children }: { module: string; children: React.Re
   );
 }
 
+function OfflineSync() {
+  useSyncOfflineQueue();
+  return null;
+}
+
 function AuthGate() {
   const { session, loading } = useAuth();
 
