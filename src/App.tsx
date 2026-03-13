@@ -48,6 +48,7 @@ const ProdutoPublico = lazyRetry(() => import("@/pages/ProdutoPublico"));
 const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 const Jogar = lazyRetry(() => import("@/pages/Jogar"));
 const Chamadas = lazyRetry(() => import("@/pages/Chamadas"));
+const Contas = lazyRetry(() => import("@/pages/Contas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
