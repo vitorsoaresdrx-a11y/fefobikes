@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { Outlet, useLocation } from "react-router-dom";
+import { CallsOverlay } from "@/components/CallsOverlay";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
