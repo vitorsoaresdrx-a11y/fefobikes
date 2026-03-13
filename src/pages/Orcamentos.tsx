@@ -438,7 +438,7 @@ export default function Orcamentos() {
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-card border border-border p-3 rounded-2xl">
             <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Total</p>
             <p className="text-xl font-black text-white">{quotes.length}</p>
