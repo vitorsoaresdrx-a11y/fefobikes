@@ -1218,6 +1218,7 @@ export type Database = {
           last_message: string | null
           last_message_at: string | null
           status: string
+          tenant_id: string | null
           unread_count: number | null
         }
         Insert: {
@@ -1231,6 +1232,7 @@ export type Database = {
           last_message?: string | null
           last_message_at?: string | null
           status?: string
+          tenant_id?: string | null
           unread_count?: number | null
         }
         Update: {
@@ -1244,9 +1246,18 @@ export type Database = {
           last_message?: string | null
           last_message_at?: string | null
           status?: string
+          tenant_id?: string | null
           unread_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       whatsapp_messages: {
         Row: {
@@ -1258,6 +1269,7 @@ export type Database = {
           media_url: string | null
           message_id: string | null
           status: string | null
+          tenant_id: string | null
           type: string
         }
         Insert: {
@@ -1269,6 +1281,7 @@ export type Database = {
           media_url?: string | null
           message_id?: string | null
           status?: string | null
+          tenant_id?: string | null
           type?: string
         }
         Update: {
@@ -1280,6 +1293,7 @@ export type Database = {
           media_url?: string | null
           message_id?: string | null
           status?: string | null
+          tenant_id?: string | null
           type?: string
         }
         Relationships: [
@@ -1288,6 +1302,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

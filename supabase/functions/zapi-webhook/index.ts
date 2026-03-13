@@ -81,6 +81,15 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Resolve tenant_id for WhatsApp data isolation
+    const { data: tenantRow } = await supabase
+      .from("tenants")
+      .select("id")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .single();
+    const tenantId = tenantRow?.id ?? null;
+
     let convId: string | null = null;
 
     if (isFromMe) {
@@ -129,6 +138,7 @@ Deno.serve(async (req) => {
         content: content || `[${type}]`,
         media_url: mediaUrl,
         status: "sent",
+        tenant_id: tenantId,
       });
 
       return new Response(JSON.stringify({ ok: true }), {
@@ -177,6 +187,7 @@ Deno.serve(async (req) => {
         last_message_at: new Date().toISOString(),
         unread_count: 1,
         status: "open",
+        tenant_id: tenantId,
       };
       if (lid) insertData.contact_lid = lid;
 
@@ -198,6 +209,7 @@ Deno.serve(async (req) => {
       content:         content || `[${type}]`,
       media_url:       mediaUrl,
       status:          "delivered",
+      tenant_id:       tenantId,
     });
 
     // Trigger AI responder for incoming text messages
