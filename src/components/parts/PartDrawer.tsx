@@ -298,19 +298,18 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  PIX / Dinheiro
+                  Preço de venda
                 </label>
                 <CurrencyInput
-                  value={form.watch("pix_price") || 0}
-                  onChange={(val) => form.setValue("pix_price", val)}
+                  value={salePrice || 0}
+                  onChange={(val) => form.setValue("sale_price", val)}
                   className="h-11 text-sm rounded-xl"
                 />
-                <p className="text-[10px] text-muted-foreground/70">Desconto à vista</p>
               </div>
             </div>
 
             {/* Profit preview */}
-            {(unitCost > 0 || pixPrice > 0) && (
+            {(unitCost > 0 || salePrice > 0) && (
               <div className="p-3 rounded-xl border border-border bg-background/50 flex justify-between items-center">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Lucro por unidade
@@ -320,35 +319,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 </span>
               </div>
             )}
-
-            {/* Installment */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                Parcelamento no cartão
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] text-muted-foreground/70">Valor da parcela</label>
-                  <CurrencyInput
-                    value={form.watch("installment_price") || 0}
-                    onChange={(val) => form.setValue("installment_price", val)}
-                    className="h-11 text-sm rounded-xl"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] text-muted-foreground/70">Nº de parcelas</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={24}
-                    value={form.watch("installment_count") || 1}
-                    onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
-                    className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
-                    placeholder="12"
-                  />
-                </div>
-              </div>
-            </div>
           </section>
 
           {/* ── Section 3: Descrição ──────────────────────────────────── */}
