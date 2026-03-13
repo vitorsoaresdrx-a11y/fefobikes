@@ -575,7 +575,7 @@ export default function Mecanica() {
 
   const handleAddRepair = (job: MechanicJob) => {
     setAddJob(job);
-    setAddForm({ problem: "", price: 0 });
+    setAddForm({ problem: "", labor_cost: 0, parts: [] });
     setAddOpen(true);
   };
 
