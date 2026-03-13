@@ -170,7 +170,6 @@ export default function Mecanicos() {
           value={frameNumbers[order.id] || ""}
           onChange={(val) => setFrameNumbers((prev) => ({ ...prev, [order.id]: val }))}
         />
-        </div>
         <button
           onClick={() => handleFinish(order)}
           disabled={finishOrder.isPending || createHistory.isPending}
