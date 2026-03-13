@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Receipt, Zap, Droplets, CreditCard, FileText, Copy, CheckCircle, Trash2, MoreVertical, ScanLine } from "lucide-react";
+import { Receipt, Zap, Droplets, CreditCard, FileText, Copy, CheckCircle, Trash2, MoreVertical, ScanLine, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { formatBRL } from "@/lib/format";
 import { parseBarcode, type ParsedBill } from "@/lib/barcode-parser";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { BillPhotoCapture } from "@/components/BillPhotoCapture";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { useBills, useCreateBill, useUpdateBillStatus, useDeleteBill, useAutoUpdateOverdue, useBillAlerts, type Bill } from "@/hooks/useBills";
 import {
