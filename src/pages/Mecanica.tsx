@@ -507,7 +507,7 @@ export default function Mecanica() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
-  const [addForm, setAddForm] = useState({ problem: "", price: 0 });
+  const [addForm, setAddForm] = useState({ problem: "", labor_cost: 0, parts: [] as AdditionPart[] });
   const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_repair");
 
   // Edit state
