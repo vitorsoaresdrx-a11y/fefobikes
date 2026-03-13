@@ -104,6 +104,7 @@ function AuthGate() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
+    </>
   );
 }
 
