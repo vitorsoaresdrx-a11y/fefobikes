@@ -77,8 +77,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   });
 
   const unitCost = form.watch("unit_cost");
-  const pixPrice = form.watch("pix_price");
-  const profit = pixPrice - unitCost;
+  const salePrice = form.watch("sale_price");
+  const profit = salePrice - unitCost;
   const descriptionValue = form.watch("description") || "";
 
   useEffect(() => {
