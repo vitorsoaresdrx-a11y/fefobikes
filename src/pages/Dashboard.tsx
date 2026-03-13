@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { LowStockAlerts } from "@/components/LowStockAlerts";
 import {
   ShoppingCart,
   Wrench,
