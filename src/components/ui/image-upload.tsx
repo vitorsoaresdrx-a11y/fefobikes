@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { ImagePlus, X, Loader2, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { compressImage } from "@/lib/compress-image";
 
 interface ImageUploadProps {
   images: string[];
@@ -10,43 +11,11 @@ interface ImageUploadProps {
   maxImages?: number;
 }
 
-const MAX_WIDTH = 800;
-const MAX_HEIGHT = 800;
-const QUALITY = 0.7;
-
-async function compressImage(file: File): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      let { width, height } = img;
-      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Falha ao comprimir imagem"));
-        },
-        "image/webp",
-        QUALITY
-      );
-    };
-    img.onerror = () => reject(new Error("Falha ao carregar imagem"));
-    img.src = URL.createObjectURL(file);
-  });
-}
-
 export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUploadProps) {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
