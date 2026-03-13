@@ -1176,7 +1176,7 @@ export default function Mecanica() {
                 SERVICE CENTER
               </span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight uppercase text-foreground">
               Mecânica
             </h1>
             <p className="text-muted-foreground font-medium text-sm">Gerencie os serviços de manutenção</p>
