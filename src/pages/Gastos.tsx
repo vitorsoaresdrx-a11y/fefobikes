@@ -277,11 +277,11 @@ export default function Gastos() {
         {/* Lista */}
         <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
           <div className="p-4 md:p-8 border-b border-zinc-800/50 flex items-center justify-between">
-            <h3 className="font-bold text-base md:text-lg">Histórico de Lançamentos</h3>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tempo Real</span>
-            </div>
+            <h3 className="text-sm md:text-lg font-black whitespace-nowrap">Histórico de Lançamentos</h3>
+            <span className="flex items-center gap-1 md:gap-2 text-[9px] md:text-[10px] text-zinc-500 shrink-0 ml-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2952FF] animate-pulse" />
+              Tempo Real
+            </span>
           </div>
 
           <div className="divide-y divide-zinc-800/30">
