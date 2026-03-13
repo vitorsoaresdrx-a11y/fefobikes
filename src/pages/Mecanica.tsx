@@ -367,23 +367,23 @@ function JobCard({
           </span>
         </div>
 
-        <div className="flex gap-1.5 shrink-0">
+        <div className="flex gap-1 shrink-0">
           <button
             onClick={() => onAddRepair(job)}
-            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
+            className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
             title="Adicionar reparo"
           >
-            <Plus size={12} />
+            <Plus size={10} />
           </button>
 
           {/* Retreat button (only in_analysis) */}
           {showRetreat && onRetreat && (
             <button
               onClick={() => onRetreat(job)}
-              className="h-7 rounded-lg px-2.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 border border-amber-500/20"
+              className="h-6 rounded-md px-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 border border-amber-500/20"
               title="Retroceder para Na Mecânica"
             >
-              <ChevronLeft size={12} /> Voltar
+              <ChevronLeft size={10} /> Voltar
             </button>
           )}
 
@@ -391,13 +391,13 @@ function JobCard({
             <button
               onClick={handleAdvance}
               disabled={advance.isPending}
-              className="h-7 rounded-lg px-2.5 bg-primary text-white hover:bg-primary/80 shadow-primary/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              className="h-6 rounded-md px-1.5 bg-primary text-white hover:bg-primary/80 shadow-primary/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50"
             >
               {advance.isPending ? (
-                <Loader2 size={12} className="animate-spin" />
+                <Loader2 size={10} className="animate-spin" />
               ) : (
                 <>
-                  Avançar <ChevronRight size={12} />
+                  Avançar <ChevronRight size={10} />
                 </>
               )}
             </button>
@@ -405,7 +405,7 @@ function JobCard({
             <button
               onClick={handleDelete}
               disabled={remove.isPending}
-              className="h-7 rounded-lg px-2.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
+              className="h-6 rounded-md px-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
             >
               {remove.isPending ? (
                 <Loader2 size={10} className="animate-spin" />
