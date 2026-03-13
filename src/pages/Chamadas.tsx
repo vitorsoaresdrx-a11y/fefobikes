@@ -18,9 +18,38 @@ export default function Chamadas() {
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState("all");
   const [targetUserId, setTargetUserId] = useState("");
+  const { session } = useAuth();
   const { mutateAsync: sendCall, isPending } = useSendCall();
   const { data: history = [] } = useAllCalls();
-  const { data: members = [] } = useTenantMembers();
+  const { data: members = [] } = useQuery({
+    queryKey: ["tenant-members-with-names"],
+    queryFn: async () => {
+      const { data: tmMembers } = await supabase
+        .from("tenant_members")
+        .select("*")
+        .order("created_at");
+      if (!tmMembers?.length) return [];
+
+      const userIds = tmMembers.map((m) => m.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+
+      const profileMap = new Map(
+        (profiles || []).map((p) => [p.id, p.full_name])
+      );
+
+      return tmMembers.map((m) => ({
+        ...m,
+        displayName:
+          profileMap.get(m.user_id) ||
+          m.email?.split("@")[0] ||
+          "Usuário",
+      }));
+    },
+    enabled: !!session?.user?.id,
+  });
 
   const handleSend = async () => {
     if (!message.trim()) return;
