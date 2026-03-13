@@ -104,32 +104,32 @@
   input,
   textarea,
   select {
-    background-color: #161618;
-    color: #f4f4f5;
-    border-color: #3f3f46;
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
   }
 
   input::placeholder,
   textarea::placeholder {
-    color: #52525b;
+    color: hsl(var(--muted-foreground) / 0.7);
   }
 
   input:focus,
   textarea:focus,
   select:focus {
     outline: none;
-    border-color: #2952FF;
-    box-shadow: 0 0 0 2px rgba(41, 82, 255, 0.2);
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
   }
 
   input:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 100px #161618 inset;
-    -webkit-text-fill-color: #f4f4f5;
+    -webkit-box-shadow: 0 0 0 100px hsl(var(--card)) inset;
+    -webkit-text-fill-color: hsl(var(--foreground));
   }
 
   select option {
-    background-color: #161618;
-    color: #f4f4f5;
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
   }
 }
 
