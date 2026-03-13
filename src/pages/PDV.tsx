@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import {
+import { useState, useMemo, useCallback } from "react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { addToQueue, getQueueCount } from "@/lib/offline-queue";
   Search,
   ShoppingCart,
   Plus,
