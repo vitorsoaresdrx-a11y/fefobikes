@@ -421,6 +421,16 @@ export default function PDV() {
               <span className="text-[10px] md:text-sm font-black uppercase tracking-widest text-[#2952FF]">
                 Checkout Express
               </span>
+              {!online && (
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-full">
+                  <WifiOff size={10} /> Offline
+                </span>
+              )}
+              {online && pendingCount > 0 && (
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-full">
+                  <Loader2 size={10} className="animate-spin" /> {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
+                </span>
+              )}
             </div>
             <h1 className="text-lg md:text-2xl lg:text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
           </div>
