@@ -154,10 +154,9 @@ export function AppSidebar() {
                               : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
                           }
                         >
-                          <NavLink
-                            to={item.url}
-                            end={item.url === "/"}
-                            onClick={() => isMobile && setOpenMobile(false)}
+                          <button
+                            onClick={() => handleNavClick(item.url)}
+                            className="flex items-center gap-2 w-full"
                           >
                             <item.icon className="h-4 w-4 shrink-0" />
                             {!collapsed && (
@@ -176,7 +175,7 @@ export function AppSidebar() {
                                 )}
                               </span>
                             )}
-                          </NavLink>
+                          </button>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
