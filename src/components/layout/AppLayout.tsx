@@ -91,6 +91,7 @@ export function AppLayout() {
 
         {/* Bottom nav for mobile */}
         <BottomNav />
+        <GlobalSearch />
       </div>
     </SidebarProvider>
   );
