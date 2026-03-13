@@ -211,50 +211,70 @@ function AdditionBadge({
     pending: <Clock size={12} />,
   };
 
+  const addTotal = getAdditionTotal(addition);
+
   return (
     <div
-      className={`flex items-center justify-between p-3 rounded-xl border ${styles[addition.approval]} transition-all ${addition.approval === "pending" ? "animate-pulse" : ""}`}
+      className={`p-3 rounded-xl border ${styles[addition.approval]} transition-all ${addition.approval === "pending" ? "animate-pulse" : ""}`}
     >
-      <div className="flex items-center gap-2 overflow-hidden min-w-0">
-        {icons[addition.approval]}
-        <span
-          className={`text-[10px] font-bold truncate ${addition.approval === "refused" ? "line-through" : ""}`}
-        >
-          {addition.problem}
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 overflow-hidden min-w-0">
+          {icons[addition.approval]}
+          <span
+            className={`text-[10px] font-bold truncate ${addition.approval === "refused" ? "line-through" : ""}`}
+          >
+            {addition.problem}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0 ml-2">
+          <span className="text-[10px] font-black">{formatBRL(addTotal)}</span>
+          {showActions && addition.approval === "pending" && (
+            <div className="flex gap-1">
+              <button
+                className="w-5 h-5 rounded-md bg-red-500/20 flex items-center justify-center hover:bg-red-500 transition-colors"
+                onClick={() =>
+                  updateApproval.mutate(
+                    { id: addition.id, approval: "refused" },
+                    { onError: () => toast.error("Erro") }
+                  )
+                }
+                disabled={updateApproval.isPending}
+              >
+                <X size={10} className="text-white" />
+              </button>
+              <button
+                className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center hover:bg-emerald-500 transition-colors"
+                onClick={() =>
+                  updateApproval.mutate(
+                    { id: addition.id, approval: "accepted" },
+                    { onError: () => toast.error("Erro") }
+                  )
+                }
+                disabled={updateApproval.isPending}
+              >
+                <Check size={10} className="text-white" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0 ml-2">
-        <span className="text-[10px] font-black">{formatBRL(Number(addition.price))}</span>
-        {showActions && addition.approval === "pending" && (
-          <div className="flex gap-1">
-            <button
-              className="w-5 h-5 rounded-md bg-red-500/20 flex items-center justify-center hover:bg-red-500 transition-colors"
-              onClick={() =>
-                updateApproval.mutate(
-                  { id: addition.id, approval: "refused" },
-                  { onError: () => toast.error("Erro") }
-                )
-              }
-              disabled={updateApproval.isPending}
-            >
-              <X size={10} className="text-white" />
-            </button>
-            <button
-              className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center hover:bg-emerald-500 transition-colors"
-              onClick={() =>
-                updateApproval.mutate(
-                  { id: addition.id, approval: "accepted" },
-                  { onError: () => toast.error("Erro") }
-                )
-              }
-              disabled={updateApproval.isPending}
-            >
-              <Check size={10} className="text-white" />
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Parts & labor breakdown */}
+      {((addition.parts_used || []).length > 0 || Number(addition.labor_cost) > 0) && (
+        <div className="mt-1.5 pl-5 space-y-0.5">
+          {(addition.parts_used || []).map((p, i) => (
+            <p key={i} className="text-[9px] text-muted-foreground">
+              {p.quantity}x {p.part_name} — {formatBRL(p.quantity * p.unit_price)}
+            </p>
+          ))}
+          {Number(addition.labor_cost) > 0 && (
+            <p className="text-[9px] text-muted-foreground">
+              Mão de obra — {formatBRL(Number(addition.labor_cost))}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
