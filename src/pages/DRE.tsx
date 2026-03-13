@@ -120,7 +120,7 @@ function StatCard({
         </div>
         <div>
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-tight mb-0.5 md:mb-1">{title}</p>
-          <h2 className={`text-lg md:text-2xl font-black tracking-tighter ${color}`}>{formatBRL(value)}</h2>
+          <h2 className={`text-lg md:text-2xl font-black tracking-tighter ${color}`}>{formatValue(value)}</h2>
         </div>
       </div>
     </div>
