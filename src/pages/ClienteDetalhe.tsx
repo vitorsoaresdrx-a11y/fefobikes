@@ -44,8 +44,8 @@ export default function ClienteDetalhe() {
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
-        <p className="text-zinc-500">Cliente não encontrado</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Cliente não encontrado</p>
       </div>
     );
   }
@@ -90,13 +90,13 @@ export default function ClienteDetalhe() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="w-full max-w-4xl mx-auto p-4 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/clientes")}
-            className="w-10 h-10 rounded-2xl bg-[#161618] border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+            className="w-10 h-10 rounded-2xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
           >
             <ArrowLeft size={18} />
           </button>
@@ -104,14 +104,14 @@ export default function ClienteDetalhe() {
             <h1 className="text-2xl font-black italic uppercase tracking-tight text-white truncate">
               {customer.name}
             </h1>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted-foreground">
               Cliente desde {formatDate(customer.created_at)}
             </p>
           </div>
           {!editing ? (
             <button
               onClick={startEdit}
-              className="h-10 px-4 rounded-2xl bg-[#161618] border border-zinc-800 text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors"
+              className="h-10 px-4 rounded-2xl bg-card border border-border text-muted-foreground hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-colors"
             >
               <Edit2 size={14} /> Editar
             </button>
@@ -119,14 +119,14 @@ export default function ClienteDetalhe() {
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(false)}
-                className="h-10 px-3 rounded-2xl border border-zinc-800 text-zinc-400 hover:text-white text-xs font-bold transition-colors"
+                className="h-10 px-3 rounded-2xl border border-border text-muted-foreground hover:text-white text-xs font-bold transition-colors"
               >
                 <X size={14} />
               </button>
               <button
                 onClick={saveEdit}
                 disabled={updateCustomer.isPending}
-                className="h-10 px-4 rounded-2xl bg-[#2952FF] text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#3D63FF] transition-colors disabled:opacity-50"
+                className="h-10 px-4 rounded-2xl bg-primary text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-primary/80 transition-colors disabled:opacity-50"
               >
                 <Save size={14} /> Salvar
               </button>
@@ -135,81 +135,81 @@ export default function ClienteDetalhe() {
         </div>
 
         {/* Customer Info Card */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4">
+        <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           {editing ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-1">Nome</label>
+                <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest block mb-1">Nome</label>
                 <input
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full h-10 px-3 bg-[#0A0A0B] border border-zinc-800 rounded-xl text-sm text-white"
+                  className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm text-white"
                 />
               </div>
               <div>
-                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-1">WhatsApp</label>
+                <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest block mb-1">WhatsApp</label>
                 <input
                   value={editForm.whatsapp}
                   onChange={(e) => setEditForm({ ...editForm, whatsapp: e.target.value })}
-                  className="w-full h-10 px-3 bg-[#0A0A0B] border border-zinc-800 rounded-xl text-sm text-white"
+                  className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm text-white"
                 />
               </div>
               <div>
-                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-1">CPF</label>
+                <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest block mb-1">CPF</label>
                 <input
                   value={editForm.cpf}
                   onChange={(e) => setEditForm({ ...editForm, cpf: e.target.value })}
-                  className="w-full h-10 px-3 bg-[#0A0A0B] border border-zinc-800 rounded-xl text-sm text-white"
+                  className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm text-white"
                 />
               </div>
               <div>
-                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-1">Notas</label>
+                <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest block mb-1">Notas</label>
                 <input
                   value={editForm.notes}
                   onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                  className="w-full h-10 px-3 bg-[#0A0A0B] border border-zinc-800 rounded-xl text-sm text-white"
+                  className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm text-white"
                 />
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="flex items-center gap-2">
-                <User size={14} className="text-zinc-500" />
+                <User size={14} className="text-muted-foreground" />
                 <div>
-                  <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Nome</p>
+                  <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Nome</p>
                   <p className="text-sm font-bold text-white">{customer.name}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Phone size={14} className="text-zinc-500" />
+                <Phone size={14} className="text-muted-foreground" />
                 <div>
-                  <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">WhatsApp</p>
+                  <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">WhatsApp</p>
                   {customer.whatsapp ? (
                     <a
                       href={`https://wa.me/${customer.whatsapp.replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-bold text-[#2952FF] hover:underline"
+                      className="text-sm font-bold text-primary hover:underline"
                     >
                       {customer.whatsapp}
                     </a>
                   ) : (
-                    <p className="text-sm text-zinc-500">—</p>
+                    <p className="text-sm text-muted-foreground">—</p>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <CreditCard size={14} className="text-zinc-500" />
+                <CreditCard size={14} className="text-muted-foreground" />
                 <div>
-                  <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">CPF</p>
+                  <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">CPF</p>
                   <p className="text-sm font-bold text-white">{customer.cpf || "—"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <StickyNote size={14} className="text-zinc-500" />
+                <StickyNote size={14} className="text-muted-foreground" />
                 <div>
-                  <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Notas</p>
-                  <p className="text-sm text-zinc-400">{customer.notes || "—"}</p>
+                  <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Notas</p>
+                  <p className="text-sm text-muted-foreground">{customer.notes || "—"}</p>
                 </div>
               </div>
             </div>
@@ -218,20 +218,20 @@ export default function ClienteDetalhe() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-[#161618] border border-emerald-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Total Gasto</p>
+          <div className="bg-card border border-emerald-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Total Gasto</p>
             <p className="text-xl font-black text-emerald-400">{formatBRL(totalSpent)}</p>
           </div>
-          <div className="bg-[#161618] border border-[#2952FF]/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Compras</p>
-            <p className="text-xl font-black text-[#2952FF]">{(sales as any[]).length}</p>
+          <div className="bg-card border border-primary/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Compras</p>
+            <p className="text-xl font-black text-primary">{(sales as any[]).length}</p>
           </div>
-          <div className="bg-[#161618] border border-amber-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Serviços</p>
+          <div className="bg-card border border-amber-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Serviços</p>
             <p className="text-xl font-black text-amber-400">{(mechanicJobs as any[]).length}</p>
           </div>
-          <div className="bg-[#161618] border border-purple-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Orçamentos</p>
+          <div className="bg-card border border-purple-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Orçamentos</p>
             <p className="text-xl font-black text-purple-400">{(quotes as any[]).length}</p>
           </div>
         </div>
@@ -244,8 +244,8 @@ export default function ClienteDetalhe() {
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${
                 activeTab === tab.key
-                  ? "bg-[#2952FF] text-white"
-                  : "bg-[#161618] border border-zinc-800 text-zinc-500 hover:text-white"
+                  ? "bg-primary text-white"
+                  : "bg-card border border-border text-muted-foreground hover:text-white"
               }`}
             >
               <tab.icon size={14} />
@@ -262,22 +262,22 @@ export default function ClienteDetalhe() {
               <EmptyState text="Nenhuma compra registrada" />
             ) : (
               (sales as any[]).map((sale: any) => (
-                <div key={sale.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-4 space-y-2">
+                <div key={sale.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-black text-white uppercase">{formatDateTime(sale.created_at)}</p>
-                      <p className="text-[10px] text-zinc-500">
+                      <p className="text-[10px] text-muted-foreground">
                         {sale.payment_method || "Sem método"} • {sale.sale_items?.length || 0} ite{sale.sale_items?.length === 1 ? "m" : "ns"}
                       </p>
                     </div>
                     <p className="text-lg font-black text-emerald-400">{formatBRL(sale.total)}</p>
                   </div>
                   {sale.sale_items && sale.sale_items.length > 0 && (
-                    <div className="border-t border-zinc-800 pt-2 space-y-1">
+                    <div className="border-t border-border pt-2 space-y-1">
                       {sale.sale_items.map((item: any) => (
                         <div key={item.id} className="flex justify-between text-xs">
-                          <span className="text-zinc-400">{item.quantity}x {item.description}</span>
-                          <span className="text-zinc-500">{formatBRL(item.unit_price * item.quantity)}</span>
+                          <span className="text-muted-foreground">{item.quantity}x {item.description}</span>
+                          <span className="text-muted-foreground">{formatBRL(item.unit_price * item.quantity)}</span>
                         </div>
                       ))}
                     </div>
@@ -292,18 +292,18 @@ export default function ClienteDetalhe() {
               <EmptyState text="Nenhum serviço registrado" />
             ) : (
               (mechanicJobs as any[]).map((job: any) => (
-                <div key={job.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-4">
+                <div key={job.id} className="bg-card border border-border rounded-2xl p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-black text-white italic uppercase">{job.bike_name || "Sem bike"}</p>
-                      <p className="text-[10px] text-zinc-500">{formatDateTime(job.created_at)}</p>
+                      <p className="text-[10px] text-muted-foreground">{formatDateTime(job.created_at)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-black text-amber-400">{formatBRL(job.price)}</p>
                       <StatusBadge status={job.status} />
                     </div>
                   </div>
-                  <p className="text-xs text-zinc-400 mt-2">{job.problem}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{job.problem}</p>
                 </div>
               ))
             )
@@ -314,11 +314,11 @@ export default function ClienteDetalhe() {
               <EmptyState text="Nenhum orçamento registrado" />
             ) : (
               (quotes as any[]).map((quote: any) => (
-                <div key={quote.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-4">
+                <div key={quote.id} className="bg-card border border-border rounded-2xl p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-black text-white uppercase">{formatDateTime(quote.created_at)}</p>
-                      <p className="text-[10px] text-zinc-500">
+                      <p className="text-[10px] text-muted-foreground">
                         {quote.quote_items?.length || 0} peça{(quote.quote_items?.length || 0) !== 1 ? "s" : ""}
                         {quote.labor_cost > 0 ? ` + Mão de obra ${formatBRL(quote.labor_cost)}` : ""}
                       </p>
@@ -341,7 +341,7 @@ export default function ClienteDetalhe() {
 function EmptyState({ text }: { text: string }) {
   return (
     <div className="py-16 text-center">
-      <p className="text-sm text-zinc-600">{text}</p>
+      <p className="text-sm text-muted-foreground/70">{text}</p>
     </div>
   );
 }
@@ -365,7 +365,7 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${colors[status] || "bg-zinc-800 text-zinc-500 border-zinc-700"}`}>
+    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${colors[status] || "bg-muted text-muted-foreground border-border/80"}`}>
       {labels[status] || status}
     </span>
   );

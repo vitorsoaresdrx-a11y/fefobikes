@@ -22,11 +22,11 @@ export function EmptyState({ type = "generic", title, description }: EmptyStateP
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 border border-zinc-800 flex items-center justify-center mb-4">
-        <Icon size={28} className="text-zinc-600" />
+      <div className="w-16 h-16 rounded-2xl bg-muted/50 border border-border flex items-center justify-center mb-4">
+        <Icon size={28} className="text-muted-foreground/70" />
       </div>
-      <h3 className="text-sm font-bold text-zinc-400 mb-1">{title || c.title}</h3>
-      <p className="text-xs text-zinc-600 text-center max-w-[250px]">{description || c.description}</p>
+      <h3 className="text-sm font-bold text-muted-foreground mb-1">{title || c.title}</h3>
+      <p className="text-xs text-muted-foreground/70 text-center max-w-[250px]">{description || c.description}</p>
     </div>
   );
 }

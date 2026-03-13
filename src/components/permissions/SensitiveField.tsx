@@ -18,7 +18,7 @@ export function SensitiveField({ module, children, placeholder = "••••�
 
   if (hideSensitive) {
     return (
-      <span className="inline-flex items-center gap-1 text-zinc-500" title="Informação restrita">
+      <span className="inline-flex items-center gap-1 text-muted-foreground" title="Informação restrita">
         <EyeOff size={12} />
         <span className="select-none">{placeholder}</span>
       </span>

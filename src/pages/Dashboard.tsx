@@ -49,25 +49,25 @@ const secondaryActions = [
 type ColorTheme = "primary" | "amber" | "indigo";
 
 const themes: Record<ColorTheme, string> = {
-  primary: "border-[#2952FF]/20 hover:border-[#2952FF]/50",
+  primary: "border-primary/20 hover:border-primary/50",
   amber:   "border-amber-500/20 hover:border-amber-500/50",
   indigo:  "border-indigo-500/20 hover:border-indigo-500/50",
 };
 
 const iconColors: Record<ColorTheme, string> = {
-  primary: "text-[#2952FF] bg-[#2952FF]/10",
+  primary: "text-primary bg-primary/10",
   amber:   "text-amber-500 bg-amber-500/10",
   indigo:  "text-indigo-400 bg-indigo-400/10",
 };
 
 const hoverBg: Record<ColorTheme, string> = {
-  primary: "hover:bg-[#2952FF]/5",
+  primary: "hover:bg-primary/5",
   amber:   "hover:bg-amber-500/5",
   indigo:  "hover:bg-indigo-500/5",
 };
 
 const actionTextColor: Record<ColorTheme, string> = {
-  primary: "text-[#2952FF]",
+  primary: "text-primary",
   amber:   "text-amber-500",
   indigo:  "text-indigo-400",
 };
@@ -87,9 +87,9 @@ const QuickActionCard = ({
 }) => (
   <button
     onClick={onClick}
-    className={`group relative flex flex-col items-start gap-4 md:gap-6 p-5 md:p-8 rounded-2xl md:rounded-[40px] bg-[#161618] border transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:-translate-y-2 text-left overflow-hidden ${themes[color]} ${hoverBg[color]}`}
+    className={`group relative flex flex-col items-start gap-4 md:gap-6 p-5 md:p-8 rounded-2xl md:rounded-[40px] bg-card border transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:-translate-y-2 text-left overflow-hidden ${themes[color]} ${hoverBg[color]}`}
   >
-    <div className="absolute -right-6 -bottom-6 opacity-[0.03] text-zinc-600 transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12 hidden md:block">
+    <div className="absolute -right-6 -bottom-6 opacity-[0.03] text-muted-foreground/70 transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-12 hidden md:block">
       <Icon size={180} />
     </div>
 
@@ -100,7 +100,7 @@ const QuickActionCard = ({
 
     <div className="space-y-1 md:space-y-2 relative z-10">
       <h3 className="text-lg md:text-2xl font-black text-white tracking-tighter uppercase italic">{label}</h3>
-      <p className="text-xs md:text-sm text-zinc-500 font-medium leading-relaxed max-w-[200px]">{description}</p>
+      <p className="text-xs md:text-sm text-muted-foreground font-medium leading-relaxed max-w-[200px]">{description}</p>
     </div>
 
     <div className={`mt-2 md:mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 ${actionTextColor[color]}`}>
@@ -120,12 +120,12 @@ const SecondaryAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-3 md:gap-4 p-4 md:p-5 bg-[#161618] border border-zinc-800 rounded-xl md:rounded-2xl hover:border-[#2952FF]/50 hover:bg-[#2952FF]/5 transition-all text-left group"
+    className="flex items-center gap-3 md:gap-4 p-4 md:p-5 bg-card border border-border rounded-xl md:rounded-2xl hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
   >
-    <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 group-hover:text-[#2952FF] transition-colors shrink-0">
+    <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors shrink-0">
       {icon}
     </div>
-    <span className="text-xs font-bold text-zinc-400 group-hover:text-white uppercase tracking-wider transition-colors">
+    <span className="text-xs font-bold text-muted-foreground group-hover:text-white uppercase tracking-wider transition-colors">
       {label}
     </span>
   </button>
@@ -141,17 +141,17 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
 
       {/* Topbar */}
-      <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#0A0A0B]/50 backdrop-blur-xl">
+      <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-border/50 flex items-center justify-between bg-background/50 backdrop-blur-xl">
         <div className="flex items-center gap-3 md:gap-4">
-          <div className="w-9 h-9 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
+          <div className="w-9 h-9 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-primary/30">
             <Activity size={18} className="text-white md:hidden" />
             <Activity size={20} className="text-white hidden md:block" />
           </div>
           <div>
-            <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1">
+            <p className="text-[9px] md:text-[10px] font-black text-muted-foreground/70 uppercase tracking-widest leading-none mb-1">
               Terminal de Balcão
             </p>
             <h2 className="text-xs md:text-sm font-bold text-white uppercase italic">Fefo Bikes Hub</h2>
@@ -160,7 +160,7 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-4 md:gap-8">
           <div className="text-right hidden sm:block">
-            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-1">
+            <p className="text-[10px] font-black text-muted-foreground/70 uppercase tracking-widest leading-none mb-1">
               Status do Sistema
             </p>
             <div className="flex items-center gap-2 justify-end">
@@ -168,9 +168,9 @@ export default function Dashboard() {
               <span className="text-xs font-bold text-emerald-500 uppercase italic">Online</span>
             </div>
           </div>
-          <div className="h-10 w-px bg-zinc-800 hidden sm:block" />
+          <div className="h-10 w-px bg-muted hidden sm:block" />
           <div className="flex items-center gap-2 md:gap-4">
-            <Clock size={18} className="text-zinc-500" />
+            <Clock size={18} className="text-muted-foreground" />
             <span className="text-lg md:text-2xl font-black text-white tracking-tighter tabular-nums">
               {time.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
             </span>
@@ -183,9 +183,9 @@ export default function Dashboard() {
         {/* Welcome */}
         <div className="space-y-2">
           <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-none italic uppercase">
-            O que vamos <span className="text-[#2952FF]">resolver</span> hoje?
+            O que vamos <span className="text-primary">resolver</span> hoje?
           </h1>
-          <p className="text-zinc-500 text-sm md:text-lg font-medium">
+          <p className="text-muted-foreground text-sm md:text-lg font-medium">
             Selecione uma ação rápida para iniciar o atendimento.
           </p>
         </div>
@@ -208,10 +208,10 @@ export default function Dashboard() {
         <LowStockAlerts />
 
         {/* Secondary Actions */}
-        <div className="pt-6 lg:pt-8 border-t border-zinc-800/50">
+        <div className="pt-6 lg:pt-8 border-t border-border/50">
           <div className="flex items-center gap-2 mb-6 md:mb-8">
-            <Plus size={16} className="text-[#2952FF]" />
-            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+            <Plus size={16} className="text-primary" />
+            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
               Outros Procedimentos
             </h4>
           </div>

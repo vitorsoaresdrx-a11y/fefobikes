@@ -15,21 +15,21 @@ export function PaginationBar({ page, totalPages, totalItems, onPrev, onNext, ha
 
   return (
     <div className="flex items-center justify-between px-1 py-3">
-      <span className="text-[10px] text-zinc-600 uppercase tracking-widest">
+      <span className="text-[10px] text-muted-foreground/70 uppercase tracking-widest">
         {totalItems} itens · Página {page}/{totalPages}
       </span>
       <div className="flex items-center gap-1">
         <button
           onClick={onPrev}
           disabled={!hasPrev}
-          className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:border-border/70 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeft size={16} />
         </button>
         <button
           onClick={onNext}
           disabled={!hasNext}
-          className="w-8 h-8 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-white hover:border-zinc-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:border-border/70 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronRight size={16} />
         </button>

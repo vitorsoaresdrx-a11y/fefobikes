@@ -51,10 +51,10 @@ const Btn = ({
   children, variant = "primary", className = "", ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" | "outline" | "destructive" }) => {
   const v: Record<string, string> = {
-    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.3)]",
-    secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
-    ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
-    outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-primary/30",
+    secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
+    ghost: "hover:bg-muted/50 text-muted-foreground hover:text-white",
+    outline: "border border-border bg-transparent text-foreground/80 hover:bg-muted",
     destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
   };
   return (
@@ -66,7 +66,7 @@ const Btn = ({
 
 const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`w-full bg-[#161618] border border-zinc-800 rounded-2xl px-4 h-14 text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600 text-lg font-bold ${className}`}
+    className={`w-full bg-card border border-border rounded-2xl px-4 h-14 text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70 text-lg font-bold ${className}`}
     {...props}
   />
 );
@@ -121,43 +121,43 @@ export default function CashRegister() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-20">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 pb-20">
       <div className="max-w-4xl mx-auto w-full p-5 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
               <Banknote className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-black tracking-widest text-[#2952FF]">CONTROLE DE CAIXA</span>
+            <span className="text-sm font-black tracking-widest text-primary">CONTROLE DE CAIXA</span>
           </div>
           <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Caixa</h1>
         </header>
 
         {/* ── Status Section ──────────────────────────────────────────── */}
         {!isOpen ? (
-          <div className="p-6 md:p-8 flex flex-col items-center text-center gap-4 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
-            <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700 mt-2 mb-1">
+          <div className="p-6 md:p-8 flex flex-col items-center text-center gap-4 bg-card border border-dashed border-border rounded-2xl md:rounded-[40px]">
+            <div className="w-20 h-20 bg-background rounded-[30px] flex items-center justify-center text-muted-foreground/50 mt-2 mb-1">
               <Lock size={40} />
             </div>
             <div className="space-y-2">
-              <h4 className="text-xl font-bold text-zinc-300">Caixa Fechado</h4>
-              <p className="text-sm text-zinc-500 max-w-xs mx-auto">Abra o caixa para começar a registrar vendas em dinheiro.</p>
+              <h4 className="text-xl font-bold text-foreground/80">Caixa Fechado</h4>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto">Abra o caixa para começar a registrar vendas em dinheiro.</p>
             </div>
             <Btn variant="primary" className="w-full md:w-auto h-11 text-sm font-black uppercase tracking-widest" onClick={() => setShowOpenModal(true)}>
               <Unlock className="w-4 h-4 mr-2" /> Abrir Caixa
             </Btn>
           </div>
         ) : (
-          <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-6 md:p-8 space-y-4 md:space-y-6">
+          <div className="bg-card border border-border rounded-2xl md:rounded-[32px] p-6 md:p-8 space-y-4 md:space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="relative flex h-3 w-3">
@@ -166,25 +166,25 @@ export default function CashRegister() {
                 </span>
                 <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Caixa Aberto</span>
               </div>
-              <div className="flex items-center gap-2 text-zinc-500 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
                 <Clock size={14} />
                 <span>Aberto às {formatTime(currentRegister!.opened_at)}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-                <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Valor Inicial</p>
+              <div className="bg-background/50 border border-border rounded-2xl p-6">
+                <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-bold mb-1">Valor Inicial</p>
                 <p className="text-2xl font-black text-white">{formatBRL(currentRegister!.opening_amount)}</p>
               </div>
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-                <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Vendas em Dinheiro</p>
+              <div className="bg-background/50 border border-border rounded-2xl p-6">
+                <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-bold mb-1">Vendas em Dinheiro</p>
                 <p className="text-2xl font-black text-white">{cashTotals?.count || 0} vendas</p>
-                <p className="text-sm text-zinc-500 font-bold">{formatBRL(cashTotals?.total || 0)}</p>
+                <p className="text-sm text-muted-foreground font-bold">{formatBRL(cashTotals?.total || 0)}</p>
               </div>
-              <div className="bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl p-6">
-                <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold mb-1">Esperado em Caixa</p>
-                <p className="text-2xl font-black text-[#2952FF]">{formatBRL(expectedAmount)}</p>
+              <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6">
+                <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-bold mb-1">Esperado em Caixa</p>
+                <p className="text-2xl font-black text-primary">{formatBRL(expectedAmount)}</p>
               </div>
             </div>
 
@@ -217,15 +217,15 @@ export default function CashRegister() {
       {/* ── Open Modal ────────────────────────────────────────────────── */}
       {showOpenModal && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 shadow-2xl p-10 space-y-8">
+          <div className="bg-secondary w-full max-w-md rounded-[40px] border border-border shadow-2xl p-10 space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-white">Abrir Caixa</h2>
-              <button onClick={() => setShowOpenModal(false)} className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+              <button onClick={() => setShowOpenModal(false)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
                 <X size={20} />
               </button>
             </div>
             <div className="space-y-3">
-              <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Valor inicial em caixa (R$)</p>
+              <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-bold">Valor inicial em caixa (R$)</p>
               <CurrencyInput
                 autoFocus
                 value={openingAmount}
@@ -242,33 +242,33 @@ export default function CashRegister() {
       {/* ── Close Modal ───────────────────────────────────────────────── */}
       {showCloseModal && currentRegister && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
-          <div className="bg-[#1C1C1E] w-full max-w-lg rounded-[40px] border border-zinc-800 shadow-2xl p-10 space-y-8">
+          <div className="bg-secondary w-full max-w-lg rounded-[40px] border border-border shadow-2xl p-10 space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-white">Fechar Caixa</h2>
-              <button onClick={() => setShowCloseModal(false)} className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+              <button onClick={() => setShowCloseModal(false)} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
                 <X size={20} />
               </button>
             </div>
 
             {/* Summary */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 space-y-3">
+            <div className="bg-background/50 border border-border rounded-3xl p-6 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-500">Valor inicial</span>
-                <span className="text-zinc-300 font-bold">{formatBRL(currentRegister.opening_amount)}</span>
+                <span className="text-muted-foreground">Valor inicial</span>
+                <span className="text-foreground/80 font-bold">{formatBRL(currentRegister.opening_amount)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-500">Vendas em dinheiro ({cashTotals?.count || 0})</span>
-                <span className="text-zinc-300 font-bold">{formatBRL(cashTotals?.total || 0)}</span>
+                <span className="text-muted-foreground">Vendas em dinheiro ({cashTotals?.count || 0})</span>
+                <span className="text-foreground/80 font-bold">{formatBRL(cashTotals?.total || 0)}</span>
               </div>
-              <div className="h-px bg-zinc-800" />
+              <div className="h-px bg-muted" />
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400 font-bold">Valor esperado</span>
-                <span className="text-[#2952FF] font-black text-lg">{formatBRL(expectedAmount)}</span>
+                <span className="text-muted-foreground font-bold">Valor esperado</span>
+                <span className="text-primary font-black text-lg">{formatBRL(expectedAmount)}</span>
               </div>
             </div>
 
             <div className="space-y-3">
-              <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Valor presente no caixa (R$)</p>
+              <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-bold">Valor presente no caixa (R$)</p>
               <CurrencyInput
                 autoFocus
                 value={closingAmount}
@@ -315,8 +315,8 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
   const diff = Number(register.difference) || 0;
 
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-[24px] overflow-hidden">
-      <button type="button" onClick={onToggle} className="w-full text-left hover:bg-zinc-800/20 transition-colors">
+    <div className="bg-card border border-border rounded-[24px] overflow-hidden">
+      <button type="button" onClick={onToggle} className="w-full text-left hover:bg-muted/20 transition-colors">
         {/* Mobile Layout: Stacked */}
         <div className="p-4 space-y-3 md:hidden">
           {/* Linha 1: data + valor inicial discreto */}
@@ -324,13 +324,13 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
             <span className="text-sm font-bold text-white">
               {formatDateOnly(register.opened_at)}
             </span>
-            <span className="text-[11px] text-zinc-600">
+            <span className="text-[11px] text-muted-foreground/70">
               Inicial: {formatBRL(Number(register.opening_amount))}
             </span>
           </div>
           {/* Linha 2: horário de fechamento + badge */}
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-muted-foreground">
               {register.closed_at ? `Fechado às ${formatTime(register.closed_at)}` : ""}
             </span>
             {diff === 0 ? (
@@ -350,11 +350,11 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
           {/* Linha 3: Esperado e Informado com mais espaço */}
           <div className="flex justify-between px-1 pt-1">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] text-zinc-500">Esperado</p>
+              <p className="text-[10px] text-muted-foreground">Esperado</p>
               <p className="text-base font-bold">{formatBRL(Number(register.expected_amount) || 0)}</p>
             </div>
             <div className="min-w-0 flex-1 text-right">
-              <p className="text-[10px] text-zinc-500">Informado</p>
+              <p className="text-[10px] text-muted-foreground">Informado</p>
               <p className="text-base font-bold">{formatBRL(Number(register.closing_amount) || 0)}</p>
             </div>
           </div>
@@ -366,10 +366,10 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
             <p className="text-sm font-bold text-white">
               {formatDateTime(register.opened_at)}
             </p>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted-foreground">
               {register.closed_at ? `Fechado às ${formatTime(register.closed_at)}` : ""}
             </p>
-            <div className="flex items-center gap-3 text-xs text-zinc-500 pt-1">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
               <span>Inicial: {formatBRL(Number(register.opening_amount))}</span>
               <span>Esperado: {formatBRL(Number(register.expected_amount) || 0)}</span>
               <span>Informado: {formatBRL(Number(register.closing_amount) || 0)}</span>
@@ -389,16 +389,16 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
                 <TrendingUp size={12} /> Sobra {formatBRL(diff)}
               </span>
             )}
-            {expanded ? <ChevronUp className="h-4 w-4 text-zinc-600" /> : <ChevronDown className="h-4 w-4 text-zinc-600" />}
+            {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground/70" /> : <ChevronDown className="h-4 w-4 text-muted-foreground/70" />}
           </div>
         </div>
       </button>
 
       {expanded && (
-        <div className="border-t border-zinc-800 p-6 space-y-3">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Vendas em Dinheiro da Sessão</p>
+        <div className="border-t border-border p-6 space-y-3">
+          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-bold">Vendas em Dinheiro da Sessão</p>
           {!salesData || salesData.length === 0 ? (
-            <p className="text-sm text-zinc-600 py-4 text-center">Nenhuma venda em dinheiro nesta sessão</p>
+            <p className="text-sm text-muted-foreground/70 py-4 text-center">Nenhuma venda em dinheiro nesta sessão</p>
           ) : (
             <div className="space-y-2">
               {salesData.map((entry: any) => {
@@ -407,12 +407,12 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
                 const customer = sale.customers;
                 const items = sale.sale_items || [];
                 return (
-                  <div key={entry.id} className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
+                  <div key={entry.id} className="bg-background/50 border border-border rounded-2xl p-4 flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <p className="text-sm font-bold text-zinc-200">
+                      <p className="text-sm font-bold text-foreground/90">
                         {customer?.name || "Sem cliente"} — {formatTime(sale.created_at)}
                       </p>
-                      <p className="text-xs text-zinc-600">
+                      <p className="text-xs text-muted-foreground/70">
                         {items.map((i: any) => `${i.quantity}x ${i.description}`).join(", ")}
                       </p>
                     </div>
@@ -420,8 +420,8 @@ function HistoryCard({ register, expanded, onToggle }: { register: any; expanded
                   </div>
                 );
               })}
-              <div className="flex justify-between pt-2 border-t border-zinc-800">
-                <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Total</span>
+              <div className="flex justify-between pt-2 border-t border-border">
+                <span className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Total</span>
                 <span className="text-lg font-black text-white">
                   {formatBRL(salesData.reduce((s: number, e: any) => s + Number(e.amount), 0))}
                 </span>

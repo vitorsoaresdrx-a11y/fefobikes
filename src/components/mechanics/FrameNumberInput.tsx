@@ -37,9 +37,9 @@ export function FrameNumberInput({ value, onChange }: FrameNumberInputProps) {
 
   return (
     <div className="relative" ref={wrapperRef}>
-      <Hash size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+      <Hash size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70" />
       <input
-        className="w-full h-10 bg-[#0A0A0B] border border-zinc-800 rounded-xl pl-9 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+        className="w-full h-10 bg-background border border-border rounded-xl pl-9 pr-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
         placeholder="Número do quadro"
         value={value}
         onChange={(e) => {
@@ -49,18 +49,18 @@ export function FrameNumberInput({ value, onChange }: FrameNumberInputProps) {
         onFocus={() => value.length >= 2 && setOpen(true)}
       />
       {open && suggestions.length > 0 && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#1C1C1E] border border-zinc-700 rounded-xl overflow-hidden shadow-2xl">
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-secondary border border-border/80 rounded-xl overflow-hidden shadow-2xl">
           {suggestions.map((s) => (
             <button
               key={s.frame_number}
               type="button"
               onClick={() => handleSelect(s.frame_number)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-zinc-800 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-muted transition-colors"
             >
-              <Bike size={14} className="text-zinc-500 shrink-0" />
+              <Bike size={14} className="text-muted-foreground shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-white truncate">{s.frame_number}</p>
-                <p className="text-[10px] text-zinc-500 truncate">
+                <p className="text-[10px] text-muted-foreground truncate">
                   {s.bike_name} · {s.records.length} serviço{s.records.length > 1 ? "s" : ""}
                 </p>
               </div>

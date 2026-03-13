@@ -46,7 +46,7 @@ interface QuoteLineItem {
 
 const InputGroup = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-2">
-    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">
+    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
       {label}
     </label>
     {children}
@@ -55,14 +55,14 @@ const InputGroup = ({ label, children }: { label: string; children: React.ReactN
 
 const PremiumInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#2952FF] focus:shadow-[0_0_0_1px_rgba(41,82,255,0.1)] transition-all placeholder:text-zinc-600"
+    className="w-full h-14 bg-card border border-border rounded-2xl px-5 text-sm font-semibold text-foreground outline-none focus:border-primary focus:shadow-[0_0_0_1px_rgba(41,82,255,0.1)] transition-all placeholder:text-muted-foreground/70"
     {...props}
   />
 );
 
 const PremiumTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   <textarea
-    className="w-full bg-[#161618] border border-zinc-800 rounded-[20px] p-5 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all resize-none placeholder:text-zinc-600 leading-relaxed"
+    className="w-full bg-card border border-border rounded-[20px] p-5 text-sm text-foreground outline-none focus:border-primary transition-all resize-none placeholder:text-muted-foreground/70 leading-relaxed"
     {...props}
   />
 );
@@ -95,14 +95,14 @@ function PartSearch({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full h-14 bg-[#161618] border border-dashed border-zinc-700 rounded-2xl px-5 text-sm font-semibold text-zinc-500 hover:border-[#2952FF] hover:text-[#2952FF] transition-all flex items-center gap-3"
+        className="w-full h-14 bg-card border border-dashed border-border/80 rounded-2xl px-5 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-primary transition-all flex items-center gap-3"
       >
         <Plus size={16} />
         Adicionar Peça
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-[90vw] max-h-[80vh] flex flex-col">
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-[90vw] max-h-[80vh] flex flex-col">
           <div className="p-4 lg:p-6 space-y-4 flex flex-col min-h-0 flex-1">
             <DialogHeader>
               <DialogTitle className="text-lg font-black text-white italic uppercase tracking-tight">
@@ -111,9 +111,9 @@ function PartSearch({
             </DialogHeader>
 
             <div className="relative">
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70" />
               <input
-                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-2xl pl-11 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+                className="w-full h-12 bg-card border border-border rounded-2xl pl-11 pr-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
                 placeholder="Buscar por nome, SKU ou categoria..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -123,7 +123,7 @@ function PartSearch({
 
             <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
               {filtered.length === 0 ? (
-                <p className="text-zinc-500 text-sm text-center py-8">Nenhuma peça encontrada</p>
+                <p className="text-muted-foreground text-sm text-center py-8">Nenhuma peça encontrada</p>
               ) : (
                 filtered.map((part) => (
                   <button
@@ -133,21 +133,21 @@ function PartSearch({
                       setOpen(false);
                       setSearch("");
                     }}
-                    className="w-full bg-[#161618] border border-zinc-800 rounded-2xl p-4 text-left hover:border-[#2952FF] hover:bg-[#2952FF]/5 transition-all flex items-center gap-4"
+                    className="w-full bg-card border border-border rounded-2xl p-4 text-left hover:border-primary hover:bg-primary/5 transition-all flex items-center gap-4"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0">
-                      <Package size={16} className="text-zinc-500" />
+                    <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center shrink-0">
+                      <Package size={16} className="text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-white truncate">{part.name}</p>
-                      <div className="flex gap-3 text-[10px] text-zinc-500 font-bold uppercase">
+                      <div className="flex gap-3 text-[10px] text-muted-foreground font-bold uppercase">
                         {part.sku && <span>{part.sku}</span>}
                         <span>Estoque: {part.stock_qty}</span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs font-black text-white">{formatBRL(Number(part.sale_price || part.pix_price || 0))}</p>
-                      <p className="text-[10px] text-zinc-500">Custo: {formatBRL(Number(part.unit_cost || 0))}</p>
+                      <p className="text-[10px] text-muted-foreground">Custo: {formatBRL(Number(part.unit_cost || 0))}</p>
                     </div>
                   </button>
                 ))
@@ -168,7 +168,7 @@ function QuoteCard({ quote, onDelete }: { quote: Quote; onDelete: (id: string) =
 
   const statusColors: Record<string, string> = {
     pending: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    sent: "bg-[#2952FF]/10 text-[#2952FF] border-[#2952FF]/20",
+    sent: "bg-primary/10 text-primary border-primary/20",
     approved: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   };
 
@@ -184,18 +184,18 @@ function QuoteCard({ quote, onDelete }: { quote: Quote; onDelete: (id: string) =
   );
 
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-2xl lg:rounded-[32px] p-4 lg:p-6 space-y-4 hover:border-zinc-700 transition-all overflow-hidden">
+    <div className="bg-card border border-border rounded-2xl lg:rounded-[32px] p-4 lg:p-6 space-y-4 hover:border-border/80 transition-all overflow-hidden">
       <div className="flex items-start justify-between">
         <div className="space-y-1 min-w-0">
           {quote.customer_name && (
             <div className="flex items-center gap-2">
-              <User size={14} className="text-[#2952FF] shrink-0" />
+              <User size={14} className="text-primary shrink-0" />
               <span className="text-sm font-black tracking-tight text-white uppercase italic truncate">
                 {quote.customer_name}
               </span>
             </div>
           )}
-          <div className="flex flex-wrap gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+          <div className="flex flex-wrap gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             {quote.customer_whatsapp && (
               <span className="flex items-center gap-1">
                 <Phone size={10} /> {quote.customer_whatsapp}
@@ -213,7 +213,7 @@ function QuoteCard({ quote, onDelete }: { quote: Quote; onDelete: (id: string) =
             {statusLabels[quote.status] || quote.status}
           </span>
           <button
-            className="p-2 text-zinc-700 hover:text-red-500 transition-colors"
+            className="p-2 text-muted-foreground/50 hover:text-red-500 transition-colors"
             onClick={() => onDelete(quote.id)}
           >
             <Trash2 size={14} />
@@ -222,29 +222,29 @@ function QuoteCard({ quote, onDelete }: { quote: Quote; onDelete: (id: string) =
       </div>
 
       {quote.notes && (
-        <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
-          <p className="text-xs text-zinc-400">{quote.notes}</p>
+        <div className="p-3 bg-background rounded-xl border border-border/50">
+          <p className="text-xs text-muted-foreground">{quote.notes}</p>
         </div>
       )}
 
       {/* Items summary */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition-all"
+        className="w-full flex items-center justify-between p-3 bg-background rounded-xl border border-border/50 hover:border-border/80 transition-all"
       >
-        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
           {(quote.items || []).length} {(quote.items || []).length === 1 ? "item" : "itens"}
         </span>
-        <ChevronRight size={14} className={`text-zinc-600 transition-transform ${expanded ? "rotate-90" : ""}`} />
+        <ChevronRight size={14} className={`text-muted-foreground/70 transition-transform ${expanded ? "rotate-90" : ""}`} />
       </button>
 
       {expanded && (quote.items || []).length > 0 && (
         <div className="space-y-2">
           {quote.items!.map((item) => (
-            <div key={item.id} className="flex items-center justify-between p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
+            <div key={item.id} className="flex items-center justify-between p-3 bg-background rounded-xl border border-border/50">
               <div className="min-w-0">
-                <p className="text-xs font-bold text-zinc-300 truncate">{item.part_name}</p>
-                <p className="text-[10px] text-zinc-600">
+                <p className="text-xs font-bold text-foreground/80 truncate">{item.part_name}</p>
+                <p className="text-[10px] text-muted-foreground/70">
                   {item.quantity}x • Custo: {formatBRL(item.unit_cost)} • Venda: {formatBRL(item.unit_price)}
                 </p>
               </div>
@@ -257,15 +257,15 @@ function QuoteCard({ quote, onDelete }: { quote: Quote; onDelete: (id: string) =
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
+      <div className="flex items-center justify-between pt-2 border-t border-border/50">
         <div className="space-y-1">
-          <div className="flex gap-4 text-[10px] text-zinc-500 font-bold">
+          <div className="flex gap-4 text-[10px] text-muted-foreground font-bold">
             <span>Peças: {formatBRL(partsTotal)}</span>
             <span>Mão de obra: {formatBRL(Number(quote.labor_cost))}</span>
           </div>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Total</span>
+          <span className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-widest">Total</span>
           <span className="text-lg font-black text-white tracking-tighter">{formatBRL(Number(quote.total))}</span>
         </div>
       </div>
@@ -405,22 +405,22 @@ export default function Orcamentos() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="w-full max-w-7xl mx-auto p-4 lg:p-8 space-y-6 lg:space-y-8">
         {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-black tracking-widest text-[#2952FF]">ORÇAMENTOS</span>
+            <span className="text-sm font-black tracking-widest text-primary">ORÇAMENTOS</span>
           </div>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl lg:text-4xl font-black tracking-tight italic uppercase text-white">
                 Orçamentos
               </h1>
-              <p className="text-zinc-500 font-medium text-sm">
+              <p className="text-muted-foreground font-medium text-sm">
                 Crie e gerencie orçamentos com peças do estoque
               </p>
             </div>
@@ -429,7 +429,7 @@ export default function Orcamentos() {
                 resetForm();
                 setOpen(true);
               }}
-              className="h-12 px-6 bg-[#2952FF] hover:bg-[#3D63FF] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(41,82,255,0.3)] transition-all active:scale-95"
+              className="h-12 px-6 bg-primary hover:bg-primary/80 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-primary/30 transition-all active:scale-95"
             >
               <Plus size={16} className="mr-2" />
               Novo Orçamento
@@ -439,16 +439,16 @@ export default function Orcamentos() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-[#161618] border border-zinc-800 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Total</p>
+          <div className="bg-card border border-border p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Total</p>
             <p className="text-2xl font-black text-white">{quotes.length}</p>
           </div>
-          <div className="bg-[#161618] border border-amber-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Pendentes</p>
+          <div className="bg-card border border-amber-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Pendentes</p>
             <p className="text-2xl font-black text-amber-400">{quotes.filter((q) => q.status === "pending").length}</p>
           </div>
-          <div className="bg-[#161618] border border-emerald-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Valor Total</p>
+          <div className="bg-card border border-emerald-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Valor Total</p>
             <p className="text-2xl font-black text-emerald-400">
               {formatBRL(quotes.reduce((sum, q) => sum + Number(q.total), 0))}
             </p>
@@ -458,13 +458,13 @@ export default function Orcamentos() {
         {/* Quotes list */}
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
           </div>
         ) : quotes.length === 0 ? (
           <div className="text-center py-20 space-y-3 opacity-30">
             <FileText size={48} className="mx-auto" />
             <p className="text-sm font-black uppercase tracking-widest">Nenhum orçamento</p>
-            <p className="text-xs text-zinc-500">Crie um orçamento para começar</p>
+            <p className="text-xs text-muted-foreground">Crie um orçamento para começar</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
@@ -477,8 +477,8 @@ export default function Orcamentos() {
 
       {/* ─── New Quote Dialog ──────────────────────────────────────────────── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-2xl shadow-2xl w-[90vw] max-h-[90vh] flex flex-col">
-          <div className="p-4 lg:p-8 space-y-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-2xl shadow-2xl w-[90vw] max-h-[90vh] flex flex-col">
+          <div className="p-4 lg:p-8 space-y-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
               <DialogTitle className="text-xl font-black text-white italic uppercase tracking-tight">
                 Novo Orçamento
@@ -539,7 +539,7 @@ export default function Orcamentos() {
             {/* Parts section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Package size={16} className="text-[#2952FF]" />
+                <Package size={16} className="text-primary" />
                 <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">
                   Peças do Orçamento
                 </h3>
@@ -551,11 +551,11 @@ export default function Orcamentos() {
                   {lineItems.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-3 bg-[#161618] border border-zinc-800 rounded-2xl"
+                      className="flex items-center gap-3 p-3 bg-card border border-border rounded-2xl"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white truncate">{item.part_name}</p>
-                        <div className="flex gap-3 text-[10px] text-zinc-500 font-bold">
+                        <div className="flex gap-3 text-[10px] text-muted-foreground font-bold">
                           <span>Custo: {formatBRL(item.unit_cost)}</span>
                           <span>Venda: {formatBRL(item.unit_price)}</span>
                         </div>
@@ -563,7 +563,7 @@ export default function Orcamentos() {
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           onClick={() => handleChangeQty(index, -1)}
-                          className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                          className="w-8 h-8 rounded-lg bg-background flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
                         >
                           <Minus size={14} />
                         </button>
@@ -572,7 +572,7 @@ export default function Orcamentos() {
                         </span>
                         <button
                           onClick={() => handleChangeQty(index, 1)}
-                          className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                          className="w-8 h-8 rounded-lg bg-background flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
                         >
                           <Plus size={14} />
                         </button>
@@ -582,7 +582,7 @@ export default function Orcamentos() {
                       </span>
                       <button
                         onClick={() => handleRemoveItem(index)}
-                        className="p-2 text-zinc-600 hover:text-red-500 transition-colors shrink-0"
+                        className="p-2 text-muted-foreground/70 hover:text-red-500 transition-colors shrink-0"
                       >
                         <X size={14} />
                       </button>
@@ -604,17 +604,17 @@ export default function Orcamentos() {
             </InputGroup>
 
             {/* Total summary */}
-            <div className="p-5 bg-[#0A0A0B] rounded-2xl border border-zinc-800/50 space-y-3">
-              <div className="flex justify-between text-sm text-zinc-400">
+            <div className="p-5 bg-background rounded-2xl border border-border/50 space-y-3">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Peças ({lineItems.length} itens)</span>
                 <span className="font-bold">{formatBRL(partsTotal)}</span>
               </div>
-              <div className="flex justify-between text-sm text-zinc-400">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Mão de Obra</span>
                 <span className="font-bold">{formatBRL(laborCost)}</span>
               </div>
-              <div className="border-t border-zinc-800 pt-3 flex justify-between">
-                <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">
+              <div className="border-t border-border pt-3 flex justify-between">
+                <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
                   Total do Orçamento
                 </span>
                 <span className="text-xl font-black text-white">{formatBRL(grandTotal)}</span>
@@ -623,18 +623,18 @@ export default function Orcamentos() {
           </div>
 
           {/* Footer */}
-          <div className="p-4 lg:p-6 border-t border-zinc-800 flex gap-3">
+          <div className="p-4 lg:p-6 border-t border-border flex gap-3">
             <Button
               variant="outline"
               onClick={() => setOpen(false)}
-              className="flex-1 h-14 rounded-2xl border-zinc-700 text-zinc-400 hover:bg-zinc-800 font-black text-xs uppercase tracking-widest"
+              className="flex-1 h-14 rounded-2xl border-border/80 text-muted-foreground hover:bg-muted font-black text-xs uppercase tracking-widest"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleSave}
               disabled={createQuote.isPending}
-              className="flex-1 h-14 rounded-2xl bg-[#2952FF] hover:bg-[#3D63FF] text-white font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(41,82,255,0.3)] transition-all active:scale-[0.98] disabled:opacity-50"
+              className="flex-1 h-14 rounded-2xl bg-primary hover:bg-primary/80 text-white font-black text-xs uppercase tracking-widest shadow-primary/30 transition-all active:scale-[0.98] disabled:opacity-50"
             >
               {createQuote.isPending ? (
                 <Loader2 size={16} className="animate-spin" />

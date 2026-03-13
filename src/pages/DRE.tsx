@@ -48,8 +48,8 @@ const Btn = ({
   size?: "icon" | "md";
 }) => {
   const v = {
-    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF]",
-    ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
+    primary: "bg-primary text-white hover:bg-primary/80",
+    ghost: "hover:bg-muted/50 text-muted-foreground hover:text-white",
   };
   const s = {
     icon: "h-9 w-9 flex items-center justify-center rounded-xl",
@@ -74,6 +74,7 @@ function StatCard({
   tag,
   color = "text-white",
   compact = false,
+  formatValue = formatBRL,
 }: {
   title: string;
   value: number;
@@ -81,44 +82,45 @@ function StatCard({
   tag: string;
   color?: string;
   compact?: boolean;
+  formatValue?: (v: number) => string;
 }) {
   if (compact) {
     return (
-      <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] px-4 py-3 md:p-8 hover:border-zinc-700 transition-all overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl md:rounded-[32px] px-4 py-3 md:p-8 hover:border-border/80 transition-all overflow-hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-400 shrink-0">
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
               <Icon size={16} />
             </div>
             <div>
-              <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{tag}</span>
-              <p className="text-[10px] md:text-xs text-zinc-400 leading-tight">{title}</p>
+              <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{tag}</span>
+              <p className="text-[10px] md:text-xs text-muted-foreground leading-tight">{title}</p>
             </div>
           </div>
-          <span className={`text-base md:text-2xl font-black tracking-tighter shrink-0 ml-3 ${color}`}>{formatBRL(value)}</span>
+          <span className={`text-base md:text-2xl font-black tracking-tighter shrink-0 ml-3 ${color}`}>{formatValue(value)}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-zinc-700 transition-all duration-500 overflow-hidden">
-      <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
+    <div className="relative group bg-card border border-border rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-border/80 transition-all duration-500 overflow-hidden">
+      <div className="absolute -right-4 -top-4 opacity-[0.03] text-muted-foreground/70">
         <Icon size={120} className="md:hidden" />
         <Icon size={160} className="hidden md:block" />
       </div>
       <div className="relative z-10 flex flex-col justify-between h-full space-y-4 md:space-y-10">
         <div className="flex items-center justify-between">
-          <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-400">
+          <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground">
             <Icon size={18} />
           </div>
-          <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest">
+          <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground bg-background border border-border px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest">
             {tag}
           </span>
         </div>
         <div>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-tight mb-0.5 md:mb-1">{title}</p>
-          <h2 className={`text-lg md:text-2xl font-black tracking-tighter ${color}`}>{formatBRL(value)}</h2>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-tight mb-0.5 md:mb-1">{title}</p>
+          <h2 className={`text-lg md:text-2xl font-black tracking-tighter ${color}`}>{formatValue(value)}</h2>
         </div>
       </div>
     </div>
@@ -137,18 +139,18 @@ function ChartContainer({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-3 md:space-y-6">
+    <div className="bg-card border border-border rounded-2xl md:rounded-[32px] p-4 md:p-8 space-y-3 md:space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-0.5 md:mb-1">{title}</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5 md:mb-1">{title}</p>
           <div className="flex items-center gap-2">
             <h3 className="text-xl md:text-2xl font-black text-white tracking-tighter">{value}</h3>
-            <span className="text-[10px] font-bold text-zinc-500 uppercase bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase bg-background px-2 py-0.5 rounded-md border border-border">
               {subtitle}
             </span>
           </div>
         </div>
-        <div className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg md:rounded-xl flex items-center justify-center text-zinc-600">
+        <div className="w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg md:rounded-xl flex items-center justify-center text-muted-foreground/70">
           <Activity size={16} />
         </div>
       </div>
@@ -173,18 +175,18 @@ function DRELineRow({
   return (
     <div
       className={`flex items-center justify-between p-3 md:p-4 rounded-xl md:rounded-2xl transition-colors ${
-        isSubtotal ? "bg-zinc-900 border border-zinc-800" : "hover:bg-white/[0.02]"
+        isSubtotal ? "bg-background border border-border" : "hover:bg-white/[0.02]"
       }`}
     >
       <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
         <div
           className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shrink-0 ${
-            isSubtotal ? "bg-[#2952FF]/10 text-[#2952FF]" : "bg-zinc-900 text-zinc-500"
+            isSubtotal ? "bg-primary/10 text-primary" : "bg-background text-muted-foreground"
           }`}
         >
           <Icon size={16} />
         </div>
-        <span className={`text-xs md:text-sm font-bold leading-snug min-w-0 ${isSubtotal ? "text-white" : "text-zinc-400"}`}>
+        <span className={`text-xs md:text-sm font-bold leading-snug min-w-0 ${isSubtotal ? "text-white" : "text-muted-foreground"}`}>
           {label}
         </span>
       </div>
@@ -194,7 +196,7 @@ function DRELineRow({
             ? "text-red-400/80"
             : isSubtotal
             ? "text-blue-400"
-            : "text-zinc-100"
+            : "text-foreground"
         }`}
       >
         {value < 0 ? `- ${formatBRL(Math.abs(value))}` : formatBRL(value)}
@@ -206,8 +208,8 @@ function DRELineRow({
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[#1C1C1E] border border-zinc-800 p-4 rounded-2xl shadow-2xl">
-      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Dia {label}</p>
+    <div className="bg-secondary border border-border p-4 rounded-2xl shadow-2xl">
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Dia {label}</p>
       <p className="text-sm font-black text-white">{formatBRL(payload[0].value)}</p>
     </div>
   );
@@ -263,6 +265,13 @@ export default function DRE() {
   }, [sales, variableExpenses, selectedYear, monthlyFixedCost]);
 
   const monthsInScope = selectedYear === currentYear ? new Date().getMonth() + 1 : 12;
+
+  const monthlySalesCount = useMemo(() => {
+    return sales.filter((sale: any) => {
+      const date = new Date(sale.created_at);
+      return date.getFullYear() === selectedYear;
+    }).length;
+  }, [sales, selectedYear]);
 
   const totals = useMemo(() => {
     const t = monthlyData.reduce(
@@ -325,30 +334,30 @@ export default function DRE() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-3 md:space-y-6 lg:space-y-8">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-1 md:space-y-2">
             <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-primary/30">
                 <Activity size={16} className="md:hidden text-white" />
                 <Activity size={20} className="hidden md:block text-white" />
               </div>
-              <span className="text-[10px] md:text-sm font-black tracking-widest text-[#2952FF] uppercase">Performance Hub</span>
+              <span className="text-[10px] md:text-sm font-black tracking-widest text-primary uppercase">Performance Hub</span>
             </div>
             <h1 className="text-lg md:text-2xl lg:text-4xl font-black md:font-extrabold tracking-tight">Análise DRE</h1>
           </div>
 
-          <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-xl md:rounded-2xl p-1 h-10 md:h-auto self-start">
+          <div className="flex items-center bg-card border border-border rounded-xl md:rounded-2xl p-1 h-10 md:h-auto self-start">
             <Btn onClick={() => setSelectedYear((y) => y - 1)}>
               <ChevronLeft className="w-4 h-4" />
             </Btn>
@@ -371,7 +380,7 @@ export default function DRE() {
           return (
             <div className={hasLargeValue ? "flex flex-col gap-3 md:grid md:grid-cols-4 md:gap-6" : "grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6"}>
               <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" compact={hasLargeValue} />
-              <StatCard title="Receita Líquida" value={totals.netRevenue} icon={Receipt} tag="Após Taxas" color="text-indigo-400" compact={hasLargeValue} />
+              <StatCard title="Vendas do Ano" value={monthlySalesCount} icon={Receipt} tag="Qtd" color="text-indigo-400" compact={hasLargeValue} formatValue={(v) => String(v)} />
               <StatCard
                 title="Despesas Totais"
                 value={totals.fixedExpenses + totals.variableExpenses}
@@ -449,10 +458,10 @@ export default function DRE() {
         </div>
 
         {/* DRE Detalhado */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-card border border-border rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 className="text-base md:text-lg font-black">Demonstrativo Detalhado</h3>
-            <div className="flex items-center gap-1 md:gap-2 bg-[#0A0A0B] p-1 rounded-xl border border-zinc-800 self-start">
+            <div className="flex items-center gap-1 md:gap-2 bg-background p-1 rounded-xl border border-border self-start">
               <Btn onClick={prevMonth}>
                 <ChevronLeft size={16} />
               </Btn>
@@ -471,7 +480,7 @@ export default function DRE() {
             <DRELineRow label="Taxas de Intermediação (Cartão)" value={-totals.cardFees} icon={CreditCard} type="deduction" />
 
             <div className="py-4">
-              <div className="h-px bg-zinc-800/50 w-full" />
+              <div className="h-px bg-muted/50 w-full" />
             </div>
 
             <DRELineRow label="Receita Líquida Operacional" value={totals.netRevenue} icon={Target} type="subtotal" />
@@ -479,15 +488,15 @@ export default function DRE() {
             <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
 
             {/* Lucro Final */}
-            <div className="mt-3 md:mt-6 p-3 md:p-8 bg-[#2952FF]/5 border border-[#2952FF]/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+            <div className="mt-3 md:mt-6 p-3 md:p-8 bg-primary/5 border border-primary/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
               <div className="flex items-center gap-3 md:gap-4">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)] shrink-0">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-primary/40 shrink-0">
                   <TrendingUp size={20} className="md:hidden" />
                   <TrendingUp size={28} className="hidden md:block" />
                 </div>
                 <div>
                   <h4 className="text-white font-black text-sm md:text-xl">Lucro Líquido Final</h4>
-                  <p className="text-zinc-500 text-[9px] md:text-xs font-bold uppercase tracking-widest">
+                  <p className="text-muted-foreground text-[9px] md:text-xs font-bold uppercase tracking-widest">
                     Resultado do Exercício de {selectedYear}
                   </p>
                 </div>
@@ -496,7 +505,7 @@ export default function DRE() {
                 <p className={`text-2xl md:text-3xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                   {formatBRL(totals.netProfit)}
                 </p>
-                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Margem: {marginPct}%
                 </p>
               </div>

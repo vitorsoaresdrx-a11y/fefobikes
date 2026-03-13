@@ -126,17 +126,17 @@ export default function Mecanicos() {
 
   // ── Render helpers ──
   const renderPendingCard = (order: ServiceOrder) => (
-    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
+    <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
       <div className="space-y-1">
         {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
         {order.customer_name && (
-          <div className="flex items-center gap-2 text-zinc-400 text-xs">
+          <div className="flex items-center gap-2 text-muted-foreground text-xs">
             <User size={12} /> {order.customer_name}
           </div>
         )}
       </div>
-      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
-        <p className="text-xs text-zinc-400">{order.problem}</p>
+      <div className="p-3 bg-background rounded-xl border border-border/50">
+        <p className="text-xs text-muted-foreground">{order.problem}</p>
       </div>
       <button
         onClick={() => handleAcceptClick(order)}
@@ -148,11 +148,11 @@ export default function Mecanicos() {
   );
 
   const renderAcceptedCard = (order: ServiceOrder) => (
-    <div key={order.id} className="bg-[#161618] border border-zinc-800 rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
+    <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
       <div className="space-y-1">
         {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
         {order.customer_name && (
-          <div className="flex items-center gap-2 text-zinc-400 text-xs">
+          <div className="flex items-center gap-2 text-muted-foreground text-xs">
             <User size={12} /> {order.customer_name}
           </div>
         )}
@@ -162,8 +162,8 @@ export default function Mecanicos() {
           </div>
         )}
       </div>
-      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
-        <p className="text-xs text-zinc-400">{order.problem}</p>
+      <div className="p-3 bg-background rounded-xl border border-border/50">
+        <p className="text-xs text-muted-foreground">{order.problem}</p>
       </div>
       <div className="space-y-2">
         <FrameNumberInput
@@ -182,12 +182,12 @@ export default function Mecanicos() {
   );
 
   const renderDoneCard = (order: ServiceOrder) => (
-    <div key={order.id} className="bg-[#161618] border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
+    <div key={order.id} className="bg-card border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
           {order.mechanic_name && (
-            <div className="flex items-center gap-2 text-zinc-400 text-xs">
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <Wrench size={12} /> {order.mechanic_name}
             </div>
           )}
@@ -217,41 +217,41 @@ export default function Mecanicos() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-8">
         {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
               <Wrench className="w-5 h-5 text-white" />
             </div>
-            <span className="text-sm font-black tracking-widest text-[#2952FF]">MECÂNICOS</span>
+            <span className="text-sm font-black tracking-widest text-primary">MECÂNICOS</span>
           </div>
           <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
             Painel do Mecânico
           </h1>
-          <p className="text-zinc-500 font-medium text-sm">Ordens de serviço em tempo real</p>
+          <p className="text-muted-foreground font-medium text-sm">Ordens de serviço em tempo real</p>
         </header>
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-[#161618] border border-amber-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Pendentes</p>
+          <div className="bg-card border border-amber-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Pendentes</p>
             <p className="text-2xl font-black text-amber-400">{pending.length}</p>
           </div>
-          <div className="bg-[#161618] border border-indigo-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Em Andamento</p>
+          <div className="bg-card border border-indigo-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Em Andamento</p>
             <p className="text-2xl font-black text-indigo-400">{accepted.length}</p>
           </div>
-          <div className="bg-[#161618] border border-emerald-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Concluídos</p>
+          <div className="bg-card border border-emerald-400/20 p-4 rounded-2xl">
+            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Concluídos</p>
             <p className="text-2xl font-black text-emerald-400">{done.length}</p>
           </div>
         </div>
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
           </div>
         ) : (
           <>
@@ -266,7 +266,7 @@ export default function Mecanicos() {
                     className={`snap-start shrink-0 flex items-center gap-2 px-4 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-wider transition-all ${
                       active
                         ? `${col.bg} ${col.border} ${col.color}`
-                        : "bg-[#161618] border-zinc-800 text-zinc-500"
+                        : "bg-card border-border text-muted-foreground"
                     }`}
                   >
                     <col.icon size={14} />
@@ -287,28 +287,28 @@ export default function Mecanicos() {
             {/* Desktop: two columns + done below */}
             <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
               {/* Pending */}
-              <section className="bg-[#111113]/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
+              <section className="bg-card/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
                 <div className="flex items-center gap-3 p-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 mb-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 bg-white/5">
                     <Clock size={20} className="stroke-[2.5]" />
                   </div>
                   <div>
                     <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Pendentes</h3>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase">{pending.length} OS aguardando</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">{pending.length} OS aguardando</p>
                   </div>
                 </div>
                 <div className="space-y-4 px-1">{renderCards("pending")}</div>
               </section>
 
               {/* In Progress */}
-              <section className="bg-[#111113]/50 rounded-3xl p-4 border border-indigo-400/10 min-h-[400px]">
+              <section className="bg-card/50 rounded-3xl p-4 border border-indigo-400/10 min-h-[400px]">
                 <div className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-400/20 bg-indigo-400/5 mb-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400 bg-white/5">
                     <Wrench size={20} className="stroke-[2.5]" />
                   </div>
                   <div>
                     <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Em Andamento</h3>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase">{accepted.length} OS em execução</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">{accepted.length} OS em execução</p>
                   </div>
                 </div>
                 <div className="space-y-4 px-1">{renderCards("accepted")}</div>
@@ -333,7 +333,7 @@ export default function Mecanicos() {
 
       {/* Mechanic selection modal */}
       <Dialog open={acceptOpen} onOpenChange={setAcceptOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl w-full max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6 md:p-8 space-y-6">
             <DialogHeader>
               <DialogTitle className="text-xl font-black text-white italic uppercase tracking-tight">
@@ -342,17 +342,17 @@ export default function Mecanicos() {
             </DialogHeader>
             <div className="space-y-2">
               {mechanics.length === 0 ? (
-                <p className="text-zinc-500 text-sm text-center py-4">Nenhum mecânico cadastrado</p>
+                <p className="text-muted-foreground text-sm text-center py-4">Nenhum mecânico cadastrado</p>
               ) : (
                 mechanics.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => handleSelectMechanic(m.id, m.name)}
                     disabled={acceptOrder.isPending}
-                    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-left text-sm font-bold text-white hover:border-[#2952FF] hover:bg-[#2952FF]/5 transition-all flex items-center gap-3 disabled:opacity-50"
+                    className="w-full h-14 bg-card border border-border rounded-2xl px-5 text-left text-sm font-bold text-white hover:border-primary hover:bg-primary/5 transition-all flex items-center gap-3 disabled:opacity-50"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-[#2952FF]/10 flex items-center justify-center">
-                      <User size={16} className="text-[#2952FF]" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <User size={16} className="text-primary" />
                     </div>
                     {m.name}
                   </button>

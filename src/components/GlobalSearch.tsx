@@ -143,19 +143,19 @@ export function GlobalSearch() {
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-lg mx-4 bg-[#161618] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-lg mx-4 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Input */}
-        <div className="flex items-center gap-3 px-4 h-14 border-b border-zinc-800">
-          <Search size={18} className="text-zinc-500 shrink-0" />
+        <div className="flex items-center gap-3 px-4 h-14 border-b border-border">
+          <Search size={18} className="text-muted-foreground shrink-0" />
           <input
             autoFocus
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar produtos, clientes, ordens..."
-            className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-zinc-600"
+            className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-muted-foreground/70"
           />
-          <kbd className="hidden sm:flex items-center gap-1 text-[10px] text-zinc-600 border border-zinc-800 rounded px-1.5 py-0.5">
+          <kbd className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground/70 border border-border rounded px-1.5 py-0.5">
             ESC
           </kbd>
         </div>
@@ -164,7 +164,7 @@ export function GlobalSearch() {
         {debouncedQuery.trim() && (
           <div className="max-h-[360px] overflow-y-auto">
             {results.length === 0 ? (
-              <div className="py-12 text-center text-sm text-zinc-600">
+              <div className="py-12 text-center text-sm text-muted-foreground/70">
                 Nenhum resultado encontrado
               </div>
             ) : (
@@ -176,16 +176,16 @@ export function GlobalSearch() {
                     <button
                       key={`${result.type}-${result.id}`}
                       onClick={() => handleSelect(result)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800/50 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left"
                     >
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${config.color}`}>
                         <Icon size={16} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-zinc-200 truncate">{result.title}</p>
-                        <p className="text-[11px] text-zinc-500 truncate">{result.subtitle}</p>
+                        <p className="text-sm font-bold text-foreground/90 truncate">{result.title}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{result.subtitle}</p>
                       </div>
-                      <span className="text-[9px] font-black text-zinc-600 uppercase tracking-wider shrink-0">
+                      <span className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-wider shrink-0">
                         {config.label}
                       </span>
                     </button>
@@ -199,9 +199,9 @@ export function GlobalSearch() {
         {/* Empty state */}
         {!debouncedQuery.trim() && (
           <div className="py-10 text-center space-y-2">
-            <p className="text-xs text-zinc-500">Digite para buscar em todo o sistema</p>
-            <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-600">
-              <kbd className="border border-zinc-800 rounded px-1.5 py-0.5 flex items-center gap-0.5">
+            <p className="text-xs text-muted-foreground">Digite para buscar em todo o sistema</p>
+            <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground/70">
+              <kbd className="border border-border rounded px-1.5 py-0.5 flex items-center gap-0.5">
                 <Command size={10} /> K
               </kbd>
               <span>para abrir/fechar</span>

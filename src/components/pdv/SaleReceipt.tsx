@@ -367,7 +367,7 @@ export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
           </button>
           <button
             onClick={onClose}
-            className="h-12 w-12 shrink-0 bg-zinc-800 text-white rounded-xl flex items-center justify-center active:scale-95 transition-transform"
+            className="h-12 w-12 shrink-0 bg-muted text-white rounded-xl flex items-center justify-center active:scale-95 transition-transform"
           >
             <X size={20} />
           </button>

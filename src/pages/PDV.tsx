@@ -51,10 +51,10 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.3)]",
-    secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
-    ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
-    outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-primary/30",
+    secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
+    ghost: "hover:bg-muted/50 text-muted-foreground hover:text-white",
+    outline: "border border-border bg-transparent text-foreground/80 hover:bg-muted",
     destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
   };
   const s = {
@@ -75,7 +75,7 @@ const Btn = ({
 
 const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`w-full bg-[#161618] border border-zinc-800 rounded-2xl px-4 text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600 ${className}`}
+    className={`w-full bg-card border border-border rounded-2xl px-4 text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70 ${className}`}
     {...props}
   />
 );
@@ -85,8 +85,8 @@ function Badge({ children, variant = "default" }: { children: React.ReactNode; v
     variant === "active"
       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
       : variant === "outline"
-      ? "bg-zinc-800/60 text-zinc-400 border-zinc-700"
-      : "bg-zinc-800 text-zinc-500 border-zinc-700";
+      ? "bg-muted/60 text-muted-foreground border-border/80"
+      : "bg-muted text-muted-foreground border-border/80";
   return <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${styles}`}>{children}</span>;
 }
 
@@ -107,8 +107,8 @@ function PaymentCard({
       onClick={onClick}
       className={`h-16 md:h-24 rounded-2xl md:rounded-3xl border flex flex-col items-center justify-center gap-1.5 md:gap-2 transition-all ${
         active
-          ? "bg-[#2952FF]/10 border-[#2952FF] text-white shadow-[0_0_20px_rgba(41,82,255,0.2)]"
-          : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+          ? "bg-primary/10 border-primary text-white shadow-primary/20"
+          : "bg-background border-border text-muted-foreground hover:border-border/80"
       }`}
     >
       <Icon size={18} />
@@ -407,18 +407,18 @@ export default function PDV() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 pb-20 md:pb-40">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 pb-20 md:pb-40">
       <div className="max-w-5xl mx-auto w-full p-4 lg:p-8 space-y-3 md:space-y-6 lg:space-y-8">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-1 md:space-y-2">
             <div className="flex items-center gap-2 md:gap-3 mb-1">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-[#2952FF] rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-primary/30">
                 <ShoppingCart size={16} className="md:hidden text-white" />
                 <ShoppingCart size={20} className="hidden md:block text-white" />
               </div>
-              <span className="text-[10px] md:text-sm font-black uppercase tracking-widest text-[#2952FF]">
+              <span className="text-[10px] md:text-sm font-black uppercase tracking-widest text-primary">
                 Checkout Express
               </span>
               {!online && (
@@ -442,26 +442,26 @@ export default function PDV() {
 
         {/* Carrinho / Empty State */}
         {cart.length === 0 ? (
-          <div className="py-20 md:py-32 flex flex-col items-center text-center space-y-4 md:space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-zinc-900 rounded-2xl md:rounded-[30px] flex items-center justify-center text-zinc-700">
+          <div className="py-20 md:py-32 flex flex-col items-center text-center space-y-4 md:space-y-6 bg-card border border-dashed border-border rounded-2xl md:rounded-[40px]">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-background rounded-2xl md:rounded-[30px] flex items-center justify-center text-muted-foreground/50">
               <Package size={32} className="md:hidden" />
               <Package size={40} className="hidden md:block" />
             </div>
             <div className="space-y-2">
-              <h4 className="text-base md:text-xl font-bold text-zinc-300">Carrinho Vazio</h4>
-              <p className="text-xs md:text-sm text-zinc-500 max-w-xs mx-auto">Inicie uma nova venda selecionando produtos do catálogo.</p>
+              <h4 className="text-base md:text-xl font-bold text-foreground/80">Carrinho Vazio</h4>
+              <p className="text-xs md:text-sm text-muted-foreground max-w-xs mx-auto">Inicie uma nova venda selecionando produtos do catálogo.</p>
             </div>
             <Btn variant="outline" className="px-8 h-10 text-sm" onClick={openCatalog}>Abrir Catálogo</Btn>
           </div>
         ) : (
           <div className="space-y-3 md:space-y-6 animate-in fade-in duration-500">
             <div className="flex items-center justify-between px-2 md:px-4">
-              <h3 className="text-xs md:text-lg font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+              <h3 className="text-xs md:text-lg font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                 <Layers size={14} className="md:hidden" />
                 <Layers size={18} className="hidden md:block" />
                 Itens Selecionados
               </h3>
-              <span className="text-[10px] md:text-xs font-black text-[#2952FF] bg-[#2952FF]/10 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full">
+              <span className="text-[10px] md:text-xs font-black text-primary bg-primary/10 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full">
                 {itemCount} Unidades
               </span>
             </div>
@@ -470,10 +470,10 @@ export default function PDV() {
               {cart.map((item) => (
                 <div
                   key={item.key}
-                  className="group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex items-center gap-2 md:gap-6 hover:border-zinc-700 transition-all"
+                  className="group bg-card border border-border rounded-2xl md:rounded-[32px] p-3 md:p-6 flex items-center gap-2 md:gap-6 hover:border-border/80 transition-all"
                 >
                   {/* Icon */}
-                  <div className="w-9 h-9 md:w-16 md:h-16 bg-zinc-900 rounded-lg md:rounded-2xl flex items-center justify-center text-zinc-600 shrink-0">
+                  <div className="w-9 h-9 md:w-16 md:h-16 bg-background rounded-lg md:rounded-2xl flex items-center justify-center text-muted-foreground/70 shrink-0">
                     {item.type === "bike" ? <BikeIcon size={16} className="md:hidden" /> : <Package size={16} className="md:hidden" />}
                     {item.type === "bike" ? <BikeIcon size={32} className="hidden md:block" /> : <Package size={32} className="hidden md:block" />}
                   </div>
@@ -481,7 +481,7 @@ export default function PDV() {
                   {/* Name + price */}
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm md:text-xl font-bold text-white truncate max-w-[120px] md:max-w-none">{item.name}</h4>
-                    <p className="text-xs md:text-sm text-zinc-500 font-medium">{formatBRL(item.unit_price)}/un</p>
+                    <p className="text-xs md:text-sm text-muted-foreground font-medium">{formatBRL(item.unit_price)}/un</p>
                     <p className="text-xs font-black text-white md:hidden mt-0.5">{formatBRL(item.quantity * item.unit_price)}</p>
                   </div>
 
@@ -490,7 +490,7 @@ export default function PDV() {
                     const stock = getStockQty(item.id, item.type);
                     const atMax = item.quantity >= stock;
                     return (
-                      <div className="flex items-center gap-1 md:gap-0 bg-[#0A0A0B] rounded-lg md:rounded-2xl p-0.5 md:p-1 border border-zinc-800 shrink-0">
+                      <div className="flex items-center gap-1 md:gap-0 bg-background rounded-lg md:rounded-2xl p-0.5 md:p-1 border border-border shrink-0">
                         <Btn variant="ghost" size="icon" className="!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg" onClick={() => updateQty(item.key, -1)}><Minus size={12} className="md:hidden" /><Minus size={14} className="hidden md:block" /></Btn>
                         <span className="w-5 md:w-10 text-center font-black text-white text-sm">{item.quantity}</span>
                         <Btn variant="ghost" size="icon" className={`!h-6 !w-6 md:!h-10 md:!w-10 !rounded-lg ${atMax ? "opacity-30 cursor-not-allowed" : ""}`} onClick={() => { if (!atMax) updateQty(item.key, 1); }}><Plus size={12} className="md:hidden" /><Plus size={14} className="hidden md:block" /></Btn>
@@ -500,14 +500,14 @@ export default function PDV() {
 
                   {/* Subtotal desktop */}
                   <div className="text-right min-w-[100px] hidden md:block">
-                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Subtotal</p>
+                    <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest">Subtotal</p>
                     <p className="text-xl font-black text-white">{formatBRL(item.quantity * item.unit_price)}</p>
                   </div>
 
                   {/* Remove */}
                   <button
                     onClick={() => removeItem(item.key)}
-                    className="p-1 md:p-2 text-zinc-700 hover:text-red-500 transition-colors shrink-0"
+                    className="p-1 md:p-2 text-muted-foreground/50 hover:text-red-500 transition-colors shrink-0"
                   >
                     <X size={14} className="md:hidden" />
                     <X size={20} className="hidden md:block" />
@@ -525,18 +525,18 @@ export default function PDV() {
 
       {/* Barra flutuante — estilo iFood */}
       {cart.length > 0 && step === "idle" && (
-        <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-[90%] max-w-4xl bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)] md:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl md:rounded-[32px] h-16 md:h-auto px-4 md:p-4 flex items-center justify-between z-[55] animate-in slide-in-from-bottom-10 lg:bottom-8" style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
+        <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-[90%] max-w-4xl bg-secondary/95 backdrop-blur-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)] md:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl md:rounded-[32px] h-16 md:h-auto px-4 md:p-4 flex items-center justify-between z-[55] animate-in slide-in-from-bottom-10 lg:bottom-8" style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
           <div className="flex items-center gap-3 md:gap-6 md:px-4">
             <div className="relative shrink-0 hidden md:block">
-              <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg">
                 <ShoppingCart size={18} />
               </div>
-              <span className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-white text-[#2952FF] rounded-full flex items-center justify-center text-xs font-black shadow-xl">
+              <span className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-white text-primary rounded-full flex items-center justify-center text-xs font-black shadow-xl">
                 {itemCount}
               </span>
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total</p>
               <p className="text-sm md:text-2xl font-bold md:font-black text-white tracking-tighter">{formatBRL(total)}</p>
             </div>
           </div>
@@ -556,7 +556,7 @@ export default function PDV() {
             <header className="flex items-center gap-3">
               <button
                 onClick={() => setStep("idle")}
-                className="flex items-center gap-1.5 md:gap-2 text-zinc-500 hover:text-white transition-colors group shrink-0"
+                className="flex items-center gap-1.5 md:gap-2 text-muted-foreground hover:text-white transition-colors group shrink-0"
               >
                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                 <span className="font-bold uppercase text-[10px] md:text-xs tracking-widest hidden md:inline">Voltar ao PDV</span>
@@ -567,7 +567,7 @@ export default function PDV() {
             {/* Search + Tabs */}
             <div className="flex flex-col md:flex-row gap-3 md:gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70" size={16} />
                 <InputEl
                   autoFocus
                   placeholder="Busque por nome ou categoria..."
@@ -576,16 +576,16 @@ export default function PDV() {
                   onChange={(e) => setCatalogSearch(e.target.value)}
                 />
               </div>
-              <div className="flex p-1 bg-[#161618] rounded-xl md:rounded-2xl border border-zinc-800 shrink-0 self-start">
+              <div className="flex p-1 bg-card rounded-xl md:rounded-2xl border border-border shrink-0 self-start">
                 <button
                   onClick={() => { setCatalogTab("parts"); setCatalogCategory("todas"); }}
-                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-secondary text-white" : "text-muted-foreground"}`}
                 >
                   Peças
                 </button>
                 <button
                   onClick={() => { setCatalogTab("bikes"); setCatalogCategory("todas"); }}
-                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-[#2C2C2E] text-white" : "text-zinc-500"}`}
+                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-secondary text-white" : "text-muted-foreground"}`}
                 >
                   Bikes
                 </button>
@@ -602,8 +602,8 @@ export default function PDV() {
                     onClick={() => setCatalogCategory(cat)}
                     className={`shrink-0 px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-widest transition-all border ${
                       catalogCategory === cat
-                        ? "bg-[#2952FF]/10 border-[#2952FF] text-white"
-                        : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                        ? "bg-primary/10 border-primary text-white"
+                        : "bg-background border-border text-muted-foreground hover:border-border/80"
                     }`}
                   >
                     {cat === "todas" ? "Todas" : cat}
@@ -613,10 +613,10 @@ export default function PDV() {
             )}
 
             {/* Grid de itens */}
-            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted">
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 w-full">
               {catalogItems.length === 0 ? (
-                <div className="col-span-full py-20 text-center text-zinc-600 text-sm">Nenhum item encontrado</div>
+                <div className="col-span-full py-20 text-center text-muted-foreground/70 text-sm">Nenhum item encontrado</div>
               ) : (
                 catalogItems.map((item: any) => {
                   const isBike = catalogTab === "bikes";
@@ -630,7 +630,7 @@ export default function PDV() {
                   return (
                     <div
                       key={item.id}
-                      className={`w-full min-w-0 overflow-hidden bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-6 flex flex-col justify-between space-y-2 md:space-y-4 transition-all ${outOfStock ? "opacity-40 grayscale pointer-events-none" : "hover:border-zinc-700"}`}
+                      className={`w-full min-w-0 overflow-hidden bg-card border border-border rounded-2xl md:rounded-[32px] p-3 md:p-6 flex flex-col justify-between space-y-2 md:space-y-4 transition-all ${outOfStock ? "opacity-40 grayscale pointer-events-none" : "hover:border-border/80"}`}
                     >
                       <div className="space-y-2 md:space-y-3">
                         {item.images && item.images.length > 0 ? (
@@ -638,10 +638,10 @@ export default function PDV() {
                             src={getOptimizedImageUrl(item.images[0], 200, 75) || item.images[0]}
                             alt={item.name}
                             loading="lazy"
-                            className="w-full h-32 md:aspect-square rounded-xl md:rounded-2xl object-cover border border-zinc-800"
+                            className="w-full h-32 md:aspect-square rounded-xl md:rounded-2xl object-cover border border-border"
                           />
                         ) : (
-                          <div className="w-full h-32 md:aspect-square bg-zinc-900 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-800 border border-zinc-800">
+                          <div className="w-full h-32 md:aspect-square bg-background rounded-xl md:rounded-2xl flex items-center justify-center text-muted border border-border">
                             {isBike ? <BikeIcon size={32} className="md:hidden" /> : <Package size={32} className="md:hidden" />}
                             {isBike ? <BikeIcon size={64} className="hidden md:block" /> : <Package size={64} className="hidden md:block" />}
                           </div>
@@ -649,8 +649,8 @@ export default function PDV() {
                         <div className="min-w-0">
                           {item.category && <Badge variant="outline">{item.category}</Badge>}
                           <h4 className="text-sm md:text-lg font-bold text-white mt-1 truncate">{item.name}</h4>
-                          <p className="text-sm md:text-xl font-bold md:font-black text-[#2952FF] mt-0.5 md:mt-1">{formatBRL(price)}</p>
-                          <p className={`text-[10px] mt-0.5 uppercase tracking-widest ${outOfStock ? "text-red-500 font-bold" : "text-zinc-600"}`}>
+                          <p className="text-sm md:text-xl font-bold md:font-black text-primary mt-0.5 md:mt-1">{formatBRL(price)}</p>
+                          <p className={`text-[10px] mt-0.5 uppercase tracking-widest ${outOfStock ? "text-red-500 font-bold" : "text-muted-foreground/70"}`}>
                             {outOfStock ? "Sem estoque" : `Estoque: ${stock}`}
                           </p>
                         </div>
@@ -658,11 +658,11 @@ export default function PDV() {
 
                       <div className="mt-2">
                         {outOfStock ? (
-                          <div className="w-full h-8 rounded-xl bg-zinc-900 text-xs font-bold text-zinc-600 flex items-center justify-center cursor-not-allowed">
+                          <div className="w-full h-8 rounded-xl bg-background text-xs font-bold text-muted-foreground/70 flex items-center justify-center cursor-not-allowed">
                             Indisponível
                           </div>
                         ) : qty > 0 ? (
-                          <div className="flex items-center justify-between bg-zinc-800 rounded-xl px-3 py-2">
+                          <div className="flex items-center justify-between bg-muted rounded-xl px-3 py-2">
                             <button
                               className="w-6 h-6 flex items-center justify-center text-white"
                               onClick={() => updateQty(cart.find((i) => i.id === item.id && i.type === type)!.key, -1)}
@@ -671,7 +671,7 @@ export default function PDV() {
                             </button>
                             <span className="text-sm font-bold text-white">{qty}</span>
                             <button
-                              className={`w-6 h-6 flex items-center justify-center ${atLimit ? "text-zinc-600 cursor-not-allowed" : "text-white"}`}
+                              className={`w-6 h-6 flex items-center justify-center ${atLimit ? "text-muted-foreground/70 cursor-not-allowed" : "text-white"}`}
                               onClick={() => !atLimit && addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
                               disabled={atLimit}
                             >
@@ -680,7 +680,7 @@ export default function PDV() {
                           </div>
                         ) : (
                           <button
-                            className="w-full h-8 rounded-xl bg-zinc-800 text-xs font-bold text-white hover:bg-zinc-700 transition-colors"
+                            className="w-full h-8 rounded-xl bg-muted text-xs font-bold text-white hover:bg-muted/80 transition-colors"
                             onClick={() => addToCart(item.id, type as "bike" | "part", item.name, price, item.category)}
                           >
                             + Adicionar
@@ -695,14 +695,14 @@ export default function PDV() {
             </div>
 
             {/* Footer do catálogo */}
-            <div className="p-3 md:p-6 bg-[#1C1C1E] border border-zinc-800 rounded-2xl md:rounded-[32px] flex items-center justify-between gap-2 md:gap-3">
+            <div className="p-3 md:p-6 bg-secondary border border-border rounded-2xl md:rounded-[32px] flex items-center justify-between gap-2 md:gap-3">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                <div className="w-9 h-9 md:w-12 md:h-12 bg-[#2952FF]/10 text-[#2952FF] rounded-lg md:rounded-2xl flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 md:w-12 md:h-12 bg-primary/10 text-primary rounded-lg md:rounded-2xl flex items-center justify-center shrink-0">
                   <ShoppingCart size={16} className="md:hidden" />
                   <ShoppingCart size={18} className="hidden md:block" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Pedido</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Pedido</p>
                   <p className="font-bold md:font-black text-white text-sm md:text-base truncate">{itemCount} itens · {formatBRL(total)}</p>
                 </div>
               </div>
@@ -718,17 +718,17 @@ export default function PDV() {
       {/* ── MODAL 2: Pagamento ────────────────────────────────────────────── */}
       {step === "cart" && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-end md:items-center justify-center p-0 md:p-6">
-          <div className="bg-[#1C1C1E] w-full max-w-2xl rounded-t-3xl md:rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
+          <div className="bg-secondary w-full max-w-2xl rounded-t-3xl md:rounded-[40px] border border-border shadow-2xl overflow-hidden">
             <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8 max-h-[90vh] overflow-y-auto">
 
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg md:text-xl lg:text-3xl font-black text-white">Finalizar Venda</h2>
-                  <p className="text-zinc-500 text-xs md:text-sm">Escolha a forma de pagamento</p>
+                  <p className="text-muted-foreground text-xs md:text-sm">Escolha a forma de pagamento</p>
                 </div>
                 <button
                   onClick={() => setStep("idle")}
-                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -743,38 +743,38 @@ export default function PDV() {
               </div>
 
               {/* Resumo financeiro */}
-              <div className="p-4 md:p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl md:rounded-3xl space-y-3 md:space-y-4">
+              <div className="p-4 md:p-6 bg-background/50 border border-border rounded-2xl md:rounded-3xl space-y-3 md:space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-zinc-500 font-bold text-[10px] md:text-xs uppercase tracking-widest">Resumo Financeiro</span>
+                  <span className="text-muted-foreground font-bold text-[10px] md:text-xs uppercase tracking-widest">Resumo Financeiro</span>
                   <Badge variant="active">Pagamento Seguro</Badge>
                 </div>
                 <div className="space-y-2">
                   {/* Itens do carrinho */}
                   {cart.map((item) => (
-                    <div key={item.key} className="flex justify-between text-zinc-400 text-xs md:text-sm">
+                    <div key={item.key} className="flex justify-between text-muted-foreground text-xs md:text-sm">
                       <span className="truncate mr-2">{item.name} ×{item.quantity}</span>
                       <span className="shrink-0">{formatBRL(item.quantity * item.unit_price)}</span>
                     </div>
                   ))}
-                  <div className="h-px bg-zinc-800 my-2" />
-                  <div className="flex justify-between text-zinc-400 text-xs md:text-sm">
+                  <div className="h-px bg-muted my-2" />
+                  <div className="flex justify-between text-muted-foreground text-xs md:text-sm">
                     <span>Subtotal</span>
                     <span>{formatBRL(total)}</span>
                   </div>
                   {isCardPayment && cardTaxPercent > 0 && (
                     <div className="flex justify-between text-xs">
-                      <span className="text-zinc-500">Taxa cartão ({cardTaxPercent}%)</span>
+                      <span className="text-muted-foreground">Taxa cartão ({cardTaxPercent}%)</span>
                       <span className="text-red-400">-{formatBRL(cardFee)}</span>
                     </div>
                   )}
-                  <div className="h-px bg-zinc-800 my-2" />
+                  <div className="h-px bg-muted my-2" />
                   <div className="flex justify-between items-end text-white">
                     <span className="font-bold text-sm">Valor Total</span>
                     <span className="text-lg md:text-xl lg:text-3xl font-black tracking-tighter">{formatBRL(total)}</span>
                   </div>
                   {isCardPayment && cardTaxPercent > 0 && (
                     <div className="flex justify-between text-xs">
-                      <span className="text-zinc-500">Líquido (após taxa)</span>
+                      <span className="text-muted-foreground">Líquido (após taxa)</span>
                       <span className="text-emerald-400">{formatBRL(total - cardFee)}</span>
                     </div>
                   )}
@@ -795,12 +795,12 @@ export default function PDV() {
       {/* ── MODAL 3: Cliente ──────────────────────────────────────────────── */}
       {step === "customer" && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-xl animate-in fade-in duration-300 flex items-center justify-center p-6">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-[40px] border border-zinc-800 shadow-2xl overflow-hidden">
+          <div className="bg-secondary w-full max-w-md rounded-[40px] border border-border shadow-2xl overflow-hidden">
             <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 max-h-[90vh] overflow-y-auto">
 
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-black text-white">Identificação</h2>
-                <button onClick={() => setStep("cart")} className="text-zinc-500 hover:text-white transition-colors">
+                <button onClick={() => setStep("cart")} className="text-muted-foreground hover:text-white transition-colors">
                   <ArrowLeft />
                 </button>
               </div>
@@ -808,7 +808,7 @@ export default function PDV() {
               <div className="space-y-4">
                 {/* Busca de cliente existente */}
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70" size={18} />
                   <InputEl
                     placeholder="Buscar por nome, WhatsApp ou CPF..."
                     className="h-14 pl-12 pr-4"
@@ -836,8 +836,8 @@ export default function PDV() {
                         }}
                         className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
                           selectedCustomerId === c.id
-                            ? "bg-[#2952FF]/10 border-[#2952FF] text-white"
-                            : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                            ? "bg-primary/10 border-primary text-white"
+                            : "bg-background border-border text-muted-foreground hover:border-border/80"
                         }`}
                       >
                         <div>
@@ -846,7 +846,7 @@ export default function PDV() {
                             {[c.whatsapp, c.cpf].filter(Boolean).join(" · ")}
                           </p>
                         </div>
-                        {selectedCustomerId === c.id && <CheckCircle2 className="text-[#2952FF]" />}
+                        {selectedCustomerId === c.id && <CheckCircle2 className="text-primary" />}
                       </button>
                     ))}
                   </div>
@@ -854,16 +854,16 @@ export default function PDV() {
 
                 {/* Cliente selecionado */}
                 {selectedCustomer && (
-                  <div className="p-4 bg-[#2952FF]/10 border border-[#2952FF]/30 rounded-2xl flex items-center justify-between">
+                  <div className="p-4 bg-primary/10 border border-primary/30 rounded-2xl flex items-center justify-between">
                     <div>
                       <p className="font-bold text-white">{selectedCustomer.name}</p>
-                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                         {[selectedCustomer.whatsapp, (selectedCustomer as any).cpf].filter(Boolean).join(" · ")}
                       </p>
                     </div>
                     <button
                       onClick={() => { setSelectedCustomerId(null); setCustName(""); setCustWhatsapp(""); setCustCpf(""); }}
-                      className="text-xs font-bold text-zinc-500 hover:text-white transition-colors"
+                      className="text-xs font-bold text-muted-foreground hover:text-white transition-colors"
                     >
                       Trocar
                     </button>
@@ -873,10 +873,10 @@ export default function PDV() {
                 {/* Divisor */}
                 {!selectedCustomer && (
                   <>
-                    <div className="flex items-center gap-2 text-zinc-600">
-                      <div className="h-px flex-1 bg-zinc-800" />
+                    <div className="flex items-center gap-2 text-muted-foreground/70">
+                      <div className="h-px flex-1 bg-muted" />
                       <span className="text-[10px] font-bold uppercase tracking-widest">Ou novo cliente</span>
-                      <div className="h-px flex-1 bg-zinc-800" />
+                      <div className="h-px flex-1 bg-muted" />
                     </div>
 
                     <div className="space-y-3">
