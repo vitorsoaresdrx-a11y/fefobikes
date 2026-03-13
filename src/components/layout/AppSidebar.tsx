@@ -96,7 +96,7 @@ export function AppSidebar() {
   const permissions = permsData?.permissions ?? [];
 
   // Close mobile sidebar on route change
-  React.useEffect(() => {
+  useEffect(() => {
     if (isMobile) setOpenMobile(false);
   }, [location.pathname]);
 
