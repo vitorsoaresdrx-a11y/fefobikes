@@ -45,7 +45,9 @@ import {
   useUpdateMechanicJobDetails,
   type MechanicJob,
   type MechanicJobAddition,
+  type AdditionPart,
 } from "@/hooks/useMechanicJobs";
+import { useParts } from "@/hooks/useParts";
 import { useServiceOrdersRealtime, useCreateServiceOrder, type ServiceOrder } from "@/hooks/useServiceOrders";
 import { playNotifySound, playAcceptSound } from "@/lib/sounds";
 import { toast } from "sonner";
