@@ -20,6 +20,10 @@ import { useParts, useDeletePart, type Part } from "@/hooks/useParts";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { PartDrawer } from "@/components/parts/PartDrawer";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { EmptyState } from "@/components/EmptyState";
+import { PaginationBar } from "@/components/PaginationBar";
+import { usePagination } from "@/hooks/usePagination";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
