@@ -42,10 +42,15 @@ export function useCurrentCashRegister() {
 export function useOpenCashRegister() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (openingAmount: number) => {
+    mutationFn: async ({ openingAmount, opened_by }: { openingAmount: number; opened_by?: string }) => {
       const { data, error } = await supabase
         .from("cash_registers")
-        .insert({ opening_amount: openingAmount, status: "open", opened_at: new Date().toISOString() })
+        .insert({
+          opening_amount: openingAmount,
+          status: "open",
+          opened_at: new Date().toISOString(),
+          opened_by: opened_by || null,
+        })
         .select()
         .single();
       if (error) throw error;
@@ -66,10 +71,12 @@ export function useCloseCashRegister() {
       id,
       closingAmount,
       expectedAmount,
+      closed_by,
     }: {
       id: string;
       closingAmount: number;
       expectedAmount: number;
+      closed_by?: string;
     }) => {
       const difference = closingAmount - expectedAmount;
       const { data, error } = await supabase
@@ -80,6 +87,7 @@ export function useCloseCashRegister() {
           difference,
           status: "closed",
           closed_at: new Date().toISOString(),
+          closed_by: closed_by || null,
         })
         .eq("id", id)
         .select()
