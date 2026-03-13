@@ -415,7 +415,7 @@ export default function Orcamentos() {
             </div>
             <span className="text-sm font-black tracking-widest text-primary">ORÇAMENTOS</span>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl lg:text-4xl font-black tracking-tight italic uppercase text-white">
                 Orçamentos
