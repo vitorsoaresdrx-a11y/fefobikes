@@ -298,9 +298,9 @@ export default function Estoque() {
             <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
           <div className="flex items-center gap-3">
-            <Btn variant="secondary" size="lg" className="rounded-2xl">
-              <History className="w-5 h-5 mr-2" />
-              Histórico
+            <Btn variant="secondary" size="lg" className="rounded-2xl" onClick={() => exportInventoryCSV(parts, bikes as any[])}>
+              <Download className="w-5 h-5 mr-2" />
+              Exportar
             </Btn>
             <Btn variant="primary" size="lg">
               <Plus className="w-5 h-5 mr-2 stroke-[3]" />
