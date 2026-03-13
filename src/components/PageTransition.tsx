@@ -1,14 +1,11 @@
 import { motion } from "framer-motion";
-import { pageVariants, pageTransition } from "@/lib/animations";
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
-      variants={pageVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={pageTransition}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       className="w-full h-full"
     >
       {children}
