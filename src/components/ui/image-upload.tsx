@@ -178,11 +178,14 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || compressing}
             className="h-20 w-20 rounded-md border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-colors"
           >
-            {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+            {uploading || compressing ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span className="text-[8px] mt-0.5">{compressing ? "Otimizando..." : "Enviando..."}</span>
+              </div>
             ) : (
               <>
                 <ImagePlus className="h-5 w-5" />
