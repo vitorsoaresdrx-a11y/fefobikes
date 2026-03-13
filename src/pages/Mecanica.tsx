@@ -366,103 +366,104 @@ function JobCard({
           </div>
         </div>
 
-      {/* Customer info (secondary) */}
-      {(job.customer_name || job.customer_whatsapp || job.customer_cpf) && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
-          {job.customer_name && (
-            <span className="flex items-center gap-1">
-              <User size={9} className="text-muted-foreground/70 shrink-0" /> {job.customer_name}
-            </span>
-          )}
-          {job.customer_whatsapp && (
-            <span className="flex items-center gap-1">
-              <Phone size={9} className="shrink-0" /> {job.customer_whatsapp}
-            </span>
-          )}
-          {job.customer_cpf && (
-            <span className="flex items-center gap-1">
-              <CreditCard size={9} className="shrink-0" /> {job.customer_cpf}
-            </span>
-          )}
-        </div>
-      )}
+        {/* Customer info (secondary) */}
+        {(job.customer_name || job.customer_whatsapp || job.customer_cpf) && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+            {job.customer_name && (
+              <span className="flex items-center gap-1">
+                <User size={9} className="text-muted-foreground/70 shrink-0" /> {job.customer_name}
+              </span>
+            )}
+            {job.customer_whatsapp && (
+              <span className="flex items-center gap-1">
+                <Phone size={9} className="shrink-0" /> {job.customer_whatsapp}
+              </span>
+            )}
+            {job.customer_cpf && (
+              <span className="flex items-center gap-1">
+                <CreditCard size={9} className="shrink-0" /> {job.customer_cpf}
+              </span>
+            )}
+          </div>
+        )}
 
-      {/* Problem */}
-      <div className="p-3 bg-background rounded-xl border border-border/50">
-        <p className="text-[11px] font-medium text-muted-foreground leading-relaxed line-clamp-3">{job.problem}</p>
-      </div>
-
-      {/* Additions */}
-      {job.additions && job.additions.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-[0.2em] ml-1">
-            Reparos Extras
-          </p>
-          {job.additions.map((a) => (
-            <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />
-          ))}
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="flex flex-col items-end pt-1 gap-1.5">
-        <div className="flex flex-col items-end">
-          <span className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-widest">
-            Total
-          </span>
-          <span className="text-sm lg:text-base font-black text-white tracking-tighter">
-            {formatBRL(total)}
-          </span>
+        {/* Problem */}
+        <div className="p-3 bg-background rounded-xl border border-border/50">
+          <p className="text-[11px] font-medium text-muted-foreground leading-relaxed line-clamp-3">{job.problem}</p>
         </div>
 
-        <div className="flex gap-1">
-          <button
-            onClick={() => onAddRepair(job)}
-            className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
-            title="Adicionar reparo"
-          >
-            <Plus size={10} />
-          </button>
+        {/* Additions */}
+        {job.additions && job.additions.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-[0.2em] ml-1">
+              Reparos Extras
+            </p>
+            {job.additions.map((a) => (
+              <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />
+            ))}
+          </div>
+        )}
 
-          {showRetreat && onRetreat && (
-            <button
-              onClick={() => onRetreat(job)}
-              className="h-6 rounded-md px-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 border border-amber-500/20"
-              title="Retroceder para Em Manutenção"
-            >
-              <ChevronLeft size={10} /> Voltar
-            </button>
-          )}
+        {/* Footer */}
+        <div className="flex flex-col items-end pt-1 gap-1.5">
+          <div className="flex flex-col items-end">
+            <span className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-widest">
+              Total
+            </span>
+            <span className="text-sm lg:text-base font-black text-white tracking-tighter">
+              {formatBRL(total)}
+            </span>
+          </div>
 
-          {!isLast ? (
+          <div className="flex gap-1">
             <button
-              onClick={handleAdvance}
-              disabled={advanceMutation.isPending}
-              className="h-6 rounded-md px-1.5 bg-primary text-white hover:bg-primary/80 shadow-primary/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50"
+              onClick={() => onAddRepair(job)}
+              className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
+              title="Adicionar reparo"
             >
-              {advanceMutation.isPending ? (
-                <Loader2 size={10} className="animate-spin" />
-              ) : (
-                <>
-                  Avançar <ChevronRight size={10} />
-                </>
-              )}
+              <Plus size={10} />
             </button>
-          ) : (
-            <button
-              onClick={handleDeleteClick}
-              disabled={remove.isPending}
-              className="h-6 rounded-md px-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
-            >
-              {remove.isPending ? (
-                <Loader2 size={10} className="animate-spin" />
-              ) : (
-                <>
-                  Concluir <Check size={10} />
-                </>
-              )}
-            </button>
-          )}
+
+            {showRetreat && onRetreat && (
+              <button
+                onClick={() => onRetreat(job)}
+                className="h-6 rounded-md px-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 border border-amber-500/20"
+                title="Retroceder para Em Manutenção"
+              >
+                <ChevronLeft size={10} /> Voltar
+              </button>
+            )}
+
+            {!isLast ? (
+              <button
+                onClick={handleAdvance}
+                disabled={advanceMutation.isPending}
+                className="h-6 rounded-md px-1.5 bg-primary text-white hover:bg-primary/80 shadow-primary/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {advanceMutation.isPending ? (
+                  <Loader2 size={10} className="animate-spin" />
+                ) : (
+                  <>
+                    Avançar <ChevronRight size={10} />
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleDeleteClick}
+                disabled={remove.isPending}
+                className="h-6 rounded-md px-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
+              >
+                {remove.isPending ? (
+                  <Loader2 size={10} className="animate-spin" />
+                ) : (
+                  <>
+                    Concluir <Check size={10} />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
