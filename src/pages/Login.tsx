@@ -39,7 +39,7 @@ const STATIONS: Station[] = [
   {
     id: "salao",
     label: "Salão",
-    desc: "PDV, clientes e atendimento",
+    desc: "PDV, produtos, estoque, caixa e atendimento",
     icon: Store,
     accent: "text-emerald-500",
     iconBg: "bg-emerald-500/10",
