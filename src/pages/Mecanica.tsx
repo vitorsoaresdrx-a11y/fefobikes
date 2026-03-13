@@ -623,6 +623,7 @@ export default function Mecanica() {
     initialStatus: "in_approval" as "in_approval" | "in_repair",
   });
 
+  const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
   const [addForm, setAddForm] = useState({ problem: "", labor_cost: 0, parts: [] as AdditionPart[] });
