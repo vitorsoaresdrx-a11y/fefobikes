@@ -138,7 +138,7 @@ const ColumnHeader = ({
   bg: string;
   border: string;
 }) => (
-  <div className={`flex items-center gap-2 p-3 lg:p-4 rounded-2xl border ${border} ${bg} mb-4`}>
+  <div className={`flex items-center gap-2 p-3 rounded-2xl border ${border} ${bg} mb-4`}>
     <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center ${color} bg-white/5 shadow-inner shrink-0`}>
       <Icon size={16} className="stroke-[2.5]" />
     </div>
@@ -635,7 +635,7 @@ export default function Mecanica() {
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-full bg-background text-foreground selection:bg-primary/30 pb-24 lg:pb-0">
-      <div className="w-full mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-10 overflow-x-hidden">
+      <div className="w-full mx-auto p-4 md:p-6 space-y-6 md:space-y-10 overflow-x-hidden">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
@@ -756,7 +756,7 @@ export default function Mecanica() {
             </div>
 
             {/* Desktop: 4 columns equal height */}
-            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4">
+            <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
               {columns.map((col) => (
                 <div
                   key={col.key}
