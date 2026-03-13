@@ -451,6 +451,115 @@ function JobCard({
   );
 }
 
+// ─── Part Selector for Additions ──────────────────────────────────────────────
+
+function AddRepairPartSelector({
+  selectedParts,
+  onChange,
+}: {
+  selectedParts: AdditionPart[];
+  onChange: (parts: AdditionPart[]) => void;
+}) {
+  const { data: allParts = [] } = useParts();
+  const [search, setSearch] = useState("");
+
+  const filtered = allParts.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) &&
+      !selectedParts.some((sp) => sp.part_id === p.id)
+  );
+
+  const addPart = (part: { id: string; name: string; sale_price: number | null }) => {
+    onChange([
+      ...selectedParts,
+      {
+        part_id: part.id,
+        part_name: part.name,
+        quantity: 1,
+        unit_price: Number(part.sale_price || 0),
+      },
+    ]);
+    setSearch("");
+  };
+
+  const removePart = (index: number) => {
+    onChange(selectedParts.filter((_, i) => i !== index));
+  };
+
+  const updatePart = (index: number, updates: Partial<AdditionPart>) => {
+    onChange(selectedParts.map((p, i) => (i === index ? { ...p, ...updates } : p)));
+  };
+
+  return (
+    <div className="space-y-3">
+      {selectedParts.map((part, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-2 p-3 bg-background rounded-xl border border-border"
+        >
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-foreground truncate">{part.part_name}</p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <div className="flex items-center gap-1">
+                <label className="text-[9px] text-muted-foreground font-bold uppercase">Qtd</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={part.quantity}
+                  onChange={(e) => updatePart(i, { quantity: Math.max(1, Number(e.target.value)) })}
+                  className="w-12 h-7 text-center text-xs font-bold bg-card border border-border rounded-lg outline-none focus:border-primary"
+                />
+              </div>
+              <div className="flex items-center gap-1 flex-1">
+                <label className="text-[9px] text-muted-foreground font-bold uppercase">Preço</label>
+                <CurrencyInput
+                  value={part.unit_price}
+                  onChange={(val) => updatePart(i, { unit_price: val })}
+                />
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => removePart(i)}
+            className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-colors shrink-0"
+          >
+            <X size={10} />
+          </button>
+        </div>
+      ))}
+
+      <div className="relative">
+        <div className="flex items-center gap-2">
+          <Search size={14} className="text-muted-foreground shrink-0" />
+          <input
+            type="text"
+            placeholder="Buscar peça pelo nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 bg-card border border-border rounded-xl px-3 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
+          />
+        </div>
+        {search.length > 1 && filtered.length > 0 && (
+          <div className="absolute z-50 top-12 left-0 right-0 bg-card border border-border rounded-xl shadow-lg max-h-40 overflow-y-auto">
+            {filtered.slice(0, 8).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => addPart(p)}
+                className="w-full text-left px-4 py-2.5 hover:bg-muted transition-colors flex items-center justify-between"
+              >
+                <span className="text-xs font-semibold text-foreground truncate">{p.name}</span>
+                <span className="text-[10px] font-bold text-muted-foreground shrink-0 ml-2">
+                  {formatBRL(Number(p.sale_price || 0))}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Mecanica() {
