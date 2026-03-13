@@ -1,19 +1,20 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, ChevronDown, ChevronUp, Printer, User, ShoppingBag } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Search, ChevronDown, Printer, User, ShoppingBag } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { formatBRL } from "@/lib/format";
 
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+function formatDateShort(d: string) {
+  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
-function formatShortDate(d: string) {
-  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+function formatDateTime(d: string) {
+  const date = new Date(d);
+  return {
+    date: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+    time: date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+  };
 }
 
 const paymentLabel: Record<string, string> = {
@@ -23,6 +24,17 @@ const paymentLabel: Record<string, string> = {
   "cartão de débito": "Débito",
   transferência: "Transferência",
 };
+
+function getPaymentStyle(method: string) {
+  switch (method) {
+    case "pix":
+      return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    case "dinheiro":
+      return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+    default:
+      return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+  }
+}
 
 function buildReceiptFromSale(sale: any): ReceiptData {
   const customer = sale.customers;
@@ -54,6 +66,106 @@ interface CustomerGroup {
   lastPurchase: string;
 }
 
+// ─── Sale Row ─────────────────────────────────────────────────────────────────
+
+function SaleRow({
+  sale,
+  isExpanded,
+  onToggle,
+  onReceipt,
+}: {
+  sale: any;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onReceipt: () => void;
+}) {
+  const items = sale.sale_items || [];
+  const { date, time } = formatDateTime(sale.created_at);
+  const method = sale.payment_method || "pix";
+  const cardFee = Number(sale.card_fee) || 0;
+  const cardTax = Number(sale.card_tax_percent) || 0;
+
+  return (
+    <div className="px-4">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 py-3"
+      >
+        <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0">
+          <ShoppingBag size={13} className="text-zinc-500" />
+        </div>
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-xs text-zinc-400">
+            {date} · {time}
+          </p>
+        </div>
+        <span
+          className={`text-[9px] font-black px-2 py-0.5 rounded-full border shrink-0 ${getPaymentStyle(method)}`}
+        >
+          {paymentLabel[method] || method}
+        </span>
+        <p className="text-sm font-black text-white ml-2 shrink-0">
+          {formatBRL(Number(sale.total))}
+        </p>
+        <ChevronDown
+          size={12}
+          className={`text-zinc-600 ml-1 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {isExpanded && (
+        <div className="pb-3 space-y-2">
+          {items.map((item: any) => (
+            <div key={item.id} className="flex justify-between text-xs px-2">
+              <span className="text-zinc-400">
+                {item.quantity}x {item.description}
+              </span>
+              <span className="font-bold text-zinc-300">
+                {formatBRL(item.quantity * Number(item.unit_price))}
+              </span>
+            </div>
+          ))}
+
+          <div className="flex justify-between text-xs px-2 pt-2 border-t border-zinc-800 mt-2">
+            <span className="font-black text-white uppercase text-[10px]">Total</span>
+            <span className="font-black text-white">{formatBRL(Number(sale.total))}</span>
+          </div>
+
+          {cardFee > 0 && (
+            <div className="px-2 space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-500">Taxa cartão ({cardTax}%)</span>
+                <span className="text-red-400">-{formatBRL(cardFee)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-zinc-500">Líquido</span>
+                <span className="text-emerald-400">{formatBRL(Number(sale.total) - cardFee)}</span>
+              </div>
+            </div>
+          )}
+
+          {sale.notes && (
+            <p className="text-xs text-zinc-500 italic px-2">Obs: {sale.notes}</p>
+          )}
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onReceipt();
+            }}
+            className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 hover:text-white transition-colors px-2 mt-1"
+          >
+            <Printer size={12} /> Reimprimir
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export default function Historico() {
   const { data: sales = [], isLoading } = useSales();
   const [search, setSearch] = useState("");
@@ -61,7 +173,6 @@ export default function Historico() {
   const [expandedSale, setExpandedSale] = useState<string | null>(null);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
-  // Group sales by customer
   const customerGroups = useMemo(() => {
     const groups = new Map<string, CustomerGroup>();
 
@@ -89,7 +200,6 @@ export default function Historico() {
       }
     }
 
-    // Sort groups by last purchase date (most recent first)
     return Array.from(groups.values()).sort(
       (a, b) => new Date(b.lastPurchase).getTime() - new Date(a.lastPurchase).getTime()
     );
@@ -100,193 +210,173 @@ export default function Historico() {
   const filtered = useMemo(() => {
     if (!debouncedSearch.trim()) return customerGroups;
     const q = debouncedSearch.toLowerCase();
-    return customerGroups.filter((g) =>
-      g.customerName.toLowerCase().includes(q) ||
-      (g.customerWhatsapp && g.customerWhatsapp.includes(q)) ||
-      (g.customerCpf && g.customerCpf.includes(q))
+    return customerGroups.filter(
+      (g) =>
+        g.customerName.toLowerCase().includes(q) ||
+        (g.customerWhatsapp && g.customerWhatsapp.includes(q)) ||
+        (g.customerCpf && g.customerCpf.includes(q))
     );
-  }, [customerGroups, search]);
+  }, [customerGroups, debouncedSearch]);
 
   const toggleCustomer = (key: string) => {
     setExpandedCustomer(expandedCustomer === key ? null : key);
     setExpandedSale(null);
   };
 
-  const openReceipt = (sale: any) => {
-    setReceiptData(buildReceiptFromSale(sale));
-  };
+  const totalSalesCount = filtered.reduce((sum, g) => sum + g.sales.length, 0);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-lg font-semibold text-foreground">Histórico de Vendas</h1>
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
+      <div className="max-w-3xl mx-auto w-full p-4 lg:p-8 space-y-4">
+        {/* Header */}
+        <header className="flex items-center justify-between">
+          <h1 className="text-lg md:text-2xl font-extrabold tracking-tight">
+            Histórico de Vendas
+          </h1>
+        </header>
 
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por cliente, WhatsApp ou CPF..."
-          className="bg-card border-border h-9 text-sm pl-9"
-        />
-      </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por cliente, WhatsApp ou CPF..."
+            className="w-full bg-[#161618] border border-zinc-800 rounded-2xl h-10 pl-10 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF]/50 transition-colors placeholder:text-zinc-600"
+          />
+        </div>
 
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">Carregando...</p>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          {search ? "Nenhum cliente encontrado" : "Nenhuma venda registrada"}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((group) => {
-            const key = group.customerId || `anon-${group.sales[0].id}`;
-            const isExpanded = expandedCustomer === key;
+        {/* Content */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 text-center text-zinc-600 text-sm">
+            {search ? "Nenhum cliente encontrado" : "Nenhuma venda registrada"}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((group) => {
+              const key = group.customerId || `anon-${group.sales[0].id}`;
+              const isExpanded = expandedCustomer === key;
+              const n = group.sales.length;
 
-            return (
-              <div key={key} className="border border-border rounded-md bg-card overflow-hidden">
-                {/* Customer header */}
-                <button
-                  type="button"
-                  onClick={() => toggleCustomer(key)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/20 transition-colors"
+              return (
+                <div
+                  key={key}
+                  className="rounded-2xl bg-[#161618] border border-zinc-800 overflow-hidden"
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-muted-foreground" />
+                  {/* Customer header */}
+                  <button
+                    type="button"
+                    onClick={() => toggleCustomer(key)}
+                    className="w-full flex items-center gap-3 p-4 hover:bg-zinc-800/30 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
+                      <User size={18} className="text-zinc-500" />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{group.customerName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {group.sales.length} compra{group.sales.length !== 1 ? "s" : ""} • Última: {formatShortDate(group.lastPurchase)}
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-sm font-black text-white truncate">
+                        {group.customerName}
+                      </p>
+                      <p className="text-[10px] text-zinc-500 mt-0.5">
+                        {n} compra{n > 1 ? "s" : ""} · Última{" "}
+                        {formatDateShort(group.lastPurchase)}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-2 shrink-0">
-                    <span className="text-sm font-semibold text-foreground">{formatBRL(group.totalSpent)}</span>
-                    {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-                  </div>
-                </button>
-
-                {/* Expanded: list of sales */}
-                {isExpanded && (
-                  <div className="border-t border-border">
-                    {/* Customer info */}
-                    {(group.customerWhatsapp || group.customerCpf) && (
-                      <div className="px-4 py-2 bg-muted/10 text-xs text-muted-foreground flex gap-4 flex-wrap">
-                        {group.customerWhatsapp && <span>WhatsApp: {group.customerWhatsapp}</span>}
-                        {group.customerCpf && <span>CPF: {group.customerCpf}</span>}
-                      </div>
-                    )}
-
-                    {/* Sales list */}
-                    <div className="divide-y divide-border">
-                      {group.sales
-                        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                        .map((sale: any) => {
-                          const items = sale.sale_items || [];
-                          const saleExpanded = expandedSale === sale.id;
-                          const cardFee = Number(sale.card_fee) || 0;
-                          const cardTax = Number(sale.card_tax_percent) || 0;
-
-                          return (
-                            <div key={sale.id}>
-                              <button
-                                type="button"
-                                onClick={() => setExpandedSale(saleExpanded ? null : sale.id)}
-                                className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-muted/10 transition-colors"
-                              >
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <ShoppingBag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                                  <span className="text-xs text-muted-foreground">{formatDate(sale.created_at)}</span>
-                                  {sale.payment_method && (
-                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">
-                                      {paymentLabel[sale.payment_method] || sale.payment_method}
-                                    </Badge>
-                                  )}
-                                  <span className="text-xs text-muted-foreground">
-                                    • {items.length} ite{items.length !== 1 ? "ns" : "m"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                                  <span className="text-sm font-medium text-foreground">{formatBRL(Number(sale.total))}</span>
-                                  {saleExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
-                                </div>
-                              </button>
-
-                              {saleExpanded && (
-                                <div className="px-4 pb-3 pt-1 space-y-2 ml-5">
-                                  {/* Items */}
-                                  <div className="space-y-1">
-                                    {items.map((item: any) => (
-                                      <div key={item.id} className="flex justify-between text-sm">
-                                        <span className="text-foreground">
-                                          {item.quantity}x {item.description}
-                                        </span>
-                                        <span className="text-muted-foreground">{formatBRL(item.quantity * Number(item.unit_price))}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-
-                                  {/* Totals */}
-                                  <div className="border-t border-border pt-2 space-y-0.5">
-                                    <div className="flex justify-between text-sm font-medium">
-                                      <span className="text-muted-foreground">Total</span>
-                                      <span className="text-foreground">{formatBRL(Number(sale.total))}</span>
-                                    </div>
-                                    {cardFee > 0 && (
-                                      <>
-                                        <div className="flex justify-between text-xs">
-                                          <span className="text-muted-foreground">Taxa cartão ({cardTax}%)</span>
-                                          <span className="text-destructive">-{formatBRL(cardFee)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-xs">
-                                          <span className="text-muted-foreground">Líquido</span>
-                                          <span className="text-emerald-500">{formatBRL(Number(sale.total) - cardFee)}</span>
-                                        </div>
-                                      </>
-                                    )}
-                                  </div>
-
-                                  {sale.notes && (
-                                    <p className="text-xs text-muted-foreground italic">Obs: {sale.notes}</p>
-                                  )}
-
-                                  <div className="flex gap-2 pt-1">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="gap-1.5 text-xs"
-                                      onClick={(e) => { e.stopPropagation(); openReceipt(sale); }}
-                                    >
-                                      <Printer className="h-3.5 w-3.5" />
-                                      Reimprimir
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                    <div className="text-right shrink-0 ml-2">
+                      <p className="text-sm font-black text-white">
+                        {formatBRL(group.totalSpent)}
+                      </p>
+                      <ChevronDown
+                        size={14}
+                        className={`text-zinc-500 mt-1 mx-auto transition-transform ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      />
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                  </button>
 
-      <p className="text-xs text-muted-foreground text-right">
-        {filtered.length} cliente{filtered.length !== 1 ? "s" : ""} • {sales.length} venda{sales.length !== 1 ? "s" : ""}
-      </p>
+                  {/* Expanded content */}
+                  {isExpanded && (
+                    <div className="border-t border-zinc-800">
+                      {/* Customer info */}
+                      {(group.customerWhatsapp || group.customerCpf) && (
+                        <div className="px-4 py-3 flex gap-4 bg-zinc-800/30">
+                          {group.customerWhatsapp && (
+                            <div>
+                              <p className="text-[9px] uppercase text-zinc-600 font-bold tracking-wider">
+                                WhatsApp
+                              </p>
+                              <p className="text-xs font-bold text-zinc-300">
+                                {group.customerWhatsapp}
+                              </p>
+                            </div>
+                          )}
+                          {group.customerCpf && (
+                            <div>
+                              <p className="text-[9px] uppercase text-zinc-600 font-bold tracking-wider">
+                                CPF
+                              </p>
+                              <p className="text-xs font-bold text-zinc-300">
+                                {group.customerCpf}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-      {receiptData && (
-        <SaleReceipt
-          open={!!receiptData}
-          onClose={() => setReceiptData(null)}
-          data={receiptData}
-        />
-      )}
+                      {/* Sales list */}
+                      <div className="divide-y divide-zinc-800/50">
+                        {group.sales
+                          .sort(
+                            (a: any, b: any) =>
+                              new Date(b.created_at).getTime() -
+                              new Date(a.created_at).getTime()
+                          )
+                          .map((sale: any) => (
+                            <SaleRow
+                              key={sale.id}
+                              sale={sale}
+                              isExpanded={expandedSale === sale.id}
+                              onToggle={() =>
+                                setExpandedSale(
+                                  expandedSale === sale.id ? null : sale.id
+                                )
+                              }
+                              onReceipt={() =>
+                                setReceiptData(buildReceiptFromSale(sale))
+                              }
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Footer summary */}
+        {!isLoading && filtered.length > 0 && (
+          <div className="flex justify-between items-center px-1 py-3 text-[10px] text-zinc-600 uppercase tracking-widest">
+            <span>{filtered.length} clientes</span>
+            <span>{totalSalesCount} vendas</span>
+          </div>
+        )}
+
+        {/* Receipt modal */}
+        {receiptData && (
+          <SaleReceipt
+            open={!!receiptData}
+            onClose={() => setReceiptData(null)}
+            data={receiptData}
+          />
+        )}
+      </div>
     </div>
   );
 }
