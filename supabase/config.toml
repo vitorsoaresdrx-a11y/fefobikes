@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.ai-responder]
 verify_jwt = false
+
+[functions.station-login]
+verify_jwt = false
