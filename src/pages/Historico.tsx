@@ -222,6 +222,8 @@ export default function Historico() {
     );
   }, [customerGroups, debouncedSearch]);
 
+  const pagination = usePagination(filtered, 20);
+
   const toggleCustomer = (key: string) => {
     setExpandedCustomer(expandedCustomer === key ? null : key);
     setExpandedSale(null);
