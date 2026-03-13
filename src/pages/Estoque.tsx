@@ -365,7 +365,7 @@ export default function Estoque() {
                 key={t}
                 onClick={() => setFilterType(t)}
                 className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-                  filterType === t ? "bg-[#2C2C2E] text-white" : "text-muted-foreground hover:text-foreground/80"
+                  filterType === t ? "bg-secondary text-white" : "text-muted-foreground hover:text-foreground/80"
                 }`}
               >
                 {t === "all" ? "Tudo" : t + "s"}

@@ -122,7 +122,7 @@ function SortButton({
     <button
       onClick={onClick}
       className={`px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-        active ? "bg-[#2C2C2E] text-white" : "text-muted-foreground hover:text-foreground/80"
+        active ? "bg-secondary text-white" : "text-muted-foreground hover:text-foreground/80"
       }`}
     >
       {children}
@@ -293,7 +293,7 @@ export default function Pecas() {
               onClick={() => toggleSort(field)}
               className={`h-8 px-3 text-[10px] font-bold uppercase tracking-widest rounded-full border whitespace-nowrap shrink-0 transition-all ${
                 sortField === field
-                  ? "bg-[#2C2C2E] border-zinc-600 text-white"
+                  ? "bg-secondary border-border/70 text-white"
                   : "border-border/80 text-muted-foreground"
               }`}
             >

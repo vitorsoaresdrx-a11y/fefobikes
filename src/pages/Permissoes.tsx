@@ -288,7 +288,7 @@ function AddMemberDialog({
             <button
               onClick={handleAdd}
               disabled={createMember.isPending}
-              className="flex-[2] h-10 rounded-xl bg-primary text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+              className="flex-[2] h-10 rounded-xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
               {createMember.isPending ? <Loader2 size={14} className="animate-spin" /> : "Criar Membro"}
             </button>
@@ -359,7 +359,7 @@ export default function Permissoes() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setAddOpen(true)}
-              className="h-10 px-5 rounded-xl bg-primary text-white hover:bg-[#3D63FF] shadow-primary/30 text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+              className="h-10 px-5 rounded-xl bg-primary text-white hover:bg-primary/80 shadow-primary/30 text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
             >
               <UserPlus size={14} /> Novo Membro
             </button>

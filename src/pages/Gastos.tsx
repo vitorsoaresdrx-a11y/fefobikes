@@ -64,7 +64,7 @@ const Btn = ({
 
 const Input = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`flex h-12 w-full rounded-xl border border-border bg-card px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2952FF] transition-all ${className}`}
+    className={`flex h-12 w-full rounded-xl border border-border bg-card px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all ${className}`}
     {...props}
   />
 );
@@ -259,13 +259,13 @@ export default function Gastos() {
           <div className="flex p-1 bg-card border border-border rounded-2xl mx-auto md:mx-0 self-center md:self-start">
             <button
               onClick={() => setTab("fixed")}
-              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "fixed" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-muted-foreground hover:text-foreground/80"}`}
+              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "fixed" ? "bg-secondary text-white shadow-xl" : "text-muted-foreground hover:text-foreground/80"}`}
             >
               Fixo
             </button>
             <button
               onClick={() => setTab("variable")}
-              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "variable" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-muted-foreground hover:text-foreground/80"}`}
+              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "variable" ? "bg-secondary text-white shadow-xl" : "text-muted-foreground hover:text-foreground/80"}`}
             >
               Variável
             </button>
@@ -402,7 +402,7 @@ export default function Gastos() {
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
                   <textarea value={fNotes} onChange={(e) => setFNotes(e.target.value)} placeholder="Informações adicionais..." maxLength={500}
-                    className="w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
+                    className="w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary h-24 resize-none transition-all" />
                 </div>
               </div>
               <div className="flex gap-4">
@@ -448,7 +448,7 @@ export default function Gastos() {
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
                   <textarea value={vNotes} onChange={(e) => setVNotes(e.target.value)} placeholder="Informações adicionais..." maxLength={500}
-                    className="w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
+                    className="w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary h-24 resize-none transition-all" />
                 </div>
               </div>
               <div className="flex gap-4">

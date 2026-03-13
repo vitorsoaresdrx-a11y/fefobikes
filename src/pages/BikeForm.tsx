@@ -635,7 +635,7 @@ export default function BikeForm() {
                 onClick={() => form.setValue("cost_mode", "fixed")}
                 className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                   costMode === "fixed"
-                    ? "bg-[#2C2C2E] text-white shadow-xl"
+                    ? "bg-secondary text-white shadow-xl"
                     : "text-muted-foreground hover:text-foreground/80"
                 }`}
               >
@@ -646,7 +646,7 @@ export default function BikeForm() {
                 onClick={() => form.setValue("cost_mode", "manual")}
                 className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                   costMode === "manual"
-                    ? "bg-[#2C2C2E] text-white shadow-xl"
+                    ? "bg-secondary text-white shadow-xl"
                     : "text-muted-foreground hover:text-foreground/80"
                 }`}
               >

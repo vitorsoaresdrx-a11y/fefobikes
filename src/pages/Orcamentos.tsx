@@ -429,7 +429,7 @@ export default function Orcamentos() {
                 resetForm();
                 setOpen(true);
               }}
-              className="h-12 px-6 bg-primary hover:bg-[#3D63FF] text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-primary/30 transition-all active:scale-95"
+              className="h-12 px-6 bg-primary hover:bg-primary/80 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-primary/30 transition-all active:scale-95"
             >
               <Plus size={16} className="mr-2" />
               Novo Orçamento
@@ -634,7 +634,7 @@ export default function Orcamentos() {
             <Button
               onClick={handleSave}
               disabled={createQuote.isPending}
-              className="flex-1 h-14 rounded-2xl bg-primary hover:bg-[#3D63FF] text-white font-black text-xs uppercase tracking-widest shadow-primary/30 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="flex-1 h-14 rounded-2xl bg-primary hover:bg-primary/80 text-white font-black text-xs uppercase tracking-widest shadow-primary/30 transition-all active:scale-[0.98] disabled:opacity-50"
             >
               {createQuote.isPending ? (
                 <Loader2 size={16} className="animate-spin" />

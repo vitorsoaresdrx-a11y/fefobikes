@@ -299,7 +299,7 @@ export default function Bikes() {
 
                   {/* Imagem Desktop */}
                   <div className="hidden md:block aspect-[4/3] bg-background relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#161618] via-transparent to-transparent z-10" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent z-10" />
                     <div className="absolute top-4 right-4 z-20">
                       <Badge variant={bike.visible_on_storefront ? "active" : "default"}>
                         {bike.visible_on_storefront ? "NO AR" : "OCULTO"}

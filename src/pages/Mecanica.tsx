@@ -361,7 +361,7 @@ function JobCard({
             <button
               onClick={handleAdvance}
               disabled={advance.isPending}
-              className="h-7 rounded-lg px-2.5 bg-primary text-white hover:bg-[#3D63FF] shadow-primary/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              className="h-7 rounded-lg px-2.5 bg-primary text-white hover:bg-primary/80 shadow-primary/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
             >
               {advance.isPending ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -564,7 +564,7 @@ export default function Mecanica() {
             </button>
             <button
               onClick={() => setOpen(true)}
-              className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-8 rounded-2xl bg-primary text-white hover:bg-[#3D63FF] shadow-primary/30 text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 whitespace-nowrap min-w-0"
+              className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-8 rounded-2xl bg-primary text-white hover:bg-primary/80 shadow-primary/30 text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 whitespace-nowrap min-w-0"
             >
               <Plus size={14} className="stroke-[3] shrink-0" /> <span className="truncate">Nova Manutenção</span>
             </button>
@@ -783,7 +783,7 @@ export default function Mecanica() {
               <button
                 onClick={handleSave}
                 disabled={create.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {create.isPending ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -855,7 +855,7 @@ export default function Mecanica() {
               <button
                 onClick={handleSaveAddition}
                 disabled={createAddition.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {createAddition.isPending ? (
                   <Loader2 size={16} className="animate-spin" />

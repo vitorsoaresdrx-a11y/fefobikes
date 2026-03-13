@@ -115,7 +115,7 @@ function PriceSection({ product }: { product: any }) {
   return (
     <section className="space-y-4">
       {pixPrice > 0 && (
-        <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-[#1C1C1E] to-[#161618] border border-primary/30 shadow-[0_20px_50px_rgba(41,82,255,0.15)] text-center group">
+        <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-secondary to-card border border-primary/30 shadow-[0_20px_50px_rgba(41,82,255,0.15)] text-center group">
           <div className="absolute -right-10 -top-10 opacity-[0.05] text-primary group-hover:rotate-12 transition-transform duration-700">
             <Zap size={200} />
           </div>
@@ -358,7 +358,7 @@ export default function ProdutoPublico() {
               ) : (
                 <Package size={80} strokeWidth={1} />
               )}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#2952FF]/5 to-transparent opacity-50" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
             </div>
           )}
         </section>

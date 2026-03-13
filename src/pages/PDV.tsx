@@ -579,13 +579,13 @@ export default function PDV() {
               <div className="flex p-1 bg-card rounded-xl md:rounded-2xl border border-border shrink-0 self-start">
                 <button
                   onClick={() => { setCatalogTab("parts"); setCatalogCategory("todas"); }}
-                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-[#2C2C2E] text-white" : "text-muted-foreground"}`}
+                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "parts" ? "bg-secondary text-white" : "text-muted-foreground"}`}
                 >
                   Peças
                 </button>
                 <button
                   onClick={() => { setCatalogTab("bikes"); setCatalogCategory("todas"); }}
-                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-[#2C2C2E] text-white" : "text-muted-foreground"}`}
+                  className={`px-4 md:px-8 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${catalogTab === "bikes" ? "bg-secondary text-white" : "text-muted-foreground"}`}
                 >
                   Bikes
                 </button>

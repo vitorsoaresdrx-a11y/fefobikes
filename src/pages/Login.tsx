@@ -22,7 +22,7 @@ const Btn = ({
 
 const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`flex w-full bg-card border border-border h-14 px-4 rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-[#2952FF] focus:border-transparent transition-all placeholder:text-muted-foreground/70 ${className}`}
+    className={`flex w-full bg-card border border-border h-14 px-4 rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/70 ${className}`}
     {...props}
   />
 );

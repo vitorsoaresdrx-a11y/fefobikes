@@ -393,10 +393,10 @@ export default function WhatsApp() {
                     )}
                   </div>
                   <span
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#111113] ${statusDotConfig[conv.status] || "bg-zinc-500"}`}
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${statusDotConfig[conv.status] || "bg-zinc-500"}`}
                   />
                   {conv.unread_count > 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-background">
                       {conv.unread_count}
                     </div>
                   )}
@@ -625,7 +625,7 @@ export default function WhatsApp() {
                 <button
                   onClick={handleSend}
                   disabled={!messageText.trim() || sendMessage.isPending}
-                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-[#3D63FF] flex items-center justify-center text-white shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
+                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-primary/80 flex items-center justify-center text-white shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
                 >
                   <Send size={20} />
                 </button>

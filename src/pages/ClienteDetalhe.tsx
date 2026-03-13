@@ -126,7 +126,7 @@ export default function ClienteDetalhe() {
               <button
                 onClick={saveEdit}
                 disabled={updateCustomer.isPending}
-                className="h-10 px-4 rounded-2xl bg-primary text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#3D63FF] transition-colors disabled:opacity-50"
+                className="h-10 px-4 rounded-2xl bg-primary text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-primary/80 transition-colors disabled:opacity-50"
               >
                 <Save size={14} /> Salvar
               </button>
