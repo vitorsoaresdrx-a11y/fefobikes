@@ -121,14 +121,14 @@ export default function CashRegister() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 pb-20">
+    <div className="min-h-full bg-background text-foreground font-sans selection:bg-primary/30 pb-20">
       <div className="max-w-4xl mx-auto w-full p-5 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}

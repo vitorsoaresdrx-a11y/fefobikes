@@ -232,7 +232,7 @@ export default function Historico() {
   const totalSalesCount = filtered.reduce((sum, g) => sum + g.sales.length, 0);
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
+    <div className="min-h-full bg-background text-foreground font-sans selection:bg-primary/30">
       <div className="max-w-3xl mx-auto w-full p-4 lg:p-8 space-y-4">
         {/* Header */}
         <header className="flex items-center justify-between">

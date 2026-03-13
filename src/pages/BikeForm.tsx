@@ -315,7 +315,7 @@ export default function BikeForm() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background text-foreground pb-32">
+    <div className="min-h-full bg-background text-foreground pb-32">
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-8 lg:space-y-10">
 
