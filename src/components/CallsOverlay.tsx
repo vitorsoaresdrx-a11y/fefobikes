@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useInternalCalls, useMarkAsViewed, useCallReplies, useSendReply } from "@/hooks/useInternalCalls";
+import { useInternalCalls, useMarkAsViewed, useSendReply } from "@/hooks/useInternalCalls";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, Loader2, MessageSquare, Send } from "lucide-react";
 import { AudioPlayer } from "@/components/AudioPlayer";
