@@ -115,8 +115,13 @@ export function AppSidebar() {
   };
 
   const handleNavClick = (path: string) => {
-    setOpenMobile(false);
-    navigate(path);
+    if (isMobile) {
+      setOpenMobile(false);
+      // Navigate after sidebar starts closing so loading screen shows immediately
+      setTimeout(() => navigate(path), 10);
+    } else {
+      navigate(path);
+    }
   };
 
   return (
