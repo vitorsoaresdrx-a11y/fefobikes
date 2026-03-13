@@ -256,7 +256,7 @@ export default function Gastos() {
 
         {/* Tabs */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl self-start">
+          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl mx-auto md:mx-0 self-center md:self-start">
             <button
               onClick={() => setTab("fixed")}
               className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "fixed" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"}`}
