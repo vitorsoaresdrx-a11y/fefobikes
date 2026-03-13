@@ -942,17 +942,24 @@ export default function Mecanica() {
               </div>
             </div>
 
-            {/* Desktop: "Na Mecânica" discrete card above the Kanban */}
+            {/* Desktop: "Na Mecânica" collapsible card above the Kanban */}
             {grouped.in_repair.length > 0 && (
               <div className="hidden md:block max-w-3xl mx-auto">
-                <div className="bg-card/60 border border-amber-400/15 rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center gap-2 justify-center">
-                    <Wrench size={14} className="text-amber-400" />
-                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
-                      Na Mecânica ({grouped.in_repair.length})
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setMechanicCardOpen((v) => !v)}
+                  className="w-full bg-card/60 border border-amber-400/15 rounded-2xl px-4 py-3 flex items-center justify-center gap-2 hover:border-amber-400/30 transition-all"
+                >
+                  <Wrench size={14} className="text-amber-400" />
+                  <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                    Na Mecânica ({grouped.in_repair.length})
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`text-amber-400 transition-transform duration-200 ${mechanicCardOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {mechanicCardOpen && (
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {grouped.in_repair.map((job) => (
                       <JobCard
                         key={job.id}
@@ -965,7 +972,7 @@ export default function Mecanica() {
                       />
                     ))}
                   </div>
-                </div>
+                )}
               </div>
             )}
 
