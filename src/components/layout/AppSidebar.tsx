@@ -18,7 +18,7 @@ import {
   FileText,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentCashRegister } from "@/hooks/useCashRegister";
 import { useTotalUnread } from "@/hooks/useWhatsApp";
@@ -84,6 +84,7 @@ const navGroups = [
 export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
   const location = useLocation();
   const { data: currentRegister } = useCurrentCashRegister();
   const isCashOpen = currentRegister?.status === "open";
@@ -111,6 +112,13 @@ export function AppSidebar() {
   const isActive = (url: string) => {
     if (url === "/") return location.pathname === "/";
     return location.pathname.startsWith(url);
+  };
+
+  const handleNavClick = (path: string) => {
+    if (isMobile) setOpenMobile(false);
+    requestAnimationFrame(() => {
+      navigate(path);
+    });
   };
 
   return (
@@ -153,10 +161,9 @@ export function AppSidebar() {
                               : "text-sidebar-foreground/40 hover:text-sidebar-foreground/80"
                           }
                         >
-                          <NavLink
-                            to={item.url}
-                            end={item.url === "/"}
-                            onClick={() => isMobile && setOpenMobile(false)}
+                          <button
+                            onClick={() => handleNavClick(item.url)}
+                            className="flex items-center gap-2 w-full"
                           >
                             <item.icon className="h-4 w-4 shrink-0" />
                             {!collapsed && (
@@ -175,7 +182,7 @@ export function AppSidebar() {
                                 )}
                               </span>
                             )}
-                          </NavLink>
+                          </button>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
