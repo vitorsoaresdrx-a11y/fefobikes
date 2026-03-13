@@ -20,6 +20,8 @@ import {
   UserPlus,
   ChevronRight,
   Banknote,
+  WifiOff,
+  Loader2,
 } from "lucide-react";
 import { useBikeModels } from "@/hooks/useBikes";
 import { useParts } from "@/hooks/useParts";
