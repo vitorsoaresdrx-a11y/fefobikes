@@ -378,7 +378,7 @@ export default function DRE() {
           return (
             <div className={hasLargeValue ? "flex flex-col gap-3 md:grid md:grid-cols-4 md:gap-6" : "grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6"}>
               <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" compact={hasLargeValue} />
-              <StatCard title="Receita Líquida" value={totals.netRevenue} icon={Receipt} tag="Após Taxas" color="text-indigo-400" compact={hasLargeValue} />
+              <StatCard title="Vendas do Ano" value={monthlySalesCount} icon={Receipt} tag="Qtd" color="text-indigo-400" compact={hasLargeValue} />
               <StatCard
                 title="Despesas Totais"
                 value={totals.fixedExpenses + totals.variableExpenses}
