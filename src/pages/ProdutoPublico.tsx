@@ -37,7 +37,7 @@ const Btn = ({
   variant?: "primary" | "secondary" | "outline";
 }) => {
   const v = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_0_25px_rgba(130,10,209,0.3)]",
+    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_25px_rgba(41,82,255,0.3)]",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
   };
@@ -52,7 +52,7 @@ const Btn = ({
 };
 
 const BadgeEl = ({ children }: { children: React.ReactNode }) => (
-  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#820AD1]/10 text-[#820AD1] border border-[#820AD1]/20">
+  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#2952FF]/10 text-[#2952FF] border border-[#2952FF]/20">
     {children}
   </span>
 );
@@ -63,7 +63,7 @@ function Header() {
   return (
     <header className="h-20 flex items-center justify-between px-8 border-b border-zinc-800/50 bg-[#0A0A0B]/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(130,10,209,0.3)]">
+        <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
           <Bike className="w-5 h-5 text-white" />
         </div>
         <span className="font-black text-sm text-white uppercase tracking-widest">Fefo Bikes</span>
@@ -93,7 +93,7 @@ function LoadingState() {
   return (
     <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#820AD1] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
         <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">
           Preparando Experiência...
         </span>
@@ -115,11 +115,11 @@ function PriceSection({ product }: { product: any }) {
   return (
     <section className="space-y-4">
       {pixPrice > 0 && (
-        <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-[#1C1C1E] to-[#161618] border border-[#820AD1]/30 shadow-[0_20px_50px_rgba(130,10,209,0.15)] text-center group">
-          <div className="absolute -right-10 -top-10 opacity-[0.05] text-[#820AD1] group-hover:rotate-12 transition-transform duration-700">
+        <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-[#1C1C1E] to-[#161618] border border-[#2952FF]/30 shadow-[0_20px_50px_rgba(41,82,255,0.15)] text-center group">
+          <div className="absolute -right-10 -top-10 opacity-[0.05] text-[#2952FF] group-hover:rotate-12 transition-transform duration-700">
             <Zap size={200} />
           </div>
-          <p className="text-[10px] font-bold text-[#820AD1] uppercase tracking-[0.3em] mb-2">
+          <p className="text-[10px] font-bold text-[#2952FF] uppercase tracking-[0.3em] mb-2">
             Valor Especial PIX
           </p>
           <p className="text-3xl lg:text-5xl font-black text-white tracking-tighter mb-2">
@@ -167,7 +167,7 @@ function PartAttributesSection({ partId }: { partId: string }) {
   return (
     <section className="space-y-4">
       <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-        <List size={14} className="text-[#820AD1]" /> Características
+        <List size={14} className="text-[#2952FF]" /> Características
       </h2>
       <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden divide-y divide-zinc-800/50">
         {attrs.map((attr) => (
@@ -300,7 +300,7 @@ export default function ProdutoPublico() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30 flex flex-col">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10 space-y-12">
@@ -309,7 +309,7 @@ export default function ProdutoPublico() {
         <section className="space-y-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#820AD1]">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2952FF]">
                 Catálogo Oficial
               </span>
               <div className="h-px flex-1 bg-zinc-800/50" />
@@ -358,7 +358,7 @@ export default function ProdutoPublico() {
               ) : (
                 <Package size={80} strokeWidth={1} />
               )}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#820AD1]/5 to-transparent opacity-50" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#2952FF]/5 to-transparent opacity-50" />
             </div>
           )}
         </section>
@@ -370,7 +370,7 @@ export default function ProdutoPublico() {
         {(product as any).description && (
           <section className="bg-[#161618] border border-zinc-800 rounded-[32px] p-8 space-y-4">
             <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-              <Info size={14} className="text-[#820AD1]" /> Sobre o Produto
+              <Info size={14} className="text-[#2952FF]" /> Sobre o Produto
             </h2>
             <p className="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">{(product as any).description}</p>
           </section>

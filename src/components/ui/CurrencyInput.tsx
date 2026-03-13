@@ -66,7 +66,7 @@ export function CurrencyInput({
         disabled={disabled}
         autoFocus={autoFocus}
         className={cn(
-          "w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#820AD1] focus:shadow-[0_0_0_2px_rgba(130,10,209,0.2)] transition-all placeholder:text-zinc-600",
+          "w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#2952FF] focus:shadow-[0_0_0_2px_rgba(41,82,255,0.2)] transition-all placeholder:text-zinc-600",
           className
         )}
       />

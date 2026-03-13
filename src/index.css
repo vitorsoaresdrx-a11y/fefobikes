@@ -118,8 +118,8 @@
   textarea:focus,
   select:focus {
     outline: none;
-    border-color: #820AD1;
-    box-shadow: 0 0 0 2px rgba(130, 10, 209, 0.2);
+    border-color: #2952FF;
+    box-shadow: 0 0 0 2px rgba(41, 82, 255, 0.2);
   }
 
   input:-webkit-autofill {

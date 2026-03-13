@@ -402,7 +402,7 @@ export default function Gastos() {
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
                   <textarea value={fNotes} onChange={(e) => setFNotes(e.target.value)} placeholder="Informações adicionais..." maxLength={500}
-                    className="w-full rounded-xl border border-zinc-800 bg-[#161618] p-4 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#820AD1] h-24 resize-none transition-all" />
+                    className="w-full rounded-xl border border-zinc-800 bg-[#161618] p-4 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
                 </div>
               </div>
               <div className="flex gap-4">
@@ -448,7 +448,7 @@ export default function Gastos() {
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
                   <textarea value={vNotes} onChange={(e) => setVNotes(e.target.value)} placeholder="Informações adicionais..." maxLength={500}
-                    className="w-full rounded-xl border border-zinc-800 bg-[#161618] p-4 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#820AD1] h-24 resize-none transition-all" />
+                    className="w-full rounded-xl border border-zinc-800 bg-[#161618] p-4 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
                 </div>
               </div>
               <div className="flex gap-4">
