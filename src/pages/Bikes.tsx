@@ -79,23 +79,16 @@ const Badge = ({
 function StatCard({
   title,
   value,
-  icon,
-  color = "text-[#2952FF]",
+  color = "text-white",
 }: {
   title: string;
   value: number;
-  icon: React.ReactNode;
   color?: string;
 }) {
   return (
-    <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-4 md:p-6 flex items-center gap-3 md:gap-5">
-      <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{title}</p>
-        <p className="text-2xl font-black text-white">{value}</p>
-      </div>
+    <div className="p-3 rounded-2xl bg-[#161618] border border-zinc-800">
+      <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-500 leading-tight mb-1">{title}</p>
+      <p className={`text-xl font-black ${color}`}>{value}</p>
     </div>
   );
 }
