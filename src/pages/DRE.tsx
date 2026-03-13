@@ -269,9 +269,9 @@ export default function DRE() {
   const monthlySalesCount = useMemo(() => {
     return sales.filter((sale: any) => {
       const date = new Date(sale.created_at);
-      return date.getFullYear() === selectedYear;
+      return date.getFullYear() === selectedYear && date.getMonth() === selectedMonth;
     }).length;
-  }, [sales, selectedYear]);
+  }, [sales, selectedYear, selectedMonth]);
 
   const totals = useMemo(() => {
     const t = monthlyData.reduce(
@@ -380,7 +380,7 @@ export default function DRE() {
           return (
             <div className={hasLargeValue ? "flex flex-col gap-3 md:grid md:grid-cols-4 md:gap-6" : "grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6"}>
               <StatCard title="Faturamento Bruto" value={totals.revenue} icon={DollarSign} tag="Receita" compact={hasLargeValue} />
-              <StatCard title="Vendas do Ano" value={monthlySalesCount} icon={Receipt} tag="Qtd" color="text-indigo-400" compact={hasLargeValue} formatValue={(v) => String(v)} />
+              <StatCard title="Vendas do Mês" value={monthlySalesCount} icon={Receipt} tag="Qtd" color="text-indigo-400" compact={hasLargeValue} formatValue={(v) => String(v)} />
               <StatCard
                 title="Despesas Totais"
                 value={totals.fixedExpenses + totals.variableExpenses}
