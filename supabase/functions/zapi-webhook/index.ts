@@ -187,6 +187,7 @@ Deno.serve(async (req) => {
         last_message_at: new Date().toISOString(),
         unread_count: 1,
         status: "open",
+        tenant_id: tenantId,
       };
       if (lid) insertData.contact_lid = lid;
 
