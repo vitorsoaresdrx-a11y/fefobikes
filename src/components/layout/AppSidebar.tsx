@@ -114,6 +114,13 @@ export function AppSidebar() {
     return location.pathname.startsWith(url);
   };
 
+  const handleNavClick = (path: string) => {
+    if (isMobile) setOpenMobile(false);
+    requestAnimationFrame(() => {
+      navigate(path);
+    });
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-5 py-5">
