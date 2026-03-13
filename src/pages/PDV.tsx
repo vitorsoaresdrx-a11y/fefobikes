@@ -268,14 +268,76 @@ export default function PDV() {
       let customerId = selectedCustomerId;
 
       if (!customerId && custName.trim()) {
-        const created = await createCustomer.mutateAsync({
-          name: custName.trim(),
-          whatsapp: custWhatsapp.trim() || null,
-          cpf: custCpf.trim() || null,
-        });
-        customerId = created.id;
+        if (!online) {
+          // Can't create customer offline, proceed without
+          customerId = null;
+        } else {
+          const created = await createCustomer.mutateAsync({
+            name: custName.trim(),
+            whatsapp: custWhatsapp.trim() || null,
+            cpf: custCpf.trim() || null,
+          });
+          customerId = created.id;
+        }
       }
 
+      const saleId = crypto.randomUUID();
+      const salePayload = {
+        id: saleId,
+        customer_id: customerId,
+        total,
+        payment_method: paymentMethod,
+        notes: null,
+        card_fee: cardFee,
+        card_tax_percent: cardTaxPercent,
+      };
+
+      const itemsPayload = cart.map((item) => ({
+        id: crypto.randomUUID(),
+        sale_id: saleId,
+        description: item.name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        bike_model_id: item.type === "bike" ? item.id : null,
+        part_id: item.type === "part" ? item.id : null,
+      }));
+
+      if (!online) {
+        // Save to offline queue
+        addToQueue({
+          id: saleId,
+          payload: { salePayload, itemsPayload },
+          created_at: new Date().toISOString(),
+        });
+
+        // Show receipt even offline
+        const finalCustomerName = selectedCustomer?.name || custName.trim() || undefined;
+        const finalWhatsapp = selectedCustomer?.whatsapp || custWhatsapp.trim() || undefined;
+
+        const receipt: ReceiptData = {
+          orderNumber: saleId.slice(-4).toUpperCase(),
+          timestamp: new Date(),
+          customerName: finalCustomerName,
+          customerWhatsapp: finalWhatsapp,
+          items: cart.map((i) => ({ name: i.name, quantity: i.quantity, unit_price: i.unit_price })),
+          subtotal: total,
+          discount: 0,
+          total,
+          paymentMethod,
+        };
+
+        setReceiptData(receipt);
+        setShowReceipt(true);
+        setStep("idle");
+
+        toast({
+          title: "Venda salva offline",
+          description: "Será sincronizada quando a internet voltar.",
+        });
+        return;
+      }
+
+      // Online — normal flow
       const sale = await createSale.mutateAsync({
         customer_id: customerId,
         total,
