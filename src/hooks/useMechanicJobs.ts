@@ -171,10 +171,15 @@ export function useCreateAddition() {
       job_id: string;
       problem: string;
       price: number;
+      labor_cost?: number;
+      parts_used?: AdditionPart[];
     }) => {
       const { data, error } = await supabase
         .from("mechanic_job_additions" as any)
-        .insert(addition)
+        .insert({
+          ...addition,
+          parts_used: JSON.stringify(addition.parts_used || []),
+        })
         .select()
         .single();
       if (error) throw error;
