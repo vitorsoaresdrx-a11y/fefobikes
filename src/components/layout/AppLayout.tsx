@@ -27,6 +27,7 @@ const routeLabels: Record<string, string> = {
   "/mecanica": "Mecânica",
   "/clientes": "Clientes",
   "/configuracoes": "Configurações",
+  "/chamadas": "Chamadas",
 };
 
 export function AppLayout() {
