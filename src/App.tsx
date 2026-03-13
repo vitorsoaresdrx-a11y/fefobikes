@@ -75,6 +75,8 @@ function AuthGate() {
   if (!session) return <Login />;
 
   return (
+    <>
+    <OfflineSync />
     <Suspense fallback={<PageSkeleton />}>
       <Routes>
         <Route element={<AppLayout />}>
