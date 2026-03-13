@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -133,9 +134,20 @@ export default function Gastos() {
   const [vAmount, setVAmount] = useState(0);
   const [vDate, setVDate] = useState("");
   const [vNotes, setVNotes] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: "fixed" | "variable" } | null>(null);
 
   const resetFixed = () => { setFName(""); setFAmount(0); setFNotes(""); };
   const resetVar = () => { setVName(""); setVAmount(0); setVDate(""); setVNotes(""); };
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!deleteTarget) return;
+    if (deleteTarget.type === "fixed") {
+      deleteFixed.mutate(deleteTarget.id, { onSuccess: () => toast.success("Removido") });
+    } else {
+      deleteVariable.mutate(deleteTarget.id, { onSuccess: () => toast.success("Removido") });
+    }
+    setDeleteTarget(null);
+  }, [deleteTarget, deleteFixed, deleteVariable]);
 
   const filteredVariable = useMemo(() =>
     variableExpenses.filter((e) => {
@@ -244,7 +256,7 @@ export default function Gastos() {
 
         {/* Tabs */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl self-start">
+          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl mx-auto md:mx-0 self-center md:self-start">
             <button
               onClick={() => setTab("fixed")}
               className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "fixed" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"}`}
@@ -338,11 +350,7 @@ export default function Gastos() {
                       variant="destructive"
                       size="icon"
                       className="rounded-xl w-8 h-8 md:w-9 md:h-9"
-                      onClick={() =>
-                        tab === "fixed"
-                          ? deleteFixed.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                          : deleteVariable.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                      }
+                      onClick={() => setDeleteTarget({ id: exp.id, type: tab })}
                     >
                       <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     </Btn>
@@ -453,6 +461,14 @@ export default function Gastos() {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Excluir lançamento"
+        description="Tem certeza que deseja excluir este gasto? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
