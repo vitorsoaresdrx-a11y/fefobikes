@@ -35,6 +35,29 @@ import {
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const STATION_LABELS: Record<string, string> = {
+  admin: "Administração",
+  salao: "Salão",
+  mecanica: "Mecânica",
+};
+
+function getMemberDisplayName(member: TenantMember): string {
+  const email = member.email || "";
+  // station-admin-{uuid}@station.internal → "Administração"
+  const stationMatch = email.match(/^station-(\w+)-/);
+  if (stationMatch) {
+    return STATION_LABELS[stationMatch[1]] || stationMatch[1];
+  }
+  return email || member.user_id.slice(0, 8) + "...";
+}
+
+function getMemberInitials(member: TenantMember): string {
+  const name = getMemberDisplayName(member);
+  return name.slice(0, 2).toUpperCase();
+}
+
 // ─── Permission Row ──────────────────────────────────────────────────────────
 
 function PermissionRow({
