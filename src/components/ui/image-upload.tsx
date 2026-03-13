@@ -54,7 +54,9 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
           continue;
         }
 
-        const compressed = await compressImage(file);
+        setCompressing(true);
+        const compressed = await compressImage(file, 'product');
+        setCompressing(false);
         const fileName = `${folder}/${crypto.randomUUID()}.webp`;
 
         const { error } = await supabase.storage
