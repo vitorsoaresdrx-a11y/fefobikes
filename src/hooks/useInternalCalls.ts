@@ -3,6 +3,32 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+async function resolveUserName(userId: string, email?: string): Promise<string> {
+  // Check localStorage for salão user name
+  const salaoName = typeof window !== "undefined" ? localStorage.getItem("salao_user_name") : null;
+  if (salaoName) return salaoName;
+
+  // Try profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", userId)
+    .single();
+
+  if (profile?.full_name) return profile.full_name;
+
+  // Fallback: extract readable part from email
+  if (email) {
+    if (email.includes("@station.internal")) {
+      const match = email.match(/^station-(\w+)-/);
+      if (match) return match[1].charAt(0).toUpperCase() + match[1].slice(1);
+    }
+    return email.split("@")[0];
+  }
+
+  return "Usuário";
+}
+
 export interface InternalCall {
   id: string;
   message: string;
@@ -160,17 +186,13 @@ export function useSendReply() {
 
   return useMutation({
     mutationFn: async ({ callId, message }: { callId: string; message: string }) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", session!.user.id)
-        .single();
+      const displayName = await resolveUserName(session!.user.id, session!.user.email);
 
       const { error } = await supabase.from("internal_call_replies").insert({
         call_id: callId,
         message,
         created_by: session!.user.id,
-        created_by_name: profile?.full_name || session!.user.email || "Usuário",
+        created_by_name: displayName,
       });
       if (error) throw error;
     },
@@ -219,11 +241,7 @@ export function useSendCall() {
       audioBlob?: Blob;
       audioDuration?: number;
     }) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", session!.user.id)
-        .single();
+      const displayName = await resolveUserName(session!.user.id, session!.user.email);
 
       let audioUrl: string | null = null;
 
@@ -244,7 +262,7 @@ export function useSendCall() {
       const { error } = await supabase.from("internal_calls").insert({
         message: message || "",
         created_by: session!.user.id,
-        created_by_name: profile?.full_name || session!.user.email || "Usuário",
+        created_by_name: displayName,
         target_type: targetType,
         target_role: targetRole || null,
         target_user_id: targetUserId || null,

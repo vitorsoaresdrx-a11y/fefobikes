@@ -45,13 +45,27 @@ export default function Chamadas() {
         (profiles || []).map((p) => [p.id, p.full_name])
       );
 
-      return tmMembers.map((m) => ({
-        ...m,
-        displayName:
-          profileMap.get(m.user_id) ||
-          m.email?.split("@")[0] ||
-          "Usuário",
-      }));
+      return tmMembers.map((m) => {
+        const profileName = profileMap.get(m.user_id);
+        let displayName = profileName || "";
+
+        if (!displayName && m.email) {
+          if (m.email.includes("@station.internal")) {
+            // Station user: extract station type as fallback
+            const match = m.email.match(/^station-(\w+)-/);
+            displayName = match
+              ? match[1].charAt(0).toUpperCase() + match[1].slice(1)
+              : m.email.split("@")[0];
+          } else {
+            displayName = m.email.split("@")[0];
+          }
+        }
+
+        return {
+          ...m,
+          displayName: displayName || "Usuário",
+        };
+      });
     },
     enabled: !!session?.user?.id,
   });
