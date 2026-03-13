@@ -46,6 +46,7 @@ const NotFound = lazyRetry(() => import("@/pages/NotFound"));
 const Orcamentos = lazyRetry(() => import("@/pages/Orcamentos"));
 const ProdutoPublico = lazyRetry(() => import("@/pages/ProdutoPublico"));
 const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
+const Jogar = lazyRetry(() => import("@/pages/Jogar"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -132,8 +133,9 @@ const App = () => (
                   <ProdutoPublico />
                 </Suspense>
               } />
-              <Route path="/*" element={<AuthGate />} />
-            </Routes>
+            <Route path="/*" element={<AuthGate />} />
+            <Route path="/jogar" element={<Jogar />} />
+          </Routes>
           </div>
         </BrowserRouter>
       </AuthProvider>
