@@ -104,6 +104,43 @@ export function useAdvanceMechanicJob() {
   });
 }
 
+export function useRetreatMechanicJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase
+        .from("mechanic_jobs" as any)
+        .update({ status: "in_repair" })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useUpdateMechanicJobDetails() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: {
+      id: string;
+      customer_name?: string | null;
+      customer_cpf?: string | null;
+      customer_whatsapp?: string | null;
+      customer_id?: string | null;
+      bike_name?: string | null;
+      problem?: string;
+      price?: number;
+    }) => {
+      const { error } = await supabase
+        .from("mechanic_jobs" as any)
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useDeleteMechanicJob() {
   const qc = useQueryClient();
   return useMutation({
