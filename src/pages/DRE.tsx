@@ -74,6 +74,7 @@ function StatCard({
   tag,
   color = "text-white",
   compact = false,
+  formatValue = formatBRL,
 }: {
   title: string;
   value: number;
@@ -81,6 +82,7 @@ function StatCard({
   tag: string;
   color?: string;
   compact?: boolean;
+  formatValue?: (v: number) => string;
 }) {
   if (compact) {
     return (
