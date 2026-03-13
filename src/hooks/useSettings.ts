@@ -37,49 +37,49 @@ export function useUpdateCardTaxes() {
   });
 }
 
-// ─── Station Logins ──────────────────────────────────────────────────────────
+// ─── Station Passwords ───────────────────────────────────────────────────────
 
-export interface StationLogins {
+export interface StationPasswords {
   admin: string;
   salao: string;
   mecanica: string;
 }
 
-export function useStationLogins() {
+export function useStationPasswords() {
   return useQuery({
-    queryKey: [...SETTINGS_KEY, "station_logins"],
+    queryKey: [...SETTINGS_KEY, "station_passwords"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("settings")
         .select("value")
-        .eq("key", "station_logins")
+        .eq("key", "station_passwords")
         .maybeSingle();
       if (error) throw error;
-      return (data?.value as any as StationLogins) || { admin: "", salao: "", mecanica: "" };
+      return (data?.value as any as StationPasswords) || { admin: "", salao: "", mecanica: "" };
     },
   });
 }
 
-export function useUpdateStationLogins() {
+export function useUpdateStationPasswords() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (logins: StationLogins) => {
+    mutationFn: async (passwords: StationPasswords) => {
       const { data: existing } = await supabase
         .from("settings")
         .select("id")
-        .eq("key", "station_logins")
+        .eq("key", "station_passwords")
         .maybeSingle();
 
       if (existing) {
         const { error } = await supabase
           .from("settings")
-          .update({ value: logins as any, updated_at: new Date().toISOString() })
-          .eq("key", "station_logins");
+          .update({ value: passwords as any, updated_at: new Date().toISOString() })
+          .eq("key", "station_passwords");
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("settings")
-          .insert({ key: "station_logins", value: logins as any });
+          .insert({ key: "station_passwords", value: passwords as any });
         if (error) throw error;
       }
     },
