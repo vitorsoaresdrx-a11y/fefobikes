@@ -64,7 +64,7 @@ function PermissionRow({
 
   return (
     <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-white/[0.02] transition-colors">
-      <span className="text-sm font-medium text-zinc-300">{label}</span>
+      <span className="text-sm font-medium text-foreground/80">{label}</span>
       <div className="flex items-center gap-4">
         <button
           onClick={() => toggle("access")}
@@ -86,7 +86,7 @@ function PermissionRow({
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
               hideSensitive
                 ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                : "bg-zinc-800 border-zinc-700 text-zinc-500"
+                : "bg-muted border-border/80 text-muted-foreground"
             }`}
           >
             {hideSensitive ? <EyeOff size={12} /> : <Eye size={12} />}
@@ -110,7 +110,7 @@ function MemberPermissionsPanel({ member }: { member: TenantMember }) {
   if (isLoading) {
     return (
       <div className="flex justify-center py-10">
-        <Loader2 className="animate-spin text-zinc-600" />
+        <Loader2 className="animate-spin text-muted-foreground/70" />
       </div>
     );
   }
@@ -119,14 +119,14 @@ function MemberPermissionsPanel({ member }: { member: TenantMember }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-sm">
+          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-bold text-sm">
             {(member.email || member.user_id).slice(0, 2).toUpperCase()}
           </div>
           <div>
             <p className="text-sm font-bold text-white">
               {member.email || member.user_id.slice(0, 8) + "..."}
             </p>
-            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               {member.role === "owner" ? "Proprietário" : "Membro"}
             </p>
           </div>
@@ -140,7 +140,7 @@ function MemberPermissionsPanel({ member }: { member: TenantMember }) {
               })
             }
             disabled={removeMember.isPending}
-            className="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+            className="p-2 text-muted-foreground/70 hover:text-red-400 transition-colors"
           >
             <Trash2 size={16} />
           </button>
@@ -150,7 +150,7 @@ function MemberPermissionsPanel({ member }: { member: TenantMember }) {
       {member.role === "owner" ? (
         <div className="px-4 py-6 text-center">
           <Crown className="mx-auto text-amber-400 mb-2" size={24} />
-          <p className="text-xs text-zinc-500">Proprietários possuem acesso total ao sistema.</p>
+          <p className="text-xs text-muted-foreground">Proprietários possuem acesso total ao sistema.</p>
         </div>
       ) : (
         <div className="space-y-1">
@@ -238,57 +238,57 @@ function AddMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-3xl max-w-md">
+      <DialogContent className="bg-secondary border-border rounded-3xl max-w-md">
         <DialogHeader>
           <DialogTitle className="text-lg font-black text-white uppercase italic tracking-tight">
             Criar Novo Membro
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
-          <p className="text-xs text-zinc-500 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Cadastre um email e senha para o novo membro. Ele poderá usar essas credenciais para acessar o sistema.
           </p>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               Email
             </label>
             <div className="relative">
-              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="membro@exemplo.com"
-                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-xl pl-11 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+                className="w-full h-12 bg-card border border-border rounded-xl pl-11 pr-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               Senha
             </label>
             <div className="relative">
-              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-xl pl-11 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+                className="w-full h-12 bg-card border border-border rounded-xl pl-11 pr-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
               />
             </div>
           </div>
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-10 rounded-xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 text-sm font-bold transition-all"
+              className="flex-1 h-10 rounded-xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all"
             >
               Cancelar
             </button>
             <button
               onClick={handleAdd}
               disabled={createMember.isPending}
-              className="flex-[2] h-10 rounded-xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+              className="flex-[2] h-10 rounded-xl bg-primary text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
               {createMember.isPending ? <Loader2 size={14} className="animate-spin" /> : "Criar Membro"}
             </button>
@@ -320,14 +320,14 @@ export default function Permissoes() {
   if (permsLoading || membersLoading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
       </div>
     );
   }
 
   if (!isOwner) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-zinc-500">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-muted-foreground">
         <Shield size={48} strokeWidth={1.5} />
         <p className="text-sm">Apenas o proprietário pode gerenciar permissões.</p>
       </div>
@@ -335,23 +335,23 @@ export default function Permissoes() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#2952FF]">
+              <span className="text-sm font-black tracking-widest text-primary">
                 CONTROLE
               </span>
             </div>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
               Permissões
             </h1>
-            <p className="text-zinc-500 font-medium text-sm">
+            <p className="text-muted-foreground font-medium text-sm">
               Gerencie o acesso de cada membro do sistema
             </p>
           </div>
@@ -359,7 +359,7 @@ export default function Permissoes() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setAddOpen(true)}
-              className="h-10 px-5 rounded-xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+              className="h-10 px-5 rounded-xl bg-primary text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
             >
               <UserPlus size={14} /> Novo Membro
             </button>
@@ -369,8 +369,8 @@ export default function Permissoes() {
         {/* Content */}
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
           {/* Members list */}
-          <div className="bg-[#111113]/50 rounded-3xl border border-zinc-800/30 p-4 space-y-2">
-            <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest px-2 mb-3">
+          <div className="bg-card/50 rounded-3xl border border-border/30 p-4 space-y-2">
+            <h3 className="text-[10px] font-black text-muted-foreground/70 uppercase tracking-widest px-2 mb-3">
               Membros ({members.length})
             </h3>
             {members.map((m) => (
@@ -379,11 +379,11 @@ export default function Permissoes() {
                 onClick={() => setSelectedMember(m)}
                 className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${
                   selectedMember?.id === m.id
-                    ? "bg-[#2952FF]/10 border border-[#2952FF]/20"
+                    ? "bg-primary/10 border border-primary/20"
                     : "hover:bg-white/[0.03] border border-transparent"
                 }`}
               >
-                <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-xs shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-bold text-xs shrink-0">
                   {m.role === "owner" ? (
                     <Crown size={14} className="text-amber-400" />
                   ) : (
@@ -391,10 +391,10 @@ export default function Permissoes() {
                   )}
                 </div>
                 <div className="text-left min-w-0">
-                  <p className="text-sm font-bold text-zinc-300 truncate">
+                  <p className="text-sm font-bold text-foreground/80 truncate">
                     {m.email || m.user_id.slice(0, 12) + "..."}
                   </p>
-                  <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">
+                  <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-widest">
                     {m.role === "owner" ? "Proprietário" : "Membro"}
                   </p>
                 </div>
@@ -403,11 +403,11 @@ export default function Permissoes() {
           </div>
 
           {/* Permission editor */}
-          <div className="bg-[#111113]/50 rounded-3xl border border-zinc-800/30 p-6">
+          <div className="bg-card/50 rounded-3xl border border-border/30 p-6">
             {selectedMember ? (
               <MemberPermissionsPanel member={selectedMember} />
             ) : (
-              <div className="flex items-center justify-center py-20 text-zinc-600 text-sm">
+              <div className="flex items-center justify-center py-20 text-muted-foreground/70 text-sm">
                 Selecione um membro para editar permissões
               </div>
             )}

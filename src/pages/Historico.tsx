@@ -96,11 +96,11 @@ function SaleRow({
         onClick={onToggle}
         className="w-full flex items-center gap-3 py-3"
       >
-        <div className="w-7 h-7 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0">
-          <ShoppingBag size={13} className="text-zinc-500" />
+        <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0">
+          <ShoppingBag size={13} className="text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0 text-left">
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-muted-foreground">
             {date} · {time}
           </p>
           <span
@@ -114,7 +114,7 @@ function SaleRow({
         </p>
         <ChevronDown
           size={12}
-          className={`text-zinc-600 ml-1 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+          className={`text-muted-foreground/70 ml-1 transition-transform ${isExpanded ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -122,16 +122,16 @@ function SaleRow({
         <div className="pb-3 space-y-2">
           {items.map((item: any) => (
             <div key={item.id} className="flex justify-between text-xs px-2">
-              <span className="text-zinc-400">
+              <span className="text-muted-foreground">
                 {item.quantity}x {item.description}
               </span>
-              <span className="font-bold text-zinc-300">
+              <span className="font-bold text-foreground/80">
                 {formatBRL(item.quantity * Number(item.unit_price))}
               </span>
             </div>
           ))}
 
-          <div className="flex justify-between text-xs px-2 pt-2 border-t border-zinc-800 mt-2">
+          <div className="flex justify-between text-xs px-2 pt-2 border-t border-border mt-2">
             <span className="font-black text-white uppercase text-[10px]">Total</span>
             <span className="font-black text-white">{formatBRL(Number(sale.total))}</span>
           </div>
@@ -139,18 +139,18 @@ function SaleRow({
           {cardFee > 0 && (
             <div className="px-2 space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-500">Taxa cartão ({cardTax}%)</span>
+                <span className="text-muted-foreground">Taxa cartão ({cardTax}%)</span>
                 <span className="text-red-400">-{formatBRL(cardFee)}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-500">Líquido</span>
+                <span className="text-muted-foreground">Líquido</span>
                 <span className="text-emerald-400">{formatBRL(Number(sale.total) - cardFee)}</span>
               </div>
             </div>
           )}
 
           {sale.notes && (
-            <p className="text-xs text-zinc-500 italic px-2">Obs: {sale.notes}</p>
+            <p className="text-xs text-muted-foreground italic px-2">Obs: {sale.notes}</p>
           )}
 
           <button
@@ -158,7 +158,7 @@ function SaleRow({
               e.stopPropagation();
               onReceipt();
             }}
-            className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 hover:text-white transition-colors px-2 mt-1"
+            className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-white transition-colors px-2 mt-1"
           >
             <Printer size={12} /> Reimprimir
           </button>
@@ -232,7 +232,7 @@ export default function Historico() {
   const totalSalesCount = filtered.reduce((sum, g) => sum + g.sales.length, 0);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       <div className="max-w-3xl mx-auto w-full p-4 lg:p-8 space-y-4">
         {/* Header */}
         <header className="flex items-center justify-between">
@@ -242,7 +242,7 @@ export default function Historico() {
           {sales.length > 0 && (
             <button
               onClick={() => exportSalesCSV(sales)}
-              className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-wider border border-zinc-800 rounded-xl px-3 py-2 hover:border-zinc-600"
+              className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-white transition-colors uppercase tracking-wider border border-border rounded-xl px-3 py-2 hover:border-border/70"
             >
               <Download size={14} /> Exportar
             </button>
@@ -251,20 +251,20 @@ export default function Historico() {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por cliente, WhatsApp ou CPF..."
-            className="w-full bg-[#161618] border border-zinc-800 rounded-2xl h-10 pl-10 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF]/50 transition-colors placeholder:text-zinc-600"
+            className="w-full bg-card border border-border rounded-2xl h-10 pl-10 pr-4 text-sm text-foreground/90 outline-none focus:border-primary/50 transition-colors placeholder:text-muted-foreground/70"
           />
         </div>
 
         {/* Content */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
           <EmptyState type={search ? "search" : "sales"} />
@@ -278,22 +278,22 @@ export default function Historico() {
               return (
                 <div
                   key={key}
-                  className="rounded-2xl bg-[#161618] border border-zinc-800 overflow-hidden"
+                  className="rounded-2xl bg-card border border-border overflow-hidden"
                 >
                   {/* Customer header */}
                   <button
                     type="button"
                     onClick={() => toggleCustomer(key)}
-                    className="w-full flex items-center gap-3 p-4 hover:bg-zinc-800/30 transition-colors"
+                    className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
-                      <User size={18} className="text-zinc-500" />
+                    <div className="w-10 h-10 rounded-xl bg-muted border border-border/80 flex items-center justify-center shrink-0">
+                      <User size={18} className="text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-sm font-black text-white truncate">
                         {group.customerName}
                       </p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         {n} compra{n > 1 ? "s" : ""} · Última{" "}
                         {formatDateShort(group.lastPurchase)}
                       </p>
@@ -304,7 +304,7 @@ export default function Historico() {
                       </p>
                       <ChevronDown
                         size={14}
-                        className={`text-zinc-500 mt-1 mx-auto transition-transform ${
+                        className={`text-muted-foreground mt-1 mx-auto transition-transform ${
                           isExpanded ? "rotate-180" : ""
                         }`}
                       />
@@ -313,26 +313,26 @@ export default function Historico() {
 
                   {/* Expanded content */}
                   {isExpanded && (
-                    <div className="border-t border-zinc-800">
+                    <div className="border-t border-border">
                       {/* Customer info */}
                       {(group.customerWhatsapp || group.customerCpf) && (
-                        <div className="px-4 py-3 flex gap-4 bg-zinc-800/30">
+                        <div className="px-4 py-3 flex gap-4 bg-muted/30">
                           {group.customerWhatsapp && (
                             <div>
-                              <p className="text-[9px] uppercase text-zinc-600 font-bold tracking-wider">
+                              <p className="text-[9px] uppercase text-muted-foreground/70 font-bold tracking-wider">
                                 WhatsApp
                               </p>
-                              <p className="text-xs font-bold text-zinc-300">
+                              <p className="text-xs font-bold text-foreground/80">
                                 {group.customerWhatsapp}
                               </p>
                             </div>
                           )}
                           {group.customerCpf && (
                             <div>
-                              <p className="text-[9px] uppercase text-zinc-600 font-bold tracking-wider">
+                              <p className="text-[9px] uppercase text-muted-foreground/70 font-bold tracking-wider">
                                 CPF
                               </p>
-                              <p className="text-xs font-bold text-zinc-300">
+                              <p className="text-xs font-bold text-foreground/80">
                                 {group.customerCpf}
                               </p>
                             </div>
@@ -341,7 +341,7 @@ export default function Historico() {
                       )}
 
                       {/* Sales list */}
-                      <div className="divide-y divide-zinc-800/50">
+                      <div className="divide-y divide-border/50">
                         {group.sales
                           .sort(
                             (a: any, b: any) =>
@@ -376,7 +376,7 @@ export default function Historico() {
         {!isLoading && filtered.length > 0 && (
           <>
             <PaginationBar {...pagination} onPrev={pagination.prev} onNext={pagination.next} />
-            <div className="flex justify-between items-center px-1 text-[10px] text-zinc-600 uppercase tracking-widest">
+            <div className="flex justify-between items-center px-1 text-[10px] text-muted-foreground/70 uppercase tracking-widest">
               <span>{filtered.length} clientes</span>
               <span>{totalSalesCount} vendas</span>
             </div>

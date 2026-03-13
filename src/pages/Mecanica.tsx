@@ -108,12 +108,12 @@ const SummaryStat = ({
   icon: React.ReactNode;
   color?: string;
 }) => (
-  <div className="bg-[#161618] border border-zinc-800 p-4 md:p-6 rounded-2xl md:rounded-[32px] flex items-center gap-3 md:gap-4 hover:border-zinc-700 transition-all overflow-hidden">
-    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 shrink-0">
+  <div className="bg-card border border-border p-4 md:p-6 rounded-2xl md:rounded-[32px] flex items-center gap-3 md:gap-4 hover:border-border/80 transition-all overflow-hidden">
+    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground shrink-0">
       {icon}
     </div>
     <div className="min-w-0">
-      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest truncate">{title}</p>
+      <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest truncate">{title}</p>
       <p className={`text-base md:text-xl font-black ${color} truncate`}>{value}</p>
     </div>
   </div>
@@ -140,7 +140,7 @@ const ColumnHeader = ({
     </div>
     <div className="min-w-0">
       <h3 className="text-[10px] lg:text-xs font-black text-white uppercase tracking-wider truncate">{label}</h3>
-      <p className="text-[9px] lg:text-[10px] font-bold text-zinc-500 uppercase">{count} ativos</p>
+      <p className="text-[9px] lg:text-[10px] font-bold text-muted-foreground uppercase">{count} ativos</p>
     </div>
   </div>
 );
@@ -153,7 +153,7 @@ const InputGroup = ({
   children: React.ReactNode;
 }) => (
   <div className="space-y-2">
-    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">
+    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
       {label}
     </label>
     {children}
@@ -162,14 +162,14 @@ const InputGroup = ({
 
 const PremiumInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-5 text-sm font-semibold text-zinc-100 outline-none focus:border-[#2952FF] focus:shadow-[0_0_0_1px_rgba(41,82,255,0.1)] transition-all placeholder:text-zinc-600"
+    className="w-full h-14 bg-card border border-border rounded-2xl px-5 text-sm font-semibold text-foreground outline-none focus:border-primary focus:shadow-[0_0_0_1px_rgba(41,82,255,0.1)] transition-all placeholder:text-muted-foreground/70"
     {...props}
   />
 );
 
 const PremiumTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
   <textarea
-    className="w-full bg-[#161618] border border-zinc-800 rounded-[20px] p-5 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all resize-none placeholder:text-zinc-600 leading-relaxed"
+    className="w-full bg-card border border-border rounded-[20px] p-5 text-sm text-foreground outline-none focus:border-primary transition-all resize-none placeholder:text-muted-foreground/70 leading-relaxed"
     {...props}
   />
 );
@@ -279,7 +279,7 @@ function JobCard({
   const showApprovalActions = columnKey === "in_maintenance";
 
   return (
-    <div className="group bg-[#161618] border border-zinc-800 rounded-2xl p-3 lg:p-4 space-y-3 hover:border-zinc-700 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+    <div className="group bg-card border border-border rounded-2xl p-3 lg:p-4 space-y-3 hover:border-border/80 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
       {/* Bike name (prominent) + delete */}
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0">
@@ -288,7 +288,7 @@ function JobCard({
           </p>
         </div>
         <button
-          className="p-1.5 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+          className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
           onClick={handleDelete}
           disabled={remove.isPending}
         >
@@ -302,10 +302,10 @@ function JobCard({
 
       {/* Customer info (secondary) */}
       {(job.customer_name || job.customer_whatsapp || job.customer_cpf) && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-zinc-500 uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
           {job.customer_name && (
             <span className="flex items-center gap-1">
-              <User size={9} className="text-zinc-600 shrink-0" /> {job.customer_name}
+              <User size={9} className="text-muted-foreground/70 shrink-0" /> {job.customer_name}
             </span>
           )}
           {job.customer_whatsapp && (
@@ -322,14 +322,14 @@ function JobCard({
       )}
 
       {/* Problem */}
-      <div className="p-3 bg-[#0A0A0B] rounded-xl border border-zinc-800/50">
-        <p className="text-[11px] font-medium text-zinc-400 leading-relaxed line-clamp-3">{job.problem}</p>
+      <div className="p-3 bg-background rounded-xl border border-border/50">
+        <p className="text-[11px] font-medium text-muted-foreground leading-relaxed line-clamp-3">{job.problem}</p>
       </div>
 
       {/* Additions */}
       {job.additions && job.additions.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] ml-1">
+          <p className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-[0.2em] ml-1">
             Reparos Extras
           </p>
           {job.additions.map((a) => (
@@ -341,7 +341,7 @@ function JobCard({
       {/* Footer */}
       <div className="flex items-center justify-between pt-1">
         <div className="flex flex-col min-w-0">
-          <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">
+          <span className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-widest">
             Total
           </span>
           <span className="text-sm lg:text-base font-black text-white tracking-tighter">
@@ -352,7 +352,7 @@ function JobCard({
         <div className="flex gap-1.5 shrink-0">
           <button
             onClick={() => onAddRepair(job)}
-            className="w-7 h-7 rounded-lg border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
           >
             <Plus size={12} />
           </button>
@@ -361,7 +361,7 @@ function JobCard({
             <button
               onClick={handleAdvance}
               disabled={advance.isPending}
-              className="h-7 rounded-lg px-2.5 bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.2)] text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              className="h-7 rounded-lg px-2.5 bg-primary text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.2)] text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 disabled:opacity-50"
             >
               {advance.isPending ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -538,33 +538,33 @@ export default function Mecanica() {
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 selection:bg-[#2952FF]/30">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
       <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-10 overflow-x-hidden">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-2 min-w-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)] shrink-0">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)] shrink-0">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#2952FF]">
+              <span className="text-sm font-black tracking-widest text-primary">
                 SERVICE CENTER
               </span>
             </div>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight italic uppercase text-white">
               Mecânica
             </h1>
-            <p className="text-zinc-500 font-medium text-sm">Gerencie os serviços de manutenção</p>
+            <p className="text-muted-foreground font-medium text-sm">Gerencie os serviços de manutenção</p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0">
+            <button className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0">
               <History size={14} className="shrink-0" /> <span className="truncate">Histórico de O.S</span>
             </button>
             <button
               onClick={() => setOpen(true)}
-              className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-8 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 whitespace-nowrap min-w-0"
+              className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-8 rounded-2xl bg-primary text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 whitespace-nowrap min-w-0"
             >
               <Plus size={14} className="stroke-[3] shrink-0" /> <span className="truncate">Nova Manutenção</span>
             </button>
@@ -601,7 +601,7 @@ export default function Mecanica() {
         {/* Kanban */}
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
           </div>
         ) : (
           <>
@@ -616,7 +616,7 @@ export default function Mecanica() {
                     className={`snap-start shrink-0 flex items-center gap-2 px-4 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-wider transition-all ${
                       active
                         ? `${col.bg} ${col.border} ${col.color}`
-                        : "bg-[#161618] border-zinc-800 text-zinc-500"
+                        : "bg-card border-border text-muted-foreground"
                     }`}
                   >
                     <col.icon size={14} />
@@ -662,7 +662,7 @@ export default function Mecanica() {
               {columns.map((col) => (
                 <div
                   key={col.key}
-                  className="flex-1 min-w-0 flex flex-col bg-[#111113]/50 rounded-3xl p-2 border border-zinc-800/30"
+                  className="flex-1 min-w-0 flex flex-col bg-card/50 rounded-3xl p-2 border border-border/30"
                 >
                   <ColumnHeader {...col} count={grouped[col.key].length} />
                   <div className="px-1.5 space-y-3 pb-6 flex-1">
@@ -694,7 +694,7 @@ export default function Mecanica() {
 
       {/* ── New Maintenance Modal ────────────────────────────────────────────── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
@@ -776,14 +776,14 @@ export default function Mecanica() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setOpen(false)}
-                className="flex-1 h-12 rounded-2xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 text-sm font-bold transition-all"
+                className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSave}
                 disabled={create.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {create.isPending ? (
                   <Loader2 size={16} className="animate-spin" />
@@ -798,7 +798,7 @@ export default function Mecanica() {
 
       {/* ── Add Repair Modal ─────────────────────────────────────────────────── */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="bg-[#1C1C1E] border-zinc-800 rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
@@ -809,18 +809,18 @@ export default function Mecanica() {
             {addJob && (
               <div className="space-y-6">
                 {/* Job summary */}
-                <div className="p-5 bg-zinc-900 rounded-[28px] border border-zinc-800 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-500 shrink-0">
+                <div className="p-5 bg-background rounded-[28px] border border-border flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground shrink-0">
                     <Wrench size={20} />
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-white leading-none mb-1 truncate">
                       {addJob.customer_name || "Cliente"}
                     </p>
-                    <p className="text-[10px] font-black text-[#2952FF] uppercase tracking-widest italic truncate">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest italic truncate">
                       {addJob.problem}
                     </p>
-                    <p className="text-xs font-bold text-zinc-500 mt-1">
+                    <p className="text-xs font-bold text-muted-foreground mt-1">
                       Valor atual: {formatBRL(getTotalPrice(addJob))}
                     </p>
                   </div>
@@ -848,14 +848,14 @@ export default function Mecanica() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setAddOpen(false)}
-                className="flex-1 h-12 rounded-2xl border border-zinc-800 text-zinc-400 hover:bg-zinc-800 text-sm font-bold transition-all"
+                className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveAddition}
                 disabled={createAddition.isPending}
-                className="flex-[2] h-12 rounded-2xl bg-[#2952FF] text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-[#3D63FF] text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
               >
                 {createAddition.isPending ? (
                   <Loader2 size={16} className="animate-spin" />

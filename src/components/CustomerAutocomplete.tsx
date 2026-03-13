@@ -90,7 +90,7 @@ export function CustomerAutocomplete({
             </div>
             <div className="min-w-0">
               <p className="font-bold text-white text-sm truncate">{selected.name}</p>
-              <p className="text-[10px] text-zinc-400 uppercase tracking-widest truncate">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest truncate">
                 {[selected.whatsapp, selected.cpf].filter(Boolean).join(" · ")}
               </p>
             </div>
@@ -98,7 +98,7 @@ export function CustomerAutocomplete({
           <button
             type="button"
             onClick={handleClear}
-            className="text-[10px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-widest shrink-0"
+            className="text-[10px] font-bold text-muted-foreground hover:text-white transition-colors uppercase tracking-widest shrink-0"
           >
             Trocar
           </button>
@@ -111,9 +111,9 @@ export function CustomerAutocomplete({
     <div ref={containerRef} className="relative">
       {/* Suggestions dropdown */}
       {showSuggestions && (
-        <div className="absolute left-0 right-0 bottom-full mb-1 z-50 bg-[#1C1C1E] border border-zinc-700 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
-          <div className="px-3 py-2 border-b border-zinc-800">
-            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+        <div className="absolute left-0 right-0 bottom-full mb-1 z-50 bg-secondary border border-border/80 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
+          <div className="px-3 py-2 border-b border-border">
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
               Clientes encontrados
             </p>
           </div>
@@ -122,14 +122,14 @@ export function CustomerAutocomplete({
               key={c.id}
               type="button"
               onClick={() => handleSelect(c)}
-              className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-zinc-800/60 transition-colors text-left border-b border-zinc-800/50 last:border-b-0"
+              className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-muted/60 transition-colors text-left border-b border-border/50 last:border-b-0"
             >
-              <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
-                <User size={12} className="text-zinc-400" />
+              <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center shrink-0">
+                <User size={12} className="text-muted-foreground" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-white truncate">{c.name}</p>
-                <div className="flex items-center gap-3 text-[10px] text-zinc-500">
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                   {c.whatsapp && (
                     <span className="flex items-center gap-1">
                       <Phone size={8} /> {c.whatsapp}

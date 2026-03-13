@@ -37,9 +37,9 @@ const Btn = ({
   variant?: "primary" | "secondary" | "outline";
 }) => {
   const v = {
-    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_25px_rgba(41,82,255,0.3)]",
-    secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
-    outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-[0_0_25px_rgba(41,82,255,0.3)]",
+    secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
+    outline: "border border-border bg-transparent text-foreground/80 hover:bg-muted",
   };
   return (
     <button
@@ -52,7 +52,7 @@ const Btn = ({
 };
 
 const BadgeEl = ({ children }: { children: React.ReactNode }) => (
-  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#2952FF]/10 text-[#2952FF] border border-[#2952FF]/20">
+  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
     {children}
   </span>
 );
@@ -61,14 +61,14 @@ const BadgeEl = ({ children }: { children: React.ReactNode }) => (
 
 function Header() {
   return (
-    <header className="h-20 flex items-center justify-between px-8 border-b border-zinc-800/50 bg-[#0A0A0B]/80 backdrop-blur-xl sticky top-0 z-50">
+    <header className="h-20 flex items-center justify-between px-8 border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
+        <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
           <Bike className="w-5 h-5 text-white" />
         </div>
         <span className="font-black text-sm text-white uppercase tracking-widest">Fefo Bikes</span>
       </div>
-      <div className="w-10 h-10 rounded-full border border-zinc-800 flex items-center justify-center text-zinc-500">
+      <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground">
         <Package size={18} />
       </div>
     </header>
@@ -77,12 +77,12 @@ function Header() {
 
 function Footer() {
   return (
-    <footer className="py-12 border-t border-zinc-800/50 bg-[#0A0A0B] flex flex-col items-center gap-4">
+    <footer className="py-12 border-t border-border/50 bg-background flex flex-col items-center gap-4">
       <div className="flex items-center gap-2 opacity-30">
         <Bike size={20} />
         <span className="text-[10px] font-black uppercase tracking-widest">Fefo Bikes © 2024</span>
       </div>
-      <p className="text-[10px] text-zinc-700 font-bold uppercase tracking-widest">
+      <p className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-widest">
         Consultoria Premium de Performance
       </p>
     </footer>
@@ -91,10 +91,10 @@ function Footer() {
 
 function LoadingState() {
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
-        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em]">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
           Preparando Experiência...
         </span>
       </div>
@@ -115,17 +115,17 @@ function PriceSection({ product }: { product: any }) {
   return (
     <section className="space-y-4">
       {pixPrice > 0 && (
-        <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-[#1C1C1E] to-[#161618] border border-[#2952FF]/30 shadow-[0_20px_50px_rgba(41,82,255,0.15)] text-center group">
-          <div className="absolute -right-10 -top-10 opacity-[0.05] text-[#2952FF] group-hover:rotate-12 transition-transform duration-700">
+        <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-[#1C1C1E] to-[#161618] border border-primary/30 shadow-[0_20px_50px_rgba(41,82,255,0.15)] text-center group">
+          <div className="absolute -right-10 -top-10 opacity-[0.05] text-primary group-hover:rotate-12 transition-transform duration-700">
             <Zap size={200} />
           </div>
-          <p className="text-[10px] font-bold text-[#2952FF] uppercase tracking-[0.3em] mb-2">
+          <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mb-2">
             Valor Especial PIX
           </p>
           <p className="text-3xl lg:text-5xl font-black text-white tracking-tighter mb-2">
             {formatBRL(pixPrice)}
           </p>
-          <div className="flex items-center justify-center gap-2 text-zinc-500 text-xs font-bold uppercase tracking-widest">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground text-xs font-bold uppercase tracking-widest">
             <ShieldCheck size={14} className="text-emerald-500" />
             Pagamento Seguro
           </div>
@@ -136,14 +136,14 @@ function PriceSection({ product }: { product: any }) {
       )}
 
       {installmentPrice > 0 && installmentCount > 1 && (
-        <div className="p-6 bg-[#161618] border border-zinc-800 rounded-[32px] flex items-center justify-between px-8 group hover:border-zinc-700 transition-colors cursor-pointer">
+        <div className="p-6 bg-card border border-border rounded-[32px] flex items-center justify-between px-8 group hover:border-border/80 transition-colors cursor-pointer">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-zinc-500 group-hover:text-zinc-300 transition-colors">
+            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-muted-foreground group-hover:text-foreground/80 transition-colors">
               <CreditCard size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">No Cartão</p>
-              <p className="text-sm font-bold text-zinc-200">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No Cartão</p>
+              <p className="text-sm font-bold text-foreground/90">
                 Ou {installmentCount}x de{" "}
                 <span className="text-white">{formatBRL(installmentPrice)}</span>
               </p>
@@ -166,17 +166,17 @@ function PartAttributesSection({ partId }: { partId: string }) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-        <List size={14} className="text-[#2952FF]" /> Características
+      <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
+        <List size={14} className="text-primary" /> Características
       </h2>
-      <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden divide-y divide-zinc-800/50">
+      <div className="bg-card border border-border rounded-[32px] overflow-hidden divide-y divide-border/50">
         {attrs.map((attr) => (
           <div
             key={attr.id}
             className="flex justify-between items-center p-5 hover:bg-white/[0.02] transition-colors"
           >
-            <span className="text-sm font-bold text-zinc-500">{attr.name}</span>
-            <span className="text-sm font-black text-zinc-100">{attr.value}</span>
+            <span className="text-sm font-bold text-muted-foreground">{attr.name}</span>
+            <span className="text-sm font-black text-foreground">{attr.value}</span>
           </div>
         ))}
       </div>
@@ -231,15 +231,15 @@ export default function ProdutoPublico() {
   // Produto não encontrado
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans flex flex-col">
+      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-          <div className="w-20 h-20 bg-zinc-900 rounded-[32px] flex items-center justify-center text-zinc-700">
+          <div className="w-20 h-20 bg-background rounded-[32px] flex items-center justify-center text-muted-foreground/50">
             <Package size={40} />
           </div>
           <div className="space-y-1">
             <h2 className="text-xl font-black text-white">Produto não encontrado</h2>
-            <p className="text-zinc-500 text-sm max-w-xs">
+            <p className="text-muted-foreground text-sm max-w-xs">
               Nenhum produto foi encontrado com este código.
             </p>
           </div>
@@ -255,15 +255,15 @@ export default function ProdutoPublico() {
   // Produto oculto
   if (!product.visible_on_storefront) {
     return (
-      <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans flex flex-col">
+      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-          <div className="w-20 h-20 bg-zinc-900 rounded-[32px] flex items-center justify-center text-zinc-700">
+          <div className="w-20 h-20 bg-background rounded-[32px] flex items-center justify-center text-muted-foreground/50">
             <Package size={40} />
           </div>
           <div className="space-y-1">
             <h2 className="text-xl font-black text-white">Produto Indisponível</h2>
-            <p className="text-zinc-500 text-sm max-w-xs">
+            <p className="text-muted-foreground text-sm max-w-xs">
               Este item não está disponível para visualização no momento.
             </p>
           </div>
@@ -300,7 +300,7 @@ export default function ProdutoPublico() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30 flex flex-col">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 flex flex-col">
       <Header />
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10 space-y-12">
@@ -309,17 +309,17 @@ export default function ProdutoPublico() {
         <section className="space-y-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2952FF]">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
                 Catálogo Oficial
               </span>
-              <div className="h-px flex-1 bg-zinc-800/50" />
+              <div className="h-px flex-1 bg-muted/50" />
             </div>
             <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-none">
               {product.name}
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-500">
+            <div className="px-3 py-1 rounded-lg bg-background border border-border text-[10px] font-mono text-muted-foreground">
               SKU: {sku}
             </div>
             {category && <BadgeEl>{category}</BadgeEl>}
@@ -333,7 +333,7 @@ export default function ProdutoPublico() {
               <CarouselContent>
                 {images.map((img, i) => (
                   <CarouselItem key={i}>
-                    <div className="aspect-[4/3] rounded-[40px] overflow-hidden bg-[#161618] border border-zinc-800 shadow-2xl">
+                    <div className="aspect-[4/3] rounded-[40px] overflow-hidden bg-card border border-border shadow-2xl">
                       <img
                         src={getOptimizedImageUrl(img, 800, 85) || img}
                         alt={`${product.name} ${i + 1}`}
@@ -352,7 +352,7 @@ export default function ProdutoPublico() {
               )}
             </Carousel>
           ) : (
-            <div className="aspect-[4/3] rounded-[40px] bg-[#161618] border border-zinc-800 flex items-center justify-center text-zinc-800 relative overflow-hidden">
+            <div className="aspect-[4/3] rounded-[40px] bg-card border border-border flex items-center justify-center text-zinc-800 relative overflow-hidden">
               {product._type === "bike" ? (
                 <Bike size={80} strokeWidth={1} />
               ) : (
@@ -368,11 +368,11 @@ export default function ProdutoPublico() {
 
         {/* Descrição */}
         {(product as any).description && (
-          <section className="bg-[#161618] border border-zinc-800 rounded-[32px] p-8 space-y-4">
-            <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
-              <Info size={14} className="text-[#2952FF]" /> Sobre o Produto
+          <section className="bg-card border border-border rounded-[32px] p-8 space-y-4">
+            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+              <Info size={14} className="text-primary" /> Sobre o Produto
             </h2>
-            <p className="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">{(product as any).description}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{(product as any).description}</p>
           </section>
         )}
 
@@ -382,20 +382,20 @@ export default function ProdutoPublico() {
         {/* Ficha Técnica */}
         {specs.length > 0 && (
           <section className="space-y-4">
-            <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2">
+            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-2">
               Ficha Técnica
             </h2>
-            <div className="bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden divide-y divide-zinc-800/50">
+            <div className="bg-card border border-border rounded-[32px] overflow-hidden divide-y divide-border/50">
               {specs.map((s, idx) => (
                 <div
                   key={idx}
                   className="flex justify-between items-center p-5 hover:bg-white/[0.02] transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="text-zinc-600">{s.icon}</div>
-                    <span className="text-sm font-bold text-zinc-500">{s.label}</span>
+                    <div className="text-muted-foreground/70">{s.icon}</div>
+                    <span className="text-sm font-bold text-muted-foreground">{s.label}</span>
                   </div>
-                  <span className="text-sm font-black text-zinc-100">{s.value}</span>
+                  <span className="text-sm font-black text-foreground">{s.value}</span>
                 </div>
               ))}
             </div>
@@ -405,21 +405,21 @@ export default function ProdutoPublico() {
         {/* Componentes da Bike — lógica real: bp.parts?.name || bp.part_name_override */}
         {product._type === "bike" && bikeParts.length > 0 && (
           <section className="space-y-4">
-            <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2">
+            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-2">
               Build & Componentes
             </h2>
-            <div className="bg-[#161618] border border-zinc-800 rounded-[32px] p-6 space-y-3">
+            <div className="bg-card border border-border rounded-[32px] p-6 space-y-3">
               {bikeParts.map((bp: any) => (
                 <div
                   key={bp.id}
-                  className="flex items-center justify-between py-3 px-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50"
+                  className="flex items-center justify-between py-3 px-4 rounded-2xl bg-background/50 border border-border/50"
                 >
-                  <span className="text-xs font-bold text-zinc-300">
+                  <span className="text-xs font-bold text-foreground/80">
                     {bp.parts?.name || bp.part_name_override || "Peça"}
                   </span>
                   <div className="flex items-center gap-2">
-                    <div className="h-px w-8 bg-zinc-800" />
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                    <div className="h-px w-8 bg-muted" />
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                       ×{bp.quantity}
                     </span>
                   </div>
@@ -431,15 +431,15 @@ export default function ProdutoPublico() {
 
         {/* Selos */}
         <section className="grid grid-cols-2 gap-4">
-          <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl flex flex-col items-center text-center space-y-2">
+          <div className="p-6 bg-background/50 border border-border rounded-3xl flex flex-col items-center text-center space-y-2">
             <ShieldCheck className="text-emerald-500" size={24} />
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               Garantia Fefo
             </span>
           </div>
-          <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl flex flex-col items-center text-center space-y-2">
+          <div className="p-6 bg-background/50 border border-border rounded-3xl flex flex-col items-center text-center space-y-2">
             <Truck className="text-indigo-400" size={24} />
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               Retirada Local
             </span>
           </div>

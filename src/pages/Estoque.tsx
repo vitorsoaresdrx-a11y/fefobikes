@@ -33,10 +33,10 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.2)]",
-    secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
-    ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
-    outline: "border border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-[0_0_20px_rgba(41,82,255,0.2)]",
+    secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
+    ghost: "hover:bg-muted/50 text-muted-foreground hover:text-white",
+    outline: "border border-border bg-transparent text-foreground/80 hover:bg-muted",
     destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
   };
   const s = {
@@ -66,7 +66,7 @@ const BadgeEl = ({
     critical: "bg-red-500/10 text-red-400 border-red-500/20",
     warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     ok: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    default: "bg-zinc-800 text-zinc-500 border-zinc-700",
+    default: "bg-muted text-muted-foreground border-border/80",
   };
   return (
     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${styles[variant]}`}>
@@ -148,11 +148,11 @@ function SummaryCard({
       onClick={onClick}
       className={`relative group p-5 md:p-8 rounded-2xl md:rounded-[32px] border transition-all duration-500 text-left overflow-hidden ${
         active
-          ? "bg-[#161618] border-[#2952FF] shadow-[0_0_30px_rgba(41,82,255,0.1)]"
-          : "bg-[#161618] border-zinc-800 hover:border-zinc-700"
+          ? "bg-card border-primary shadow-[0_0_30px_rgba(41,82,255,0.1)]"
+          : "bg-card border-border hover:border-border/80"
       }`}
     >
-      <div className="absolute -right-4 -top-4 opacity-[0.03] text-zinc-600">
+      <div className="absolute -right-4 -top-4 opacity-[0.03] text-muted-foreground/70">
         <Icon size={120} />
       </div>
       <div className="relative z-10 flex flex-col justify-between h-full space-y-8">
@@ -160,10 +160,10 @@ function SummaryCard({
           <Icon className="w-6 h-6 stroke-[2.5]" />
         </div>
         <div>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-1">{cfg.label}</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">{cfg.label}</p>
           <div className="flex items-baseline gap-2">
             <h2 className={`text-2xl lg:text-4xl font-black tracking-tighter ${cfg.color}`}>{count}</h2>
-            <span className="text-xs text-zinc-600 font-bold uppercase">Itens</span>
+            <span className="text-xs text-muted-foreground/70 font-bold uppercase">Itens</span>
           </div>
         </div>
       </div>
@@ -267,7 +267,7 @@ export default function Estoque() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header — Mobile */}
@@ -276,11 +276,11 @@ export default function Estoque() {
           <div className="flex gap-2 shrink-0">
             <button
               onClick={() => exportInventoryCSV(parts, bikes as any[])}
-              className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 whitespace-nowrap flex items-center gap-1.5"
+              className="h-9 px-3 text-xs font-bold rounded-xl border border-border/80 whitespace-nowrap flex items-center gap-1.5"
             >
               <Download size={14} /> Exportar
             </button>
-            <button className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white whitespace-nowrap flex items-center gap-1.5">
+            <button className="h-9 px-3 text-xs font-bold rounded-xl bg-primary text-white whitespace-nowrap flex items-center gap-1.5">
               <Plus size={14} /> Entrada Manual
             </button>
           </div>
@@ -290,10 +290,10 @@ export default function Estoque() {
         <header className="hidden md:flex md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Layers className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#2952FF]">HUB DE OPERAÇÕES</span>
+              <span className="text-sm font-black tracking-widest text-primary">HUB DE OPERAÇÕES</span>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
@@ -318,16 +318,16 @@ export default function Estoque() {
               <button
                 key={status}
                 onClick={() => setFilterStatus(filterStatus === status ? "all" : status)}
-                className={`p-3 rounded-2xl bg-zinc-900 border text-left ${
-                  filterStatus === status ? "border-[#2952FF]" : "border-zinc-800"
+                className={`p-3 rounded-2xl bg-background border text-left ${
+                  filterStatus === status ? "border-primary" : "border-border"
                 } ${status === "ok" ? "col-span-2" : ""}`}
               >
                 <div className={`w-7 h-7 rounded-lg ${cfg.bg} flex items-center justify-center mb-2`}>
                   <Icon size={14} className={cfg.color} />
                 </div>
-                <p className="text-[9px] uppercase tracking-widest text-zinc-500">{cfg.label}</p>
+                <p className="text-[9px] uppercase tracking-widest text-muted-foreground">{cfg.label}</p>
                 <p className={`text-xl font-black ${cfg.color}`}>
-                  {counts[status]} <span className="text-xs font-normal text-zinc-600">itens</span>
+                  {counts[status]} <span className="text-xs font-normal text-muted-foreground/70">itens</span>
                 </p>
               </button>
             );
@@ -350,22 +350,22 @@ export default function Estoque() {
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 md:pt-4">
           <div className="flex-1 w-full relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Buscar por nome ou categoria..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 md:h-14 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm text-zinc-200 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
+              className="w-full h-11 md:h-14 bg-card border border-border rounded-2xl pl-12 pr-4 text-sm text-foreground/90 outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
             />
           </div>
-          <div className="flex w-full md:w-auto p-1 bg-[#161618] border border-zinc-800 rounded-2xl shrink-0">
+          <div className="flex w-full md:w-auto p-1 bg-card border border-border rounded-2xl shrink-0">
             {(["all", "Peça", "Bike"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterType(t)}
                 className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-                  filterType === t ? "bg-[#2C2C2E] text-white" : "text-zinc-500 hover:text-zinc-300"
+                  filterType === t ? "bg-[#2C2C2E] text-white" : "text-muted-foreground hover:text-foreground/80"
                 }`}
               >
                 {t === "all" ? "Tudo" : t + "s"}
@@ -377,10 +377,10 @@ export default function Estoque() {
         {/* Loading / Empty */}
         {isLoading ? (
           <div className="p-20 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-20 text-center text-zinc-600 text-sm">
+          <div className="p-20 text-center text-muted-foreground/70 text-sm">
             {search || filterStatus !== "all" || filterType !== "all"
               ? "Nenhum item encontrado com esses filtros"
               : "Nenhum item cadastrado"}
@@ -395,9 +395,9 @@ export default function Estoque() {
                   <button
                     key={`m-${item.type}-${item.id}`}
                     onClick={() => openModal(item)}
-                    className="w-full flex items-center gap-3 p-3 rounded-2xl bg-zinc-900 border border-zinc-800 text-left"
+                    className="w-full flex items-center gap-3 p-3 rounded-2xl bg-background border border-border text-left"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-600 overflow-hidden shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-muted-foreground/70 overflow-hidden shrink-0">
                       {item.image ? (
                         <img src={item.image} alt="" className="w-full h-full object-cover" />
                       ) : item.type === "Bike" ? (
@@ -408,14 +408,14 @@ export default function Estoque() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold truncate">{item.name}</p>
-                      <p className="text-[10px] text-zinc-500 uppercase">{item.category || "Sem Categoria"}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase">{item.category || "Sem Categoria"}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-[9px] px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400 block mb-1">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full border border-border/80 text-muted-foreground block mb-1">
                         {item.type}
                       </span>
                       <p className={`text-sm font-black ${cfg.color}`}>{item.stock_qty}</p>
-                      <p className="text-[9px] text-zinc-600">un.</p>
+                      <p className="text-[9px] text-muted-foreground/70">un.</p>
                     </div>
                   </button>
                 );
@@ -423,17 +423,17 @@ export default function Estoque() {
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden md:block bg-[#161618] border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl">
-              <div className="p-8 border-b border-zinc-800/50 flex items-center justify-between gap-2">
+            <div className="hidden md:block bg-card border border-border rounded-[32px] overflow-hidden shadow-2xl">
+              <div className="p-8 border-b border-border/50 flex items-center justify-between gap-2">
                 <h3 className="font-bold text-lg">Itens em Inventário</h3>
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   {filtered.length} {filtered.length !== 1 ? "itens" : "item"} filtrado{filtered.length !== 1 ? "s" : ""}
                 </span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-left">
+                    <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">
                       <th className="px-8 py-4">Item / Categoria</th>
                       <th className="px-8 py-4">Tipo</th>
                       <th className="px-8 py-4 text-center">Disponível</th>
@@ -441,7 +441,7 @@ export default function Estoque() {
                       <th className="px-8 py-4 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/30 text-sm">
+                  <tbody className="divide-y divide-border/30 text-sm">
                     {filtered.map((item) => {
                       const cfg = statusConfig[item.status];
                       const StatusIcon = cfg.icon;
@@ -453,7 +453,7 @@ export default function Estoque() {
                         >
                           <td className="px-8 py-6">
                             <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors overflow-hidden shrink-0">
+                              <div className="w-12 h-12 rounded-2xl bg-background border border-border flex items-center justify-center text-muted-foreground/70 group-hover:border-primary/50 transition-colors overflow-hidden shrink-0">
                                 {item.image ? (
                                   <img src={item.image} alt="" className="w-full h-full object-cover" />
                                 ) : item.type === "Bike" ? (
@@ -463,8 +463,8 @@ export default function Estoque() {
                                 )}
                               </div>
                               <div>
-                                <p className="font-bold text-zinc-100">{item.name}</p>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                                <p className="font-bold text-foreground">{item.name}</p>
+                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                                   {item.category || "Sem Categoria"}
                                 </p>
                               </div>
@@ -474,7 +474,7 @@ export default function Estoque() {
                           <td className="px-8 py-6 text-center">
                             <span className={`text-lg font-black ${cfg.color}`}>{item.stock_qty}</span>
                           </td>
-                          <td className="px-8 py-6 text-center text-zinc-500 font-medium">
+                          <td className="px-8 py-6 text-center text-muted-foreground font-medium">
                             {item.alert_stock > 0 ? item.alert_stock : "—"}
                           </td>
                           <td className="px-8 py-6">
@@ -497,24 +497,24 @@ export default function Estoque() {
       {/* Modal de Ajuste */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-secondary w-full max-w-md rounded-2xl md:rounded-[40px] border border-border overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-10 space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-white">Ajustar Estoque</h2>
-                  <p className="text-zinc-500 text-sm">Gerencie entrada e saída de itens</p>
+                  <p className="text-muted-foreground text-sm">Gerencie entrada e saída de itens</p>
                 </div>
                 <button
                   onClick={closeModal}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-white transition-colors"
                 >
                   <Plus className="w-6 h-6 rotate-45" />
                 </button>
               </div>
 
               {/* Preview */}
-              <div className="p-4 bg-zinc-900 rounded-3xl border border-zinc-800 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center text-zinc-500 overflow-hidden shrink-0">
+              <div className="p-4 bg-background rounded-3xl border border-border flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground overflow-hidden shrink-0">
                   {selectedItem.image ? (
                     <img src={selectedItem.image} alt="" className="w-full h-full object-cover" />
                   ) : selectedItem.type === "Bike" ? (
@@ -525,9 +525,9 @@ export default function Estoque() {
                 </div>
                 <div>
                   <p className="font-bold text-white">{selectedItem.name}</p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-muted-foreground">
                     Estoque atual:{" "}
-                    <span className="text-[#2952FF] font-black">{selectedItem.stock_qty}</span>
+                    <span className="text-primary font-black">{selectedItem.stock_qty}</span>
                   </p>
                 </div>
               </div>
@@ -552,7 +552,7 @@ export default function Estoque() {
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                       Quantidade para {mode === "add" ? "Adicionar" : "Retirar"}
                     </label>
                     <input
@@ -562,12 +562,12 @@ export default function Estoque() {
                       value={qty}
                       onChange={(e) => setQty(e.target.value)}
                       placeholder="0"
-                      className="w-full h-14 bg-[#161618] border border-zinc-800 rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-[#2952FF] transition-all"
+                      className="w-full h-14 bg-card border border-border rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-primary transition-all"
                     />
                   </div>
 
                   {qty && parseInt(qty) > 0 && (
-                    <div className="flex items-center justify-center gap-4 text-sm text-zinc-500">
+                    <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
                       <span>{selectedItem.stock_qty}</span>
                       <ArrowRight size={14} />
                       <span className="font-black text-white text-lg">

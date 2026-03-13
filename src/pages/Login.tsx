@@ -13,7 +13,7 @@ const Btn = ({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button
     disabled={disabled}
-    className={`inline-flex items-center justify-center rounded-2xl bg-[#2952FF] hover:bg-[#4A6FFF] text-white font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(41,82,255,0.3)] transition-all active:scale-95 disabled:opacity-70 ${className}`}
+    className={`inline-flex items-center justify-center rounded-2xl bg-primary hover:bg-primary/80 text-white font-black uppercase tracking-widest shadow-[0_10px_30px_rgba(41,82,255,0.3)] transition-all active:scale-95 disabled:opacity-70 ${className}`}
     {...props}
   >
     {children}
@@ -22,14 +22,14 @@ const Btn = ({
 
 const InputEl = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`flex w-full bg-[#161618] border border-zinc-800 h-14 px-4 rounded-2xl text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#2952FF] focus:border-transparent transition-all placeholder:text-zinc-600 ${className}`}
+    className={`flex w-full bg-card border border-border h-14 px-4 rounded-2xl text-foreground focus:outline-none focus:ring-2 focus:ring-[#2952FF] focus:border-transparent transition-all placeholder:text-muted-foreground/70 ${className}`}
     {...props}
   />
 );
 
 const LabelEl = ({ children, className = "", ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
   <label
-    className={`text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 block ${className}`}
+    className={`text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground block ${className}`}
     {...props}
   >
     {children}
@@ -63,7 +63,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[#2952FF]/30">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-primary/30">
 
       {/* Imagem — esquerda no desktop, topo no mobile */}
       <div className="relative w-full lg:w-[60%] h-[40vh] lg:h-screen overflow-hidden">
@@ -83,32 +83,32 @@ export default function Login() {
         {/* Branding (só desktop) */}
         <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.4)]">
+            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.4)]">
               <Bike className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-black tracking-widest text-white">FEFO BIKES</span>
           </div>
-          <p className="text-zinc-400 font-medium max-w-xs">
+          <p className="text-muted-foreground font-medium max-w-xs">
             Performance e precisão para quem não aceita menos que o topo.
           </p>
         </div>
       </div>
 
       {/* Formulário — direita */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-8 relative z-10 bg-[#0A0A0B]">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-8 relative z-10 bg-background">
         <div className="w-full max-w-md space-y-10">
 
           {/* Header */}
           <div className="space-y-3 text-center lg:text-left">
             <div className="lg:hidden flex justify-center mb-6">
-              <div className="w-14 h-14 bg-[#2952FF] rounded-[22px] flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-14 h-14 bg-primary rounded-[22px] flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Bike className="w-7 h-7 text-white" />
               </div>
             </div>
             <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-tight">
               Acesse sua conta
             </h1>
-            <p className="text-zinc-500 text-sm font-medium">
+            <p className="text-muted-foreground text-sm font-medium">
               Entre com suas credenciais para gerenciar sua oficina.
             </p>
           </div>
@@ -119,11 +119,11 @@ export default function Login() {
 
               {/* E-mail */}
               <div className="space-y-2 group">
-              <LabelEl className="ml-1 group-focus-within:text-[#2952FF] transition-colors">
+              <LabelEl className="ml-1 group-focus-within:text-primary transition-colors">
                 E-mail
               </LabelEl>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70 group-focus-within:text-primary transition-colors" />
                   <InputEl
                     type="email"
                     required
@@ -137,11 +137,11 @@ export default function Login() {
 
               {/* Senha */}
               <div className="space-y-2 group">
-              <LabelEl className="ml-1 group-focus-within:text-[#2952FF] transition-colors">
+              <LabelEl className="ml-1 group-focus-within:text-primary transition-colors">
                 Senha
               </LabelEl>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70 group-focus-within:text-primary transition-colors" />
                   <InputEl
                     type="password"
                     required
@@ -168,7 +168,7 @@ export default function Login() {
 
           {/* Footer */}
           <div className="text-center">
-            <p className="text-xs text-zinc-600 font-medium italic">
+            <p className="text-xs text-muted-foreground/70 font-medium italic">
               Acesso restrito a colaboradores autorizados da Fefo Bikes.
             </p>
           </div>

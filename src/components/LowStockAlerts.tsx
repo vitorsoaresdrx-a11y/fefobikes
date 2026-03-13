@@ -35,14 +35,14 @@ export function LowStockAlerts() {
   const warning = lowStock.filter((i) => i.stock_qty > 0);
 
   return (
-    <div className="rounded-2xl bg-[#161618] border border-amber-500/20 overflow-hidden">
-      <div className="flex items-center gap-3 p-4 border-b border-zinc-800/50">
+    <div className="rounded-2xl bg-card border border-amber-500/20 overflow-hidden">
+      <div className="flex items-center gap-3 p-4 border-b border-border/50">
         <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
           <AlertTriangle size={18} className="text-amber-500" />
         </div>
         <div className="flex-1">
           <h3 className="text-xs font-black text-white uppercase tracking-wider">Alertas de Estoque</h3>
-          <p className="text-[10px] text-zinc-500">{lowStock.length} produto{lowStock.length > 1 ? "s" : ""} abaixo do mínimo</p>
+          <p className="text-[10px] text-muted-foreground">{lowStock.length} produto{lowStock.length > 1 ? "s" : ""} abaixo do mínimo</p>
         </div>
         <button
           onClick={() => navigate("/estoque")}
@@ -52,7 +52,7 @@ export function LowStockAlerts() {
         </button>
       </div>
 
-      <div className="divide-y divide-zinc-800/50 max-h-[280px] overflow-y-auto">
+      <div className="divide-y divide-border/50 max-h-[280px] overflow-y-auto">
         {[...critical, ...warning].slice(0, 8).map((item) => {
           const isCritical = item.stock_qty === 0;
           return (
@@ -65,14 +65,14 @@ export function LowStockAlerts() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-zinc-200 truncate">{item.name}</p>
-                <p className="text-[10px] text-zinc-500">{item.type === "bike" ? "Bike" : "Peça"}</p>
+                <p className="text-xs font-bold text-foreground/90 truncate">{item.name}</p>
+                <p className="text-[10px] text-muted-foreground">{item.type === "bike" ? "Bike" : "Peça"}</p>
               </div>
               <div className="text-right">
                 <p className={`text-sm font-black ${isCritical ? "text-red-400" : "text-amber-400"}`}>
                   {item.stock_qty}
                 </p>
-                <p className="text-[9px] text-zinc-600">min: {item.alert_stock}</p>
+                <p className="text-[9px] text-muted-foreground/70">min: {item.alert_stock}</p>
               </div>
             </div>
           );

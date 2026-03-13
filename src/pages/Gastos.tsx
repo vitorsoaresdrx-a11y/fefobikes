@@ -41,9 +41,9 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-[#2952FF] text-white hover:bg-[#4A6FFF] shadow-[0_0_20px_rgba(41,82,255,0.2)]",
-    secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
-    ghost: "hover:bg-zinc-800/50 text-zinc-400 hover:text-white",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-[0_0_20px_rgba(41,82,255,0.2)]",
+    secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
+    ghost: "hover:bg-muted/50 text-muted-foreground hover:text-white",
     destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
   };
   const s = {
@@ -64,14 +64,14 @@ const Btn = ({
 
 const Input = ({ className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    className={`flex h-12 w-full rounded-xl border border-zinc-800 bg-[#161618] px-4 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2952FF] transition-all ${className}`}
+    className={`flex h-12 w-full rounded-xl border border-border bg-card px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2952FF] transition-all ${className}`}
     {...props}
   />
 );
 
 const Label = ({ children, className = "", ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
   <label
-    className={`text-[10px] font-bold uppercase tracking-[0.1em] text-zinc-500 mb-1.5 block ${className}`}
+    className={`text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground mb-1.5 block ${className}`}
     {...props}
   >
     {children}
@@ -82,7 +82,7 @@ const Badge = ({ children, variant = "default" }: { children: React.ReactNode; v
   const s =
     variant === "active"
       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-      : "bg-zinc-800 text-zinc-500 border-zinc-700";
+      : "bg-muted text-muted-foreground border-border/80";
   return <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${s}`}>{children}</span>;
 };
 
@@ -191,17 +191,17 @@ export default function Gastos() {
   const activeList = tab === "fixed" ? fixedExpenses : filteredVariable;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
       <div className="max-w-5xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
 
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
                 <Wallet className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-[#2952FF]">GESTÃO</span>
+              <span className="text-sm font-black tracking-widest text-primary">GESTÃO</span>
             </div>
             <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">Finanças</h1>
           </div>
@@ -213,27 +213,27 @@ export default function Gastos() {
 
         {/* Cards Resumo — mobile: 2 cols compacto, desktop: cards grandes */}
         <div className="grid grid-cols-2 gap-3 md:gap-6">
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
+          <div className="relative group bg-card border border-border rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-primary/50 transition-all duration-500 overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity hidden md:block">
               <Repeat size={180} />
             </div>
             <div className="relative z-10 flex flex-col justify-between h-full space-y-3 md:space-y-12">
               <div className="flex items-center justify-between">
-                <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-[#2952FF]">
+                <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-primary">
                   <Repeat className="w-4 h-4 md:w-6 md:h-6" />
                 </div>
                 <span className="hidden md:inline"><Badge>CUSTO FIXO</Badge></span>
               </div>
               <div>
-                <p className="text-[9px] md:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Fixos</p>
+                <p className="text-[9px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Gastos Fixos</p>
                 <h2 className="text-lg md:text-2xl lg:text-4xl font-black tracking-tighter">
-                  {isLoading ? <span className="text-zinc-700 text-sm md:text-2xl">...</span> : formatBRL(fixedTotal)}
+                  {isLoading ? <span className="text-muted-foreground/50 text-sm md:text-2xl">...</span> : formatBRL(fixedTotal)}
                 </h2>
               </div>
             </div>
           </div>
 
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
+          <div className="relative group bg-card border border-border rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity hidden md:block">
               <CreditCard size={180} />
             </div>
@@ -245,9 +245,9 @@ export default function Gastos() {
                 <span className="hidden md:inline"><Badge>{MONTHS[varMonth].toUpperCase()}</Badge></span>
               </div>
               <div>
-                <p className="text-[9px] md:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Variáveis</p>
+                <p className="text-[9px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Gastos Variáveis</p>
                 <h2 className="text-lg md:text-2xl lg:text-4xl font-black tracking-tighter">
-                  {isLoading ? <span className="text-zinc-700 text-sm md:text-2xl">...</span> : formatBRL(varTotal)}
+                  {isLoading ? <span className="text-muted-foreground/50 text-sm md:text-2xl">...</span> : formatBRL(varTotal)}
                 </h2>
               </div>
             </div>
@@ -256,57 +256,57 @@ export default function Gastos() {
 
         {/* Tabs */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex p-1 bg-[#161618] border border-zinc-800 rounded-2xl mx-auto md:mx-0 self-center md:self-start">
+          <div className="flex p-1 bg-card border border-border rounded-2xl mx-auto md:mx-0 self-center md:self-start">
             <button
               onClick={() => setTab("fixed")}
-              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "fixed" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "fixed" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-muted-foreground hover:text-foreground/80"}`}
             >
               Fixo
             </button>
             <button
               onClick={() => setTab("variable")}
-              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "variable" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === "variable" ? "bg-[#2C2C2E] text-white shadow-xl" : "text-muted-foreground hover:text-foreground/80"}`}
             >
               Variável
             </button>
           </div>
 
           {tab === "variable" && (
-            <div className="flex items-center bg-[#161618] border border-zinc-800 rounded-2xl p-1">
+            <div className="flex items-center bg-card border border-border rounded-2xl p-1">
               <Btn variant="ghost" size="icon" onClick={prevMonth}>
-                <ChevronLeft className="w-4 h-4 text-zinc-100" />
+                <ChevronLeft className="w-4 h-4 text-foreground" />
               </Btn>
-              <span className="text-xs font-black uppercase tracking-widest text-zinc-100 px-6 min-w-[160px] text-center">
+              <span className="text-xs font-black uppercase tracking-widest text-foreground px-6 min-w-[160px] text-center">
                 {MONTHS[varMonth]} {varYear}
               </span>
               <Btn variant="ghost" size="icon" onClick={nextMonth}>
-                <ChevronRight className="w-4 h-4 text-zinc-100" />
+                <ChevronRight className="w-4 h-4 text-foreground" />
               </Btn>
             </div>
           )}
         </div>
 
         {/* Lista */}
-        <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
-          <div className="p-4 md:p-8 border-b border-zinc-800/50 flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
+          <div className="p-4 md:p-8 border-b border-border/50 flex items-center justify-between">
             <h3 className="text-sm md:text-lg font-black whitespace-nowrap">Histórico de Lançamentos</h3>
-            <span className="flex items-center gap-1 md:gap-2 text-[9px] md:text-[10px] text-zinc-500 shrink-0 ml-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2952FF] animate-pulse" />
+            <span className="flex items-center gap-1 md:gap-2 text-[9px] md:text-[10px] text-muted-foreground shrink-0 ml-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               Tempo Real
             </span>
           </div>
 
-          <div className="divide-y divide-zinc-800/30">
+          <div className="divide-y divide-border/30">
             {isLoading ? (
-              <div className="p-20 text-center text-zinc-600 text-sm">Carregando...</div>
+              <div className="p-20 text-center text-muted-foreground/70 text-sm">Carregando...</div>
             ) : activeList.length === 0 ? (
               <div className="p-20 flex flex-col items-center text-center space-y-4">
-                <div className="p-6 bg-zinc-900 rounded-[30px] border border-zinc-800 text-zinc-700">
+                <div className="p-6 bg-background rounded-[30px] border border-border text-muted-foreground/50">
                   {tab === "fixed" ? <Repeat size={40} /> : <CreditCard size={40} />}
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-lg font-bold text-zinc-300">Nenhum registro encontrado</h4>
-                  <p className="text-sm text-zinc-500 max-w-xs">
+                  <h4 className="text-lg font-bold text-foreground/80">Nenhum registro encontrado</h4>
+                  <p className="text-sm text-muted-foreground max-w-xs">
                     Sua lista de {tab === "fixed" ? "gastos fixos" : "gastos variáveis"} está vazia.
                   </p>
                 </div>
@@ -318,17 +318,17 @@ export default function Gastos() {
                     {tab === "fixed" ? <Receipt className="w-4 h-4 md:w-6 md:h-6 stroke-[1.5]" /> : <CreditCard className="w-4 h-4 md:w-6 md:h-6 stroke-[1.5]" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className={`text-sm md:text-lg font-bold truncate ${"active" in exp && !exp.active ? "text-zinc-600 line-through" : "text-zinc-100"}`}>
+                    <h4 className={`text-sm md:text-lg font-bold truncate ${"active" in exp && !exp.active ? "text-muted-foreground/70 line-through" : "text-foreground"}`}>
                       {exp.name}
                     </h4>
-                    <p className="text-xs text-zinc-500 font-medium truncate">
+                    <p className="text-xs text-muted-foreground font-medium truncate">
                       {tab === "fixed"
                         ? (exp.notes || "Recorrência mensal")
                         : format(new Date((exp as any).expense_date + "T00:00:00"), "dd 'de' MMMM", { locale: ptBR })}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm md:text-xl font-black text-zinc-100">{formatBRL(Number(exp.amount))}</p>
+                    <p className="text-sm md:text-xl font-black text-foreground">{formatBRL(Number(exp.amount))}</p>
                     {tab === "fixed" && (
                       <Badge variant={"active" in exp && exp.active ? "active" : "default"}>
                         {"active" in exp && exp.active ? "ATIVO" : "PAUSADO"}
@@ -343,7 +343,7 @@ export default function Gastos() {
                       >
                         {exp.active
                           ? <ToggleRight className="w-5 h-5 md:w-7 md:h-7 text-emerald-500" />
-                          : <ToggleLeft className="w-5 h-5 md:w-7 md:h-7 text-zinc-700" />}
+                          : <ToggleLeft className="w-5 h-5 md:w-7 md:h-7 text-muted-foreground/50" />}
                       </button>
                     )}
                     <Btn
@@ -363,13 +363,13 @@ export default function Gastos() {
           <div className="px-4 py-3 md:p-8 bg-black/20 flex items-center justify-between">
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-[#161618] bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500">
+                <div key={i} className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-[#161618] bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                   {i}
                 </div>
               ))}
             </div>
             <div className="text-right min-w-0">
-              <p className="text-[9px] md:text-xs uppercase text-zinc-500 font-bold tracking-[0.2em]">Total Acumulado</p>
+              <p className="text-[9px] md:text-xs uppercase text-muted-foreground font-bold tracking-[0.2em]">Total Acumulado</p>
               <p className="text-sm md:text-2xl font-black text-white whitespace-nowrap">{formatBRL(tab === "fixed" ? fixedTotal : varTotal)}</p>
             </div>
           </div>
@@ -379,14 +379,14 @@ export default function Gastos() {
       {/* Modal Fixo */}
       {fixedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="bg-secondary w-full max-w-md rounded-2xl md:rounded-[40px] border border-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="p-6 md:p-10 space-y-6 md:space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-white">Novo Gasto Fixo</h2>
-                  <p className="text-zinc-500 text-sm">Defina um custo fixo mensal</p>
+                  <p className="text-muted-foreground text-sm">Defina um custo fixo mensal</p>
                 </div>
-                <button onClick={() => { setFixedModal(false); resetFixed(); }} className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
+                <button onClick={() => { setFixedModal(false); resetFixed(); }} className="w-10 h-10 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-white transition-colors">
                   <Plus className="w-6 h-6 rotate-45" />
                 </button>
               </div>
@@ -402,7 +402,7 @@ export default function Gastos() {
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
                   <textarea value={fNotes} onChange={(e) => setFNotes(e.target.value)} placeholder="Informações adicionais..." maxLength={500}
-                    className="w-full rounded-xl border border-zinc-800 bg-[#161618] p-4 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
+                    className="w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
                 </div>
               </div>
               <div className="flex gap-4">
@@ -419,14 +419,14 @@ export default function Gastos() {
       {/* Modal Variável */}
       {varModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-          <div className="bg-[#1C1C1E] w-full max-w-md rounded-2xl md:rounded-[40px] border border-zinc-800 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="bg-secondary w-full max-w-md rounded-2xl md:rounded-[40px] border border-border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="p-6 md:p-10 space-y-6 md:space-y-8">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-black text-white">Novo Gasto Variável</h2>
-                  <p className="text-zinc-500 text-sm">Registre uma despesa pontual</p>
+                  <p className="text-muted-foreground text-sm">Registre uma despesa pontual</p>
                 </div>
-                <button onClick={() => { setVarModal(false); resetVar(); }} className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
+                <button onClick={() => { setVarModal(false); resetVar(); }} className="w-10 h-10 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-white transition-colors">
                   <Plus className="w-6 h-6 rotate-45" />
                 </button>
               </div>
@@ -448,7 +448,7 @@ export default function Gastos() {
                 <div className="space-y-1.5">
                   <Label>Observação</Label>
                   <textarea value={vNotes} onChange={(e) => setVNotes(e.target.value)} placeholder="Informações adicionais..." maxLength={500}
-                    className="w-full rounded-xl border border-zinc-800 bg-[#161618] p-4 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
+                    className="w-full rounded-xl border border-border bg-card p-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[#2952FF] h-24 resize-none transition-all" />
                 </div>
               </div>
               <div className="flex gap-4">

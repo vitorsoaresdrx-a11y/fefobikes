@@ -9,12 +9,12 @@ interface PermissionGuardProps {
 
 function DefaultFallback() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-zinc-500">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-muted-foreground">
       <ShieldX size={48} strokeWidth={1.5} />
       <div className="text-center space-y-1">
-        <h2 className="text-lg font-bold text-zinc-300">Acesso Restrito</h2>
+        <h2 className="text-lg font-bold text-foreground/80">Acesso Restrito</h2>
         <p className="text-sm">Você não tem permissão para acessar esta área.</p>
-        <p className="text-xs text-zinc-600">Entre em contato com o administrador.</p>
+        <p className="text-xs text-muted-foreground/70">Entre em contato com o administrador.</p>
       </div>
     </div>
   );

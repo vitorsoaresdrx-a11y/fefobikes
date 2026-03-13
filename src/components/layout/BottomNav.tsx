@@ -19,7 +19,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[#111113] border-t border-zinc-800/50"
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-card border-t border-border/50"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="flex items-center justify-around px-2 h-16">
@@ -38,12 +38,12 @@ export function BottomNav() {
                 <tab.icon
                   size={20}
                   strokeWidth={active ? 2.5 : 1.5}
-                  className={active ? "text-[#2952FF]" : "text-zinc-500"}
+                  className={active ? "text-primary" : "text-muted-foreground"}
                 />
               </motion.div>
               <span
                 className={`text-[9px] font-bold uppercase tracking-widest ${
-                  active ? "text-[#2952FF]" : "text-zinc-600"
+                  active ? "text-primary" : "text-muted-foreground/70"
                 }`}
               >
                 {tab.label}

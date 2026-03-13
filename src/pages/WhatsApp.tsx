@@ -98,7 +98,7 @@ const STATUS_FILTERS = [
 const statusBadgeConfig: Record<string, string> = {
   open: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   waiting: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  resolved: "bg-zinc-800 text-zinc-500 border-zinc-700",
+  resolved: "bg-muted text-muted-foreground border-border/80",
 };
 
 const statusDotConfig: Record<string, string> = {
@@ -218,16 +218,16 @@ export default function WhatsApp() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-[#0A0A0B] text-zinc-100 overflow-hidden rounded-2xl md:rounded-[40px] border border-zinc-800/50 shadow-2xl">
+    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden rounded-2xl md:rounded-[40px] border border-border/50 shadow-2xl">
 
       {/* ── Sidebar: Conversas ─────────────────────────────────────────────── */}
-      <aside className={`w-full md:w-96 flex flex-col border-r border-zinc-800/50 bg-[#111113]/50 md:shrink-0 ${showChatMobile ? "hidden md:flex" : "flex"}`}>
+      <aside className={`w-full md:w-96 flex flex-col border-r border-border/50 bg-card/50 md:shrink-0 ${showChatMobile ? "hidden md:flex" : "flex"}`}>
 
         {/* Header */}
         <div className="p-4 md:p-8 space-y-4 md:space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
                 <MessageCircle size={20} className="text-white" />
               </div>
               <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export default function WhatsApp() {
                 </h1>
                 {/* Connection indicator */}
                 {connLoading ? (
-                  <Loader2 size={14} className="text-zinc-500 animate-spin" />
+                  <Loader2 size={14} className="text-muted-foreground animate-spin" />
                 ) : isConnected ? (
                   <Wifi size={14} className="text-emerald-400" />
                 ) : (
@@ -246,11 +246,11 @@ export default function WhatsApp() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all">
+                <button className="w-10 h-10 flex items-center justify-center rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 transition-all">
                   <MoreVertical size={18} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+              <DropdownMenuContent align="end" className="bg-background border-border">
                 {isConnected && (
                   <DropdownMenuItem
                     onClick={handleDisconnect}
@@ -262,7 +262,7 @@ export default function WhatsApp() {
                   </DropdownMenuItem>
                 )}
                 {!isConnected && !connLoading && (
-                  <DropdownMenuItem disabled className="text-zinc-500 gap-2">
+                  <DropdownMenuItem disabled className="text-muted-foreground gap-2">
                     <QrCode size={14} />
                     Escaneie o QR Code abaixo
                   </DropdownMenuItem>
@@ -273,14 +273,14 @@ export default function WhatsApp() {
 
           {/* QR Code when not connected */}
           {!connLoading && !isConnected && (
-            <div className="flex flex-col items-center gap-4 p-6 bg-[#161618] border border-zinc-800 rounded-3xl">
-              <div className="flex items-center gap-2 text-zinc-400">
+            <div className="flex flex-col items-center gap-4 p-6 bg-card border border-border rounded-3xl">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <QrCode size={18} />
                 <span className="text-xs font-bold uppercase tracking-widest">Conectar WhatsApp</span>
               </div>
               {qrLoading ? (
                 <div className="w-48 h-48 flex items-center justify-center">
-                  <Loader2 size={32} className="text-[#2952FF] animate-spin" />
+                  <Loader2 size={32} className="text-primary animate-spin" />
                 </div>
               ) : qrData?.qrCode ? (
                 <img
@@ -289,13 +289,13 @@ export default function WhatsApp() {
                   className="w-48 h-48 rounded-2xl bg-white p-2"
                 />
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-zinc-900 rounded-2xl">
-                  <p className="text-xs text-zinc-600 text-center px-4">
+                <div className="w-48 h-48 flex items-center justify-center bg-background rounded-2xl">
+                  <p className="text-xs text-muted-foreground/70 text-center px-4">
                     Não foi possível gerar o QR Code. Tente novamente.
                   </p>
                 </div>
               )}
-              <p className="text-[10px] text-zinc-600 text-center leading-relaxed max-w-[200px]">
+              <p className="text-[10px] text-muted-foreground/70 text-center leading-relaxed max-w-[200px]">
                 Abra o WhatsApp no celular, vá em Dispositivos Conectados e escaneie o código.
               </p>
             </div>
@@ -306,13 +306,13 @@ export default function WhatsApp() {
             <div className="relative group">
               <Search
                 size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#2952FF] transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors"
               />
               <input
                 placeholder="Buscar contato..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-12 bg-[#161618] border border-zinc-800 rounded-2xl pl-12 pr-4 text-sm outline-none focus:border-[#2952FF] transition-all text-zinc-100 placeholder:text-zinc-600"
+                className="w-full h-12 bg-card border border-border rounded-2xl pl-12 pr-4 text-sm outline-none focus:border-primary transition-all text-foreground placeholder:text-muted-foreground/70"
               />
             </div>
 
@@ -323,7 +323,7 @@ export default function WhatsApp() {
                   const container = document.getElementById('status-filters');
                   container?.scrollBy({ left: -100, behavior: 'smooth' });
                 }}
-                className="shrink-0 w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-white transition-colors"
+                className="shrink-0 w-6 h-6 flex items-center justify-center text-muted-foreground/70 hover:text-white transition-colors"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -334,8 +334,8 @@ export default function WhatsApp() {
                     onClick={() => setStatusFilter(f.value)}
                     className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border whitespace-nowrap ${
                       statusFilter === f.value
-                        ? "bg-[#2952FF] border-[#2952FF] text-white shadow-lg"
-                        : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600"
+                        ? "bg-primary border-primary text-white shadow-lg"
+                        : "bg-background border-border text-muted-foreground hover:border-border/70"
                     }`}
                   >
                     {f.label}
@@ -347,7 +347,7 @@ export default function WhatsApp() {
                   const container = document.getElementById('status-filters');
                   container?.scrollBy({ left: 100, behavior: 'smooth' });
                 }}
-                className="shrink-0 w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-white transition-colors"
+                className="shrink-0 w-6 h-6 flex items-center justify-center text-muted-foreground/70 hover:text-white transition-colors"
               >
                 <ChevronRight size={14} />
               </button>
@@ -358,7 +358,7 @@ export default function WhatsApp() {
         {/* Conversation list */}
         <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-4 scrollbar-none">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-zinc-600 space-y-3">
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/70 space-y-3">
               <MessageCircle size={40} strokeWidth={1} />
               <p className="text-xs font-bold uppercase tracking-widest">
                 Nenhuma conversa
@@ -371,13 +371,13 @@ export default function WhatsApp() {
                 onClick={() => handleSelectConv(conv)}
                 className={`w-full p-4 md:p-5 rounded-2xl md:rounded-[28px] border transition-all flex items-center gap-3 md:gap-4 group ${
                   selectedConv?.id === conv.id
-                    ? "bg-[#1C1C1E] border-[#2952FF]/30 shadow-xl"
+                    ? "bg-secondary border-primary/30 shadow-xl"
                     : "bg-transparent border-transparent hover:bg-white/[0.03]"
                 }`}
               >
                 {/* Avatar */}
                 <div className="relative shrink-0">
-                  <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 border border-zinc-700/50 group-hover:border-[#2952FF]/50 transition-colors font-bold text-lg uppercase">
+                  <div className="w-14 h-14 bg-muted rounded-2xl flex items-center justify-center text-muted-foreground border border-border/80/50 group-hover:border-primary/50 transition-colors font-bold text-lg uppercase">
                     {conv.contact_photo ? (
                       <img
                         src={getOptimizedImageUrl(conv.contact_photo, 80, 70) || conv.contact_photo}
@@ -396,7 +396,7 @@ export default function WhatsApp() {
                     className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#111113] ${statusDotConfig[conv.status] || "bg-zinc-500"}`}
                   />
                   {conv.unread_count > 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#2952FF] text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-[#0A0A0B]">
                       {conv.unread_count}
                     </div>
                   )}
@@ -409,16 +409,16 @@ export default function WhatsApp() {
                       className={`text-sm font-bold truncate ${
                         selectedConv?.id === conv.id
                           ? "text-white"
-                          : "text-zinc-300"
+                          : "text-foreground/80"
                       }`}
                     >
                       {getDisplayContactName(conv, currentUserName)}
                     </h4>
-                    <span className="text-[9px] font-bold text-zinc-600 uppercase shrink-0 ml-1">
+                    <span className="text-[9px] font-bold text-muted-foreground/70 uppercase shrink-0 ml-1">
                       {format(new Date(conv.last_message_at), "HH:mm")}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-500 truncate font-medium">
+                  <p className="text-xs text-muted-foreground truncate font-medium">
                     {conv.last_message}
                   </p>
                   <div className="pt-1 flex items-center gap-2">
@@ -438,17 +438,17 @@ export default function WhatsApp() {
       </aside>
 
       {/* ── Chat Area ──────────────────────────────────────────────────────── */}
-      <main className={`flex-1 flex flex-col bg-[#0A0A0B] min-w-0 ${showChatMobile ? "flex" : "hidden md:flex"}`}>
+      <main className={`flex-1 flex flex-col bg-background min-w-0 ${showChatMobile ? "flex" : "hidden md:flex"}`}>
         {!selectedConv ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center space-y-6">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-2xl md:rounded-[40px] flex items-center justify-center text-zinc-800 border border-zinc-800/50 shadow-inner">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-background rounded-2xl md:rounded-[40px] flex items-center justify-center text-zinc-800 border border-border/50 shadow-inner">
               <MessageCircle size={40} strokeWidth={1} />
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl md:text-2xl font-black text-zinc-300 uppercase italic tracking-tighter">
+              <h3 className="text-xl md:text-2xl font-black text-foreground/80 uppercase italic tracking-tighter">
                 Hub de Conversas
               </h3>
-              <p className="text-sm text-zinc-500 max-w-xs leading-relaxed">
+              <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
                 Selecione um contato na lateral para iniciar o atendimento.
               </p>
             </div>
@@ -456,16 +456,16 @@ export default function WhatsApp() {
         ) : (
           <>
             {/* Chat header */}
-            <header className="px-4 md:px-10 py-4 md:py-6 border-b border-zinc-800/50 flex items-center justify-between bg-[#111113]/30 backdrop-blur-md shrink-0">
+            <header className="px-4 md:px-10 py-4 md:py-6 border-b border-border/50 flex items-center justify-between bg-card/30 backdrop-blur-md shrink-0">
               <div className="flex items-center gap-3 md:gap-5">
                 {/* Mobile back button */}
                 <button
                   onClick={handleBackToList}
-                  className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                  className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-white transition-colors"
                 >
                   <ChevronLeft size={24} />
                 </button>
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-700 font-bold uppercase shrink-0">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-xl flex items-center justify-center text-muted-foreground border border-border/80 font-bold uppercase shrink-0">
                   {selectedConv.contact_photo ? (
                     <img
                       src={getOptimizedImageUrl(selectedConv.contact_photo, 80, 70) || selectedConv.contact_photo}
@@ -484,8 +484,8 @@ export default function WhatsApp() {
                     {getDisplayContactName(selectedConv, currentUserName)}
                   </h2>
                    <div className="flex items-center gap-2">
-                     <p className="text-xs text-zinc-500 font-bold tracking-widest flex items-center gap-2">
-                       <Hash size={10} className="text-[#2952FF]" />
+                     <p className="text-xs text-muted-foreground font-bold tracking-widest flex items-center gap-2">
+                       <Hash size={10} className="text-primary" />
                        {getDisplayContactPhone(selectedConv.contact_phone)}
                      </p>
                      {selectedConv.ai_enabled === false && (
@@ -509,7 +509,7 @@ export default function WhatsApp() {
                         }
                       )
                     }
-                    className="h-9 px-3 md:px-4 rounded-xl border border-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-800 flex items-center gap-1.5 md:gap-2 transition-all"
+                    className="h-9 px-3 md:px-4 rounded-xl border border-border text-xs font-bold text-foreground/80 hover:bg-muted flex items-center gap-1.5 md:gap-2 transition-all"
                   >
                     <CircleDot size={14} className="text-emerald-400" />
                     <span className="hidden sm:inline">Resolver Caso</span>
@@ -525,7 +525,7 @@ export default function WhatsApp() {
                         }
                       )
                     }
-                    className="h-9 px-4 rounded-xl border border-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-800 flex items-center gap-2 transition-all"
+                    className="h-9 px-4 rounded-xl border border-border text-xs font-bold text-foreground/80 hover:bg-muted flex items-center gap-2 transition-all"
                   >
                     Reabrir
                   </button>
@@ -554,7 +554,7 @@ export default function WhatsApp() {
                     <><BotOff size={14} /> IA Pausada</>
                   )}
                 </button>
-                <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all hidden sm:flex">
+                <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl border border-border text-muted-foreground hover:text-white hover:bg-muted transition-all hidden sm:flex">
                   <MoreVertical size={18} />
                 </button>
               </div>
@@ -578,8 +578,8 @@ export default function WhatsApp() {
                     <div
                       className={`p-5 shadow-lg ${
                         msg.from_me
-                          ? "bg-[#2952FF] text-white rounded-[32px] rounded-tr-lg"
-                          : "bg-[#161618] text-zinc-200 border border-zinc-800 rounded-[32px] rounded-tl-lg"
+                          ? "bg-primary text-white rounded-[32px] rounded-tr-lg"
+                          : "bg-card text-foreground/90 border border-border rounded-[32px] rounded-tl-lg"
                       }`}
                     >
                       <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
@@ -591,7 +591,7 @@ export default function WhatsApp() {
                         msg.from_me ? "justify-end" : "justify-start"
                       }`}
                     >
-                      <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">
+                      <span className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-widest">
                         {format(new Date(msg.created_at), "HH:mm")}
                       </span>
                       {msg.from_me && <MessageStatus status={msg.status} />}
@@ -604,12 +604,12 @@ export default function WhatsApp() {
 
             {/* Input */}
             <div className="p-3 md:p-8 pt-2 md:pt-4 shrink-0 pb-[env(safe-area-inset-bottom)]">
-              <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2 shadow-2xl focus-within:border-[#2952FF]/50 transition-all">
+              <div className="bg-card border border-border rounded-2xl md:rounded-[32px] p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2 shadow-2xl focus-within:border-primary/50 transition-all">
                 <div className="flex items-center px-2">
-                  <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
+                  <button className="p-3 text-muted-foreground/70 hover:text-primary transition-colors">
                     <Paperclip size={20} />
                   </button>
-                  <button className="p-3 text-zinc-600 hover:text-[#2952FF] transition-colors">
+                  <button className="p-3 text-muted-foreground/70 hover:text-primary transition-colors">
                     <Smile size={20} />
                   </button>
                 </div>
@@ -620,12 +620,12 @@ export default function WhatsApp() {
                   onKeyDown={(e) =>
                     e.key === "Enter" && !e.shiftKey && handleSend()
                   }
-                  className="flex-1 bg-transparent border-none outline-none text-sm text-white py-4 placeholder:text-zinc-600"
+                  className="flex-1 bg-transparent border-none outline-none text-sm text-white py-4 placeholder:text-muted-foreground/70"
                 />
                 <button
                   onClick={handleSend}
                   disabled={!messageText.trim() || sendMessage.isPending}
-                  className="w-14 h-14 rounded-[24px] bg-[#2952FF] hover:bg-[#3D63FF] flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.2)] transition-all active:scale-95 disabled:opacity-50"
+                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-[#3D63FF] flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.2)] transition-all active:scale-95 disabled:opacity-50"
                 >
                   <Send size={20} />
                 </button>

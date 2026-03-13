@@ -42,7 +42,7 @@ interface PartDrawerProps {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">
+    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
       {children}
     </p>
   );
@@ -183,15 +183,15 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       />
 
       {/* Modal */}
-      <div className="relative z-10 w-full h-full md:h-auto md:max-h-[90vh] md:max-w-lg md:rounded-3xl bg-[#0A0A0B] border-t md:border border-zinc-800 flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+      <div className="relative z-10 w-full h-full md:h-auto md:max-h-[90vh] md:max-w-lg md:rounded-3xl bg-background border-t md:border border-border flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         {/* Fixed header */}
-        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-zinc-800 shrink-0">
+        <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-border shrink-0">
           <h2 className="text-base md:text-lg font-black text-white">
             {isEditing ? "Editar Produto" : "Novo Produto"}
           </h2>
           <button
             onClick={() => onOpenChange(false)}
-            className="w-8 h-8 flex items-center justify-center rounded-xl bg-zinc-900 text-zinc-400 hover:text-white transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-background text-muted-foreground hover:text-white transition-colors"
           >
             <X size={16} />
           </button>
@@ -209,7 +209,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
             {/* Photos */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                 <ImageIcon size={12} /> Fotos
               </label>
               <ImageUpload images={partImages} onChange={setPartImages} folder="parts" maxImages={2} />
@@ -217,12 +217,12 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
             {/* Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 Nome do Produto *
               </label>
               <input
                 {...form.register("name")}
-                className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                 placeholder="Ex: Freio a disco, Banco, Pedivela..."
                 maxLength={100}
               />
@@ -233,7 +233,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
             {/* Category */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 Categoria
               </label>
               <CategoryCombobox
@@ -245,15 +245,15 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             {/* SKU */}
             {isEditing && (
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   SKU
                 </label>
                 <input
                   {...form.register("sku")}
-                  className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white font-mono placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                  className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white font-mono placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                   placeholder="Gerado automaticamente"
                 />
-                <p className="text-[10px] text-zinc-600">Código interno — editável</p>
+                <p className="text-[10px] text-muted-foreground/70">Código interno — editável</p>
               </div>
             )}
           </section>
@@ -264,25 +264,25 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   Estoque atual
                 </label>
                 <input
                   type="number"
                   min={0}
                   {...form.register("stock_qty")}
-                  className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                  className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   Alerta de estoque
                 </label>
                 <input
                   type="number"
                   min={0}
                   {...form.register("alert_stock")}
-                  className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                  className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                   placeholder="Ex: 3"
                 />
               </div>
@@ -290,7 +290,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   Preço de custo
                 </label>
                 <CurrencyInput
@@ -300,7 +300,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   PIX / Dinheiro
                 </label>
                 <CurrencyInput
@@ -308,14 +308,14 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                   onChange={(val) => form.setValue("pix_price", val)}
                   className="h-11 text-sm rounded-xl"
                 />
-                <p className="text-[10px] text-zinc-600">Desconto à vista</p>
+                <p className="text-[10px] text-muted-foreground/70">Desconto à vista</p>
               </div>
             </div>
 
             {/* Profit preview */}
             {(unitCost > 0 || pixPrice > 0) && (
-              <div className="p-3 rounded-xl border border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
-                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+              <div className="p-3 rounded-xl border border-border bg-background/50 flex justify-between items-center">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Lucro por unidade
                 </span>
                 <span className={`text-sm font-black ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
@@ -326,12 +326,12 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
             {/* Installment */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 Parcelamento no cartão
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-600">Valor da parcela</label>
+                  <label className="text-[10px] text-muted-foreground/70">Valor da parcela</label>
                   <CurrencyInput
                     value={form.watch("installment_price") || 0}
                     onChange={(val) => form.setValue("installment_price", val)}
@@ -339,14 +339,14 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-600">Nº de parcelas</label>
+                  <label className="text-[10px] text-muted-foreground/70">Nº de parcelas</label>
                   <input
                     type="number"
                     min={1}
                     max={24}
                     value={form.watch("installment_count") || 1}
                     onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
-                    className="w-full h-11 px-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                    className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                     placeholder="12"
                   />
                 </div>
@@ -360,12 +360,12 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             <textarea
               {...form.register("description")}
               placeholder="Descreva o produto para o cliente — materiais, uso indicado, diferenciais..."
-              className="w-full min-h-[100px] p-4 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors resize-none"
+              className="w-full min-h-[100px] p-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors resize-none"
               maxLength={500}
             />
             <div className="flex justify-between">
-              <p className="text-[10px] text-zinc-600">Aparece na página pública do produto</p>
-              <p className={`text-[10px] ${descriptionValue.length > 450 ? "text-amber-400" : "text-zinc-600"}`}>
+              <p className="text-[10px] text-muted-foreground/70">Aparece na página pública do produto</p>
+              <p className={`text-[10px] ${descriptionValue.length > 450 ? "text-amber-400" : "text-muted-foreground/70"}`}>
                 {descriptionValue.length}/500
               </p>
             </div>
@@ -378,7 +378,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               <button
                 type="button"
                 onClick={addAttribute}
-                className="h-7 px-3 text-[10px] font-bold rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 flex items-center gap-1 hover:bg-zinc-700 transition-colors"
+                className="h-7 px-3 text-[10px] font-bold rounded-lg bg-muted border border-border/80 text-foreground/80 flex items-center gap-1 hover:bg-zinc-700 transition-colors"
               >
                 <Plus size={12} /> Adicionar
               </button>
@@ -390,18 +390,18 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                   placeholder="Ex: Material"
                   value={attr.name}
                   onChange={(e) => updateAttribute(i, "name", e.target.value)}
-                  className="flex-1 h-9 px-3 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                  className="flex-1 h-9 px-3 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                 />
                 <input
                   placeholder="Ex: Borracha"
                   value={attr.value}
                   onChange={(e) => updateAttribute(i, "value", e.target.value)}
-                  className="flex-1 h-9 px-3 text-sm rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 outline-none focus:border-[#2952FF] transition-colors"
+                  className="flex-1 h-9 px-3 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => removeAttribute(i)}
-                  className="w-8 h-8 flex items-center justify-center text-zinc-600 hover:text-red-400 transition-colors shrink-0"
+                  className="w-8 h-8 flex items-center justify-center text-muted-foreground/70 hover:text-red-400 transition-colors shrink-0"
                 >
                   <X size={14} />
                 </button>
@@ -409,7 +409,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             ))}
 
             {attributes.length === 0 && (
-              <p className="text-[11px] text-zinc-600 text-center py-3">
+              <p className="text-[11px] text-muted-foreground/70 text-center py-3">
                 Nenhuma característica adicionada
               </p>
             )}
@@ -417,11 +417,11 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
         </form>
 
         {/* Fixed footer */}
-        <div className="px-4 md:px-6 py-4 border-t border-zinc-800 flex gap-3 shrink-0 bg-[#0A0A0B]">
+        <div className="px-4 md:px-6 py-4 border-t border-border flex gap-3 shrink-0 bg-background">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-11 rounded-xl border border-zinc-700 text-sm font-bold text-zinc-300 hover:bg-zinc-800 transition-colors"
+            className="flex-1 h-11 rounded-xl border border-border/80 text-sm font-bold text-foreground/80 hover:bg-muted transition-colors"
           >
             Cancelar
           </button>
@@ -429,7 +429,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             type="submit"
             form="part-form"
             disabled={createPart.isPending || updatePart.isPending}
-            className="flex-1 h-11 rounded-xl bg-[#2952FF] text-white text-sm font-bold hover:bg-[#4A6FFF] transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(41,82,255,0.2)]"
+            className="flex-1 h-11 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/80 transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(41,82,255,0.2)]"
           >
             {isEditing ? "Salvar" : "Criar Produto"}
           </button>
