@@ -19,9 +19,8 @@ const partSchema = z.object({
   stock_qty: z.coerce.number().int().min(0).default(0),
   alert_stock: z.coerce.number().int().min(0).default(0),
   unit_cost: z.coerce.number().min(0).default(0),
-  pix_price: z.coerce.number().min(0).default(0),
-  installment_price: z.coerce.number().min(0).default(0),
-  installment_count: z.coerce.number().int().min(1).default(1),
+  sale_price: z.coerce.number().min(0).default(0),
+  visible_on_storefront: z.boolean().default(false),
   description: z.string().max(500).optional(),
 });
 
@@ -71,16 +70,15 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: 0,
       alert_stock: 0,
       unit_cost: 0,
-      pix_price: 0,
-      installment_price: 0,
-      installment_count: 1,
+      sale_price: 0,
+      visible_on_storefront: false,
       description: "",
     },
   });
 
   const unitCost = form.watch("unit_cost");
-  const pixPrice = form.watch("pix_price");
-  const profit = pixPrice - unitCost;
+  const salePrice = form.watch("sale_price");
+  const profit = salePrice - unitCost;
   const descriptionValue = form.watch("description") || "";
 
   useEffect(() => {
@@ -93,9 +91,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
           unit_cost: Number((part as any).unit_cost) || 0,
-          pix_price: Number((part as any).pix_price) || 0,
-          installment_price: Number((part as any).installment_price) || 0,
-          installment_count: Number((part as any).installment_count) || 1,
+          sale_price: Number((part as any).sale_price) || Number((part as any).pix_price) || 0,
+          visible_on_storefront: !!(part as any).visible_on_storefront,
           description: (part as any).description || "",
         });
         setPartImages((part as any).images || []);
@@ -126,12 +123,12 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: values.stock_qty,
       alert_stock: values.alert_stock,
       unit_cost: values.unit_cost,
-      sale_price: values.pix_price,
-      pix_price: values.pix_price,
-      installment_price: values.installment_price,
-      installment_count: values.installment_count,
+      sale_price: values.sale_price,
+      pix_price: values.sale_price,
+      installment_price: null,
+      installment_count: null,
       description: values.description || null,
-      notes: values.description || null, // keep notes in sync
+      notes: values.description || null,
       weight_capacity_kg: null,
       material: null,
       gears: null,
@@ -139,7 +136,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       color: null,
       rim_size: null,
       frame_size: null,
-      visible_on_storefront: false,
+      visible_on_storefront: values.visible_on_storefront,
       images: partImages,
     };
     if (isEditing && values.sku) {
@@ -301,19 +298,18 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  PIX / Dinheiro
+                  Preço de venda
                 </label>
                 <CurrencyInput
-                  value={form.watch("pix_price") || 0}
-                  onChange={(val) => form.setValue("pix_price", val)}
+                  value={salePrice || 0}
+                  onChange={(val) => form.setValue("sale_price", val)}
                   className="h-11 text-sm rounded-xl"
                 />
-                <p className="text-[10px] text-muted-foreground/70">Desconto à vista</p>
               </div>
             </div>
 
             {/* Profit preview */}
-            {(unitCost > 0 || pixPrice > 0) && (
+            {(unitCost > 0 || salePrice > 0) && (
               <div className="p-3 rounded-xl border border-border bg-background/50 flex justify-between items-center">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Lucro por unidade
@@ -323,35 +319,6 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 </span>
               </div>
             )}
-
-            {/* Installment */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                Parcelamento no cartão
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] text-muted-foreground/70">Valor da parcela</label>
-                  <CurrencyInput
-                    value={form.watch("installment_price") || 0}
-                    onChange={(val) => form.setValue("installment_price", val)}
-                    className="h-11 text-sm rounded-xl"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] text-muted-foreground/70">Nº de parcelas</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={24}
-                    value={form.watch("installment_count") || 1}
-                    onChange={(e) => form.setValue("installment_count", parseInt(e.target.value) || 1)}
-                    className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
-                    placeholder="12"
-                  />
-                </div>
-              </div>
-            </div>
           </section>
 
           {/* ── Section 3: Descrição ──────────────────────────────────── */}
@@ -369,6 +336,23 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 {descriptionValue.length}/500
               </p>
             </div>
+          </section>
+
+          {/* ── Section: Visibilidade ─────────────────────────────────── */}
+          <section className="space-y-3">
+            <SectionLabel>Visibilidade</SectionLabel>
+            <label className="flex items-center justify-between p-3 rounded-xl border border-border bg-background/50 cursor-pointer">
+              <div>
+                <p className="text-sm font-medium text-foreground">Exibir no site público</p>
+                <p className="text-[10px] text-muted-foreground/70">O produto ficará visível na vitrine online</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={form.watch("visible_on_storefront")}
+                onChange={(e) => form.setValue("visible_on_storefront", e.target.checked)}
+                className="w-5 h-5 rounded accent-primary"
+              />
+            </label>
           </section>
 
           {/* ── Section 4: Características ────────────────────────────── */}
