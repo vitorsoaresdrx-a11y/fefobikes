@@ -138,7 +138,7 @@ const ColumnHeader = ({
   bg: string;
   border: string;
 }) => (
-  <div className={`flex items-center gap-2 p-3 lg:p-4 rounded-2xl border ${border} ${bg} mb-4`}>
+  <div className={`flex items-center gap-2 p-3 rounded-2xl border ${border} ${bg} mb-4`}>
     <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center ${color} bg-white/5 shadow-inner shrink-0`}>
       <Icon size={16} className="stroke-[2.5]" />
     </div>
