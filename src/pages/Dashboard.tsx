@@ -215,7 +215,7 @@ export default function Dashboard() {
               Outros Procedimentos
             </h4>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {secondaryActions.map((action) => (
               <SecondaryAction
                 key={action.label}
