@@ -24,7 +24,6 @@ import { useCurrentUserName } from "@/hooks/useCurrentUserName";
 import { useStockChanges } from "@/hooks/useStockChanges";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { exportInventoryCSV } from "@/lib/export-csv";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
