@@ -216,7 +216,10 @@ export default function Chamadas() {
                   {format(new Date(call.created_at), "dd/MM HH:mm")}
                 </span>
               </div>
-              <p className="text-sm text-foreground">{call.message}</p>
+              {call.message && <p className="text-sm text-foreground">{call.message}</p>}
+              {call.audio_url && (
+                <AudioPlayer url={call.audio_url} duration={call.audio_duration} />
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                   <Users size={10} />
