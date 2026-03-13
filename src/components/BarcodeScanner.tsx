@@ -71,7 +71,7 @@ export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
 
   // Called when video element mounts via ref callback
   const handleVideoRef = useCallback((el: HTMLVideoElement | null) => {
-    (videoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el;
+    videoRef.current = el;
     if (el) {
       setCameraReady(true);
     }

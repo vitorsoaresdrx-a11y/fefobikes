@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { X, Camera, Sparkles, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import type { ParsedBill } from "@/lib/barcode-parser";
 
 interface BillPhotoCaptureProps {
@@ -32,70 +33,27 @@ export function BillPhotoCapture({ onExtracted }: BillPhotoCaptureProps) {
         reader.readAsDataURL(photo);
       });
 
-      const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-      if (!GROQ_API_KEY) throw new Error("Chave da API Groq não configurada");
+      const imageDataUrl = `data:${photo.type};base64,${base64}`;
 
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "meta-llama/llama-4-scout-17b-16e-instruct",
-          max_tokens: 500,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:${photo.type};base64,${base64}`,
-                  },
-                },
-                {
-                  type: "text",
-                  text: `Analise este boleto/conta e extraia as informações. Responda APENAS com JSON puro, sem texto adicional, sem markdown, sem crases: {"beneficiary": "nome do beneficiário ou empresa", "amount": 0.00, "due_date": "YYYY-MM-DD", "bank_name": "nome do banco se visível", "barcode": "código de barras numérico se visível", "type": "boleto ou concessionaria ou cartao"} Se algum campo não for encontrado, use null.`,
-                },
-              ],
-            },
-          ],
-        }),
+      const { data, error: invokeError } = await supabase.functions.invoke("extract-bill-from-photo", {
+        body: { imageDataUrl },
       });
 
-      if (!response.ok) {
-        const errBody = await response.text();
-        console.error("Groq API error:", response.status, errBody);
-        throw new Error(`Erro da API: ${response.status}`);
+      if (invokeError) {
+        throw new Error(invokeError.message || "Falha ao chamar extração por IA");
       }
 
-      const data = await response.json();
-      let text = data.choices?.[0]?.message?.content?.trim();
-      if (!text) throw new Error("Sem resposta da IA");
-
-      // Clean markdown formatting
-      const cleaned = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-      let parsed;
-      try {
-        parsed = JSON.parse(cleaned);
-      } catch {
-        const jsonStart = cleaned.search(/[{[]/);
-        const jsonEnd = cleaned.lastIndexOf("}");
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-          parsed = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));
-        } else {
-          throw new Error("Resposta inválida da IA");
-        }
+      if (!data) {
+        throw new Error("Sem resposta da IA");
       }
 
       onExtracted({
-        type: parsed.type || "desconhecido",
-        amount: parsed.amount,
-        due_date: parsed.due_date,
-        bank_name: parsed.bank_name,
-        beneficiary: parsed.beneficiary,
-        barcode: parsed.barcode || "",
+        type: data.type || "desconhecido",
+        amount: typeof data.amount === "number" ? data.amount : null,
+        due_date: data.due_date || null,
+        bank_name: data.bank_name || null,
+        beneficiary: data.beneficiary || null,
+        barcode: data.barcode || "",
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido";
@@ -129,7 +87,11 @@ export function BillPhotoCapture({ onExtracted }: BillPhotoCaptureProps) {
           <div className="relative rounded-2xl overflow-hidden">
             <img src={preview} className="w-full max-h-48 object-cover rounded-2xl" alt="Preview do boleto" />
             <button
-              onClick={() => { setPhoto(null); setPreview(null); setError(null); }}
+              onClick={() => {
+                setPhoto(null);
+                setPreview(null);
+                setError(null);
+              }}
               className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-black/60 flex items-center justify-center text-white"
             >
               <X size={14} />
