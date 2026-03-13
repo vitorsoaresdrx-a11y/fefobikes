@@ -756,7 +756,7 @@ export default function Mecanica() {
             </div>
 
             {/* Desktop: 4 columns equal height */}
-            <div className="hidden md:flex gap-3 lg:gap-4 items-stretch">
+            <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4">
               {columns.map((col) => (
                 <div
                   key={col.key}
