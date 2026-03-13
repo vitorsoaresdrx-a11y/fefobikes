@@ -234,6 +234,14 @@ export default function Historico() {
           <h1 className="text-lg md:text-2xl font-extrabold tracking-tight">
             Histórico de Vendas
           </h1>
+          {sales.length > 0 && (
+            <button
+              onClick={() => exportSalesCSV(sales)}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-wider border border-zinc-800 rounded-xl px-3 py-2 hover:border-zinc-600"
+            >
+              <Download size={14} /> Exportar
+            </button>
+          )}
         </header>
 
         {/* Search */}

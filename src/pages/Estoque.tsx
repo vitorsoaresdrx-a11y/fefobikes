@@ -12,11 +12,13 @@ import {
   Bike,
   Layers,
   History,
+  Download,
 } from "lucide-react";
 import { useParts, useUpdatePart } from "@/hooks/useParts";
 import { useBikeModels, useUpdateBikeModel } from "@/hooks/useBikes";
 import { useToast } from "@/hooks/use-toast";
 import { getOptimizedImageUrl } from "@/lib/image";
+import { exportInventoryCSV } from "@/lib/export-csv";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
