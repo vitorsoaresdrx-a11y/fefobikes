@@ -455,6 +455,89 @@ export type Database = {
           },
         ]
       }
+      internal_call_views: {
+        Row: {
+          call_id: string
+          id: string
+          tenant_id: string | null
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          call_id: string
+          id?: string
+          tenant_id?: string | null
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          call_id?: string
+          id?: string
+          tenant_id?: string | null
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_call_views_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "internal_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_call_views_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_calls: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          created_by_name: string
+          id: string
+          message: string
+          target_role: string | null
+          target_type: string
+          target_user_id: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          created_by_name: string
+          id?: string
+          message: string
+          target_role?: string | null
+          target_type?: string
+          target_user_id?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          created_by_name?: string
+          id?: string
+          message?: string
+          target_role?: string | null
+          target_type?: string
+          target_user_id?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_calls_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lucky_numbers: {
         Row: {
           created_at: string
