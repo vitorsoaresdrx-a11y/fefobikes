@@ -461,6 +461,8 @@ export type Database = {
           created_at: string
           id: string
           job_id: string
+          labor_cost: number
+          parts_used: Json
           price: number
           problem: string
           tenant_id: string | null
@@ -470,6 +472,8 @@ export type Database = {
           created_at?: string
           id?: string
           job_id: string
+          labor_cost?: number
+          parts_used?: Json
           price?: number
           problem: string
           tenant_id?: string | null
@@ -479,6 +483,8 @@ export type Database = {
           created_at?: string
           id?: string
           job_id?: string
+          labor_cost?: number
+          parts_used?: Json
           price?: number
           problem?: string
           tenant_id?: string | null
