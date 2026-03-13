@@ -298,20 +298,20 @@ export default function Contas() {
 
       {/* Scan confirmation modal */}
       <Dialog open={showScanModal} onOpenChange={setShowScanModal}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="w-[92vw] max-w-sm max-h-[85vh] overflow-y-auto p-4">
           <DialogHeader>
             <DialogTitle className="text-base font-black">Confirmar Conta</DialogTitle>
           </DialogHeader>
           {parsed && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Tipo</p>
-                  <p className="text-sm font-bold capitalize text-foreground">{parsed.type}</p>
+                  <p className="text-sm font-bold capitalize text-foreground truncate">{parsed.type}</p>
                 </div>
                 <div>
                   <p className="text-[9px] uppercase text-muted-foreground font-bold mb-1">Banco</p>
-                  <p className="text-sm font-bold text-foreground">{parsed.bank_name || "—"}</p>
+                  <p className="text-sm font-bold text-foreground truncate">{parsed.bank_name || "—"}</p>
                 </div>
               </div>
 
@@ -354,16 +354,17 @@ export default function Contas() {
                 />
               </div>
 
-              {/* Código copiável */}
-              <div className="bg-secondary border border-border rounded-xl px-3 py-2 flex items-center justify-between gap-2">
-                <p className="text-[10px] text-muted-foreground truncate flex-1 font-mono">{parsed.barcode}</p>
-                <button
-                  onClick={() => copyBarcode(parsed.barcode)}
-                  className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Copy size={14} />
-                </button>
-              </div>
+              {parsed.barcode && (
+                <div className="bg-secondary border border-border rounded-xl px-3 py-2 flex items-center gap-2 min-w-0">
+                  <p className="text-[10px] text-muted-foreground truncate flex-1 font-mono break-all">{parsed.barcode}</p>
+                  <button
+                    onClick={() => copyBarcode(parsed.barcode)}
+                    className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Copy size={14} />
+                  </button>
+                </div>
+              )}
 
               <button
                 onClick={handleSave}
