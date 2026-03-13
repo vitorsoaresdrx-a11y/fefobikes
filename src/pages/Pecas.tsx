@@ -511,7 +511,7 @@ export default function Pecas() {
                               variant="destructive"
                               size="icon"
                               className="w-8 h-8 rounded-lg"
-                              onClick={() => deletePart.mutate(part.id)}
+                              onClick={() => setDeleteTarget(part.id)}
                             >
                               <Trash2 size={14} />
                             </Btn>
