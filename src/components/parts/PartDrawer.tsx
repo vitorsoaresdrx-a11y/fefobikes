@@ -91,9 +91,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
           unit_cost: Number((part as any).unit_cost) || 0,
-          pix_price: Number((part as any).pix_price) || 0,
-          installment_price: Number((part as any).installment_price) || 0,
-          installment_count: Number((part as any).installment_count) || 1,
+          sale_price: Number((part as any).sale_price) || Number((part as any).pix_price) || 0,
+          visible_on_storefront: !!(part as any).visible_on_storefront,
           description: (part as any).description || "",
         });
         setPartImages((part as any).images || []);
