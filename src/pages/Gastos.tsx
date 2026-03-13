@@ -134,9 +134,20 @@ export default function Gastos() {
   const [vAmount, setVAmount] = useState(0);
   const [vDate, setVDate] = useState("");
   const [vNotes, setVNotes] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: "fixed" | "variable" } | null>(null);
 
   const resetFixed = () => { setFName(""); setFAmount(0); setFNotes(""); };
   const resetVar = () => { setVName(""); setVAmount(0); setVDate(""); setVNotes(""); };
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!deleteTarget) return;
+    if (deleteTarget.type === "fixed") {
+      deleteFixed.mutate(deleteTarget.id, { onSuccess: () => toast.success("Removido") });
+    } else {
+      deleteVariable.mutate(deleteTarget.id, { onSuccess: () => toast.success("Removido") });
+    }
+    setDeleteTarget(null);
+  }, [deleteTarget, deleteFixed, deleteVariable]);
 
   const filteredVariable = useMemo(() =>
     variableExpenses.filter((e) => {
