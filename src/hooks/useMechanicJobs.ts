@@ -110,7 +110,7 @@ export function useRetreatMechanicJob() {
     mutationFn: async ({ id }: { id: string }) => {
       const { error } = await supabase
         .from("mechanic_jobs" as any)
-        .update({ status: "in_repair" })
+        .update({ status: "in_maintenance" })
         .eq("id", id);
       if (error) throw error;
     },
