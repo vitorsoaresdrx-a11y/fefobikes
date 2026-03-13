@@ -550,6 +550,57 @@ export default function Mecanica() {
     setAddOpen(true);
   };
 
+  const handleEditJob = (job: MechanicJob) => {
+    setEditJob(job);
+    setEditForm({
+      customer_name: job.customer_name || "",
+      bike_name: job.bike_name || "",
+      customer_cpf: job.customer_cpf || "",
+      customer_whatsapp: job.customer_whatsapp || "",
+      customer_id: job.customer_id || null,
+      problem: job.problem,
+      price: job.price,
+    });
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editJob || !editForm.problem.trim()) {
+      toast.error("Descreva o problema");
+      return;
+    }
+    updateDetails.mutate(
+      {
+        id: editJob.id,
+        customer_name: editForm.customer_name || null,
+        customer_cpf: editForm.customer_cpf || null,
+        customer_whatsapp: editForm.customer_whatsapp || null,
+        customer_id: editForm.customer_id || null,
+        bike_name: editForm.bike_name || null,
+        problem: editForm.problem,
+        price: editForm.price,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Serviço atualizado!");
+          setEditOpen(false);
+          setEditJob(null);
+        },
+        onError: () => toast.error("Erro ao atualizar"),
+      }
+    );
+  };
+
+  const handleRetreatJob = (job: MechanicJob) => {
+    retreat.mutate(
+      { id: job.id },
+      {
+        onSuccess: () => toast.success("Retornado para 'Na Mecânica'"),
+        onError: () => toast.error("Erro ao retroceder"),
+      }
+    );
+  };
+
   const handleSaveAddition = () => {
     if (!addJob || !addForm.problem.trim()) {
       toast.error("Descreva o novo problema");
