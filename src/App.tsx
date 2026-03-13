@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PermissionGuard } from "@/components/permissions/PermissionGuard";
+import { PageTransition } from "@/components/PageTransition";
 import PageSkeleton from "@/components/PageSkeleton";
 import Login from "@/pages/Login";
 import { Loader2 } from "lucide-react";
