@@ -944,10 +944,10 @@ export default function Mecanica() {
 
             {/* Desktop: "Na Mecânica" collapsible card above the Kanban */}
             {grouped.in_repair.length > 0 && (
-              <div className="hidden md:block max-w-3xl mx-auto">
+              <div className="hidden md:flex justify-center">
                 <button
                   onClick={() => setMechanicCardOpen((v) => !v)}
-                  className="w-full bg-card/60 border border-amber-400/15 rounded-2xl px-4 py-3 flex items-center justify-center gap-2 hover:border-amber-400/30 transition-all"
+                  className="bg-card/60 border border-amber-400/15 rounded-2xl px-5 py-2.5 flex items-center justify-center gap-2 hover:border-amber-400/30 transition-all"
                 >
                   <Wrench size={14} className="text-amber-400" />
                   <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
