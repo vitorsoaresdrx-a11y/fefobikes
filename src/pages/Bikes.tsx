@@ -22,6 +22,7 @@ import {
 } from "@/hooks/useBikes";
 import { QRCodeModal } from "@/components/QRCodeModal";
 import { getOptimizedImageUrl } from "@/lib/image";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -126,6 +127,7 @@ export default function Bikes() {
   const [qrBike, setQrBike] = useState<BikeModel | null>(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleToggle = (id: string, current: boolean) => {
     updateBike.mutate({ id, visible_on_storefront: !current });
@@ -352,7 +354,7 @@ export default function Bikes() {
                         className="text-zinc-600 hover:text-red-400 transition-colors shrink-0 ml-2"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteBike.mutate(bike.id);
+                          setDeleteTarget(bike.id);
                         }}
                       >
                         <Trash2 size={16} />
@@ -395,7 +397,7 @@ export default function Bikes() {
                           className="text-zinc-600 hover:text-red-500 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteBike.mutate(bike.id);
+                            setDeleteTarget(bike.id);
                           }}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -458,6 +460,16 @@ export default function Bikes() {
           productName={qrBike.name}
         />
       )}
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteBike.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        title="Excluir bike"
+        description="Tem certeza que deseja excluir este modelo de bike? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }

@@ -30,6 +30,7 @@ import { useCreateMechanicJob } from "@/hooks/useMechanicJobs";
 import { useCreateServiceOrder } from "@/hooks/useServiceOrders";
 import { formatBRL } from "@/lib/format";
 import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -292,6 +293,7 @@ export default function Orcamentos() {
   });
   const [lineItems, setLineItems] = useState<QuoteLineItem[]>([]);
   const [laborCost, setLaborCost] = useState(0);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const partsTotal = lineItems.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
   const grandTotal = partsTotal + laborCost;
@@ -390,10 +392,16 @@ export default function Orcamentos() {
   };
 
   const handleDelete = (id: string) => {
-    deleteQuote.mutate(id, {
+    setDeleteTargetId(id);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTargetId) return;
+    deleteQuote.mutate(deleteTargetId, {
       onSuccess: () => toast.success("Orçamento excluído"),
       onError: () => toast.error("Erro ao excluir"),
     });
+    setDeleteTargetId(null);
   };
 
   return (
@@ -640,6 +648,13 @@ export default function Orcamentos() {
           </div>
         </DialogContent>
       </Dialog>
+      <ConfirmDeleteDialog
+        open={!!deleteTargetId}
+        onOpenChange={(open) => !open && setDeleteTargetId(null)}
+        onConfirm={confirmDelete}
+        title="Excluir orçamento"
+        description="Tem certeza que deseja excluir este orçamento? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }

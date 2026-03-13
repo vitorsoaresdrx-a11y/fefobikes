@@ -20,6 +20,10 @@ import { useParts, useDeletePart, type Part } from "@/hooks/useParts";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { PartDrawer } from "@/components/parts/PartDrawer";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { EmptyState } from "@/components/EmptyState";
+import { PaginationBar } from "@/components/PaginationBar";
+import { usePagination } from "@/hooks/usePagination";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -143,6 +147,7 @@ export default function Pecas() {
   const [qrPart, setQrPart] = useState<Part | null>(null);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [newCatName, setNewCatName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const getProfit = (p: Part) =>
     (Number((p as any).sale_price) || 0) - (Number((p as any).unit_cost) || 0);
@@ -188,6 +193,8 @@ export default function Pecas() {
 
   const handleEdit = (part: Part) => { setEditingPart(part); setDrawerOpen(true); };
   const handleNew = () => { setEditingPart(null); setDrawerOpen(true); };
+
+  const pagination = usePagination(filtered);
 
   const totalStock = filtered.reduce((s, p) => s + p.stock_qty, 0);
   const totalProfit = filtered.reduce((s, p) => s + getProfit(p) * p.stock_qty, 0);
@@ -424,7 +431,7 @@ export default function Pecas() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((part) => {
+                  pagination.items.map((part) => {
                     const cost = Number((part as any).unit_cost) || 0;
                     const sale = Number((part as any).sale_price) || 0;
                     const profit = sale - cost;
@@ -504,7 +511,7 @@ export default function Pecas() {
                               variant="destructive"
                               size="icon"
                               className="w-8 h-8 rounded-lg"
-                              onClick={() => deletePart.mutate(part.id)}
+                              onClick={() => setDeleteTarget(part.id)}
                             >
                               <Trash2 size={14} />
                             </Btn>
@@ -517,6 +524,7 @@ export default function Pecas() {
               </tbody>
             </table>
           </div>
+          <PaginationBar {...pagination} onPrev={pagination.prev} onNext={pagination.next} totalItems={pagination.totalItems} />
 
           {filtered.length > 0 && (
             <div className="p-8 bg-black/20 flex items-center justify-between border-t border-zinc-800/30">
@@ -626,6 +634,16 @@ export default function Pecas() {
           </div>
         </div>
       )}
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deletePart.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        title="Excluir peça"
+        description="Tem certeza que deseja excluir esta peça? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
