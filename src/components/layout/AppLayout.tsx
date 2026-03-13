@@ -78,7 +78,7 @@ export function AppLayout() {
           </header>
 
           {/* Main content - pb for bottom nav on mobile */}
-          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 lg:p-6 pb-20 lg:pb-6">
+          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 pt-4 pb-24 lg:px-6 lg:pt-6 lg:pb-6">
             <Suspense fallback={
               <div className="flex items-center justify-center h-full">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
