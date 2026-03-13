@@ -264,6 +264,13 @@ export default function DRE() {
 
   const monthsInScope = selectedYear === currentYear ? new Date().getMonth() + 1 : 12;
 
+  const monthlySalesCount = useMemo(() => {
+    return sales.filter((sale: any) => {
+      const date = new Date(sale.created_at);
+      return date.getFullYear() === selectedYear;
+    }).length;
+  }, [sales, selectedYear]);
+
   const totals = useMemo(() => {
     const t = monthlyData.reduce(
       (acc, m) => ({
