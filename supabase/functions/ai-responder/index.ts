@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
       type: "text",
       content: responseText,
       status: "sent",
+      tenant_id: tenantId,
     });
 
     // Update conversation
