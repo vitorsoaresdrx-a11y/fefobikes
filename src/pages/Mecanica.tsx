@@ -1184,7 +1184,10 @@ export default function Mecanica() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0">
+            <button 
+              onClick={() => navigate('/mecanicos/historico')}
+              className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0"
+            >
               <History size={14} className="shrink-0" /> <span className="truncate">Histórico de O.S</span>
             </button>
             <button
