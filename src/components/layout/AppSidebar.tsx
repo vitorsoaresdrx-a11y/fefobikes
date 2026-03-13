@@ -62,15 +62,25 @@ const navGroups = [
     ],
   },
   {
-    label: "Operações",
+    label: "Serviços",
     items: [
       { title: "Mecânica", url: "/mecanica", icon: Wrench },
       { title: "Mecânicos", url: "/mecanicos", icon: HardHat },
       { title: "Histórico Mecânicos", url: "/mecanicos/historico", icon: History },
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
-      { title: "Gastos", url: "/gastos", icon: Wallet },
+    ],
+  },
+  {
+    label: "Clientes",
+    items: [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { title: "Gastos", url: "/gastos", icon: Wallet },
     ],
   },
   {
