@@ -78,7 +78,7 @@ export default function Login() {
           className={`absolute inset-0 bg-cover bg-center transition-all duration-1000 ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
           style={{ backgroundImage: `url(${imageUrl})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-[#0A0A0B]/30 to-[#0A0A0B]/70" />
+        <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-background/30 to-background/70" />
 
         {/* Branding (só desktop) */}
         <div className="hidden lg:flex absolute bottom-12 left-12 flex-col gap-2">

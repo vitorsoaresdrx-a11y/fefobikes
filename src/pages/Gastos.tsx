@@ -363,7 +363,7 @@ export default function Gastos() {
           <div className="px-4 py-3 md:p-8 bg-black/20 flex items-center justify-between">
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-[#161618] bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                <div key={i} className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                   {i}
                 </div>
               ))}
