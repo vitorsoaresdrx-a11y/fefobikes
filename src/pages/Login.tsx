@@ -122,7 +122,11 @@ export default function Login() {
         body: { station: station.id, password },
       });
 
-      if (error) throw new Error("Erro de conexão");
+      if (error) {
+        // Try to parse the error body for a user-friendly message
+        const msg = data?.error || "Erro de conexão. Verifique se as estações estão configuradas em Configurações.";
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
 
       const session = data.session;
