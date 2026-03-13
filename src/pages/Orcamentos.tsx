@@ -30,6 +30,7 @@ import { useCreateMechanicJob } from "@/hooks/useMechanicJobs";
 import { useCreateServiceOrder } from "@/hooks/useServiceOrders";
 import { formatBRL } from "@/lib/format";
 import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
