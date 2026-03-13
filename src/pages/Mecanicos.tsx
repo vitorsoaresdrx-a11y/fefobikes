@@ -27,6 +27,7 @@ import {
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { useCreateBikeServiceRecord } from "@/hooks/useBikeServiceHistory";
 import { playDoneSound, playNewOrderSound } from "@/lib/sounds";
+import { FrameNumberInput } from "@/components/mechanics/FrameNumberInput";
 import { toast } from "sonner";
 
 const mobileColumns = [
@@ -165,15 +166,10 @@ export default function Mecanicos() {
         <p className="text-xs text-zinc-400">{order.problem}</p>
       </div>
       <div className="space-y-2">
-        <div className="relative">
-          <Hash size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
-          <input
-            className="w-full h-10 bg-[#0A0A0B] border border-zinc-800 rounded-xl pl-9 pr-4 text-sm text-zinc-100 outline-none focus:border-[#2952FF] transition-all placeholder:text-zinc-600"
-            placeholder="Número do quadro"
-            value={frameNumbers[order.id] || ""}
-            onChange={(e) => setFrameNumbers((prev) => ({ ...prev, [order.id]: e.target.value }))}
-          />
-        </div>
+        <FrameNumberInput
+          value={frameNumbers[order.id] || ""}
+          onChange={(val) => setFrameNumbers((prev) => ({ ...prev, [order.id]: val }))}
+        />
         <button
           onClick={() => handleFinish(order)}
           disabled={finishOrder.isPending || createHistory.isPending}
