@@ -460,6 +460,16 @@ export default function Bikes() {
           productName={qrBike.name}
         />
       )}
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteBike.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        title="Excluir bike"
+        description="Tem certeza que deseja excluir este modelo de bike? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
