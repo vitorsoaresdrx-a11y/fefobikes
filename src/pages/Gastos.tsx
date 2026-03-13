@@ -461,6 +461,14 @@ export default function Gastos() {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Excluir lançamento"
+        description="Tem certeza que deseja excluir este gasto? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
