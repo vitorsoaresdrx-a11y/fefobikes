@@ -3,6 +3,32 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+async function resolveUserName(userId: string, email?: string): Promise<string> {
+  // Check localStorage for salão user name
+  const salaoName = typeof window !== "undefined" ? localStorage.getItem("salao_user_name") : null;
+  if (salaoName) return salaoName;
+
+  // Try profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", userId)
+    .single();
+
+  if (profile?.full_name) return profile.full_name;
+
+  // Fallback: extract readable part from email
+  if (email) {
+    if (email.includes("@station.internal")) {
+      const match = email.match(/^station-(\w+)-/);
+      if (match) return match[1].charAt(0).toUpperCase() + match[1].slice(1);
+    }
+    return email.split("@")[0];
+  }
+
+  return "Usuário";
+}
+
 export interface InternalCall {
   id: string;
   message: string;
