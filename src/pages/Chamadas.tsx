@@ -21,6 +21,8 @@ export default function Chamadas() {
   const [selected, setSelected] = useState("all");
   const [targetUserId, setTargetUserId] = useState("");
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioDuration, setAudioDuration] = useState(0);
   const { session } = useAuth();
   const { mutateAsync: sendCall, isPending } = useSendCall();
   const { data: history = [] } = useAllCalls();
