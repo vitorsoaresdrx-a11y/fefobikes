@@ -338,6 +338,23 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             </div>
           </section>
 
+          {/* ── Section: Visibilidade ─────────────────────────────────── */}
+          <section className="space-y-3">
+            <SectionLabel>Visibilidade</SectionLabel>
+            <label className="flex items-center justify-between p-3 rounded-xl border border-border bg-background/50 cursor-pointer">
+              <div>
+                <p className="text-sm font-medium text-foreground">Exibir no site público</p>
+                <p className="text-[10px] text-muted-foreground/70">O produto ficará visível na vitrine online</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={form.watch("visible_on_storefront")}
+                onChange={(e) => form.setValue("visible_on_storefront", e.target.checked)}
+                className="w-5 h-5 rounded accent-primary"
+              />
+            </label>
+          </section>
+
           {/* ── Section 4: Características ────────────────────────────── */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">
