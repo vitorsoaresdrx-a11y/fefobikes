@@ -12,6 +12,7 @@ import {
   Wallet,
   LogOut,
   Landmark,
+  Receipt,
   MessageCircle,
   Shield,
   HardHat,
@@ -83,6 +84,7 @@ const navGroups = [
     label: "Financeiro",
     items: [
       { title: "Gastos", url: "/gastos", icon: Wallet },
+      { title: "Contas", url: "/contas", icon: Receipt },
     ],
   },
   {

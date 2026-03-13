@@ -48,6 +48,7 @@ const ProdutoPublico = lazyRetry(() => import("@/pages/ProdutoPublico"));
 const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 const Jogar = lazyRetry(() => import("@/pages/Jogar"));
 const Chamadas = lazyRetry(() => import("@/pages/Chamadas"));
+const Contas = lazyRetry(() => import("@/pages/Contas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -113,6 +114,7 @@ function AuthGate() {
         <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><PageTransition><WhatsAppPage /></PageTransition></GuardedRoute>} />
         <Route path="/permissoes" element={<GuardedRoute module="configuracoes"><PageTransition><Permissoes /></PageTransition></GuardedRoute>} />
         <Route path="/chamadas" element={<PageTransition><Chamadas /></PageTransition>} />
+        <Route path="/contas" element={<GuardedRoute module="gastos"><PageTransition><Contas /></PageTransition></GuardedRoute>} />
       </Route>
       <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />
     </Routes>
