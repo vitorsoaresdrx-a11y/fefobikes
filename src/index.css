@@ -97,7 +97,7 @@
     background: transparent;
   }
   *::-webkit-scrollbar-thumb {
-    background: #3f3f46;
+    background: hsl(var(--muted));
     border-radius: 9999px;
   }
 
