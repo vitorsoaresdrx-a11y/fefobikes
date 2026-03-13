@@ -161,8 +161,43 @@ export default function Contas() {
         </div>
       </div>
 
-      {/* Scanner */}
-      <BarcodeScanner onScanned={handleScanned} />
+      {/* Mode toggle */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={() => setInputMode("scan")}
+          className={`h-10 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+            inputMode === "scan"
+              ? "bg-primary border-primary text-primary-foreground"
+              : "bg-secondary border-border text-muted-foreground"
+          }`}
+        >
+          <ScanLine size={14} /> Escanear
+        </button>
+        <button
+          onClick={() => setInputMode("photo")}
+          className={`h-10 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+            inputMode === "photo"
+              ? "bg-primary border-primary text-primary-foreground"
+              : "bg-secondary border-border text-muted-foreground"
+          }`}
+        >
+          <Sparkles size={14} /> Foto com IA
+        </button>
+      </div>
+
+      {inputMode === "scan" && <BarcodeScanner onScanned={handleScanned} />}
+      {inputMode === "photo" && (
+        <BillPhotoCapture
+          onExtracted={(data) => {
+            setParsed(data);
+            setEditBeneficiary(data.beneficiary || "");
+            setEditAmount(data.amount);
+            setEditDueDate(data.due_date || "");
+            setEditNotes("");
+            setShowScanModal(true);
+          }}
+        />
+      )}
 
       {/* Manual input toggle */}
       <div className="flex gap-2">
