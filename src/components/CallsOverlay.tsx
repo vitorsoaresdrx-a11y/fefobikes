@@ -130,10 +130,10 @@ export function CallsOverlay() {
               <AudioPlayer url={call.audio_url} duration={call.audio_duration} autoPlay />
             )}
 
-            {/* Replies from others (visible to recipients, not to the reply author) */}
-            {replyingTo === call.id && replies.length > 0 && (
+            {/* Replies from others */}
+            {(call as any).replies?.length > 0 && (
               <div className="mb-4 space-y-2 max-h-40 overflow-y-auto">
-                {replies.map((r) => (
+                {(call as any).replies.map((r: any) => (
                   <div key={r.id} className="bg-secondary/50 rounded-xl px-3 py-2">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <span className="text-[10px] font-bold text-primary">{r.created_by_name}</span>
