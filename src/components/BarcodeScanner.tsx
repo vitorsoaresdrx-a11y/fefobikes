@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from "@zxing/library";
 import { X, ScanLine } from "lucide-react";
 
 interface BarcodeScannerProps {
@@ -8,7 +8,7 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,44 +19,11 @@ export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
     };
   }, []);
 
-  const startScan = async () => {
-    try {
-      setScanning(true);
-      setError(null);
-
-      // Get camera stream directly from user gesture
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
-      // Now start decoding from the already-active video element
-      const reader = new BrowserMultiFormatReader();
-      const controls = await reader.decodeFromVideoDevice(
-        undefined,
-        videoRef.current!,
-        (result) => {
-          if (result) {
-            onScanned(result.getText());
-            stopScan();
-          }
-        }
-      );
-      controlsRef.current = controls;
-    } catch {
-      setError("Não foi possível acessar a câmera.");
-      setScanning(false);
-    }
-  };
-
   const stopScan = () => {
-    controlsRef.current?.stop();
-    controlsRef.current = null;
+    if (readerRef.current) {
+      readerRef.current.reset();
+      readerRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
@@ -65,6 +32,44 @@ export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
       videoRef.current.srcObject = null;
     }
     setScanning(false);
+  };
+
+  const startScan = async () => {
+    if (scanning) return;
+    try {
+      setScanning(true);
+      setError(null);
+
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.ITF,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.CODABAR,
+      ]);
+      hints.set(DecodeHintType.TRY_HARDER, true);
+
+      readerRef.current = new BrowserMultiFormatReader(hints);
+
+      readerRef.current.decodeFromVideoDevice(
+        undefined,
+        videoRef.current!,
+        (result, _err) => {
+          if (result) {
+            const text = result.getText();
+            if (text) {
+              onScanned(text);
+              stopScan();
+            }
+          }
+        }
+      );
+    } catch {
+      setError("Não foi possível acessar a câmera.");
+      stopScan();
+    }
   };
 
   return (
