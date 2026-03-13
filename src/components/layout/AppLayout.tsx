@@ -31,7 +31,6 @@ export function AppLayout() {
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
-  // Fix: remove overflow:hidden do body que bloqueia o scroll no mobile
   useEffect(() => {
     document.body.style.overflow = "unset";
     return () => {
@@ -86,7 +85,7 @@ export function AppLayout() {
           {/* Main content */}
           <main
             className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 pt-4 lg:px-6 lg:pt-6 lg:pb-6"
-            style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom, 0px))" }}
+            style={{ paddingBottom: "calc(120px + env(safe-area-inset-bottom, 0px))" }}
           >
             <Suspense
               fallback={
