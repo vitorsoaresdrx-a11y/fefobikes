@@ -138,6 +138,7 @@ Deno.serve(async (req) => {
         content: content || `[${type}]`,
         media_url: mediaUrl,
         status: "sent",
+        tenant_id: tenantId,
       });
 
       return new Response(JSON.stringify({ ok: true }), {
