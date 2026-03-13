@@ -348,7 +348,7 @@ export default function BikeForm() {
               </button>
               <button
                 type="submit"
-                className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/80 shadow-[0_0_20px_rgba(41,82,255,0.3)] text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+                className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/80 shadow-primary/30 text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
               >
                 <Save size={16} />
                 {isEditing ? "Salvar" : "Criar Bike"}

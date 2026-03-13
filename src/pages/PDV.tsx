@@ -51,7 +51,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-primary text-white hover:bg-primary/80 shadow-[0_0_20px_rgba(41,82,255,0.3)]",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-primary/30",
     secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
     ghost: "hover:bg-muted/50 text-muted-foreground hover:text-white",
     outline: "border border-border bg-transparent text-foreground/80 hover:bg-muted",
@@ -107,7 +107,7 @@ function PaymentCard({
       onClick={onClick}
       className={`h-16 md:h-24 rounded-2xl md:rounded-3xl border flex flex-col items-center justify-center gap-1.5 md:gap-2 transition-all ${
         active
-          ? "bg-primary/10 border-primary text-white shadow-[0_0_20px_rgba(41,82,255,0.2)]"
+          ? "bg-primary/10 border-primary text-white shadow-primary/20"
           : "bg-background border-border text-muted-foreground hover:border-border/80"
       }`}
     >
@@ -414,7 +414,7 @@ export default function PDV() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-1 md:space-y-2">
             <div className="flex items-center gap-2 md:gap-3 mb-1">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-primary/30">
                 <ShoppingCart size={16} className="md:hidden text-white" />
                 <ShoppingCart size={20} className="hidden md:block text-white" />
               </div>

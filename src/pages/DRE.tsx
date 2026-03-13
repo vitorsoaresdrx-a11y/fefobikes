@@ -348,7 +348,7 @@ export default function DRE() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-1 md:space-y-2">
             <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-primary/30">
                 <Activity size={16} className="md:hidden text-white" />
                 <Activity size={20} className="hidden md:block text-white" />
               </div>
@@ -490,7 +490,7 @@ export default function DRE() {
             {/* Lucro Final */}
             <div className="mt-3 md:mt-6 p-3 md:p-8 bg-primary/5 border border-primary/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
               <div className="flex items-center gap-3 md:gap-4">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.4)] shrink-0">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-primary/40 shrink-0">
                   <TrendingUp size={20} className="md:hidden" />
                   <TrendingUp size={28} className="hidden md:block" />
                 </div>

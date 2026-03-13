@@ -429,7 +429,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             type="submit"
             form="part-form"
             disabled={createPart.isPending || updatePart.isPending}
-            className="flex-1 h-11 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/80 transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(41,82,255,0.2)]"
+            className="flex-1 h-11 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/80 transition-colors disabled:opacity-50 shadow-primary/20"
           >
             {isEditing ? "Salvar" : "Criar Produto"}
           </button>

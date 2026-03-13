@@ -31,7 +31,7 @@ export default function MecanicosHistorico() {
         {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
               <History className="w-5 h-5 text-white" />
             </div>
             <span className="text-sm font-black tracking-widest text-primary">HISTÓRICO</span>

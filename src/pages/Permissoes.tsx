@@ -341,7 +341,7 @@ export default function Permissoes() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-black tracking-widest text-primary">
@@ -359,7 +359,7 @@ export default function Permissoes() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setAddOpen(true)}
-              className="h-10 px-5 rounded-xl bg-primary text-white hover:bg-[#3D63FF] shadow-[0_0_20px_rgba(41,82,255,0.3)] text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+              className="h-10 px-5 rounded-xl bg-primary text-white hover:bg-[#3D63FF] shadow-primary/30 text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
             >
               <UserPlus size={14} /> Novo Membro
             </button>

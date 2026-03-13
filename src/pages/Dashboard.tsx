@@ -146,7 +146,7 @@ export default function Dashboard() {
       {/* Topbar */}
       <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-border/50 flex items-center justify-between bg-background/50 backdrop-blur-xl">
         <div className="flex items-center gap-3 md:gap-4">
-          <div className="w-9 h-9 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
+          <div className="w-9 h-9 md:w-10 md:h-10 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center shadow-primary/30">
             <Activity size={18} className="text-white md:hidden" />
             <Activity size={20} className="text-white hidden md:block" />
           </div>

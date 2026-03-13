@@ -227,7 +227,7 @@ export default function WhatsApp() {
         <div className="p-4 md:p-8 space-y-4 md:space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
                 <MessageCircle size={20} className="text-white" />
               </div>
               <div className="flex items-center gap-2">
@@ -625,7 +625,7 @@ export default function WhatsApp() {
                 <button
                   onClick={handleSend}
                   disabled={!messageText.trim() || sendMessage.isPending}
-                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-[#3D63FF] flex items-center justify-center text-white shadow-[0_0_20px_rgba(41,82,255,0.2)] transition-all active:scale-95 disabled:opacity-50"
+                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-[#3D63FF] flex items-center justify-center text-white shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
                 >
                   <Send size={20} />
                 </button>

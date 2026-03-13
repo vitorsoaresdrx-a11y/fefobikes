@@ -37,7 +37,7 @@ const Btn = ({
   size?: "sm" | "md" | "lg" | "icon";
 }) => {
   const v = {
-    primary: "bg-primary text-white hover:bg-primary/80 shadow-[0_0_20px_rgba(41,82,255,0.2)]",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-primary/20",
     secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
     ghost: "hover:bg-muted/50 text-muted-foreground hover:text-white",
     outline: "border border-border bg-transparent text-foreground/80 hover:bg-muted",
@@ -176,7 +176,7 @@ export default function Bikes() {
         <header className="hidden md:flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
                 <Bike className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-black tracking-widest text-primary">CATÁLOGO</span>

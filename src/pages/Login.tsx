@@ -101,7 +101,7 @@ export default function Login() {
           {/* Header */}
           <div className="space-y-3 text-center lg:text-left">
             <div className="lg:hidden flex justify-center mb-6">
-              <div className="w-14 h-14 bg-primary rounded-[22px] flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
+              <div className="w-14 h-14 bg-primary rounded-[22px] flex items-center justify-center shadow-primary/30">
                 <Bike className="w-7 h-7 text-white" />
               </div>
             </div>
