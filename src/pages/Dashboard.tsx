@@ -120,12 +120,12 @@ const SecondaryAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-3 md:gap-4 p-4 md:p-5 bg-card border border-border rounded-xl md:rounded-2xl hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
+    className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl md:rounded-2xl hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
   >
-    <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors shrink-0">
+    <div className="w-10 h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors shrink-0">
       {icon}
     </div>
-    <span className="text-xs font-bold text-muted-foreground group-hover:text-white uppercase tracking-wider transition-colors">
+    <span className="text-sm font-bold text-muted-foreground group-hover:text-white transition-colors">
       {label}
     </span>
   </button>
@@ -215,7 +215,7 @@ export default function Dashboard() {
               Outros Procedimentos
             </h4>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {secondaryActions.map((action) => (
               <SecondaryAction
                 key={action.label}
