@@ -230,6 +230,35 @@ export default function Bikes() {
           />
         </div>
 
+        {/* Category Filter */}
+        {categories.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+            <button
+              onClick={() => setCategoryFilter("all")}
+              className={`h-8 px-3 text-xs font-bold rounded-xl whitespace-nowrap transition-all shrink-0 ${
+                categoryFilter === "all"
+                  ? "bg-[#2952FF] text-white"
+                  : "bg-[#161618] border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600"
+              }`}
+            >
+              Todas
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`h-8 px-3 text-xs font-bold rounded-xl whitespace-nowrap transition-all shrink-0 ${
+                  categoryFilter === cat
+                    ? "bg-[#2952FF] text-white"
+                    : "bg-[#161618] border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
