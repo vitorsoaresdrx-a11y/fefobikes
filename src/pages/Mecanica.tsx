@@ -942,37 +942,18 @@ export default function Mecanica() {
               </div>
             </div>
 
-            {/* Desktop: "Na Mecânica" collapsible card above the Kanban */}
+            {/* Desktop: "Na Mecânica" button that opens a modal */}
             {grouped.in_repair.length > 0 && (
               <div className="hidden md:flex justify-center">
                 <button
-                  onClick={() => setMechanicCardOpen((v) => !v)}
+                  onClick={() => setMechanicCardOpen(true)}
                   className="bg-card/60 border border-amber-400/15 rounded-2xl px-5 py-2.5 flex items-center justify-center gap-2 hover:border-amber-400/30 transition-all"
                 >
                   <Wrench size={14} className="text-amber-400" />
                   <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
                     Na Mecânica ({grouped.in_repair.length})
                   </span>
-                  <ChevronDown
-                    size={14}
-                    className={`text-amber-400 transition-transform duration-200 ${mechanicCardOpen ? "rotate-180" : ""}`}
-                  />
                 </button>
-                {mechanicCardOpen && (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {grouped.in_repair.map((job) => (
-                      <JobCard
-                        key={job.id}
-                        job={job}
-                        isLast={false}
-                        columnKey="in_repair"
-                        onAddRepair={handleAddRepair}
-                        onEdit={handleEditJob}
-                        onRetreat={handleRetreatJob}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
             )}
 
@@ -1339,6 +1320,40 @@ export default function Mecanica() {
                   "Salvar Alterações"
                 )}
               </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Na Mecânica Modal ────────────────────────────────────────────────── */}
+      <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
+          <div className="p-6 md:p-8 space-y-4 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl font-black text-white italic uppercase tracking-tight">
+                <Wrench size={18} className="text-amber-400" /> Na Mecânica
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              {grouped.in_repair.length > 0 ? (
+                grouped.in_repair.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    isLast={false}
+                    columnKey="in_repair"
+                    onAddRepair={handleAddRepair}
+                    onEdit={handleEditJob}
+                    onRetreat={handleRetreatJob}
+                  />
+                ))
+              ) : (
+                <div className="py-10 text-center space-y-2 opacity-30">
+                  <Wrench className="mx-auto" size={32} />
+                  <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma bike na mecânica</p>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
