@@ -13,12 +13,17 @@ import {
   Layers,
   History,
   Download,
+  User,
 } from "lucide-react";
 import { useParts, useUpdatePart } from "@/hooks/useParts";
 import { useBikeModels, useUpdateBikeModel } from "@/hooks/useBikes";
 import { useToast } from "@/hooks/use-toast";
 import { getOptimizedImageUrl } from "@/lib/image";
 import { exportInventoryCSV } from "@/lib/export-csv";
+import { useCurrentUserName } from "@/hooks/useCurrentUserName";
+import { useStockChanges } from "@/hooks/useStockChanges";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -176,9 +181,12 @@ function SummaryCard({
 export default function Estoque() {
   const { data: parts = [], isLoading: partsLoading } = useParts();
   const { data: bikes = [], isLoading: bikesLoading } = useBikeModels();
+  const { data: stockChanges = [] } = useStockChanges();
   const updatePart = useUpdatePart();
   const updateBike = useUpdateBikeModel();
   const { toast } = useToast();
+  const currentUserName = useCurrentUserName();
+  const [showHistory, setShowHistory] = useState(false);
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
@@ -241,7 +249,7 @@ export default function Estoque() {
   const openModal = (item: StockItem) => { setSelectedItem(item); setMode(null); setQty(""); };
   const closeModal = () => { setSelectedItem(null); setMode(null); setQty(""); };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedItem || !mode) return;
     const value = parseInt(qty) || 0;
     if (value <= 0) {
@@ -252,6 +260,16 @@ export default function Estoque() {
       mode === "add"
         ? selectedItem.stock_qty + value
         : Math.max(0, selectedItem.stock_qty - value);
+
+    // Log stock change
+    await supabase.from("stock_changes").insert({
+      product_type: selectedItem.type === "Peça" ? "part" : "bike",
+      product_id: selectedItem.id,
+      product_name: selectedItem.name,
+      old_qty: selectedItem.stock_qty,
+      new_qty: newQty,
+      responsible_name: currentUserName,
+    });
 
     if (selectedItem.type === "Peça") {
       updatePart.mutate({ id: selectedItem.id, stock_qty: newQty } as any);

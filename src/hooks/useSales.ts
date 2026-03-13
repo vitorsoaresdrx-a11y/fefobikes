@@ -17,6 +17,7 @@ export interface CreateSalePayload {
   items: SaleItem[];
   card_fee: number;
   card_tax_percent: number;
+  responsible_name?: string | null;
 }
 
 export function useCreateSale() {
@@ -42,6 +43,7 @@ export function useCreateSale() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["customers"] });
       qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["stock_changes"] });
     },
   });
 }
@@ -52,7 +54,7 @@ export function useSales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("id, created_at, customer_id, total, payment_method, card_fee, card_tax_percent, notes, sale_items(id, description, quantity, unit_price, part_id, bike_model_id), customers(id, name, whatsapp, cpf)")
+        .select("id, created_at, customer_id, total, payment_method, card_fee, card_tax_percent, notes, responsible_name, sale_items(id, description, quantity, unit_price, part_id, bike_model_id), customers(id, name, whatsapp, cpf)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

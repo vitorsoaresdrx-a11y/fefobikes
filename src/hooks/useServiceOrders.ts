@@ -16,6 +16,7 @@ export interface ServiceOrder {
   mechanic_name: string | null;
   mechanic_id: string | null;
   frame_number: string | null;
+  responsible_name: string | null;
   created_at: string;
   updated_at: string;
   completed_at: string | null;
@@ -49,6 +50,7 @@ export function useCreateServiceOrder() {
       bike_name?: string;
       problem: string;
       price?: number;
+      responsible_name?: string;
     }) => {
       const { data, error } = await supabase.from("service_orders").insert(order).select().single();
       if (error) throw error;

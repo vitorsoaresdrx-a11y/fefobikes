@@ -92,7 +92,7 @@ export default function CashRegister() {
   const handleOpen = async () => {
     const amount = openingAmount;
     try {
-      await openRegister.mutateAsync(amount);
+      await openRegister.mutateAsync({ openingAmount: amount });
       toast({ title: "Caixa aberto com sucesso!" });
       setShowOpenModal(false);
       setOpeningAmount(0);

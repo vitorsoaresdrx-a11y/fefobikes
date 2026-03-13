@@ -22,6 +22,7 @@ export interface Quote {
   labor_cost: number;
   total: number;
   status: string;
+  responsible_name: string | null;
   created_at: string;
   updated_at: string;
   items?: QuoteItem[];
@@ -69,6 +70,7 @@ export function useCreateQuote() {
       notes?: string;
       labor_cost: number;
       total: number;
+      responsible_name?: string;
       items: {
         part_id: string | null;
         part_name: string;
