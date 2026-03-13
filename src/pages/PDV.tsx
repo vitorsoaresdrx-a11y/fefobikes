@@ -135,6 +135,8 @@ type Step = "idle" | "catalog" | "cart" | "customer";
 
 export default function PDV() {
   const { toast } = useToast();
+  const online = useOnlineStatus();
+  const pendingCount = getQueueCount();
   const { data: bikes = [] } = useBikeModels();
   const { data: parts = [] } = useParts();
   useRealtimeStock();
