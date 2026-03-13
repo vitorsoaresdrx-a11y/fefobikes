@@ -199,47 +199,44 @@ export default function Gastos() {
           </Btn>
         </header>
 
-        {/* Cards Resumo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-5 md:p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+        {/* Cards Resumo — mobile: 2 cols compacto, desktop: cards grandes */}
+        <div className="grid grid-cols-2 gap-3 md:gap-6">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity hidden md:block">
               <Repeat size={180} />
             </div>
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-12">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-3 md:space-y-12">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#2952FF]">
-                  <Repeat className="w-6 h-6" />
+                <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-[#2952FF]">
+                  <Repeat className="w-4 h-4 md:w-6 md:h-6" />
                 </div>
-                <Badge>CUSTO FIXO</Badge>
+                <span className="hidden md:inline"><Badge>CUSTO FIXO</Badge></span>
               </div>
               <div>
-                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Mensal</p>
-                <h2 className="text-2xl lg:text-4xl font-black tracking-tighter">
-                  {isLoading ? <span className="text-zinc-700 text-lg lg:text-2xl">Carregando...</span> : formatBRL(fixedTotal)}
+                <p className="text-[9px] md:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Fixos</p>
+                <h2 className="text-lg md:text-2xl lg:text-4xl font-black tracking-tighter">
+                  {isLoading ? <span className="text-zinc-700 text-sm md:text-2xl">...</span> : formatBRL(fixedTotal)}
                 </h2>
               </div>
             </div>
           </div>
 
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-5 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity hidden md:block">
               <CreditCard size={180} />
             </div>
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-12">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-3 md:space-y-12">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-amber-500">
-                  <CreditCard className="w-6 h-6" />
+                <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500">
+                  <CreditCard className="w-4 h-4 md:w-6 md:h-6" />
                 </div>
-                <Badge>{MONTHS[varMonth].toUpperCase()}</Badge>
+                <span className="hidden md:inline"><Badge>{MONTHS[varMonth].toUpperCase()}</Badge></span>
               </div>
               <div>
-                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Variáveis</p>
-                <div className="flex items-baseline gap-3">
-                  <h2 className="text-2xl lg:text-4xl font-black tracking-tighter">
-                    {isLoading ? <span className="text-zinc-700 text-lg lg:text-2xl">Carregando...</span> : formatBRL(varTotal)}
-                  </h2>
-                  <TrendingUp className="w-5 h-5 text-amber-500" />
-                </div>
+                <p className="text-[9px] md:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Variáveis</p>
+                <h2 className="text-lg md:text-2xl lg:text-4xl font-black tracking-tighter">
+                  {isLoading ? <span className="text-zinc-700 text-sm md:text-2xl">...</span> : formatBRL(varTotal)}
+                </h2>
               </div>
             </div>
           </div>
@@ -280,11 +277,11 @@ export default function Gastos() {
         {/* Lista */}
         <div className="bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl">
           <div className="p-4 md:p-8 border-b border-zinc-800/50 flex items-center justify-between">
-            <h3 className="font-bold text-base md:text-lg">Histórico de Lançamentos</h3>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#2952FF] animate-pulse" />
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Tempo Real</span>
-            </div>
+            <h3 className="text-sm md:text-lg font-black whitespace-nowrap">Histórico de Lançamentos</h3>
+            <span className="flex items-center gap-1 md:gap-2 text-[9px] md:text-[10px] text-zinc-500 shrink-0 ml-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2952FF] animate-pulse" />
+              Tempo Real
+            </span>
           </div>
 
           <div className="divide-y divide-zinc-800/30">
@@ -304,74 +301,68 @@ export default function Gastos() {
               </div>
             ) : (
               activeList.map((exp) => (
-                <div key={exp.id} className="group p-4 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors">
-                  <div className="flex items-center gap-6">
-                    <div className={`p-4 rounded-[20px] ${tab === "fixed" ? "bg-indigo-500/5 text-indigo-400" : "bg-amber-500/5 text-amber-400"}`}>
-                      {tab === "fixed" ? <Receipt className="w-6 h-6 stroke-[1.5]" /> : <CreditCard className="w-6 h-6 stroke-[1.5]" />}
-                    </div>
-                    <div>
-                      <h4 className={`text-lg font-bold ${"active" in exp && !exp.active ? "text-zinc-600 line-through" : "text-zinc-100"}`}>
-                        {exp.name}
-                      </h4>
-                      <p className="text-sm text-zinc-500 font-medium">
-                        {tab === "fixed"
-                          ? (exp.notes || "Recorrência mensal")
-                          : format(new Date((exp as any).expense_date + "T00:00:00"), "dd 'de' MMMM", { locale: ptBR })}
-                      </p>
-                    </div>
+                <div key={exp.id} className="group flex items-center gap-3 px-4 py-3 md:px-8 md:py-5 hover:bg-white/[0.02] transition-colors">
+                  <div className={`w-9 h-9 md:w-12 md:h-12 rounded-xl md:rounded-[20px] flex items-center justify-center shrink-0 ${tab === "fixed" ? "bg-indigo-500/5 text-indigo-400" : "bg-amber-500/5 text-amber-400"}`}>
+                    {tab === "fixed" ? <Receipt className="w-4 h-4 md:w-6 md:h-6 stroke-[1.5]" /> : <CreditCard className="w-4 h-4 md:w-6 md:h-6 stroke-[1.5]" />}
                   </div>
-
-                  <div className="flex items-center gap-8">
-                    <div className="text-right">
-                      <p className="text-xl font-black text-zinc-100">{formatBRL(Number(exp.amount))}</p>
-                      {tab === "fixed" && (
-                        <Badge variant={"active" in exp && exp.active ? "active" : "default"}>
-                          {"active" in exp && exp.active ? "ATIVO" : "PAUSADO"}
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                      {tab === "fixed" && "active" in exp && (
-                        <button
-                          onClick={() => updateFixed.mutate({ id: exp.id, active: !exp.active })}
-                          className="p-2 hover:bg-white/5 rounded-xl transition-colors"
-                        >
-                          {exp.active
-                            ? <ToggleRight className="w-7 h-7 text-emerald-500" />
-                            : <ToggleLeft className="w-7 h-7 text-zinc-700" />}
-                        </button>
-                      )}
-                      <Btn
-                        variant="destructive"
-                        size="icon"
-                        className="rounded-xl"
-                        onClick={() =>
-                          tab === "fixed"
-                            ? deleteFixed.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                            : deleteVariable.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                        }
+                  <div className="flex-1 min-w-0">
+                    <h4 className={`text-sm md:text-lg font-bold truncate ${"active" in exp && !exp.active ? "text-zinc-600 line-through" : "text-zinc-100"}`}>
+                      {exp.name}
+                    </h4>
+                    <p className="text-xs text-zinc-500 font-medium truncate">
+                      {tab === "fixed"
+                        ? (exp.notes || "Recorrência mensal")
+                        : format(new Date((exp as any).expense_date + "T00:00:00"), "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm md:text-xl font-black text-zinc-100">{formatBRL(Number(exp.amount))}</p>
+                    {tab === "fixed" && (
+                      <Badge variant={"active" in exp && exp.active ? "active" : "default"}>
+                        {"active" in exp && exp.active ? "ATIVO" : "PAUSADO"}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 md:gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0">
+                    {tab === "fixed" && "active" in exp && (
+                      <button
+                        onClick={() => updateFixed.mutate({ id: exp.id, active: !exp.active })}
+                        className="p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition-colors"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Btn>
-                    </div>
+                        {exp.active
+                          ? <ToggleRight className="w-5 h-5 md:w-7 md:h-7 text-emerald-500" />
+                          : <ToggleLeft className="w-5 h-5 md:w-7 md:h-7 text-zinc-700" />}
+                      </button>
+                    )}
+                    <Btn
+                      variant="destructive"
+                      size="icon"
+                      className="rounded-xl w-8 h-8 md:w-9 md:h-9"
+                      onClick={() =>
+                        tab === "fixed"
+                          ? deleteFixed.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
+                          : deleteVariable.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
+                      }
+                    >
+                      <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    </Btn>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          <div className="p-8 bg-black/20 flex justify-between items-center">
+          <div className="px-4 py-3 md:p-8 bg-black/20 flex items-center justify-between">
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-full border-2 border-[#161618] bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500">
+                <div key={i} className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-[#161618] bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500">
                   {i}
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Total Acumulado</span>
-              <div className="text-2xl font-black text-white">{formatBRL(tab === "fixed" ? fixedTotal : varTotal)}</div>
+            <div className="text-right min-w-0">
+              <p className="text-[9px] md:text-xs uppercase text-zinc-500 font-bold tracking-[0.2em]">Total Acumulado</p>
+              <p className="text-sm md:text-2xl font-black text-white whitespace-nowrap">{formatBRL(tab === "fixed" ? fixedTotal : varTotal)}</p>
             </div>
           </div>
         </div>
