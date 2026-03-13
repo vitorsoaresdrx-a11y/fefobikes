@@ -188,13 +188,27 @@ export default function Contas() {
       {inputMode === "scan" && <BarcodeScanner onScanned={handleScanned} />}
       {inputMode === "photo" && (
         <BillPhotoCapture
-          onExtracted={(data) => {
-            setParsed(data);
-            setEditBeneficiary(data.beneficiary || "");
-            setEditAmount(data.amount);
-            setEditDueDate(data.due_date || "");
-            setEditNotes("");
-            setShowScanModal(true);
+          onExtracted={async (items) => {
+            let saved = 0;
+            for (const data of items) {
+              try {
+                await createBill({
+                  barcode: data.barcode,
+                  barcode_type: data.type,
+                  bank_name: data.bank_name,
+                  beneficiary: data.beneficiary,
+                  amount: data.amount,
+                  due_date: data.due_date || null,
+                  notes: null,
+                });
+                saved++;
+              } catch {
+                toast.error(`Erro ao salvar conta: ${data.beneficiary || "boleto"}`);
+              }
+            }
+            if (saved > 0) {
+              toast.success(`${saved} conta${saved > 1 ? "s" : ""} salva${saved > 1 ? "s" : ""}!`);
+            }
           }}
         />
       )}
