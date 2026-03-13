@@ -323,9 +323,13 @@ export default function Pecas() {
                   onClick={() => handleEdit(part)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0">
-                      <Package size={20} className="text-zinc-600" />
-                    </div>
+                    {part.images && part.images.length > 0 ? (
+                      <img src={part.images[0]} alt={part.name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0">
+                        <Package size={20} className="text-zinc-600" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold truncate">{part.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -428,9 +432,13 @@ export default function Pecas() {
                       <tr key={part.id} className="group hover:bg-white/[0.02] transition-colors">
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors shrink-0">
-                              <Box className="w-6 h-6" />
-                            </div>
+                            {part.images && part.images.length > 0 ? (
+                              <img src={part.images[0]} alt={part.name} className="w-12 h-12 rounded-2xl object-cover border border-zinc-800 group-hover:border-[#2952FF]/50 transition-colors shrink-0" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:border-[#2952FF]/50 transition-colors shrink-0">
+                                <Box className="w-6 h-6" />
+                              </div>
+                            )}
                             <div>
                               <p className="font-bold text-zinc-100">{part.name}</p>
                               <div className="flex items-center gap-2 mt-0.5">
