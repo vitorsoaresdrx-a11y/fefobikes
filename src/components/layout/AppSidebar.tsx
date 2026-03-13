@@ -12,6 +12,7 @@ import {
   Wallet,
   LogOut,
   Landmark,
+  Receipt,
   MessageCircle,
   Shield,
   HardHat,
