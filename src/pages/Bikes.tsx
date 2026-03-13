@@ -127,6 +127,7 @@ export default function Bikes() {
   const [qrBike, setQrBike] = useState<BikeModel | null>(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleToggle = (id: string, current: boolean) => {
     updateBike.mutate({ id, visible_on_storefront: !current });
