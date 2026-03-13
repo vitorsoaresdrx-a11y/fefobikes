@@ -1572,13 +1572,28 @@ export default function Mecanica() {
 
       {/* ── Na Mecânica Modal ────────────────────────────────────────────────── */}
       <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
-        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
-          <div className="p-6 md:p-8 space-y-4 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl font-black text-white italic uppercase tracking-tight">
-                <Wrench size={18} className="text-amber-400" /> Na Mecânica
-              </DialogTitle>
-            </DialogHeader>
+        <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[85vh]">
+          <div className="overflow-y-auto max-h-[85vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+            {/* Custom header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Wrench size={18} className="text-amber-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-foreground uppercase tracking-tight">Na Mecânica</h2>
+                  <p className="text-[10px] text-muted-foreground">{grouped.in_repair.length} OS em andamento</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setMechanicCardOpen(false)}
+                className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-3">
 
             <div className="space-y-3">
               {grouped.in_repair.length > 0 ? (
