@@ -161,9 +161,24 @@ export default function Chamadas() {
           className="w-full h-28 bg-secondary border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 resize-none outline-none focus:border-primary transition-colors"
         />
 
+        <AudioRecorder
+          onRecorded={(blob, dur) => {
+            setAudioBlob(blob);
+            setAudioDuration(dur);
+          }}
+          onCleared={() => {
+            setAudioBlob(null);
+            setAudioDuration(0);
+          }}
+        />
+
+        <p className="text-[10px] text-muted-foreground text-center">
+          Texto, áudio, ou ambos
+        </p>
+
         <button
           onClick={handleSend}
-          disabled={!message.trim() || isPending}
+          disabled={(!message.trim() && !audioBlob) || isPending}
           className="w-full h-11 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-black transition-all disabled:opacity-40 flex items-center justify-center gap-2"
         >
           <Send size={16} />
