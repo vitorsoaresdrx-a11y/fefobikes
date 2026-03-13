@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, ChevronDown, Printer, User, ShoppingBag } from "lucide-react";
+import { Search, ChevronDown, Printer, User, ShoppingBag, Download } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { formatBRL } from "@/lib/format";
+import { exportSalesCSV } from "@/lib/export-csv";
 
 function formatDateShort(d: string) {
   return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
@@ -233,6 +234,14 @@ export default function Historico() {
           <h1 className="text-lg md:text-2xl font-extrabold tracking-tight">
             Histórico de Vendas
           </h1>
+          {sales.length > 0 && (
+            <button
+              onClick={() => exportSalesCSV(sales)}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-wider border border-zinc-800 rounded-xl px-3 py-2 hover:border-zinc-600"
+            >
+              <Download size={14} /> Exportar
+            </button>
+          )}
         </header>
 
         {/* Search */}

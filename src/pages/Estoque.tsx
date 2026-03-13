@@ -12,11 +12,13 @@ import {
   Bike,
   Layers,
   History,
+  Download,
 } from "lucide-react";
 import { useParts, useUpdatePart } from "@/hooks/useParts";
 import { useBikeModels, useUpdateBikeModel } from "@/hooks/useBikes";
 import { useToast } from "@/hooks/use-toast";
 import { getOptimizedImageUrl } from "@/lib/image";
+import { exportInventoryCSV } from "@/lib/export-csv";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -272,8 +274,11 @@ export default function Estoque() {
         <header className="md:hidden flex items-center justify-between gap-2 mb-0">
           <h1 className="text-lg font-black">Estoque Geral</h1>
           <div className="flex gap-2 shrink-0">
-            <button className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 whitespace-nowrap flex items-center gap-1.5">
-              <History size={14} /> Histórico
+            <button
+              onClick={() => exportInventoryCSV(parts, bikes as any[])}
+              className="h-9 px-3 text-xs font-bold rounded-xl border border-zinc-700 whitespace-nowrap flex items-center gap-1.5"
+            >
+              <Download size={14} /> Exportar
             </button>
             <button className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white whitespace-nowrap flex items-center gap-1.5">
               <Plus size={14} /> Entrada Manual
@@ -293,9 +298,9 @@ export default function Estoque() {
             <h1 className="text-4xl font-extrabold tracking-tight">Estoque Geral</h1>
           </div>
           <div className="flex items-center gap-3">
-            <Btn variant="secondary" size="lg" className="rounded-2xl">
-              <History className="w-5 h-5 mr-2" />
-              Histórico
+            <Btn variant="secondary" size="lg" className="rounded-2xl" onClick={() => exportInventoryCSV(parts, bikes as any[])}>
+              <Download className="w-5 h-5 mr-2" />
+              Exportar
             </Btn>
             <Btn variant="primary" size="lg">
               <Plus className="w-5 h-5 mr-2 stroke-[3]" />

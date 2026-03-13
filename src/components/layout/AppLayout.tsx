@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -90,6 +91,7 @@ export function AppLayout() {
 
         {/* Bottom nav for mobile */}
         <BottomNav />
+        <GlobalSearch />
       </div>
     </SidebarProvider>
   );

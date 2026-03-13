@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { LowStockAlerts } from "@/components/LowStockAlerts";
 import {
   ShoppingCart,
   Wrench,
@@ -202,6 +203,9 @@ export default function Dashboard() {
             />
           ))}
         </div>
+
+        {/* Low Stock Alerts */}
+        <LowStockAlerts />
 
         {/* Secondary Actions */}
         <div className="pt-6 lg:pt-8 border-t border-zinc-800/50">
