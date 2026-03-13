@@ -260,9 +260,6 @@ export default function Login() {
                     <h1 className="text-xl font-black text-foreground tracking-tight">
                       {station.label}
                     </h1>
-                    <p className="text-xs text-muted-foreground">
-                      {station.desc}
-                    </p>
                   </div>
                 </div>
               </div>
