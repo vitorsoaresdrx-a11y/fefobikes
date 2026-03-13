@@ -199,47 +199,44 @@ export default function Gastos() {
           </Btn>
         </header>
 
-        {/* Cards Resumo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-5 md:p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+        {/* Cards Resumo — mobile: 2 cols compacto, desktop: cards grandes */}
+        <div className="grid grid-cols-2 gap-3 md:gap-6">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-[#2952FF]/50 transition-all duration-500 overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity hidden md:block">
               <Repeat size={180} />
             </div>
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-12">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-3 md:space-y-12">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#2952FF]">
-                  <Repeat className="w-6 h-6" />
+                <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-[#2952FF]">
+                  <Repeat className="w-4 h-4 md:w-6 md:h-6" />
                 </div>
-                <Badge>CUSTO FIXO</Badge>
+                <span className="hidden md:inline"><Badge>CUSTO FIXO</Badge></span>
               </div>
               <div>
-                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Mensal</p>
-                <h2 className="text-2xl lg:text-4xl font-black tracking-tighter">
-                  {isLoading ? <span className="text-zinc-700 text-lg lg:text-2xl">Carregando...</span> : formatBRL(fixedTotal)}
+                <p className="text-[9px] md:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Fixos</p>
+                <h2 className="text-lg md:text-2xl lg:text-4xl font-black tracking-tighter">
+                  {isLoading ? <span className="text-zinc-700 text-sm md:text-2xl">...</span> : formatBRL(fixedTotal)}
                 </h2>
               </div>
             </div>
           </div>
 
-          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-5 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+          <div className="relative group bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[32px] p-3 md:p-8 hover:border-amber-500/50 transition-all duration-500 overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity hidden md:block">
               <CreditCard size={180} />
             </div>
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-12">
+            <div className="relative z-10 flex flex-col justify-between h-full space-y-3 md:space-y-12">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-amber-500">
-                  <CreditCard className="w-6 h-6" />
+                <div className="w-9 h-9 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500">
+                  <CreditCard className="w-4 h-4 md:w-6 md:h-6" />
                 </div>
-                <Badge>{MONTHS[varMonth].toUpperCase()}</Badge>
+                <span className="hidden md:inline"><Badge>{MONTHS[varMonth].toUpperCase()}</Badge></span>
               </div>
               <div>
-                <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Variáveis</p>
-                <div className="flex items-baseline gap-3">
-                  <h2 className="text-2xl lg:text-4xl font-black tracking-tighter">
-                    {isLoading ? <span className="text-zinc-700 text-lg lg:text-2xl">Carregando...</span> : formatBRL(varTotal)}
-                  </h2>
-                  <TrendingUp className="w-5 h-5 text-amber-500" />
-                </div>
+                <p className="text-[9px] md:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Gastos Variáveis</p>
+                <h2 className="text-lg md:text-2xl lg:text-4xl font-black tracking-tighter">
+                  {isLoading ? <span className="text-zinc-700 text-sm md:text-2xl">...</span> : formatBRL(varTotal)}
+                </h2>
               </div>
             </div>
           </div>
