@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSendCall, useAllCalls } from "@/hooks/useInternalCalls";
-import { useTenantMembers } from "@/hooks/usePermissions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Bell, Send, Users, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
