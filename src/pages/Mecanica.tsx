@@ -357,8 +357,8 @@ function JobCard({
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-1">
-        <div className="flex flex-col min-w-0">
+      <div className="flex flex-col items-end pt-1 gap-1.5">
+        <div className="flex flex-col items-end">
           <span className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-widest">
             Total
           </span>
@@ -367,7 +367,7 @@ function JobCard({
           </span>
         </div>
 
-        <div className="flex gap-1 shrink-0">
+        <div className="flex gap-1">
           <button
             onClick={() => onAddRepair(job)}
             className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
@@ -376,7 +376,6 @@ function JobCard({
             <Plus size={10} />
           </button>
 
-          {/* Retreat button (only in_analysis) */}
           {showRetreat && onRetreat && (
             <button
               onClick={() => onRetreat(job)}
