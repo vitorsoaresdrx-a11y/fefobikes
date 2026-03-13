@@ -147,6 +147,7 @@ export default function Pecas() {
   const [qrPart, setQrPart] = useState<Part | null>(null);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [newCatName, setNewCatName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const getProfit = (p: Part) =>
     (Number((p as any).sale_price) || 0) - (Number((p as any).unit_cost) || 0);
