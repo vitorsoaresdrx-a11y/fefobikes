@@ -89,6 +89,7 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
         variant: "destructive",
       });
     } finally {
+      setCompressing(false);
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
