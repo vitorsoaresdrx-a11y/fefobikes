@@ -47,6 +47,7 @@ const Orcamentos = lazyRetry(() => import("@/pages/Orcamentos"));
 const ProdutoPublico = lazyRetry(() => import("@/pages/ProdutoPublico"));
 const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 const Jogar = lazyRetry(() => import("@/pages/Jogar"));
+const Chamadas = lazyRetry(() => import("@/pages/Chamadas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
