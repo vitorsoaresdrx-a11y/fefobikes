@@ -326,13 +326,13 @@ export default function DRE() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#820AD1] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
       <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-3 md:space-y-6 lg:space-y-8">
 
         {/* Header */}
