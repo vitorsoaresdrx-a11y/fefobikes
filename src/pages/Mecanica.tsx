@@ -635,11 +635,15 @@ export default function Mecanica() {
       toast.error("Descreva o novo problema");
       return;
     }
+    const partsTotal = addForm.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
+    const totalPrice = addForm.labor_cost + partsTotal;
     createAddition.mutate(
       {
         job_id: addJob.id,
         problem: addForm.problem,
-        price: addForm.price,
+        price: totalPrice,
+        labor_cost: addForm.labor_cost,
+        parts_used: addForm.parts,
       },
       {
         onSuccess: () => {
