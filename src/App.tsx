@@ -10,6 +10,7 @@ import { PermissionGuard } from "@/components/permissions/PermissionGuard";
 import PageSkeleton from "@/components/PageSkeleton";
 import Login from "@/pages/Login";
 import { Loader2 } from "lucide-react";
+import { useSyncOfflineQueue } from "@/hooks/useSyncOfflineQueue";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -55,6 +56,11 @@ function GuardedRoute({ module, children }: { module: string; children: React.Re
   );
 }
 
+function OfflineSync() {
+  useSyncOfflineQueue();
+  return null;
+}
+
 function AuthGate() {
   const { session, loading } = useAuth();
 
@@ -69,6 +75,8 @@ function AuthGate() {
   if (!session) return <Login />;
 
   return (
+    <>
+    <OfflineSync />
     <Suspense fallback={<PageSkeleton />}>
       <Routes>
         <Route element={<AppLayout />}>
@@ -96,6 +104,7 @@ function AuthGate() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
+    </>
   );
 }
 

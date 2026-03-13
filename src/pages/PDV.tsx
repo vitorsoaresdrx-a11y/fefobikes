@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { addToQueue, getQueueCount } from "@/lib/offline-queue";
 import {
   Search,
   ShoppingCart,
@@ -18,6 +20,8 @@ import {
   UserPlus,
   ChevronRight,
   Banknote,
+  WifiOff,
+  Loader2,
 } from "lucide-react";
 import { useBikeModels } from "@/hooks/useBikes";
 import { useParts } from "@/hooks/useParts";
@@ -131,6 +135,8 @@ type Step = "idle" | "catalog" | "cart" | "customer";
 
 export default function PDV() {
   const { toast } = useToast();
+  const online = useOnlineStatus();
+  const pendingCount = getQueueCount();
   const { data: bikes = [] } = useBikeModels();
   const { data: parts = [] } = useParts();
   useRealtimeStock();
@@ -262,14 +268,76 @@ export default function PDV() {
       let customerId = selectedCustomerId;
 
       if (!customerId && custName.trim()) {
-        const created = await createCustomer.mutateAsync({
-          name: custName.trim(),
-          whatsapp: custWhatsapp.trim() || null,
-          cpf: custCpf.trim() || null,
-        });
-        customerId = created.id;
+        if (!online) {
+          // Can't create customer offline, proceed without
+          customerId = null;
+        } else {
+          const created = await createCustomer.mutateAsync({
+            name: custName.trim(),
+            whatsapp: custWhatsapp.trim() || null,
+            cpf: custCpf.trim() || null,
+          });
+          customerId = created.id;
+        }
       }
 
+      const saleId = crypto.randomUUID();
+      const salePayload = {
+        id: saleId,
+        customer_id: customerId,
+        total,
+        payment_method: paymentMethod,
+        notes: null,
+        card_fee: cardFee,
+        card_tax_percent: cardTaxPercent,
+      };
+
+      const itemsPayload = cart.map((item) => ({
+        id: crypto.randomUUID(),
+        sale_id: saleId,
+        description: item.name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        bike_model_id: item.type === "bike" ? item.id : null,
+        part_id: item.type === "part" ? item.id : null,
+      }));
+
+      if (!online) {
+        // Save to offline queue
+        addToQueue({
+          id: saleId,
+          payload: { salePayload, itemsPayload },
+          created_at: new Date().toISOString(),
+        });
+
+        // Show receipt even offline
+        const finalCustomerName = selectedCustomer?.name || custName.trim() || undefined;
+        const finalWhatsapp = selectedCustomer?.whatsapp || custWhatsapp.trim() || undefined;
+
+        const receipt: ReceiptData = {
+          orderNumber: saleId.slice(-4).toUpperCase(),
+          timestamp: new Date(),
+          customerName: finalCustomerName,
+          customerWhatsapp: finalWhatsapp,
+          items: cart.map((i) => ({ name: i.name, quantity: i.quantity, unit_price: i.unit_price })),
+          subtotal: total,
+          discount: 0,
+          total,
+          paymentMethod,
+        };
+
+        setReceiptData(receipt);
+        setShowReceipt(true);
+        setStep("idle");
+
+        toast({
+          title: "Venda salva offline",
+          description: "Será sincronizada quando a internet voltar.",
+        });
+        return;
+      }
+
+      // Online — normal flow
       const sale = await createSale.mutateAsync({
         customer_id: customerId,
         total,
@@ -353,6 +421,16 @@ export default function PDV() {
               <span className="text-[10px] md:text-sm font-black uppercase tracking-widest text-[#2952FF]">
                 Checkout Express
               </span>
+              {!online && (
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-full">
+                  <WifiOff size={10} /> Offline
+                </span>
+              )}
+              {online && pendingCount > 0 && (
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded-full">
+                  <Loader2 size={10} className="animate-spin" /> {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
+                </span>
+              )}
             </div>
             <h1 className="text-lg md:text-2xl lg:text-4xl font-extrabold tracking-tight">Ponto de Venda</h1>
           </div>
