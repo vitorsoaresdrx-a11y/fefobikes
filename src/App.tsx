@@ -132,8 +132,9 @@ const App = () => (
                   <ProdutoPublico />
                 </Suspense>
               } />
-              <Route path="/*" element={<AuthGate />} />
-            </Routes>
+            <Route path="/*" element={<AuthGate />} />
+            <Route path="/jogar" element={<Jogar />} />
+          </Routes>
           </div>
         </BrowserRouter>
       </AuthProvider>
