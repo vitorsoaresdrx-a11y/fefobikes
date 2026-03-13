@@ -30,6 +30,7 @@ const routeLabels: Record<string, string> = {
 
 export function AppLayout() {
   const location = useLocation();
+  useRealtimeSync();
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
   useEffect(() => {
