@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { ImagePlus, X, Loader2, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { compressImage } from "@/lib/compress-image";
 
 interface ImageUploadProps {
   images: string[];
@@ -10,43 +11,11 @@ interface ImageUploadProps {
   maxImages?: number;
 }
 
-const MAX_WIDTH = 800;
-const MAX_HEIGHT = 800;
-const QUALITY = 0.7;
-
-async function compressImage(file: File): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      let { width, height } = img;
-      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Falha ao comprimir imagem"));
-        },
-        "image/webp",
-        QUALITY
-      );
-    };
-    img.onerror = () => reject(new Error("Falha ao carregar imagem"));
-    img.src = URL.createObjectURL(file);
-  });
-}
-
 export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUploadProps) {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
@@ -85,7 +54,9 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
           continue;
         }
 
-        const compressed = await compressImage(file);
+        setCompressing(true);
+        const compressed = await compressImage(file, 'product');
+        setCompressing(false);
         const fileName = `${folder}/${crypto.randomUUID()}.webp`;
 
         const { error } = await supabase.storage
@@ -118,6 +89,7 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
         variant: "destructive",
       });
     } finally {
+      setCompressing(false);
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
@@ -206,11 +178,14 @@ export function ImageUpload({ images, onChange, folder, maxImages = 2 }: ImageUp
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || compressing}
             className="h-20 w-20 rounded-md border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-colors"
           >
-            {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+            {uploading || compressing ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span className="text-[8px] mt-0.5">{compressing ? "Otimizando..." : "Enviando..."}</span>
+              </div>
             ) : (
               <>
                 <ImagePlus className="h-5 w-5" />
