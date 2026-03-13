@@ -88,6 +88,7 @@ const navGroups = [
   {
     label: "Sistema",
     items: [
+      { title: "Chamadas", url: "/chamadas", icon: Bell },
       { title: "Permissões", url: "/permissoes", icon: Shield },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
