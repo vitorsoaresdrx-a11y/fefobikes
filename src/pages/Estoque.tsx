@@ -250,7 +250,7 @@ export default function Estoque() {
   const openModal = (item: StockItem) => { setSelectedItem(item); setMode(null); setQty(""); };
   const closeModal = () => { setSelectedItem(null); setMode(null); setQty(""); };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedItem || !mode) return;
     const value = parseInt(qty) || 0;
     if (value <= 0) {
@@ -261,6 +261,16 @@ export default function Estoque() {
       mode === "add"
         ? selectedItem.stock_qty + value
         : Math.max(0, selectedItem.stock_qty - value);
+
+    // Log stock change
+    await supabase.from("stock_changes").insert({
+      product_type: selectedItem.type === "Peça" ? "part" : "bike",
+      product_id: selectedItem.id,
+      product_name: selectedItem.name,
+      old_qty: selectedItem.stock_qty,
+      new_qty: newQty,
+      responsible_name: currentUserName,
+    });
 
     if (selectedItem.type === "Peça") {
       updatePart.mutate({ id: selectedItem.id, stock_qty: newQty } as any);
