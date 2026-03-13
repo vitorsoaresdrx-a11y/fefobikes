@@ -233,11 +233,26 @@ export default function Bikes() {
               return (
                 <div
                   key={bike.id}
-                  className="group relative bg-[#161618] border border-zinc-800 rounded-[40px] overflow-hidden hover:border-[#2952FF]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
+                  className="group relative bg-[#161618] border border-zinc-800 rounded-2xl md:rounded-[40px] overflow-hidden hover:border-[#2952FF]/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
                   onClick={() => navigate(`/bikes/${bike.id}`)}
                 >
-                  {/* Imagem */}
-                  <div className="aspect-[4/3] bg-zinc-900 relative overflow-hidden">
+                  {/* Imagem Mobile */}
+                  <div className="md:hidden relative">
+                    <img 
+                      src={firstImage || undefined} 
+                      alt={bike.name} 
+                      loading="lazy" 
+                      className="w-full h-44 object-cover" 
+                    />
+                    {bike.visible_on_storefront && (
+                      <span className="absolute top-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase">
+                        No Ar
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Imagem Desktop */}
+                  <div className="hidden md:block aspect-[4/3] bg-zinc-900 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-[#161618] via-transparent to-transparent z-10" />
                     <div className="absolute top-4 right-4 z-20">
                       <Badge variant={bike.visible_on_storefront ? "active" : "default"}>
@@ -247,13 +262,13 @@ export default function Bikes() {
 
                     <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
                       {firstImage ? (
-                        <img src={getOptimizedImageUrl(firstImage, 400, 80) || firstImage} alt={bike.name} loading="lazy" className="w-full h-full object-cover" />
+                        <img src={firstImage} alt={bike.name} loading="lazy" className="w-full h-full object-cover" />
                       ) : (
                         <Package className="w-16 h-16 text-zinc-800" />
                       )}
                     </div>
 
-                    {/* Hover Actions */}
+                    {/* Hover Actions Desktop */}
                     <div
                       className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-30 transition-all backdrop-blur-sm bg-black/20"
                       onClick={(e) => e.stopPropagation()}
@@ -285,8 +300,50 @@ export default function Bikes() {
                     </div>
                   </div>
 
-                  {/* Conteúdo */}
-                  <div className="p-8 space-y-4">
+                  {/* Conteúdo Mobile */}
+                  <div className="p-4 md:hidden">
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className="text-sm font-black truncate pr-2">{bike.name}</h3>
+                      <button
+                        className="text-zinc-600 hover:text-red-400 transition-colors shrink-0 ml-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteBike.mutate(bike.id);
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[10px] font-bold text-[#2952FF] uppercase">
+                        {bike.category || "Sem categoria"}
+                      </span>
+                      {bike.sku && (
+                        <>
+                          <span className="text-zinc-700">•</span>
+                          <span className="text-[10px] text-zinc-500">{bike.sku}</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-zinc-800/50">
+                      <span className="text-xs text-zinc-400 flex items-center gap-1">
+                        <TrendingUp size={12} /> {(partsCounts as Record<string, number>)[bike.id] || 0} Peças
+                      </span>
+                      <button 
+                        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggle(bike.id, bike.visible_on_storefront);
+                        }}
+                      >
+                        {bike.visible_on_storefront ? 'Desativar' : 'Ativar'}
+                        <Eye size={14} className={bike.visible_on_storefront ? 'text-emerald-400' : 'text-zinc-600'} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Conteúdo Desktop */}
+                  <div className="hidden md:block p-8 space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="text-xl font-black text-white truncate pr-2">{bike.name}</h3>
