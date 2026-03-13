@@ -649,6 +649,13 @@ export default function Orcamentos() {
           </div>
         </DialogContent>
       </Dialog>
+      <ConfirmDeleteDialog
+        open={!!deleteTargetId}
+        onOpenChange={(open) => !open && setDeleteTargetId(null)}
+        onConfirm={confirmDelete}
+        title="Excluir orçamento"
+        description="Tem certeza que deseja excluir este orçamento? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
