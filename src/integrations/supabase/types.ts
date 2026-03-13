@@ -821,6 +821,7 @@ export type Database = {
           id: string
           labor_cost: number
           notes: string | null
+          responsible_name: string | null
           status: string
           tenant_id: string | null
           total: number
@@ -835,6 +836,7 @@ export type Database = {
           id?: string
           labor_cost?: number
           notes?: string | null
+          responsible_name?: string | null
           status?: string
           tenant_id?: string | null
           total?: number
@@ -849,6 +851,7 @@ export type Database = {
           id?: string
           labor_cost?: number
           notes?: string | null
+          responsible_name?: string | null
           status?: string
           tenant_id?: string | null
           total?: number
@@ -956,6 +959,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_method: string | null
+          responsible_name: string | null
           tenant_id: string | null
           total: number
         }
@@ -967,6 +971,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string | null
+          responsible_name?: string | null
           tenant_id?: string | null
           total?: number
         }
@@ -978,6 +983,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_method?: string | null
+          responsible_name?: string | null
           tenant_id?: string | null
           total?: number
         }
@@ -1014,6 +1020,7 @@ export type Database = {
           mechanic_status: string | null
           price: number | null
           problem: string
+          responsible_name: string | null
           status: string | null
           tenant_id: string | null
           updated_at: string | null
@@ -1033,6 +1040,7 @@ export type Database = {
           mechanic_status?: string | null
           price?: number | null
           problem: string
+          responsible_name?: string | null
           status?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -1052,6 +1060,7 @@ export type Database = {
           mechanic_status?: string | null
           price?: number | null
           problem?: string
+          responsible_name?: string | null
           status?: string | null
           tenant_id?: string | null
           updated_at?: string | null
@@ -1105,6 +1114,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_changes: {
+        Row: {
+          created_at: string
+          id: string
+          new_qty: number
+          old_qty: number
+          product_id: string
+          product_name: string
+          product_type: string
+          responsible_name: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_qty: number
+          old_qty: number
+          product_id: string
+          product_name: string
+          product_type: string
+          responsible_name?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_qty?: number
+          old_qty?: number
+          product_id?: string
+          product_name?: string
+          product_type?: string
+          responsible_name?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_changes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
