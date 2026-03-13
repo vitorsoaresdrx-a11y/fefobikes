@@ -143,11 +143,11 @@ function MemberPermissionsPanel({ member }: { member: TenantMember }) {
       <div className="flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-bold text-sm">
-            {(member.email || member.user_id).slice(0, 2).toUpperCase()}
+            {getMemberInitials(member)}
           </div>
           <div>
             <p className="text-sm font-bold text-white">
-              {member.email || member.user_id.slice(0, 8) + "..."}
+              {getMemberDisplayName(member)}
             </p>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               {member.role === "owner" ? "Proprietário" : "Membro"}
