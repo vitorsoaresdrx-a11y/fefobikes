@@ -39,6 +39,8 @@ import {
   useDeleteMechanicJob,
   useCreateAddition,
   useUpdateAdditionApproval,
+  useRetreatMechanicJob,
+  useUpdateMechanicJobDetails,
   type MechanicJob,
   type MechanicJobAddition,
 } from "@/hooks/useMechanicJobs";
