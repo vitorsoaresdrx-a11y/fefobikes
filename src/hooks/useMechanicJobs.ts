@@ -205,3 +205,42 @@ export function useUpdateAdditionApproval() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useUpdateAddition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, problem, price, labor_cost, parts_used }: {
+      id: string;
+      problem: string;
+      price: number;
+      labor_cost: number;
+      parts_used: AdditionPart[];
+    }) => {
+      const { error } = await supabase
+        .from("mechanic_job_additions" as any)
+        .update({
+          problem,
+          price,
+          labor_cost,
+          parts_used: JSON.stringify(parts_used),
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useDeleteAddition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("mechanic_job_additions" as any)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
