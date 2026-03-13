@@ -45,6 +45,8 @@ import {
   useUpdateAdditionApproval,
   useRetreatMechanicJob,
   useUpdateMechanicJobDetails,
+  useUpdateAddition,
+  useDeleteAddition,
   type MechanicJob,
   type MechanicJobAddition,
   type AdditionPart,
