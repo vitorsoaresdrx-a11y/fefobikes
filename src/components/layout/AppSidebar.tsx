@@ -104,6 +104,7 @@ export function AppSidebar() {
   const isCashOpen = currentRegister?.status === "open";
   const { data: totalUnread = 0 } = useTotalUnread();
   const { data: permsData } = useMyPermissions();
+  const { data: pendingCalls = [] } = useInternalCalls();
 
   const isOwner = permsData?.isOwner ?? true;
   const permissions = permsData?.permissions ?? [];
