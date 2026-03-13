@@ -431,7 +431,7 @@ export default function Pecas() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((part) => {
+                  pagination.items.map((part) => {
                     const cost = Number((part as any).unit_cost) || 0;
                     const sale = Number((part as any).sale_price) || 0;
                     const profit = sale - cost;
