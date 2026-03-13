@@ -43,6 +43,15 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Resolve tenant_id for data isolation
+    const { data: tenantRow } = await supabase
+      .from("tenants")
+      .select("id")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .single();
+    const tenantId = tenantRow?.id ?? null;
+
     // Check if AI is enabled for this conversation
     const { data: conv } = await supabase
       .from("whatsapp_conversations")
