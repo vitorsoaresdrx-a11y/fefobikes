@@ -1,4 +1,5 @@
 import { Suspense, useEffect } from "react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { Outlet, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
