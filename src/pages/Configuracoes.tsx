@@ -75,13 +75,13 @@ export default function Configuracoes() {
     }
   };
 
-  const handleSaveStationLogins = async () => {
+  const handleSaveStationPasswords = async () => {
     try {
-      await updateStationLogins.mutateAsync(effectiveStationEmails);
-      toast({ title: "Estações de login salvas" });
-      setStationEmails(null);
+      await updateStationPasswords.mutateAsync(effectiveStationPwds);
+      toast({ title: "Senhas das estações salvas" });
+      setStationPwds(null);
     } catch {
-      toast({ title: "Erro ao salvar estações", variant: "destructive" });
+      toast({ title: "Erro ao salvar senhas", variant: "destructive" });
     }
   };
 
