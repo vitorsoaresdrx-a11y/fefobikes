@@ -303,6 +303,7 @@ function JobCard({
 }) {
   const advanceMutation = useAdvanceMechanicJob();
   const remove = useDeleteMechanicJob();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleAdvance = () => {
     if (onAdvance) {
@@ -315,10 +316,17 @@ function JobCard({
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
     remove.mutate(job.id, {
       onError: () => toast.error("Erro ao remover"),
-      onSuccess: () => toast.success("Finalizado com sucesso"),
+      onSuccess: () => {
+        toast.success("Finalizado com sucesso");
+        setDeleteDialogOpen(false);
+      },
     });
   };
 
@@ -327,35 +335,36 @@ function JobCard({
   const showRetreat = columnKey === "in_analysis";
 
   return (
-    <div className="group bg-card border border-border rounded-2xl p-3 lg:p-4 space-y-3 hover:border-border/80 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
-      {/* Bike name (prominent) + actions */}
-      <div className="flex items-start justify-between gap-1">
-        <div className="min-w-0">
-          <p className="text-sm font-black tracking-tight text-white uppercase italic leading-tight break-words">
-            {job.bike_name || "Sem bike"}
-          </p>
+    <>
+      <div className="group bg-card border border-border rounded-2xl p-3 lg:p-4 space-y-3 hover:border-border/80 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
+        {/* Bike name (prominent) + actions */}
+        <div className="flex items-start justify-between gap-1">
+          <div className="min-w-0">
+            <p className="text-sm font-black tracking-tight text-white uppercase italic leading-tight break-words">
+              {job.bike_name || "Sem bike"}
+            </p>
+          </div>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button
+              className="p-1.5 text-muted-foreground/50 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+              onClick={() => onEdit(job)}
+              title="Editar"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+              onClick={handleDeleteClick}
+              disabled={remove.isPending}
+            >
+              {remove.isPending ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Trash2 size={14} />
+              )}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <button
-            className="p-1.5 text-muted-foreground/50 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
-            onClick={() => onEdit(job)}
-            title="Editar"
-          >
-            <Pencil size={14} />
-          </button>
-          <button
-            className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-            onClick={handleDelete}
-            disabled={remove.isPending}
-          >
-            {remove.isPending ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Trash2 size={14} />
-            )}
-          </button>
-        </div>
-      </div>
 
       {/* Customer info (secondary) */}
       {(job.customer_name || job.customer_whatsapp || job.customer_cpf) && (
