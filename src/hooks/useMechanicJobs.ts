@@ -1,11 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface AdditionPart {
+  part_id: string | null;
+  part_name: string;
+  quantity: number;
+  unit_price: number;
+}
+
 export interface MechanicJobAddition {
   id: string;
   job_id: string;
   problem: string;
   price: number;
+  labor_cost: number;
+  parts_used: AdditionPart[];
   approval: "pending" | "accepted" | "refused";
   created_at: string;
 }
