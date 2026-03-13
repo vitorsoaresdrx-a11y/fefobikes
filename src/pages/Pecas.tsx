@@ -634,6 +634,16 @@ export default function Pecas() {
           </div>
         </div>
       )}
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deletePart.mutate(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        title="Excluir peça"
+        description="Tem certeza que deseja excluir esta peça? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }
