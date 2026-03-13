@@ -9,21 +9,34 @@ interface BarcodeScannerProps {
 export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
-      controlsRef.current?.stop();
+      stopScan();
     };
   }, []);
 
   const startScan = async () => {
     try {
-      const reader = new BrowserMultiFormatReader();
       setScanning(true);
       setError(null);
 
+      // Get camera stream directly from user gesture
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      // Now start decoding from the already-active video element
+      const reader = new BrowserMultiFormatReader();
       const controls = await reader.decodeFromVideoDevice(
         undefined,
         videoRef.current!,
@@ -44,20 +57,21 @@ export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
   const stopScan = () => {
     controlsRef.current?.stop();
     controlsRef.current = null;
-    setScanning(false);
-    // Stop video tracks manually
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((t) => t.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+    setScanning(false);
   };
 
   return (
     <div className="space-y-3">
       {scanning ? (
         <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
-          <video ref={videoRef} className="w-full h-full object-cover" />
+          <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-3/4 h-16 border-2 border-primary rounded-xl opacity-80 relative">
               <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary rounded-tl-xl" />
