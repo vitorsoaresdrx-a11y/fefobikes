@@ -81,26 +81,26 @@ function AuthGate() {
     <Suspense fallback={<PageSkeleton />}>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<GuardedRoute module="dashboard"><Dashboard /></GuardedRoute>} />
-          <Route path="/produtos" element={<GuardedRoute module="produtos"><Pecas /></GuardedRoute>} />
-          <Route path="/bikes" element={<GuardedRoute module="bikes"><Bikes /></GuardedRoute>} />
-          <Route path="/bikes/nova" element={<GuardedRoute module="bikes"><BikeForm /></GuardedRoute>} />
-          <Route path="/bikes/:id" element={<GuardedRoute module="bikes"><BikeForm /></GuardedRoute>} />
-          <Route path="/estoque" element={<GuardedRoute module="estoque"><Estoque /></GuardedRoute>} />
-          <Route path="/pdv" element={<GuardedRoute module="pdv"><PDV /></GuardedRoute>} />
-          <Route path="/caixa" element={<GuardedRoute module="caixa"><CashRegister /></GuardedRoute>} />
-          <Route path="/historico" element={<GuardedRoute module="historico"><Historico /></GuardedRoute>} />
-          <Route path="/dre" element={<GuardedRoute module="dre"><DRE /></GuardedRoute>} />
-          <Route path="/gastos" element={<GuardedRoute module="gastos"><Gastos /></GuardedRoute>} />
-          <Route path="/mecanica" element={<GuardedRoute module="mecanica"><Mecanica /></GuardedRoute>} />
-          <Route path="/mecanicos" element={<GuardedRoute module="mecanica"><Mecanicos /></GuardedRoute>} />
-          <Route path="/mecanicos/historico" element={<GuardedRoute module="mecanica"><MecanicosHistorico /></GuardedRoute>} />
-          <Route path="/clientes" element={<GuardedRoute module="clientes"><Clientes /></GuardedRoute>} />
-          <Route path="/clientes/:id" element={<GuardedRoute module="clientes"><ClienteDetalhe /></GuardedRoute>} />
-          <Route path="/orcamentos" element={<GuardedRoute module="mecanica"><Orcamentos /></GuardedRoute>} />
-          <Route path="/configuracoes" element={<GuardedRoute module="configuracoes"><Configuracoes /></GuardedRoute>} />
-          <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><WhatsAppPage /></GuardedRoute>} />
-          <Route path="/permissoes" element={<Permissoes />} />
+          <Route path="/" element={<GuardedRoute module="dashboard"><PageTransition><Dashboard /></PageTransition></GuardedRoute>} />
+          <Route path="/produtos" element={<GuardedRoute module="produtos"><PageTransition><Pecas /></PageTransition></GuardedRoute>} />
+          <Route path="/bikes" element={<GuardedRoute module="bikes"><PageTransition><Bikes /></PageTransition></GuardedRoute>} />
+          <Route path="/bikes/nova" element={<GuardedRoute module="bikes"><PageTransition><BikeForm /></PageTransition></GuardedRoute>} />
+          <Route path="/bikes/:id" element={<GuardedRoute module="bikes"><PageTransition><BikeForm /></PageTransition></GuardedRoute>} />
+          <Route path="/estoque" element={<GuardedRoute module="estoque"><PageTransition><Estoque /></PageTransition></GuardedRoute>} />
+          <Route path="/pdv" element={<GuardedRoute module="pdv"><PageTransition><PDV /></PageTransition></GuardedRoute>} />
+          <Route path="/caixa" element={<GuardedRoute module="caixa"><PageTransition><CashRegister /></PageTransition></GuardedRoute>} />
+          <Route path="/historico" element={<GuardedRoute module="historico"><PageTransition><Historico /></PageTransition></GuardedRoute>} />
+          <Route path="/dre" element={<GuardedRoute module="dre"><PageTransition><DRE /></PageTransition></GuardedRoute>} />
+          <Route path="/gastos" element={<GuardedRoute module="gastos"><PageTransition><Gastos /></PageTransition></GuardedRoute>} />
+          <Route path="/mecanica" element={<GuardedRoute module="mecanica"><PageTransition><Mecanica /></PageTransition></GuardedRoute>} />
+          <Route path="/mecanicos" element={<GuardedRoute module="mecanica"><PageTransition><Mecanicos /></PageTransition></GuardedRoute>} />
+          <Route path="/mecanicos/historico" element={<GuardedRoute module="mecanica"><PageTransition><MecanicosHistorico /></PageTransition></GuardedRoute>} />
+          <Route path="/clientes" element={<GuardedRoute module="clientes"><PageTransition><Clientes /></PageTransition></GuardedRoute>} />
+          <Route path="/clientes/:id" element={<GuardedRoute module="clientes"><PageTransition><ClienteDetalhe /></PageTransition></GuardedRoute>} />
+          <Route path="/orcamentos" element={<GuardedRoute module="mecanica"><PageTransition><Orcamentos /></PageTransition></GuardedRoute>} />
+          <Route path="/configuracoes" element={<GuardedRoute module="configuracoes"><PageTransition><Configuracoes /></PageTransition></GuardedRoute>} />
+          <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><PageTransition><WhatsAppPage /></PageTransition></GuardedRoute>} />
+          <Route path="/permissoes" element={<PageTransition><Permissoes /></PageTransition>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
