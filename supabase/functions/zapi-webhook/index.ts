@@ -209,6 +209,7 @@ Deno.serve(async (req) => {
       content:         content || `[${type}]`,
       media_url:       mediaUrl,
       status:          "delivered",
+      tenant_id:       tenantId,
     });
 
     // Trigger AI responder for incoming text messages
