@@ -688,7 +688,7 @@ function EditJobModal({
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">
                 Editar Serviço
               </DialogTitle>
             </DialogHeader>
@@ -1338,7 +1338,7 @@ export default function Mecanica() {
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">
                 Nova Ordem de Serviço
               </DialogTitle>
             </DialogHeader>
@@ -1470,7 +1470,7 @@ export default function Mecanica() {
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">
                 Adicionar Reparo Extra
               </DialogTitle>
             </DialogHeader>
@@ -1486,7 +1486,7 @@ export default function Mecanica() {
                     <p className="font-bold text-white leading-none mb-1 truncate">
                       {addJob.customer_name || "Cliente"}
                     </p>
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest italic truncate">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest truncate">
                       {addJob.problem}
                     </p>
                     <p className="text-xs font-bold text-muted-foreground mt-1">
