@@ -772,6 +772,8 @@ export default function Mecanica() {
                           isLast={col.key === "ready"}
                           columnKey={col.key}
                           onAddRepair={handleAddRepair}
+                          onEdit={handleEditJob}
+                          onRetreat={handleRetreatJob}
                         />
                       ))
                     ) : (
