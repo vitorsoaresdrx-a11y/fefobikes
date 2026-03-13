@@ -455,6 +455,41 @@ export type Database = {
           },
         ]
       }
+      lucky_numbers: {
+        Row: {
+          created_at: string
+          id: string
+          number: string
+          score: number
+          tenant_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          number: string
+          score?: number
+          tenant_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          number?: string
+          score?: number
+          tenant_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lucky_numbers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mechanic_job_additions: {
         Row: {
           approval: string
