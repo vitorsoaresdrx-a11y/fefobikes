@@ -967,6 +967,110 @@ export default function Mecanica() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ── Edit Job Modal ───────────────────────────────────────────────────── */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
+          <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+                Editar Serviço
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              <InputGroup label="Nome da Bike *">
+                <PremiumInput
+                  placeholder="Ex: Caloi Elite Carbon"
+                  value={editForm.bike_name}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, bike_name: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Cliente">
+                <CustomerAutocomplete
+                  customerName={editForm.customer_name}
+                  customerWhatsapp={editForm.customer_whatsapp}
+                  customerCpf={editForm.customer_cpf}
+                  onSelect={(c: Customer) =>
+                    setEditForm((f) => ({
+                      ...f,
+                      customer_name: c.name,
+                      customer_whatsapp: c.whatsapp || "",
+                      customer_cpf: c.cpf || "",
+                      customer_id: c.id,
+                    }))
+                  }
+                  onChange={(field, value) => {
+                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
+                    setEditForm((f) => ({ ...f, [key]: value }));
+                  }}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                  <PremiumInput
+                    placeholder="Nome completo"
+                    value={editForm.customer_name}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_name: e.target.value }))
+                    }
+                  />
+                  <PremiumInput
+                    placeholder="(00) 00000-0000"
+                    value={editForm.customer_whatsapp}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_whatsapp: e.target.value }))
+                    }
+                  />
+                  <PremiumInput
+                    placeholder="CPF (opcional)"
+                    value={editForm.customer_cpf}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_cpf: e.target.value }))
+                    }
+                  />
+                </div>
+              </InputGroup>
+              <InputGroup label="Diagnóstico *">
+                <PremiumTextarea
+                  rows={4}
+                  placeholder="Descreva o que precisa ser feito..."
+                  value={editForm.problem}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, problem: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Valor do Serviço">
+                <CurrencyInput
+                  value={editForm.price}
+                  onChange={(val) => setEditForm((f) => ({ ...f, price: val }))}
+                />
+              </InputGroup>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setEditOpen(false)}
+                className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={updateDetails.isPending}
+                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {updateDetails.isPending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  "Salvar Alterações"
+                )}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
