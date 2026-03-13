@@ -86,7 +86,7 @@
     @apply bg-background text-foreground font-sans antialiased;
     min-width: 320px;
     overflow-x: hidden;
-    scrollbar-color: #3f3f46 transparent;
+    scrollbar-color: hsl(var(--muted)) transparent;
   }
 
   *::-webkit-scrollbar {
