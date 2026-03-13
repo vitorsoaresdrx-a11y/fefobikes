@@ -32,7 +32,6 @@ export function AppLayout() {
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
-  // Build breadcrumb items
   const crumbs: { label: string; path: string }[] = [];
   let currentPath = "";
   for (const seg of pathSegments) {
@@ -43,9 +42,9 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-        <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col min-w-0 h-full">
+      <div className="flex h-screen w-screen bg-background text-foreground">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Top bar */}
           <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
@@ -77,13 +76,18 @@ export function AppLayout() {
             </Breadcrumb>
           </header>
 
-          {/* Main content - pb for bottom nav on mobile */}
-          <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 lg:px-6 lg:pt-6 lg:pb-6">
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-full">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-              </div>
-            }>
+          {/* Main content */}
+          <main
+            className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 pt-4 lg:px-6 lg:pt-6 lg:pb-6"
+            style={{ paddingBottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+          >
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center h-full">
+                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            >
               <Outlet />
             </Suspense>
           </main>
