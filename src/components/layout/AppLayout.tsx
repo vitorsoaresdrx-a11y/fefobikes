@@ -1,4 +1,5 @@
 import { Suspense, useEffect } from "react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { Outlet, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
@@ -29,6 +30,7 @@ const routeLabels: Record<string, string> = {
 
 export function AppLayout() {
   const location = useLocation();
+  useRealtimeSync();
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
   useEffect(() => {

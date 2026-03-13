@@ -31,7 +31,7 @@ import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { useCurrentCashRegister, useLinkSaleToCashRegister } from "@/hooks/useCashRegister";
-import { useRealtimeStock } from "@/hooks/useRealtimeStock";
+
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -139,7 +139,7 @@ export default function PDV() {
   const pendingCount = getQueueCount();
   const { data: bikes = [] } = useBikeModels();
   const { data: parts = [] } = useParts();
-  useRealtimeStock();
+  
   const { data: customers = [] } = useCustomers();
   const { data: cardTaxes } = useCardTaxes();
   const createCustomer = useCreateCustomer();
