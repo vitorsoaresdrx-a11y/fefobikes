@@ -13,6 +13,8 @@ export interface InternalCall {
   target_user_id: string | null;
   tenant_id: string | null;
   created_at: string;
+  audio_url: string | null;
+  audio_duration: number | null;
 }
 
 export interface InternalCallReply {
