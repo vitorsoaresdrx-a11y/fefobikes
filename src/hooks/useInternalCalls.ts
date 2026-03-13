@@ -241,11 +241,7 @@ export function useSendCall() {
       audioBlob?: Blob;
       audioDuration?: number;
     }) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", session!.user.id)
-        .single();
+      const displayName = await resolveUserName(session!.user.id, session!.user.email);
 
       let audioUrl: string | null = null;
 
@@ -266,7 +262,7 @@ export function useSendCall() {
       const { error } = await supabase.from("internal_calls").insert({
         message: message || "",
         created_by: session!.user.id,
-        created_by_name: profile?.full_name || session!.user.email || "Usuário",
+        created_by_name: displayName,
         target_type: targetType,
         target_role: targetRole || null,
         target_user_id: targetUserId || null,
