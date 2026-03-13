@@ -450,7 +450,7 @@ function JobCard({
             </button>
           ) : (
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               disabled={remove.isPending}
               className="h-6 rounded-md px-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50 border border-emerald-500/20"
             >
