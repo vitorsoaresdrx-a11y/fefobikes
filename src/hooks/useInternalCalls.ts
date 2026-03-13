@@ -186,17 +186,13 @@ export function useSendReply() {
 
   return useMutation({
     mutationFn: async ({ callId, message }: { callId: string; message: string }) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", session!.user.id)
-        .single();
+      const displayName = await resolveUserName(session!.user.id, session!.user.email);
 
       const { error } = await supabase.from("internal_call_replies").insert({
         call_id: callId,
         message,
         created_by: session!.user.id,
-        created_by_name: profile?.full_name || session!.user.email || "Usuário",
+        created_by_name: displayName,
       });
       if (error) throw error;
     },
