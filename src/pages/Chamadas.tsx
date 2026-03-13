@@ -57,7 +57,7 @@ export default function Chamadas() {
   });
 
   const handleSend = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() && !audioBlob) return;
 
     let targetType = "all";
     let targetRole: string | undefined;
@@ -75,8 +75,12 @@ export default function Chamadas() {
         targetType,
         targetRole,
         targetUserId: targetUserId || undefined,
+        audioBlob: audioBlob || undefined,
+        audioDuration: audioBlob ? audioDuration : undefined,
       });
       setMessage("");
+      setAudioBlob(null);
+      setAudioDuration(0);
       toast.success("Chamada enviada!");
     } catch {
       toast.error("Erro ao enviar chamada");
