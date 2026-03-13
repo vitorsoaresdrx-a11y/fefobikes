@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { Outlet, useLocation } from "react-router-dom";
+import { CallsOverlay } from "@/components/CallsOverlay";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -26,6 +27,7 @@ const routeLabels: Record<string, string> = {
   "/mecanica": "Mecânica",
   "/clientes": "Clientes",
   "/configuracoes": "Configurações",
+  "/chamadas": "Chamadas",
 };
 
 export function AppLayout() {
@@ -103,6 +105,7 @@ export function AppLayout() {
         {/* Bottom nav for mobile */}
         <BottomNav />
         <GlobalSearch />
+        <CallsOverlay />
       </div>
     </SidebarProvider>
   );

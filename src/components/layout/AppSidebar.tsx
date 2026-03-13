@@ -17,7 +17,9 @@ import {
   HardHat,
   History,
   FileText,
+  Bell,
 } from "lucide-react";
+import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +88,7 @@ const navGroups = [
   {
     label: "Sistema",
     items: [
+      { title: "Chamadas", url: "/chamadas", icon: Bell },
       { title: "Permissões", url: "/permissoes", icon: Shield },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
@@ -101,6 +104,7 @@ export function AppSidebar() {
   const isCashOpen = currentRegister?.status === "open";
   const { data: totalUnread = 0 } = useTotalUnread();
   const { data: permsData } = useMyPermissions();
+  const { data: pendingCalls = [] } = useInternalCalls();
 
   const isOwner = permsData?.isOwner ?? true;
   const permissions = permsData?.permissions ?? [];
@@ -186,6 +190,11 @@ export function AppSidebar() {
                                 {item.title === "WhatsApp" && totalUnread > 0 && (
                                   <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                                     {totalUnread}
+                                  </span>
+                                )}
+                                {item.title === "Chamadas" && pendingCalls.length > 0 && (
+                                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                                    {pendingCalls.length}
                                   </span>
                                 )}
                               </span>
