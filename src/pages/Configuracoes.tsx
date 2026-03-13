@@ -55,7 +55,7 @@ export default function Configuracoes() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6 pb-24 lg:pb-0">
       <h1 className="text-lg font-semibold text-foreground">Configurações</h1>
 
       {/* Card taxes card */}
