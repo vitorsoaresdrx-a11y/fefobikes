@@ -301,57 +301,51 @@ export default function Gastos() {
               </div>
             ) : (
               activeList.map((exp) => (
-                <div key={exp.id} className="group p-4 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors">
-                  <div className="flex items-center gap-6">
-                    <div className={`p-4 rounded-[20px] ${tab === "fixed" ? "bg-indigo-500/5 text-indigo-400" : "bg-amber-500/5 text-amber-400"}`}>
-                      {tab === "fixed" ? <Receipt className="w-6 h-6 stroke-[1.5]" /> : <CreditCard className="w-6 h-6 stroke-[1.5]" />}
-                    </div>
-                    <div>
-                      <h4 className={`text-lg font-bold ${"active" in exp && !exp.active ? "text-zinc-600 line-through" : "text-zinc-100"}`}>
-                        {exp.name}
-                      </h4>
-                      <p className="text-sm text-zinc-500 font-medium">
-                        {tab === "fixed"
-                          ? (exp.notes || "Recorrência mensal")
-                          : format(new Date((exp as any).expense_date + "T00:00:00"), "dd 'de' MMMM", { locale: ptBR })}
-                      </p>
-                    </div>
+                <div key={exp.id} className="group flex items-center gap-3 px-4 py-3 md:px-8 md:py-5 hover:bg-white/[0.02] transition-colors">
+                  <div className={`w-9 h-9 md:w-12 md:h-12 rounded-xl md:rounded-[20px] flex items-center justify-center shrink-0 ${tab === "fixed" ? "bg-indigo-500/5 text-indigo-400" : "bg-amber-500/5 text-amber-400"}`}>
+                    {tab === "fixed" ? <Receipt className="w-4 h-4 md:w-6 md:h-6 stroke-[1.5]" /> : <CreditCard className="w-4 h-4 md:w-6 md:h-6 stroke-[1.5]" />}
                   </div>
-
-                  <div className="flex items-center gap-8">
-                    <div className="text-right">
-                      <p className="text-xl font-black text-zinc-100">{formatBRL(Number(exp.amount))}</p>
-                      {tab === "fixed" && (
-                        <Badge variant={"active" in exp && exp.active ? "active" : "default"}>
-                          {"active" in exp && exp.active ? "ATIVO" : "PAUSADO"}
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                      {tab === "fixed" && "active" in exp && (
-                        <button
-                          onClick={() => updateFixed.mutate({ id: exp.id, active: !exp.active })}
-                          className="p-2 hover:bg-white/5 rounded-xl transition-colors"
-                        >
-                          {exp.active
-                            ? <ToggleRight className="w-7 h-7 text-emerald-500" />
-                            : <ToggleLeft className="w-7 h-7 text-zinc-700" />}
-                        </button>
-                      )}
-                      <Btn
-                        variant="destructive"
-                        size="icon"
-                        className="rounded-xl"
-                        onClick={() =>
-                          tab === "fixed"
-                            ? deleteFixed.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                            : deleteVariable.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
-                        }
+                  <div className="flex-1 min-w-0">
+                    <h4 className={`text-sm md:text-lg font-bold truncate ${"active" in exp && !exp.active ? "text-zinc-600 line-through" : "text-zinc-100"}`}>
+                      {exp.name}
+                    </h4>
+                    <p className="text-xs text-zinc-500 font-medium truncate">
+                      {tab === "fixed"
+                        ? (exp.notes || "Recorrência mensal")
+                        : format(new Date((exp as any).expense_date + "T00:00:00"), "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm md:text-xl font-black text-zinc-100">{formatBRL(Number(exp.amount))}</p>
+                    {tab === "fixed" && (
+                      <Badge variant={"active" in exp && exp.active ? "active" : "default"}>
+                        {"active" in exp && exp.active ? "ATIVO" : "PAUSADO"}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 md:gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0">
+                    {tab === "fixed" && "active" in exp && (
+                      <button
+                        onClick={() => updateFixed.mutate({ id: exp.id, active: !exp.active })}
+                        className="p-1.5 md:p-2 hover:bg-white/5 rounded-xl transition-colors"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Btn>
-                    </div>
+                        {exp.active
+                          ? <ToggleRight className="w-5 h-5 md:w-7 md:h-7 text-emerald-500" />
+                          : <ToggleLeft className="w-5 h-5 md:w-7 md:h-7 text-zinc-700" />}
+                      </button>
+                    )}
+                    <Btn
+                      variant="destructive"
+                      size="icon"
+                      className="rounded-xl w-8 h-8 md:w-9 md:h-9"
+                      onClick={() =>
+                        tab === "fixed"
+                          ? deleteFixed.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
+                          : deleteVariable.mutate(exp.id, { onSuccess: () => toast.success("Removido") })
+                      }
+                    >
+                      <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    </Btn>
                   </div>
                 </div>
               ))
