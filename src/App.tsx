@@ -10,6 +10,7 @@ import { PermissionGuard } from "@/components/permissions/PermissionGuard";
 import PageSkeleton from "@/components/PageSkeleton";
 import Login from "@/pages/Login";
 import { Loader2 } from "lucide-react";
+import { useSyncOfflineQueue } from "@/hooks/useSyncOfflineQueue";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
