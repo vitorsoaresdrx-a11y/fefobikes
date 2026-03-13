@@ -35,6 +35,29 @@ import {
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const STATION_LABELS: Record<string, string> = {
+  admin: "Administração",
+  salao: "Salão",
+  mecanica: "Mecânica",
+};
+
+function getMemberDisplayName(member: TenantMember): string {
+  const email = member.email || "";
+  // station-admin-{uuid}@station.internal → "Administração"
+  const stationMatch = email.match(/^station-(\w+)-/);
+  if (stationMatch) {
+    return STATION_LABELS[stationMatch[1]] || stationMatch[1];
+  }
+  return email || member.user_id.slice(0, 8) + "...";
+}
+
+function getMemberInitials(member: TenantMember): string {
+  const name = getMemberDisplayName(member);
+  return name.slice(0, 2).toUpperCase();
+}
+
 // ─── Permission Row ──────────────────────────────────────────────────────────
 
 function PermissionRow({
@@ -120,11 +143,11 @@ function MemberPermissionsPanel({ member }: { member: TenantMember }) {
       <div className="flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-bold text-sm">
-            {(member.email || member.user_id).slice(0, 2).toUpperCase()}
+            {getMemberInitials(member)}
           </div>
           <div>
             <p className="text-sm font-bold text-white">
-              {member.email || member.user_id.slice(0, 8) + "..."}
+              {getMemberDisplayName(member)}
             </p>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               {member.role === "owner" ? "Proprietário" : "Membro"}
@@ -387,12 +410,12 @@ export default function Permissoes() {
                   {m.role === "owner" ? (
                     <Crown size={14} className="text-amber-400" />
                   ) : (
-                    (m.email || m.user_id).slice(0, 2).toUpperCase()
+                    getMemberInitials(m)
                   )}
                 </div>
                 <div className="text-left min-w-0">
                   <p className="text-sm font-bold text-foreground/80 truncate">
-                    {m.email || m.user_id.slice(0, 12) + "..."}
+                    {getMemberDisplayName(m)}
                   </p>
                   <p className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-widest">
                     {m.role === "owner" ? "Proprietário" : "Membro"}
