@@ -31,6 +31,8 @@ export default function Clientes() {
     );
   }, [customers, debouncedSearch]);
 
+  const pagination = usePagination(filtered);
+
   const handleExportCSV = () => {
     const header = "Nome,WhatsApp,CPF,Cadastrado em";
     const rows = filtered.map(
