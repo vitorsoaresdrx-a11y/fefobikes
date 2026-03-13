@@ -474,42 +474,95 @@ export default function DRE() {
             </div>
           </div>
 
-          <div className="p-4 md:p-8 space-y-2">
-            <DRELineRow label="Faturamento Bruto" value={totals.revenue} icon={DollarSign} type="header" />
-            <DRELineRow label="Impostos sobre Venda (8%)" value={-totals.taxes} icon={Percent} type="deduction" />
-            <DRELineRow label="Taxas de Intermediação (Cartão)" value={-totals.cardFees} icon={CreditCard} type="deduction" />
+          <div className="p-4 md:p-8 space-y-3 md:space-y-4">
 
-            <div className="py-4">
-              <div className="h-px bg-muted/50 w-full" />
+            {/* Faturamento Bruto — card individual */}
+            <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5 bg-background border border-border rounded-xl md:rounded-2xl">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                <DollarSign size={18} />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Faturamento Bruto</span>
+                <span className="text-base md:text-xl font-black tracking-tighter text-foreground">{formatBRL(totals.revenue)}</span>
+              </div>
             </div>
 
-            <DRELineRow label="Receita Líquida Operacional" value={totals.netRevenue} icon={Target} type="subtotal" />
-            <DRELineRow label="Custos Fixos Totais" value={-totals.fixedExpenses} icon={Minus} type="deduction" />
-            <DRELineRow label="Custos Variáveis e Insumos" value={-totals.variableExpenses} icon={Minus} type="deduction" />
+            {/* Deduções — card agrupado */}
+            <div className="bg-background border border-border rounded-xl md:rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                  <Percent size={18} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Impostos sobre Venda (8%)</span>
+                  <span className="text-base md:text-xl font-black tracking-tighter text-red-400/80">- {formatBRL(totals.taxes)}</span>
+                </div>
+              </div>
+              <div className="h-px bg-border/50 mx-4 md:mx-5" />
+              <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                  <CreditCard size={18} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Taxas de Intermediação (Cartão)</span>
+                  <span className="text-base md:text-xl font-black tracking-tighter text-red-400/80">- {formatBRL(totals.cardFees)}</span>
+                </div>
+              </div>
+            </div>
 
-            {/* Lucro Final */}
-            <div className="mt-3 md:mt-6 p-3 md:p-8 bg-primary/5 border border-primary/20 rounded-2xl md:rounded-[24px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+            {/* Receita Líquida Operacional — card destaque */}
+            <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5 bg-background border border-border rounded-xl md:rounded-2xl">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl md:rounded-2xl flex items-center justify-center text-primary shrink-0">
+                <Target size={18} />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Receita Líquida Operacional</span>
+                <span className="text-lg md:text-2xl font-black tracking-tighter text-blue-400">{formatBRL(totals.netRevenue)}</span>
+              </div>
+            </div>
+
+            {/* Custos — card agrupado */}
+            <div className="bg-background border border-border rounded-xl md:rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                  <Minus size={18} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Custos Fixos Totais</span>
+                  <span className="text-base md:text-xl font-black tracking-tighter text-red-400/80">- {formatBRL(totals.fixedExpenses)}</span>
+                </div>
+              </div>
+              <div className="h-px bg-border/50 mx-4 md:mx-5" />
+              <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                  <Minus size={18} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Custos Variáveis e Insumos</span>
+                  <span className="text-base md:text-xl font-black tracking-tighter text-red-400/80">- {formatBRL(totals.variableExpenses)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Lucro Líquido Final — card destaque maior */}
+            <div className="mt-3 md:mt-6 p-4 md:p-8 bg-primary/5 border border-primary/20 rounded-2xl md:rounded-[24px]">
               <div className="flex items-center gap-3 md:gap-4">
                 <div className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-primary/40 shrink-0">
                   <TrendingUp size={20} className="md:hidden" />
                   <TrendingUp size={28} className="hidden md:block" />
                 </div>
-                <div>
-                  <h4 className="text-white font-black text-sm md:text-xl">Lucro Líquido Final</h4>
+                <div className="flex flex-col min-w-0">
+                  <h4 className="text-white font-black text-sm md:text-xl leading-tight">Lucro Líquido Final</h4>
                   <p className="text-muted-foreground text-[9px] md:text-xs font-bold uppercase tracking-widest">
-                    Resultado do Exercício de {selectedYear}
+                    Resultado do Exercício de {selectedYear} · Margem: {marginPct}%
                   </p>
                 </div>
               </div>
-              <div className="text-right flex flex-col items-end">
-                <p className={`text-2xl md:text-3xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                  {formatBRL(totals.netProfit)}
-                </p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Margem: {marginPct}%
-                </p>
-              </div>
+              <p className={`mt-3 md:mt-5 text-3xl md:text-4xl font-black tracking-tighter ${totals.netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                {formatBRL(totals.netProfit)}
+              </p>
             </div>
+
           </div>
         </div>
 
