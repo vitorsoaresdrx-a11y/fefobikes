@@ -20,9 +20,6 @@ export function CallsOverlay() {
 
   const visibleCalls = pendingCalls.filter((c) => !dismissedIds.has(c.id));
 
-  // Show replies for the call being replied to (excluding own replies)
-  const { data: replies = [] } = useCallReplies(replyingTo);
-
   useEffect(() => {
     if (visibleCalls.length === 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
