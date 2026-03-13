@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Receipt, Zap, Droplets, CreditCard, FileText, Copy, CheckCircle, Trash2, MoreVertical, ScanLine } from "lucide-react";
+import { Receipt, Zap, Droplets, CreditCard, FileText, Copy, CheckCircle, Trash2, MoreVertical, ScanLine, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { formatBRL } from "@/lib/format";
 import { parseBarcode, type ParsedBill } from "@/lib/barcode-parser";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { BillPhotoCapture } from "@/components/BillPhotoCapture";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { useBills, useCreateBill, useUpdateBillStatus, useDeleteBill, useAutoUpdateOverdue, useBillAlerts, type Bill } from "@/hooks/useBills";
 import {
@@ -62,6 +63,7 @@ export default function Contas() {
   const [editNotes, setEditNotes] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualBarcode, setManualBarcode] = useState("");
+  const [inputMode, setInputMode] = useState<"scan" | "photo">("scan");
 
   // KPIs
   const totalPending = bills.filter((b) => b.status === "pending").reduce((s, b) => s + (b.amount || 0), 0);
@@ -159,8 +161,43 @@ export default function Contas() {
         </div>
       </div>
 
-      {/* Scanner */}
-      <BarcodeScanner onScanned={handleScanned} />
+      {/* Mode toggle */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={() => setInputMode("scan")}
+          className={`h-10 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+            inputMode === "scan"
+              ? "bg-primary border-primary text-primary-foreground"
+              : "bg-secondary border-border text-muted-foreground"
+          }`}
+        >
+          <ScanLine size={14} /> Escanear
+        </button>
+        <button
+          onClick={() => setInputMode("photo")}
+          className={`h-10 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+            inputMode === "photo"
+              ? "bg-primary border-primary text-primary-foreground"
+              : "bg-secondary border-border text-muted-foreground"
+          }`}
+        >
+          <Sparkles size={14} /> Foto com IA
+        </button>
+      </div>
+
+      {inputMode === "scan" && <BarcodeScanner onScanned={handleScanned} />}
+      {inputMode === "photo" && (
+        <BillPhotoCapture
+          onExtracted={(data) => {
+            setParsed(data);
+            setEditBeneficiary(data.beneficiary || "");
+            setEditAmount(data.amount);
+            setEditDueDate(data.due_date || "");
+            setEditNotes("");
+            setShowScanModal(true);
+          }}
+        />
+      )}
 
       {/* Manual input toggle */}
       <div className="flex gap-2">
