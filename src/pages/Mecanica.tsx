@@ -635,8 +635,6 @@ export default function Mecanica() {
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-full bg-background text-foreground selection:bg-primary/30 pb-24 lg:pb-0">
-      <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-10 overflow-x-hidden">
-
       <div className="w-full mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-10 overflow-x-hidden">
 
         {/* Header */}
