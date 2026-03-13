@@ -1025,34 +1025,6 @@ export default function Mecanica() {
             </DialogHeader>
 
             <div className="space-y-6">
-              {/* Situation picker */}
-              <InputGroup label="Qual a situação? *">
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, initialStatus: "in_approval" }))}
-                    className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                      form.initialStatus === "in_approval"
-                        ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
-                        : "border-border bg-card text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <FileCheck size={16} /> Em Aprovação
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, initialStatus: "in_repair" }))}
-                    className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                      form.initialStatus === "in_repair"
-                        ? "border-amber-400 bg-amber-400/10 text-amber-400"
-                        : "border-border bg-card text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Wrench size={16} /> Na Mecânica
-                  </button>
-                </div>
-              </InputGroup>
-
               <InputGroup label="Nome da Bike *">
                 <PremiumInput
                   placeholder="Ex: Caloi Elite Carbon"
@@ -1120,6 +1092,34 @@ export default function Mecanica() {
                   value={form.price}
                   onChange={(val) => setForm((f) => ({ ...f, price: val }))}
                 />
+              </InputGroup>
+
+              {/* Situation picker - last item */}
+              <InputGroup label="Qual a situação? *">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, initialStatus: "in_approval" }))}
+                    className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                      form.initialStatus === "in_approval"
+                        ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                        : "border-border bg-card text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <FileCheck size={16} /> Em Aprovação
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, initialStatus: "in_repair" }))}
+                    className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                      form.initialStatus === "in_repair"
+                        ? "border-amber-400 bg-amber-400/10 text-amber-400"
+                        : "border-border bg-card text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Wrench size={16} /> Na Mecânica
+                  </button>
+                </div>
               </InputGroup>
             </div>
 
