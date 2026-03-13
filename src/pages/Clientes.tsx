@@ -5,6 +5,9 @@ import { Search, Download, Phone, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCustomers } from "@/hooks/useCustomers";
+import { EmptyState } from "@/components/EmptyState";
+import { PaginationBar } from "@/components/PaginationBar";
+import { usePagination } from "@/hooks/usePagination";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("pt-BR");
@@ -27,6 +30,8 @@ export default function Clientes() {
         (c.cpf && c.cpf.includes(q))
     );
   }, [customers, debouncedSearch]);
+
+  const pagination = usePagination(filtered);
 
   const handleExportCSV = () => {
     const header = "Nome,WhatsApp,CPF,Cadastrado em";
@@ -67,55 +72,52 @@ export default function Clientes() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground py-8 text-center">Carregando...</p>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          {search ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"}
-        </p>
+        <EmptyState type={search ? "search" : "customers"} />
       ) : (
-        <div className="border border-border rounded-md overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/30 border-b border-border">
-                <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Nome</th>
-                <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">WhatsApp</th>
-                <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground hidden sm:table-cell">CPF</th>
-                <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground hidden md:table-cell">Cadastro</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} onClick={() => navigate(`/clientes/${c.id}`)} className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors cursor-pointer">
-                  <td className="px-3 py-2.5 text-foreground font-medium flex items-center gap-2">{c.name} <ChevronRight className="h-3 w-3 text-muted-foreground" /></td>
-                  <td className="px-3 py-2.5">
-                    {c.whatsapp ? (
-                      <a
-                        href={`https://wa.me/${c.whatsapp.replace(/\D/g, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <Phone className="h-3 w-3" />
-                        {c.whatsapp}
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5 text-muted-foreground hidden sm:table-cell">
-                    {c.cpf || "—"}
-                  </td>
-                  <td className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
-                    {formatDate(c.created_at)}
-                  </td>
+        <>
+          <div className="border border-border rounded-md overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/30 border-b border-border">
+                  <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Nome</th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">WhatsApp</th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground hidden sm:table-cell">CPF</th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground hidden md:table-cell">Cadastro</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {pagination.items.map((c) => (
+                  <tr key={c.id} onClick={() => navigate(`/clientes/${c.id}`)} className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors cursor-pointer">
+                    <td className="px-3 py-2.5 text-foreground font-medium flex items-center gap-2">{c.name} <ChevronRight className="h-3 w-3 text-muted-foreground" /></td>
+                    <td className="px-3 py-2.5">
+                      {c.whatsapp ? (
+                        <a
+                          href={`https://wa.me/${c.whatsapp.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                        >
+                          <Phone className="h-3 w-3" />
+                          {c.whatsapp}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 text-muted-foreground hidden sm:table-cell">
+                      {c.cpf || "—"}
+                    </td>
+                    <td className="px-3 py-2.5 text-muted-foreground hidden md:table-cell">
+                      {formatDate(c.created_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <PaginationBar {...pagination} onPrev={pagination.prev} onNext={pagination.next} />
+        </>
       )}
-
-      <p className="text-xs text-muted-foreground text-right">
-        {filtered.length} cliente{filtered.length !== 1 ? "s" : ""}
-      </p>
     </div>
   );
 }

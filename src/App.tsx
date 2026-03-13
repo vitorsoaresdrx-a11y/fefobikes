@@ -99,7 +99,7 @@ function AuthGate() {
         <Route path="/orcamentos" element={<GuardedRoute module="mecanica"><PageTransition><Orcamentos /></PageTransition></GuardedRoute>} />
         <Route path="/configuracoes" element={<GuardedRoute module="configuracoes"><PageTransition><Configuracoes /></PageTransition></GuardedRoute>} />
         <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><PageTransition><WhatsAppPage /></PageTransition></GuardedRoute>} />
-        <Route path="/permissoes" element={<PageTransition><Permissoes /></PageTransition>} />
+        <Route path="/permissoes" element={<GuardedRoute module="configuracoes"><PageTransition><Permissoes /></PageTransition></GuardedRoute>} />
       </Route>
       <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />
     </Routes>

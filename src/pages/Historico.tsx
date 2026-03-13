@@ -222,6 +222,8 @@ export default function Historico() {
     );
   }, [customerGroups, debouncedSearch]);
 
+  const pagination = usePagination(filtered, 20);
+
   const toggleCustomer = (key: string) => {
     setExpandedCustomer(expandedCustomer === key ? null : key);
     setExpandedSale(null);
@@ -265,12 +267,10 @@ export default function Historico() {
             <div className="w-8 h-8 border-4 border-[#2952FF] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-20 text-center text-zinc-600 text-sm">
-            {search ? "Nenhum cliente encontrado" : "Nenhuma venda registrada"}
-          </div>
+          <EmptyState type={search ? "search" : "sales"} />
         ) : (
           <div className="space-y-3">
-            {filtered.map((group) => {
+            {pagination.items.map((group) => {
               const key = group.customerId || `anon-${group.sales[0].id}`;
               const isExpanded = expandedCustomer === key;
               const n = group.sales.length;
@@ -372,12 +372,15 @@ export default function Historico() {
           </div>
         )}
 
-        {/* Footer summary */}
+        {/* Pagination */}
         {!isLoading && filtered.length > 0 && (
-          <div className="flex justify-between items-center px-1 py-3 text-[10px] text-zinc-600 uppercase tracking-widest">
-            <span>{filtered.length} clientes</span>
-            <span>{totalSalesCount} vendas</span>
-          </div>
+          <>
+            <PaginationBar {...pagination} onPrev={pagination.prev} onNext={pagination.next} />
+            <div className="flex justify-between items-center px-1 text-[10px] text-zinc-600 uppercase tracking-widest">
+              <span>{filtered.length} clientes</span>
+              <span>{totalSalesCount} vendas</span>
+            </div>
+          </>
         )}
 
         {/* Receipt modal */}
