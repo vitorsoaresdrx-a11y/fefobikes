@@ -415,7 +415,7 @@ export default function Orcamentos() {
             </div>
             <span className="text-sm font-black tracking-widest text-primary">ORÇAMENTOS</span>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl lg:text-4xl font-black tracking-tight italic uppercase text-white">
                 Orçamentos
@@ -438,18 +438,18 @@ export default function Orcamentos() {
         </header>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-card border border-border p-4 rounded-2xl">
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-card border border-border p-3 rounded-2xl">
             <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Total</p>
-            <p className="text-2xl font-black text-white">{quotes.length}</p>
+            <p className="text-xl font-black text-white">{quotes.length}</p>
           </div>
-          <div className="bg-card border border-amber-400/20 p-4 rounded-2xl">
+          <div className="bg-card border border-amber-400/20 p-3 rounded-2xl">
             <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Pendentes</p>
-            <p className="text-2xl font-black text-amber-400">{quotes.filter((q) => q.status === "pending").length}</p>
+            <p className="text-xl font-black text-amber-400">{quotes.filter((q) => q.status === "pending").length}</p>
           </div>
-          <div className="bg-card border border-emerald-400/20 p-4 rounded-2xl">
+          <div className="bg-card border border-emerald-400/20 p-3 rounded-2xl">
             <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Valor Total</p>
-            <p className="text-2xl font-black text-emerald-400">
+            <p className="text-xl font-black text-emerald-400">
               {formatBRL(quotes.reduce((sum, q) => sum + Number(q.total), 0))}
             </p>
           </div>
