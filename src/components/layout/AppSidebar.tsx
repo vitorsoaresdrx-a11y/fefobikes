@@ -84,6 +84,7 @@ const navGroups = [
 export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
   const location = useLocation();
   const { data: currentRegister } = useCurrentCashRegister();
   const isCashOpen = currentRegister?.status === "open";
