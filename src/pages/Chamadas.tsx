@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSendCall, useAllCalls } from "@/hooks/useInternalCalls";
-import { useTenantMembers } from "@/hooks/usePermissions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Bell, Send, Users, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -16,9 +18,38 @@ export default function Chamadas() {
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState("all");
   const [targetUserId, setTargetUserId] = useState("");
+  const { session } = useAuth();
   const { mutateAsync: sendCall, isPending } = useSendCall();
   const { data: history = [] } = useAllCalls();
-  const { data: members = [] } = useTenantMembers();
+  const { data: members = [] } = useQuery({
+    queryKey: ["tenant-members-with-names"],
+    queryFn: async () => {
+      const { data: tmMembers } = await supabase
+        .from("tenant_members")
+        .select("*")
+        .order("created_at");
+      if (!tmMembers?.length) return [];
+
+      const userIds = tmMembers.map((m) => m.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+
+      const profileMap = new Map(
+        (profiles || []).map((p) => [p.id, p.full_name])
+      );
+
+      return tmMembers.map((m) => ({
+        ...m,
+        displayName:
+          profileMap.get(m.user_id) ||
+          m.email?.split("@")[0] ||
+          "Usuário",
+      }));
+    },
+    enabled: !!session?.user?.id,
+  });
 
   const handleSend = async () => {
     if (!message.trim()) return;
@@ -99,7 +130,7 @@ export default function Chamadas() {
           <option value="">Ou selecionar usuário específico...</option>
           {members.map((m) => (
             <option key={m.id} value={m.user_id}>
-              {m.email || m.user_id}
+              {m.displayName}
             </option>
           ))}
         </select>
