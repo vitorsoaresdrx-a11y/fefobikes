@@ -81,6 +81,15 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Resolve tenant_id for WhatsApp data isolation
+    const { data: tenantRow } = await supabase
+      .from("tenants")
+      .select("id")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .single();
+    const tenantId = tenantRow?.id ?? null;
+
     let convId: string | null = null;
 
     if (isFromMe) {
