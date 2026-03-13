@@ -352,17 +352,17 @@ export default function Gastos() {
             )}
           </div>
 
-          <div className="p-8 bg-black/20 flex justify-between items-center">
+          <div className="px-4 py-3 md:p-8 bg-black/20 flex items-center justify-between">
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-full border-2 border-[#161618] bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500">
+                <div key={i} className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-[#161618] bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-500">
                   {i}
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Total Acumulado</span>
-              <div className="text-2xl font-black text-white">{formatBRL(tab === "fixed" ? fixedTotal : varTotal)}</div>
+            <div className="text-right min-w-0">
+              <p className="text-[9px] md:text-xs uppercase text-zinc-500 font-bold tracking-[0.2em]">Total Acumulado</p>
+              <p className="text-sm md:text-2xl font-black text-white whitespace-nowrap">{formatBRL(tab === "fixed" ? fixedTotal : varTotal)}</p>
             </div>
           </div>
         </div>
