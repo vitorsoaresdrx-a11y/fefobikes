@@ -13,11 +13,17 @@ import {
   Layers,
   History,
   Download,
+  User,
 } from "lucide-react";
 import { useParts, useUpdatePart } from "@/hooks/useParts";
 import { useBikeModels, useUpdateBikeModel } from "@/hooks/useBikes";
 import { useToast } from "@/hooks/use-toast";
 import { getOptimizedImageUrl } from "@/lib/image";
+import { exportInventoryCSV } from "@/lib/export-csv";
+import { useCurrentUserName } from "@/hooks/useCurrentUserName";
+import { useStockChanges } from "@/hooks/useStockChanges";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 import { exportInventoryCSV } from "@/lib/export-csv";
 
 // ─── Design System ────────────────────────────────────────────────────────────
