@@ -13,29 +13,39 @@ import Login from "@/pages/Login";
 import { Loader2 } from "lucide-react";
 import { useSyncOfflineQueue } from "@/hooks/useSyncOfflineQueue";
 
-// Lazy-loaded pages
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Pecas = lazy(() => import("@/pages/Pecas"));
-const Bikes = lazy(() => import("@/pages/Bikes"));
-const BikeForm = lazy(() => import("@/pages/BikeForm"));
-const PDV = lazy(() => import("@/pages/PDV"));
-const Historico = lazy(() => import("@/pages/Historico"));
-const Clientes = lazy(() => import("@/pages/Clientes"));
-const Configuracoes = lazy(() => import("@/pages/Configuracoes"));
-const Estoque = lazy(() => import("@/pages/Estoque"));
-const DRE = lazy(() => import("@/pages/DRE"));
-const Gastos = lazy(() => import("@/pages/Gastos"));
-const Mecanica = lazy(() => import("@/pages/Mecanica"));
-const Mecanicos = lazy(() => import("@/pages/Mecanicos"));
-const MecanicosHistorico = lazy(() => import("@/pages/MecanicosHistorico"));
-const CashRegister = lazy(() => import("@/pages/CashRegister"));
-const WhatsAppPage = lazy(() => import("@/pages/WhatsApp"));
-const Permissoes = lazy(() => import("@/pages/Permissoes"));
-const Placeholder = lazy(() => import("@/pages/Placeholder"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
-const Orcamentos = lazy(() => import("@/pages/Orcamentos"));
-const ProdutoPublico = lazy(() => import("@/pages/ProdutoPublico"));
-const ClienteDetalhe = lazy(() => import("@/pages/ClienteDetalhe"));
+// Retry dynamic imports once on failure (handles stale chunk hashes after deploys)
+function lazyRetry(factory: () => Promise<{ default: React.ComponentType<any> }>) {
+  return lazy(() =>
+    factory().catch(() => {
+      // Force reload to get fresh chunk manifest
+      window.location.reload();
+      return factory();
+    })
+  );
+}
+
+const Dashboard = lazyRetry(() => import("@/pages/Dashboard"));
+const Pecas = lazyRetry(() => import("@/pages/Pecas"));
+const Bikes = lazyRetry(() => import("@/pages/Bikes"));
+const BikeForm = lazyRetry(() => import("@/pages/BikeForm"));
+const PDV = lazyRetry(() => import("@/pages/PDV"));
+const Historico = lazyRetry(() => import("@/pages/Historico"));
+const Clientes = lazyRetry(() => import("@/pages/Clientes"));
+const Configuracoes = lazyRetry(() => import("@/pages/Configuracoes"));
+const Estoque = lazyRetry(() => import("@/pages/Estoque"));
+const DRE = lazyRetry(() => import("@/pages/DRE"));
+const Gastos = lazyRetry(() => import("@/pages/Gastos"));
+const Mecanica = lazyRetry(() => import("@/pages/Mecanica"));
+const Mecanicos = lazyRetry(() => import("@/pages/Mecanicos"));
+const MecanicosHistorico = lazyRetry(() => import("@/pages/MecanicosHistorico"));
+const CashRegister = lazyRetry(() => import("@/pages/CashRegister"));
+const WhatsAppPage = lazyRetry(() => import("@/pages/WhatsApp"));
+const Permissoes = lazyRetry(() => import("@/pages/Permissoes"));
+const Placeholder = lazyRetry(() => import("@/pages/Placeholder"));
+const NotFound = lazyRetry(() => import("@/pages/NotFound"));
+const Orcamentos = lazyRetry(() => import("@/pages/Orcamentos"));
+const ProdutoPublico = lazyRetry(() => import("@/pages/ProdutoPublico"));
+const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
