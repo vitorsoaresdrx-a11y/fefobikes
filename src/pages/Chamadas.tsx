@@ -130,7 +130,7 @@ export default function Chamadas() {
           <option value="">Ou selecionar usuário específico...</option>
           {members.map((m) => (
             <option key={m.id} value={m.user_id}>
-              {m.email || m.user_id}
+              {m.displayName}
             </option>
           ))}
         </select>
