@@ -910,6 +910,7 @@ function EditJobModal({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Mecanica() {
+  const navigate = useNavigate();
   const { data: jobs = [], isLoading } = useMechanicJobs();
   const create = useCreateMechanicJob();
   const createServiceOrder = useCreateServiceOrder();
