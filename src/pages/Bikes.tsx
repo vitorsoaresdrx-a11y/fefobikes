@@ -95,19 +95,22 @@ function StatCard({
 
 function EmptyState({ onNew }: { onNew: () => void }) {
   return (
-    <div className="py-24 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-[40px]">
-      <div className="w-20 h-20 bg-zinc-900 rounded-[30px] flex items-center justify-center text-zinc-700">
-        <Bike size={40} />
+    <div className="py-16 md:py-24 flex flex-col items-center text-center space-y-6 bg-[#161618] border border-dashed border-zinc-800 rounded-2xl md:rounded-[40px]">
+      <div className="w-16 h-16 md:w-20 md:h-20 bg-zinc-900 rounded-2xl md:rounded-[30px] flex items-center justify-center text-zinc-700">
+        <Bike size={32} className="md:w-10 md:h-10" />
       </div>
       <div className="space-y-2">
-        <h4 className="text-xl font-bold text-zinc-300">Nenhuma bike no catálogo</h4>
-        <p className="text-sm text-zinc-500 max-w-xs mx-auto">
+        <h4 className="text-base md:text-xl font-bold text-zinc-300">Nenhuma bike no catálogo</h4>
+        <p className="text-xs md:text-sm text-zinc-500 max-w-xs mx-auto px-4">
           Comece adicionando modelos de bicicletas para gerenciar peças e visibilidade.
         </p>
       </div>
-      <Btn variant="outline" className="rounded-2xl px-10" onClick={onNew}>
+      <button 
+        className="h-10 px-6 rounded-xl bg-transparent border border-zinc-700 text-zinc-300 text-sm font-medium hover:bg-zinc-800 transition-colors"
+        onClick={onNew}
+      >
         Cadastrar Primeiro Modelo
-      </Btn>
+      </button>
     </div>
   );
 }
