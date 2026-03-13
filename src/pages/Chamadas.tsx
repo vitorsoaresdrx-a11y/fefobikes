@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSendCall, useAllCalls } from "@/hooks/useInternalCalls";
+import { useSendCall, useAllCalls, type InternalCallReply } from "@/hooks/useInternalCalls";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, Send, Users, Eye } from "lucide-react";
+import { Bell, Send, Users, Eye, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ export default function Chamadas() {
   const [message, setMessage] = useState("");
   const [selected, setSelected] = useState("all");
   const [targetUserId, setTargetUserId] = useState("");
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
   const { session } = useAuth();
   const { mutateAsync: sendCall, isPending } = useSendCall();
   const { data: history = [] } = useAllCalls();
@@ -83,6 +84,15 @@ export default function Chamadas() {
     if (call.target_type === "role") return call.target_role;
     if (call.target_type === "user") return "Usuário específico";
     return call.target_type;
+  };
+
+  const toggleReplies = (callId: string) => {
+    setExpandedReplies((prev) => {
+      const next = new Set(prev);
+      if (next.has(callId)) next.delete(callId);
+      else next.add(callId);
+      return next;
+    });
   };
 
   return (
@@ -165,33 +175,67 @@ export default function Chamadas() {
         {history.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-8">Nenhuma chamada enviada ainda.</p>
         )}
-        {history.map((call) => (
-          <div
-            key={call.id}
-            className="rounded-2xl bg-card border border-border p-4 space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bell size={14} className="text-primary" />
-                <span className="text-xs font-bold text-foreground">{call.created_by_name}</span>
+        {history.map((call: any) => {
+          const replies: InternalCallReply[] = call.replies || [];
+          const isExpanded = expandedReplies.has(call.id);
+
+          return (
+            <div
+              key={call.id}
+              className="rounded-2xl bg-card border border-border p-4 space-y-2"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell size={14} className="text-primary" />
+                  <span className="text-xs font-bold text-foreground">{call.created_by_name}</span>
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  {format(new Date(call.created_at), "dd/MM HH:mm")}
+                </span>
               </div>
-              <span className="text-[10px] text-muted-foreground">
-                {format(new Date(call.created_at), "dd/MM HH:mm")}
-              </span>
+              <p className="text-sm text-foreground">{call.message}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                  <Users size={10} />
+                  <span>Para: {getTargetLabel(call)}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {replies.length > 0 && (
+                    <button
+                      onClick={() => toggleReplies(call.id)}
+                      className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
+                    >
+                      <MessageSquare size={10} />
+                      <span>{replies.length} {replies.length === 1 ? "resposta" : "respostas"}</span>
+                      {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                    </button>
+                  )}
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <Eye size={10} />
+                    <span>{call.viewCount} viram</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Replies */}
+              {isExpanded && replies.length > 0 && (
+                <div className="mt-2 space-y-2 border-t border-border pt-2">
+                  {replies.map((r: InternalCallReply) => (
+                    <div key={r.id} className="bg-secondary/50 rounded-xl px-3 py-2">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[10px] font-bold text-primary">{r.created_by_name}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {format(new Date(r.created_at), "dd/MM HH:mm")}
+                        </span>
+                      </div>
+                      <p className="text-xs text-foreground">{r.message}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <p className="text-sm text-foreground">{call.message}</p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                <Users size={10} />
-                <span>Para: {getTargetLabel(call)}</span>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <Eye size={10} />
-                <span>{call.viewCount} viram</span>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

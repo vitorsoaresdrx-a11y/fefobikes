@@ -15,19 +15,33 @@ export interface InternalCall {
   created_at: string;
 }
 
+export interface InternalCallReply {
+  id: string;
+  call_id: string;
+  message: string;
+  created_by: string;
+  created_by_name: string;
+  tenant_id: string | null;
+  created_at: string;
+}
+
 const CALLS_KEY = ["internal_calls"];
+const REPLIES_KEY = ["internal_call_replies"];
 
 export function useInternalCalls() {
   const { session } = useAuth();
   const userId = session?.user?.id;
   const qc = useQueryClient();
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("internal-calls-rt")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "internal_calls" }, () => {
         qc.invalidateQueries({ queryKey: CALLS_KEY });
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "internal_call_replies" }, () => {
+        qc.invalidateQueries({ queryKey: CALLS_KEY });
+        qc.invalidateQueries({ queryKey: REPLIES_KEY });
       })
       .subscribe();
 
@@ -39,7 +53,6 @@ export function useInternalCalls() {
   return useQuery({
     queryKey: [...CALLS_KEY, userId],
     queryFn: async () => {
-      // Get all calls for this tenant
       const { data: calls } = await supabase
         .from("internal_calls")
         .select("*")
@@ -47,7 +60,6 @@ export function useInternalCalls() {
 
       if (!calls || calls.length === 0) return [];
 
-      // Get views by this user
       const { data: views } = await supabase
         .from("internal_call_views")
         .select("call_id")
@@ -55,12 +67,11 @@ export function useInternalCalls() {
 
       const viewedIds = new Set((views || []).map((v: any) => v.call_id));
 
-      // Filter: not viewed + target matches
       return (calls as unknown as InternalCall[]).filter((call) => {
         if (viewedIds.has(call.id)) return false;
         if (call.target_type === "all") return true;
         if (call.target_type === "user") return call.target_user_id === userId;
-        if (call.target_type === "role") return true; // roles not enforced at DB level, show all for now
+        if (call.target_type === "role") return true;
         return true;
       });
     },
@@ -83,7 +94,9 @@ export function useAllCalls() {
 
       if (!calls) return [];
 
-      // Get view counts for each call
+      const callIds = calls.map((c: any) => c.id);
+
+      // Get view counts
       const { data: views } = await supabase
         .from("internal_call_views")
         .select("call_id");
@@ -93,12 +106,77 @@ export function useAllCalls() {
         viewCounts[v.call_id] = (viewCounts[v.call_id] || 0) + 1;
       });
 
+      // Get replies
+      const { data: replies } = await supabase
+        .from("internal_call_replies")
+        .select("*")
+        .in("call_id", callIds)
+        .order("created_at", { ascending: true });
+
+      const repliesMap: Record<string, InternalCallReply[]> = {};
+      (replies || []).forEach((r: any) => {
+        if (!repliesMap[r.call_id]) repliesMap[r.call_id] = [];
+        repliesMap[r.call_id].push(r as InternalCallReply);
+      });
+
       return (calls as unknown as InternalCall[]).map((call) => ({
         ...call,
         viewCount: viewCounts[call.id] || 0,
+        replies: repliesMap[call.id] || [],
       }));
     },
     enabled: !!session?.user?.id,
+  });
+}
+
+export function useCallReplies(callId: string | null) {
+  const { session } = useAuth();
+  const userId = session?.user?.id;
+
+  return useQuery({
+    queryKey: [...REPLIES_KEY, callId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("internal_call_replies")
+        .select("*")
+        .eq("call_id", callId!)
+        .order("created_at", { ascending: true });
+
+      // Filter out replies created by the current user
+      return ((data || []) as unknown as InternalCallReply[]).filter(
+        (r) => r.created_by !== userId
+      );
+    },
+    enabled: !!callId && !!userId,
+    refetchInterval: 10_000,
+  });
+}
+
+export function useSendReply() {
+  const { session } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ callId, message }: { callId: string; message: string }) => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", session!.user.id)
+        .single();
+
+      const { error } = await supabase.from("internal_call_replies").insert({
+        call_id: callId,
+        message,
+        created_by: session!.user.id,
+        created_by_name: profile?.full_name || session!.user.email || "Usuário",
+      });
+      if (error) throw error;
+    },
+    retry: 2,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CALLS_KEY });
+      qc.invalidateQueries({ queryKey: REPLIES_KEY });
+    },
   });
 }
 
@@ -135,7 +213,6 @@ export function useSendCall() {
       targetRole?: string;
       targetUserId?: string;
     }) => {
-      // Get user name
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name")
