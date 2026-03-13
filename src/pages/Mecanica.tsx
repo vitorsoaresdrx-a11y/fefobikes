@@ -25,6 +25,7 @@ import {
   TrendingUp,
   Search,
   Pencil,
+  FileCheck,
 } from "lucide-react";
 import {
   Dialog,
@@ -72,16 +73,16 @@ function getTotalPrice(job: MechanicJob) {
   return base + accepted;
 }
 
-// ─── Column config ────────────────────────────────────────────────────────────
+// ─── Column config (4 columns: Em Aprovação, Em Manutenção, Em Análise, Pronta) ──
 
 const columns = [
   {
-    key: "in_repair" as const,
-    label: "Na Mecânica",
-    icon: Wrench,
-    color: "text-amber-400",
-    bg: "bg-amber-400/5",
-    border: "border-amber-400/20",
+    key: "in_approval" as const,
+    label: "Em Aprovação",
+    icon: FileCheck,
+    color: "text-yellow-400",
+    bg: "bg-yellow-400/5",
+    border: "border-yellow-400/20",
   },
   {
     key: "in_maintenance" as const,
@@ -288,6 +289,7 @@ function JobCard({
   onAddRepair,
   onEdit,
   onRetreat,
+  onAdvance,
 }: {
   job: MechanicJob;
   isLast: boolean;
@@ -295,15 +297,20 @@ function JobCard({
   onAddRepair: (job: MechanicJob) => void;
   onEdit: (job: MechanicJob) => void;
   onRetreat?: (job: MechanicJob) => void;
+  onAdvance?: (job: MechanicJob) => void;
 }) {
-  const advance = useAdvanceMechanicJob();
+  const advanceMutation = useAdvanceMechanicJob();
   const remove = useDeleteMechanicJob();
 
   const handleAdvance = () => {
-    advance.mutate(
-      { id: job.id, status: job.status },
-      { onError: () => toast.error("Erro ao mover card") }
-    );
+    if (onAdvance) {
+      onAdvance(job);
+    } else {
+      advanceMutation.mutate(
+        { id: job.id, status: job.status },
+        { onError: () => toast.error("Erro ao mover card") }
+      );
+    }
   };
 
   const handleDelete = () => {
@@ -410,7 +417,7 @@ function JobCard({
             <button
               onClick={() => onRetreat(job)}
               className="h-6 rounded-md px-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 border border-amber-500/20"
-              title="Retroceder para Na Mecânica"
+              title="Retroceder para Em Manutenção"
             >
               <ChevronLeft size={10} /> Voltar
             </button>
@@ -419,10 +426,10 @@ function JobCard({
           {!isLast ? (
             <button
               onClick={handleAdvance}
-              disabled={advance.isPending}
+              disabled={advanceMutation.isPending}
               className="h-6 rounded-md px-1.5 bg-primary text-white hover:bg-primary/80 shadow-primary/20 text-[8px] font-black uppercase tracking-wider flex items-center gap-0.5 transition-all active:scale-95 disabled:opacity-50"
             >
-              {advance.isPending ? (
+              {advanceMutation.isPending ? (
                 <Loader2 size={10} className="animate-spin" />
               ) : (
                 <>
@@ -604,7 +611,7 @@ export default function Mecanica() {
   useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
   const [open, setOpen] = useState(false);
-   const [form, setForm] = useState({
+  const [form, setForm] = useState({
     customer_name: "",
     bike_name: "",
     customer_cpf: "",
@@ -612,12 +619,13 @@ export default function Mecanica() {
     customer_id: null as string | null,
     problem: "",
     price: 0,
+    initialStatus: "in_approval" as "in_approval" | "in_repair",
   });
 
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
   const [addForm, setAddForm] = useState({ problem: "", labor_cost: 0, parts: [] as AdditionPart[] });
-  const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_repair");
+  const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");
 
   // Edit state
   const [editOpen, setEditOpen] = useState(false);
@@ -634,6 +642,7 @@ export default function Mecanica() {
 
   const grouped = useMemo(() => {
     const map: Record<string, MechanicJob[]> = {
+      in_approval: [],
       in_repair: [],
       in_maintenance: [],
       in_analysis: [],
@@ -658,14 +667,21 @@ export default function Mecanica() {
       bike_name: form.bike_name || undefined,
       problem: form.problem,
       price: form.price,
+      status: form.initialStatus,
     };
     create.mutate(orderData, {
       onSuccess: () => {
-        // Also create a service_order for the mechanics panel
-        createServiceOrder.mutate({
-          ...orderData,
-          bike_name: form.bike_name || undefined,
-        });
+        // Only create service_order if going to "Na Mecânica"
+        if (form.initialStatus === "in_repair") {
+          createServiceOrder.mutate({
+            customer_name: form.customer_name || undefined,
+            customer_cpf: form.customer_cpf || undefined,
+            customer_whatsapp: form.customer_whatsapp || undefined,
+            customer_id: form.customer_id || undefined,
+            bike_name: form.bike_name || undefined,
+            problem: form.problem,
+          });
+        }
         toast.success("Manutenção criada!");
         setForm({
           customer_name: "",
@@ -675,6 +691,7 @@ export default function Mecanica() {
           customer_id: null,
           problem: "",
           price: 0,
+          initialStatus: "in_approval",
         });
         setOpen(false);
       },
@@ -733,8 +750,30 @@ export default function Mecanica() {
     retreat.mutate(
       { id: job.id },
       {
-        onSuccess: () => toast.success("Retornado para 'Na Mecânica'"),
+        onSuccess: () => toast.success("Retornado para 'Em Manutenção'"),
         onError: () => toast.error("Erro ao retroceder"),
+      }
+    );
+  };
+
+  // Special advance handler for "Em Aprovação" → "Na Mecânica": also create service_order
+  const handleAdvanceFromApproval = (job: MechanicJob) => {
+    advance.mutate(
+      { id: job.id, status: job.status },
+      {
+        onSuccess: () => {
+          // Create service_order when moving to Na Mecânica
+          createServiceOrder.mutate({
+            customer_name: job.customer_name || undefined,
+            customer_cpf: job.customer_cpf || undefined,
+            customer_whatsapp: job.customer_whatsapp || undefined,
+            customer_id: job.customer_id || undefined,
+            bike_name: job.bike_name || undefined,
+            problem: job.problem,
+          });
+          toast.success("Enviado para a mecânica!");
+        },
+        onError: () => toast.error("Erro ao mover card"),
       }
     );
   };
@@ -773,6 +812,13 @@ export default function Mecanica() {
     jobs.length > 0
       ? jobs.reduce((sum, j) => sum + getTotalPrice(j), 0) / jobs.length
       : 0;
+
+  // Mobile tab columns (includes in_repair for mobile)
+  const allMobileTabs = [
+    { key: "in_approval" as const, label: "Em Aprovação", icon: FileCheck, color: "text-yellow-400", bg: "bg-yellow-400/5", border: "border-yellow-400/20" },
+    { key: "in_repair" as const, label: "Na Mecânica", icon: Wrench, color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20" },
+    ...columns.slice(1),
+  ];
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
@@ -817,10 +863,10 @@ export default function Mecanica() {
             icon={<Activity size={16} />}
           />
           <SummaryStat
-            title="Fila de Espera"
-            value={grouped.in_repair.length}
-            icon={<Clock size={16} />}
-            color="text-amber-400"
+            title="Em Aprovação"
+            value={grouped.in_approval.length}
+            icon={<FileCheck size={16} />}
+            color="text-yellow-400"
           />
           <SummaryStat
             title="Pendente Aprovação"
@@ -845,7 +891,7 @@ export default function Mecanica() {
           <>
             {/* Mobile tabs */}
             <div className="flex md:hidden overflow-x-auto gap-3 pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
-              {columns.map((col) => {
+              {allMobileTabs.map((col) => {
                 const active = mobileTab === col.key;
                 return (
                   <button
@@ -860,7 +906,7 @@ export default function Mecanica() {
                     <col.icon size={14} />
                     <span className="whitespace-nowrap">{col.label}</span>
                     <span className={`ml-1 text-[10px] ${active ? "opacity-100" : "opacity-50"}`}>
-                      ({grouped[col.key].length})
+                      ({grouped[col.key]?.length || 0})
                     </span>
                   </button>
                 );
@@ -869,35 +915,59 @@ export default function Mecanica() {
 
             {/* Mobile: single column based on active tab */}
             <div className="md:hidden">
-              {columns
-                .filter((col) => col.key === mobileTab)
-                .map((col) => (
-                  <div key={col.key} className="space-y-4">
-                    {grouped[col.key].length > 0 ? (
-                      grouped[col.key].map((job) => (
-                        <JobCard
-                          key={job.id}
-                          job={job}
-                          isLast={col.key === "ready"}
-                          columnKey={col.key}
-                          onAddRepair={handleAddRepair}
-                          onEdit={handleEditJob}
-                          onRetreat={handleRetreatJob}
-                        />
-                      ))
-                    ) : (
-                      <div className="py-20 text-center space-y-3 opacity-20">
-                        <Layers className="mx-auto" size={40} />
-                        <p className="text-[10px] font-black uppercase tracking-widest">
-                          Coluna Vazia
-                        </p>
-                      </div>
-                    )}
+              <div className="space-y-4">
+                {(grouped[mobileTab]?.length || 0) > 0 ? (
+                  grouped[mobileTab]?.map((job) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      isLast={mobileTab === "ready"}
+                      columnKey={mobileTab}
+                      onAddRepair={handleAddRepair}
+                      onEdit={handleEditJob}
+                      onRetreat={handleRetreatJob}
+                      onAdvance={mobileTab === "in_approval" ? handleAdvanceFromApproval : undefined}
+                    />
+                  ))
+                ) : (
+                  <div className="py-20 text-center space-y-3 opacity-20">
+                    <Layers className="mx-auto" size={40} />
+                    <p className="text-[10px] font-black uppercase tracking-widest">
+                      Coluna Vazia
+                    </p>
                   </div>
-                ))}
+                )}
+              </div>
             </div>
 
-            {/* Desktop: 4 columns equal height */}
+            {/* Desktop: "Na Mecânica" discrete card above the Kanban */}
+            {grouped.in_repair.length > 0 && (
+              <div className="hidden md:block max-w-3xl mx-auto">
+                <div className="bg-card/60 border border-amber-400/15 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 justify-center">
+                    <Wrench size={14} className="text-amber-400" />
+                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                      Na Mecânica ({grouped.in_repair.length})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {grouped.in_repair.map((job) => (
+                      <JobCard
+                        key={job.id}
+                        job={job}
+                        isLast={false}
+                        columnKey="in_repair"
+                        onAddRepair={handleAddRepair}
+                        onEdit={handleEditJob}
+                        onRetreat={handleRetreatJob}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Desktop: 4 columns */}
             <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
               {columns.map((col) => (
                 <div
@@ -916,6 +986,7 @@ export default function Mecanica() {
                           onAddRepair={handleAddRepair}
                           onEdit={handleEditJob}
                           onRetreat={handleRetreatJob}
+                          onAdvance={col.key === "in_approval" ? handleAdvanceFromApproval : undefined}
                         />
                       ))
                     ) : (
@@ -945,6 +1016,34 @@ export default function Mecanica() {
             </DialogHeader>
 
             <div className="space-y-6">
+              {/* Situation picker */}
+              <InputGroup label="Qual a situação? *">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, initialStatus: "in_approval" }))}
+                    className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                      form.initialStatus === "in_approval"
+                        ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                        : "border-border bg-card text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <FileCheck size={16} /> Em Aprovação
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, initialStatus: "in_repair" }))}
+                    className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                      form.initialStatus === "in_repair"
+                        ? "border-amber-400 bg-amber-400/10 text-amber-400"
+                        : "border-border bg-card text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Wrench size={16} /> Na Mecânica
+                  </button>
+                </div>
+              </InputGroup>
+
               <InputGroup label="Nome da Bike *">
                 <PremiumInput
                   placeholder="Ex: Caloi Elite Carbon"
