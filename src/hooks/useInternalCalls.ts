@@ -209,11 +209,15 @@ export function useSendCall() {
       targetType,
       targetRole,
       targetUserId,
+      audioBlob,
+      audioDuration,
     }: {
       message: string;
       targetType: string;
       targetRole?: string;
       targetUserId?: string;
+      audioBlob?: Blob;
+      audioDuration?: number;
     }) => {
       const { data: profile } = await supabase
         .from("profiles")
@@ -221,13 +225,31 @@ export function useSendCall() {
         .eq("id", session!.user.id)
         .single();
 
+      let audioUrl: string | null = null;
+
+      if (audioBlob) {
+        const fileName = `calls/${crypto.randomUUID()}.webm`;
+        const { data, error: uploadError } = await supabase.storage
+          .from("internal-calls")
+          .upload(fileName, audioBlob, { contentType: "audio/webm" });
+
+        if (!uploadError && data) {
+          const { data: urlData } = supabase.storage
+            .from("internal-calls")
+            .getPublicUrl(data.path);
+          audioUrl = urlData.publicUrl;
+        }
+      }
+
       const { error } = await supabase.from("internal_calls").insert({
-        message,
+        message: message || "",
         created_by: session!.user.id,
         created_by_name: profile?.full_name || session!.user.email || "Usuário",
         target_type: targetType,
         target_role: targetRole || null,
         target_user_id: targetUserId || null,
+        audio_url: audioUrl,
+        audio_duration: audioDuration || null,
       });
       if (error) throw error;
     },
