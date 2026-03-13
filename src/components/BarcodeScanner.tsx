@@ -8,23 +8,23 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
-      readerRef.current?.reset();
+      controlsRef.current?.stop();
     };
   }, []);
 
   const startScan = async () => {
     try {
-      readerRef.current = new BrowserMultiFormatReader();
+      const reader = new BrowserMultiFormatReader();
       setScanning(true);
       setError(null);
 
-      await readerRef.current.decodeFromVideoDevice(
+      const controls = await reader.decodeFromVideoDevice(
         undefined,
         videoRef.current!,
         (result) => {
@@ -34,6 +34,7 @@ export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
           }
         }
       );
+      controlsRef.current = controls;
     } catch {
       setError("Não foi possível acessar a câmera.");
       setScanning(false);
@@ -41,8 +42,15 @@ export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
   };
 
   const stopScan = () => {
-    readerRef.current?.reset();
+    controlsRef.current?.stop();
+    controlsRef.current = null;
     setScanning(false);
+    // Stop video tracks manually
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((t) => t.stop());
+      videoRef.current.srcObject = null;
+    }
   };
 
   return (
@@ -50,7 +58,6 @@ export function BarcodeScanner({ onScanned }: BarcodeScannerProps) {
       {scanning ? (
         <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
           <video ref={videoRef} className="w-full h-full object-cover" />
-          {/* Guia de mira */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-3/4 h-16 border-2 border-primary rounded-xl opacity-80 relative">
               <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary rounded-tl-xl" />
