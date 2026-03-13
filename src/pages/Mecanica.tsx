@@ -19,10 +19,12 @@ import {
   AlertCircle,
   Activity,
   ChevronRight,
+  ChevronLeft,
   Layers,
   History,
   TrendingUp,
   Search,
+  Pencil,
 } from "lucide-react";
 import {
   Dialog,
@@ -39,6 +41,8 @@ import {
   useDeleteMechanicJob,
   useCreateAddition,
   useUpdateAdditionApproval,
+  useRetreatMechanicJob,
+  useUpdateMechanicJobDetails,
   type MechanicJob,
   type MechanicJobAddition,
 } from "@/hooks/useMechanicJobs";
@@ -252,11 +256,15 @@ function JobCard({
   isLast,
   columnKey,
   onAddRepair,
+  onEdit,
+  onRetreat,
 }: {
   job: MechanicJob;
   isLast: boolean;
   columnKey: string;
   onAddRepair: (job: MechanicJob) => void;
+  onEdit: (job: MechanicJob) => void;
+  onRetreat?: (job: MechanicJob) => void;
 }) {
   const advance = useAdvanceMechanicJob();
   const remove = useDeleteMechanicJob();
@@ -277,27 +285,37 @@ function JobCard({
 
   const total = getTotalPrice(job);
   const showApprovalActions = columnKey === "in_maintenance";
+  const showRetreat = columnKey === "in_analysis";
 
   return (
     <div className="group bg-card border border-border rounded-2xl p-3 lg:p-4 space-y-3 hover:border-border/80 transition-all hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] overflow-hidden">
-      {/* Bike name (prominent) + delete */}
+      {/* Bike name (prominent) + actions */}
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0">
           <p className="text-sm font-black tracking-tight text-white uppercase italic leading-tight break-words">
             {job.bike_name || "Sem bike"}
           </p>
         </div>
-        <button
-          className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-          onClick={handleDelete}
-          disabled={remove.isPending}
-        >
-          {remove.isPending ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Trash2 size={14} />
-          )}
-        </button>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button
+            className="p-1.5 text-muted-foreground/50 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+            onClick={() => onEdit(job)}
+            title="Editar"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            className="p-1.5 text-muted-foreground/50 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+            onClick={handleDelete}
+            disabled={remove.isPending}
+          >
+            {remove.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Trash2 size={14} />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Customer info (secondary) */}
@@ -353,9 +371,21 @@ function JobCard({
           <button
             onClick={() => onAddRepair(job)}
             className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-muted transition-all"
+            title="Adicionar reparo"
           >
             <Plus size={12} />
           </button>
+
+          {/* Retreat button (only in_analysis) */}
+          {showRetreat && onRetreat && (
+            <button
+              onClick={() => onRetreat(job)}
+              className="h-7 rounded-lg px-2.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95 border border-amber-500/20"
+              title="Retroceder para Na Mecânica"
+            >
+              <ChevronLeft size={12} /> Voltar
+            </button>
+          )}
 
           {!isLast ? (
             <button
@@ -400,6 +430,8 @@ export default function Mecanica() {
   const createServiceOrder = useCreateServiceOrder();
   const createAddition = useCreateAddition();
   const advance = useAdvanceMechanicJob();
+  const retreat = useRetreatMechanicJob();
+  const updateDetails = useUpdateMechanicJobDetails();
 
   // Realtime: react to service_order changes
   const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
@@ -448,6 +480,19 @@ export default function Mecanica() {
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
   const [addForm, setAddForm] = useState({ problem: "", price: 0 });
   const [mobileTab, setMobileTab] = useState<"in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_repair");
+
+  // Edit state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editJob, setEditJob] = useState<MechanicJob | null>(null);
+  const [editForm, setEditForm] = useState({
+    customer_name: "",
+    bike_name: "",
+    customer_cpf: "",
+    customer_whatsapp: "",
+    customer_id: null as string | null,
+    problem: "",
+    price: 0,
+  });
 
   const grouped = useMemo(() => {
     const map: Record<string, MechanicJob[]> = {
@@ -503,6 +548,57 @@ export default function Mecanica() {
     setAddJob(job);
     setAddForm({ problem: "", price: 0 });
     setAddOpen(true);
+  };
+
+  const handleEditJob = (job: MechanicJob) => {
+    setEditJob(job);
+    setEditForm({
+      customer_name: job.customer_name || "",
+      bike_name: job.bike_name || "",
+      customer_cpf: job.customer_cpf || "",
+      customer_whatsapp: job.customer_whatsapp || "",
+      customer_id: job.customer_id || null,
+      problem: job.problem,
+      price: job.price,
+    });
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editJob || !editForm.problem.trim()) {
+      toast.error("Descreva o problema");
+      return;
+    }
+    updateDetails.mutate(
+      {
+        id: editJob.id,
+        customer_name: editForm.customer_name || null,
+        customer_cpf: editForm.customer_cpf || null,
+        customer_whatsapp: editForm.customer_whatsapp || null,
+        customer_id: editForm.customer_id || null,
+        bike_name: editForm.bike_name || null,
+        problem: editForm.problem,
+        price: editForm.price,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Serviço atualizado!");
+          setEditOpen(false);
+          setEditJob(null);
+        },
+        onError: () => toast.error("Erro ao atualizar"),
+      }
+    );
+  };
+
+  const handleRetreatJob = (job: MechanicJob) => {
+    retreat.mutate(
+      { id: job.id },
+      {
+        onSuccess: () => toast.success("Retornado para 'Na Mecânica'"),
+        onError: () => toast.error("Erro ao retroceder"),
+      }
+    );
   };
 
   const handleSaveAddition = () => {
@@ -643,6 +739,8 @@ export default function Mecanica() {
                           isLast={col.key === "ready"}
                           columnKey={col.key}
                           onAddRepair={handleAddRepair}
+                          onEdit={handleEditJob}
+                          onRetreat={handleRetreatJob}
                         />
                       ))
                     ) : (
@@ -674,6 +772,8 @@ export default function Mecanica() {
                           isLast={col.key === "ready"}
                           columnKey={col.key}
                           onAddRepair={handleAddRepair}
+                          onEdit={handleEditJob}
+                          onRetreat={handleRetreatJob}
                         />
                       ))
                     ) : (
@@ -861,6 +961,110 @@ export default function Mecanica() {
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   "Registrar Pendência"
+                )}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Edit Job Modal ───────────────────────────────────────────────────── */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
+          <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-white italic uppercase tracking-tight">
+                Editar Serviço
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              <InputGroup label="Nome da Bike *">
+                <PremiumInput
+                  placeholder="Ex: Caloi Elite Carbon"
+                  value={editForm.bike_name}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, bike_name: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Cliente">
+                <CustomerAutocomplete
+                  customerName={editForm.customer_name}
+                  customerWhatsapp={editForm.customer_whatsapp}
+                  customerCpf={editForm.customer_cpf}
+                  onSelect={(c: Customer) =>
+                    setEditForm((f) => ({
+                      ...f,
+                      customer_name: c.name,
+                      customer_whatsapp: c.whatsapp || "",
+                      customer_cpf: c.cpf || "",
+                      customer_id: c.id,
+                    }))
+                  }
+                  onChange={(field, value) => {
+                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
+                    setEditForm((f) => ({ ...f, [key]: value }));
+                  }}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                  <PremiumInput
+                    placeholder="Nome completo"
+                    value={editForm.customer_name}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_name: e.target.value }))
+                    }
+                  />
+                  <PremiumInput
+                    placeholder="(00) 00000-0000"
+                    value={editForm.customer_whatsapp}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_whatsapp: e.target.value }))
+                    }
+                  />
+                  <PremiumInput
+                    placeholder="CPF (opcional)"
+                    value={editForm.customer_cpf}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, customer_cpf: e.target.value }))
+                    }
+                  />
+                </div>
+              </InputGroup>
+              <InputGroup label="Diagnóstico *">
+                <PremiumTextarea
+                  rows={4}
+                  placeholder="Descreva o que precisa ser feito..."
+                  value={editForm.problem}
+                  onChange={(e) =>
+                    setEditForm((f) => ({ ...f, problem: e.target.value }))
+                  }
+                />
+              </InputGroup>
+              <InputGroup label="Valor do Serviço">
+                <CurrencyInput
+                  value={editForm.price}
+                  onChange={(val) => setEditForm((f) => ({ ...f, price: val }))}
+                />
+              </InputGroup>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setEditOpen(false)}
+                className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={updateDetails.isPending}
+                className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {updateDetails.isPending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  "Salvar Alterações"
                 )}
               </button>
             </div>
