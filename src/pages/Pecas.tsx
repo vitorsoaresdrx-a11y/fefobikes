@@ -323,9 +323,13 @@ export default function Pecas() {
                   onClick={() => handleEdit(part)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0">
-                      <Package size={20} className="text-zinc-600" />
-                    </div>
+                    {part.images && part.images.length > 0 ? (
+                      <img src={part.images[0]} alt={part.name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0">
+                        <Package size={20} className="text-zinc-600" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold truncate">{part.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
