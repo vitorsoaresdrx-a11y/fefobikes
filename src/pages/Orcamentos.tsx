@@ -403,7 +403,6 @@ export default function Orcamentos() {
     });
     setDeleteTargetId(null);
   };
-  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100">
