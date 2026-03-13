@@ -99,13 +99,13 @@ function SaleRow({
           <p className="text-xs text-zinc-400">
             {date} · {time}
           </p>
+          <span
+            className={`inline-block mt-1 text-[9px] font-black px-2 py-0.5 rounded-full border ${getPaymentStyle(method)}`}
+          >
+            {paymentLabel[method] || method}
+          </span>
         </div>
-        <span
-          className={`text-[9px] font-black px-2 py-0.5 rounded-full border shrink-0 ${getPaymentStyle(method)}`}
-        >
-          {paymentLabel[method] || method}
-        </span>
-        <p className="text-sm font-black text-white ml-2 shrink-0">
+        <p className="text-sm font-black text-white shrink-0">
           {formatBRL(Number(sale.total))}
         </p>
         <ChevronDown
