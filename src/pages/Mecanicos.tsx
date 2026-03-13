@@ -27,6 +27,7 @@ import {
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { useCreateBikeServiceRecord } from "@/hooks/useBikeServiceHistory";
 import { playDoneSound, playNewOrderSound } from "@/lib/sounds";
+import { FrameNumberInput } from "@/components/mechanics/FrameNumberInput";
 import { toast } from "sonner";
 
 const mobileColumns = [
