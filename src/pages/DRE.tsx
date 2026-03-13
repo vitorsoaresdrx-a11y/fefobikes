@@ -269,9 +269,9 @@ export default function DRE() {
   const monthlySalesCount = useMemo(() => {
     return sales.filter((sale: any) => {
       const date = new Date(sale.created_at);
-      return date.getFullYear() === selectedYear;
+      return date.getFullYear() === selectedYear && date.getMonth() === selectedMonth;
     }).length;
-  }, [sales, selectedYear]);
+  }, [sales, selectedYear, selectedMonth]);
 
   const totals = useMemo(() => {
     const t = monthlyData.reduce(
