@@ -504,7 +504,7 @@ export default function DRE() {
                   <CreditCard size={18} />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Taxas de Intermediação (Cartão)</span>
+                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Taxas de cartão</span>
                   <span className="text-base md:text-xl font-black tracking-tighter text-red-400/80">- {formatBRL(totals.cardFees)}</span>
                 </div>
               </div>
