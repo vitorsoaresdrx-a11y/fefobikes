@@ -141,10 +141,22 @@ export default function Bikes() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#2952FF]/30">
-      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-6 lg:space-y-8">
+      <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 space-y-4">
 
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Header Mobile */}
+        <header className="flex items-center justify-between mb-4 md:hidden">
+          <h1 className="text-lg font-black">Modelos de Bikes</h1>
+          <button 
+            className="h-9 px-3 text-xs font-bold rounded-xl bg-[#2952FF] text-white whitespace-nowrap flex items-center gap-1.5 shrink-0"
+            onClick={() => navigate("/bikes/nova")}
+          >
+            <Plus size={14} />
+            Nova Bike
+          </button>
+        </header>
+
+        {/* Header Desktop */}
+        <header className="hidden md:flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#2952FF] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(41,82,255,0.3)]">
@@ -173,19 +185,32 @@ export default function Bikes() {
           </div>
         </header>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-6">
-          <StatCard title="Total de Modelos" value={bikes.length} icon={<Package className="w-5 h-5" />} />
+        {/* Stats Mobile */}
+        <div className="grid grid-cols-3 gap-2 md:hidden">
+          <StatCard title="Total de Modelos" value={bikes.length} />
           <StatCard
             title="Visíveis na Loja"
             value={bikes.filter((b) => b.visible_on_storefront).length}
-            icon={<Eye className="w-5 h-5" />}
             color="text-emerald-400"
           />
           <StatCard
             title="Total de Peças"
             value={totalParts}
-            icon={<TrendingUp className="w-5 h-5" />}
+            color="text-[#2952FF]"
+          />
+        </div>
+
+        {/* Stats Desktop */}
+        <div className="hidden md:grid grid-cols-3 gap-6">
+          <StatCard title="Total de Modelos" value={bikes.length} />
+          <StatCard
+            title="Visíveis na Loja"
+            value={bikes.filter((b) => b.visible_on_storefront).length}
+            color="text-emerald-400"
+          />
+          <StatCard
+            title="Total de Peças"
+            value={totalParts}
             color="text-[#2952FF]"
           />
         </div>
