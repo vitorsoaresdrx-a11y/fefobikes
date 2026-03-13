@@ -96,13 +96,15 @@ export function useAdvanceMechanicJob() {
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const nextStatus =
-        status === "in_repair"
-          ? "in_maintenance"
-          : status === "in_maintenance"
-            ? "in_analysis"
-            : status === "in_analysis"
-              ? "ready"
-              : null;
+        status === "in_approval"
+          ? "in_repair"
+          : status === "in_repair"
+            ? "in_maintenance"
+            : status === "in_maintenance"
+              ? "in_analysis"
+              : status === "in_analysis"
+                ? "ready"
+                : null;
       if (!nextStatus) throw new Error("Already at final status");
       const { error } = await supabase
         .from("mechanic_jobs" as any)
