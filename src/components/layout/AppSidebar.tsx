@@ -192,6 +192,11 @@ export function AppSidebar() {
                                     {totalUnread}
                                   </span>
                                 )}
+                                {item.title === "Chamadas" && pendingCalls.length > 0 && (
+                                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                                    {pendingCalls.length}
+                                  </span>
+                                )}
                               </span>
                             )}
                           </button>
