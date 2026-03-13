@@ -95,13 +95,36 @@ export function useInternalCalls() {
 
       const viewedIds = new Set((views || []).map((v: any) => v.call_id));
 
-      return (calls as unknown as InternalCall[]).filter((call) => {
+      const pending = (calls as unknown as InternalCall[]).filter((call) => {
         if (viewedIds.has(call.id)) return false;
         if (call.target_type === "all") return true;
         if (call.target_type === "user") return call.target_user_id === userId;
         if (call.target_type === "role") return true;
         return true;
       });
+
+      // Fetch replies for pending calls
+      if (pending.length > 0) {
+        const pendingIds = pending.map((c) => c.id);
+        const { data: replies } = await supabase
+          .from("internal_call_replies")
+          .select("*")
+          .in("call_id", pendingIds)
+          .order("created_at", { ascending: true });
+
+        const repliesMap: Record<string, InternalCallReply[]> = {};
+        (replies || []).forEach((r: any) => {
+          if (!repliesMap[r.call_id]) repliesMap[r.call_id] = [];
+          repliesMap[r.call_id].push(r as InternalCallReply);
+        });
+
+        return pending.map((call) => ({
+          ...call,
+          replies: (repliesMap[call.id] || []).filter((r) => r.created_by !== userId),
+        }));
+      }
+
+      return pending;
     },
     enabled: !!userId,
     refetchInterval: 10_000,
