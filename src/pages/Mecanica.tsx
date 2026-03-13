@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
 import type { Customer } from "@/hooks/useCustomers";
