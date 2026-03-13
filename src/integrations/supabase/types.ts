@@ -1411,11 +1411,9 @@ export type Database = {
       }
       bike_models_public: {
         Row: {
-          alert_stock: number | null
           brand: string | null
           category: string | null
           color: string | null
-          cost_mode: string | null
           created_at: string | null
           description: string | null
           frame_size: string | null
@@ -1434,11 +1432,9 @@ export type Database = {
           weight_kg: number | null
         }
         Insert: {
-          alert_stock?: number | null
           brand?: string | null
           category?: string | null
           color?: string | null
-          cost_mode?: string | null
           created_at?: string | null
           description?: string | null
           frame_size?: string | null
@@ -1457,11 +1453,9 @@ export type Database = {
           weight_kg?: number | null
         }
         Update: {
-          alert_stock?: number | null
           brand?: string | null
           category?: string | null
           color?: string | null
-          cost_mode?: string | null
           created_at?: string | null
           description?: string | null
           frame_size?: string | null
@@ -1483,7 +1477,6 @@ export type Database = {
       }
       parts_public: {
         Row: {
-          alert_stock: number | null
           category: string | null
           color: string | null
           created_at: string | null
@@ -1508,7 +1501,6 @@ export type Database = {
           weight_capacity_kg: number | null
         }
         Insert: {
-          alert_stock?: number | null
           category?: string | null
           color?: string | null
           created_at?: string | null
@@ -1533,7 +1525,6 @@ export type Database = {
           weight_capacity_kg?: number | null
         }
         Update: {
-          alert_stock?: number | null
           category?: string | null
           color?: string | null
           created_at?: string | null
