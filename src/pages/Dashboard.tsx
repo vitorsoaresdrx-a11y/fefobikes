@@ -204,6 +204,9 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* Low Stock Alerts */}
+        <LowStockAlerts />
+
         {/* Secondary Actions */}
         <div className="pt-6 lg:pt-8 border-t border-zinc-800/50">
           <div className="flex items-center gap-2 mb-6 md:mb-8">
