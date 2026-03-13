@@ -293,6 +293,7 @@ export default function Orcamentos() {
   });
   const [lineItems, setLineItems] = useState<QuoteLineItem[]>([]);
   const [laborCost, setLaborCost] = useState(0);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const partsTotal = lineItems.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
   const grandTotal = partsTotal + laborCost;
