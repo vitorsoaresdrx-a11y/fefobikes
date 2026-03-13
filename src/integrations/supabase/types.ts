@@ -245,6 +245,62 @@ export type Database = {
           },
         ]
       }
+      bills: {
+        Row: {
+          amount: number | null
+          bank_name: string | null
+          barcode: string
+          barcode_type: string
+          beneficiary: string | null
+          created_at: string | null
+          created_by: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          paid_at: string | null
+          status: string
+          tenant_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          bank_name?: string | null
+          barcode: string
+          barcode_type?: string
+          beneficiary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          bank_name?: string | null
+          barcode?: string
+          barcode_type?: string
+          beneficiary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bills_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cash_register_sales: {
         Row: {
           amount: number
