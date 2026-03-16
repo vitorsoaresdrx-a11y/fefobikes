@@ -445,6 +445,7 @@ export default function PDV() {
         subtotal,
         discount: totalDiscount,
         total,
+        paymentMethod,
       };
 
       setReceiptData(receipt);
