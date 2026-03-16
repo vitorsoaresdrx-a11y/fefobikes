@@ -49,6 +49,7 @@ const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 const Jogar = lazyRetry(() => import("@/pages/Jogar"));
 const Chamadas = lazyRetry(() => import("@/pages/Chamadas"));
 const Contas = lazyRetry(() => import("@/pages/Contas"));
+const Precos = lazyRetry(() => import("@/pages/Precos"));
 const PontoCadastro = lazyRetry(() => import("@/pages/PontoCadastro"));
 const PontoRegistro = lazyRetry(() => import("@/pages/PontoRegistro"));
 const PontoRelatorio = lazyRetry(() => import("@/pages/PontoRelatorio"));
