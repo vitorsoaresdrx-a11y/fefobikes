@@ -65,33 +65,35 @@ export default function PontoRelatorio() {
   const [loading, setLoading] = useState(true);
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  const workDays = daysInMonth.filter((d) => !isWeekend(d) && d <= new Date());
+  const monthStart = useMemo(() => startOfMonth(currentMonth), [currentMonth]);
+  const monthEnd = useMemo(() => endOfMonth(currentMonth), [currentMonth]);
+  const daysInMonth = useMemo(() => eachDayOfInterval({ start: monthStart, end: monthEnd }), [monthStart, monthEnd]);
+  const workDays = useMemo(() => daysInMonth.filter((d) => !isWeekend(d) && d <= new Date()), [daysInMonth]);
 
   const prevMonth = () => setCurrentMonth((prev) => startOfMonth(new Date(prev.getFullYear(), prev.getMonth() - 1)));
   const nextMonth = () => setCurrentMonth((prev) => startOfMonth(new Date(prev.getFullYear(), prev.getMonth() + 1)));
 
+  // Use string keys for stable dependency
+  const startDateStr = format(monthStart, "yyyy-MM-dd");
+  const endDateStr = format(monthEnd, "yyyy-MM-dd");
+
   const loadData = useCallback(async () => {
     setLoading(true);
-    const startDate = format(monthStart, "yyyy-MM-dd");
-    const endDate = format(monthEnd, "yyyy-MM-dd");
 
     const [empRes, recRes] = await Promise.all([
       supabase.from("employees").select("id, name, department, active").eq("active", true).order("name"),
       supabase
         .from("time_records")
         .select("id, employee_id, type, timestamp, date, confidence")
-        .gte("date", startDate)
-        .lte("date", endDate)
+        .gte("date", startDateStr)
+        .lte("date", endDateStr)
         .order("timestamp", { ascending: true }),
     ]);
 
     setEmployees(empRes.data || []);
     setRecords(recRes.data || []);
     setLoading(false);
-  }, [monthStart, monthEnd]);
+  }, [startDateStr, endDateStr]);
 
   useEffect(() => {
     loadData();
