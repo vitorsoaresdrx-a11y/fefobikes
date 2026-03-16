@@ -14,6 +14,8 @@ import {
   X,
   Loader2,
   UtensilsCrossed,
+  Check,
+  Users,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,15 +24,15 @@ import * as faceapi from "face-api.js";
 
 const MODELS_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
 const SIMILARITY_THRESHOLD = 0.5;
-const AUTO_DETECT_INTERVAL = 1500;
+const AUTO_DETECT_INTERVAL = 1200;
 
-// --- Componentes de UI ---
+// --- UI Components ---
 
 const PontoButton = ({ children, variant = "primary", size = "md", className = "", ...props }: any) => {
   const variants: Record<string, string> = {
     primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_10px_30px_rgba(41,82,255,0.3)]",
     secondary: "bg-card text-foreground hover:bg-card/80 border border-border",
-    ghost: "hover:bg-muted text-muted-foreground hover:text-foreground",
+    success: "bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_10px_30px_rgba(16,185,129,0.3)]",
   };
   const sizes: Record<string, string> = {
     sm: "h-10 px-4 text-[10px] font-black uppercase tracking-widest",
@@ -51,7 +53,6 @@ const StatusBadge = ({ active }: { active: boolean }) => (
   </div>
 );
 
-// Type labels
 const TYPE_LABELS: Record<string, string> = {
   clock_in: "Entrada",
   clock_out: "Saída",
@@ -59,28 +60,40 @@ const TYPE_LABELS: Record<string, string> = {
   break_in: "Retorno Intervalo",
 };
 
-// --- Componente Principal ---
+interface RecognizedPerson {
+  id: string;
+  name: string;
+  confidence: number;
+}
+
+// --- Main Component ---
 
 export default function PontoRegistro() {
   const [time, setTime] = useState(new Date());
 
-  // Face recognition state
+  // Face recognition
   const videoRef = useRef<HTMLVideoElement>(null);
   const autoDetectRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const labeledRef = useRef<faceapi.LabeledFaceDescriptors[] | null>(null);
+  const recognizedMapRef = useRef<Map<string, RecognizedPerson>>(new Map());
+
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState("");
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [detecting, setDetecting] = useState(false);
 
-  // Record state
-  const [recognizedEmployee, setRecognizedEmployee] = useState<{ id: string; name: string } | null>(null);
-  const [lastRecord, setLastRecord] = useState<{ name: string; type: string; time: string; confidence: number } | null>(null);
+  // Action mode: what happens when user clicks "Pronto"
+  const [actionMode, setActionMode] = useState<"clock_in" | "clock_out" | "break_out" | "break_in" | null>(null);
+
+  // Recognized people (displayed in UI while camera is open)
+  const [recognizedList, setRecognizedList] = useState<RecognizedPerson[]>([]);
+
+  // General state
   const [logs, setLogs] = useState<Array<{ type: string; time: string; date: string; name: string }>>([]);
   const [isWorking, setIsWorking] = useState(false);
   const [todayHours, setTodayHours] = useState("00h 00m");
   const [message, setMessage] = useState("");
-  const [pendingAction, setPendingAction] = useState<"clock" | "break" | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [lastBatchResult, setLastBatchResult] = useState<{ count: number; type: string } | null>(null);
 
   // Clock tick
   useEffect(() => {
@@ -88,7 +101,7 @@ export default function PontoRegistro() {
     return () => clearInterval(timer);
   }, []);
 
-  // Load models + descriptors on mount
+  // Load models + descriptors
   useEffect(() => {
     const init = async () => {
       try {
@@ -141,7 +154,7 @@ export default function PontoRegistro() {
       .select("type, timestamp, confidence, employee_id, employees(name)")
       .eq("date", today)
       .order("timestamp", { ascending: false })
-      .limit(20);
+      .limit(50);
 
     if (data && data.length > 0) {
       setLogs(data.map((r: any) => ({
@@ -151,12 +164,22 @@ export default function PontoRegistro() {
         name: r.employees?.name || "—",
       })));
 
-      // Check if someone is working (last record is clock_in or break_in)
-      const lastType = data[0].type;
-      setIsWorking(lastType === "clock_in" || lastType === "break_in");
+      // Check if any employee is currently working
+      // Group by employee, check last record
+      const byEmployee = new Map<string, string>();
+      for (const r of data) {
+        if (!byEmployee.has(r.employee_id)) {
+          byEmployee.set(r.employee_id, r.type);
+        }
+      }
+      const anyWorking = [...byEmployee.values()].some(t => t === "clock_in" || t === "break_in");
+      setIsWorking(anyWorking);
 
-      // Calculate hours worked today (sum clock_in to clock_out/break_out pairs)
       calculateHours(data);
+    } else {
+      setLogs([]);
+      setIsWorking(false);
+      setTodayHours("00h 00m");
     }
   }, []);
 
@@ -165,22 +188,26 @@ export default function PontoRegistro() {
   }, [loadTodayRecords]);
 
   const calculateHours = (records: any[]) => {
-    // Reverse to chronological order
-    const sorted = [...records].reverse();
-    let totalMs = 0;
-    let lastIn: Date | null = null;
-
-    for (const r of sorted) {
-      if (r.type === "clock_in" || r.type === "break_in") {
-        lastIn = new Date(r.timestamp);
-      } else if ((r.type === "clock_out" || r.type === "break_out") && lastIn) {
-        totalMs += new Date(r.timestamp).getTime() - lastIn.getTime();
-        lastIn = null;
-      }
+    // Group by employee, calculate per-employee, sum total
+    const byEmployee = new Map<string, any[]>();
+    for (const r of records) {
+      if (!byEmployee.has(r.employee_id)) byEmployee.set(r.employee_id, []);
+      byEmployee.get(r.employee_id)!.push(r);
     }
-    // If still clocked in, add time until now
-    if (lastIn) {
-      totalMs += Date.now() - lastIn.getTime();
+
+    let totalMs = 0;
+    for (const empRecords of byEmployee.values()) {
+      const sorted = [...empRecords].reverse();
+      let lastIn: Date | null = null;
+      for (const r of sorted) {
+        if (r.type === "clock_in" || r.type === "break_in") {
+          lastIn = new Date(r.timestamp);
+        } else if ((r.type === "clock_out" || r.type === "break_out") && lastIn) {
+          totalMs += new Date(r.timestamp).getTime() - lastIn.getTime();
+          lastIn = null;
+        }
+      }
+      if (lastIn) totalMs += Date.now() - lastIn.getTime();
     }
 
     const hours = Math.floor(totalMs / 3600000);
@@ -198,78 +225,48 @@ export default function PontoRegistro() {
     stream?.getTracks().forEach((t) => t.stop());
     if (videoRef.current) videoRef.current.srcObject = null;
     setCameraOpen(false);
-    setDetecting(false);
   }, []);
 
-  const doRecognize = useCallback(async (): Promise<boolean> => {
-    if (!videoRef.current || !labeledRef.current) return false;
+  // Continuous multi-face detection
+  const detectFaces = useCallback(async () => {
+    if (!videoRef.current || !labeledRef.current) return;
 
-    const detection = await faceapi
-      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
-      .withFaceLandmarks()
-      .withFaceDescriptor();
+    try {
+      const detections = await faceapi
+        .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
+        .withFaceLandmarks()
+        .withFaceDescriptors();
 
-    if (!detection) return false;
+      if (!detections || detections.length === 0) return;
 
-    const matcher = new faceapi.FaceMatcher(labeledRef.current, SIMILARITY_THRESHOLD);
-    const match = matcher.findBestMatch(detection.descriptor);
+      const matcher = new faceapi.FaceMatcher(labeledRef.current, SIMILARITY_THRESHOLD);
 
-    if (match.label === "unknown") {
-      setMessage("Rosto não reconhecido... Ajuste a posição.");
-      return false;
+      for (const detection of detections) {
+        const match = matcher.findBestMatch(detection.descriptor);
+        if (match.label === "unknown") continue;
+
+        const { id, name } = JSON.parse(match.label);
+        const confidence = parseFloat((1 - match.distance).toFixed(3));
+
+        // Only update if better confidence or new person
+        const existing = recognizedMapRef.current.get(id);
+        if (!existing || confidence > existing.confidence) {
+          recognizedMapRef.current.set(id, { id, name, confidence });
+          setRecognizedList([...recognizedMapRef.current.values()]);
+        }
+      }
+    } catch {
+      // Silently ignore detection errors during continuous scanning
     }
+  }, []);
 
-    const { id: employeeId, name } = JSON.parse(match.label);
-    const confidence = parseFloat((1 - match.distance).toFixed(3));
-
-    // Determine record type based on pending action
-    const today = new Date().toISOString().split("T")[0];
-    const { data: lastEntry } = await supabase
-      .from("time_records")
-      .select("type")
-      .eq("employee_id", employeeId)
-      .eq("date", today)
-      .order("timestamp", { ascending: false })
-      .limit(1)
-      .single();
-
-    let type: string;
-    if (pendingAction === "break") {
-      // Toggle break
-      const lastType = lastEntry?.type;
-      type = lastType === "break_out" ? "break_in" : "break_out";
-    } else {
-      // Normal clock in/out
-      type = !lastEntry || lastEntry.type === "clock_out" ? "clock_in" : "clock_out";
-    }
-
-    const { error } = await supabase.from("time_records").insert({
-      employee_id: employeeId,
-      type,
-      confidence,
-    });
-
-    if (error) {
-      setMessage("Erro ao registrar: " + error.message);
-      return false;
-    }
-
-    const typeLabel = TYPE_LABELS[type] || type;
-    const timeStr = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-    stopCamera();
-    setLastRecord({ name, type: typeLabel, time: timeStr, confidence });
-    setRecognizedEmployee({ id: employeeId, name });
+  const startCamera = async (mode: "clock_in" | "clock_out" | "break_out" | "break_in") => {
+    setActionMode(mode);
+    setLastBatchResult(null);
     setMessage("");
-    setPendingAction(null);
-    loadTodayRecords();
-    return true;
-  }, [stopCamera, pendingAction, loadTodayRecords]);
+    recognizedMapRef.current.clear();
+    setRecognizedList([]);
 
-  const startCamera = async (action: "clock" | "break") => {
-    setPendingAction(action);
-    setLastRecord(null);
-    setMessage("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
@@ -278,20 +275,52 @@ export default function PontoRegistro() {
         videoRef.current.srcObject = stream;
       }
       setCameraOpen(true);
-      setDetecting(true);
-      setMessage("Detectando automaticamente... Olhe para a câmera.");
 
+      // Start continuous detection
       if (autoDetectRef.current) clearInterval(autoDetectRef.current);
-      autoDetectRef.current = setInterval(async () => {
-        const found = await doRecognize();
-        if (found && autoDetectRef.current) {
-          clearInterval(autoDetectRef.current);
-          autoDetectRef.current = null;
-        }
-      }, AUTO_DETECT_INTERVAL);
+      autoDetectRef.current = setInterval(detectFaces, AUTO_DETECT_INTERVAL);
     } catch {
       setMessage("Não foi possível acessar a câmera.");
     }
+  };
+
+  // "Pronto" button — register all recognized people
+  const handleConfirm = async () => {
+    if (!actionMode || recognizedMapRef.current.size === 0) {
+      setMessage("Nenhum rosto reconhecido ainda. Posicione os funcionários na câmera.");
+      return;
+    }
+
+    setSaving(true);
+    stopCamera();
+
+    const people = [...recognizedMapRef.current.values()];
+    let successCount = 0;
+
+    for (const person of people) {
+      const { error } = await supabase.from("time_records").insert({
+        employee_id: person.id,
+        type: actionMode,
+        confidence: person.confidence,
+      });
+      if (!error) successCount++;
+    }
+
+    const typeLabel = TYPE_LABELS[actionMode] || actionMode;
+    setLastBatchResult({ count: successCount, type: typeLabel });
+    setActionMode(null);
+    recognizedMapRef.current.clear();
+    setRecognizedList([]);
+    setSaving(false);
+    await loadTodayRecords();
+  };
+
+  const handleCancel = () => {
+    stopCamera();
+    setActionMode(null);
+    recognizedMapRef.current.clear();
+    setRecognizedList([]);
+    setMessage("");
   };
 
   return (
@@ -302,12 +331,12 @@ export default function PontoRegistro() {
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-[24px] bg-card border border-border flex items-center justify-center overflow-hidden shadow-2xl relative group">
-              <User size={32} className="text-muted-foreground group-hover:text-primary transition-colors" />
+              <Users size={32} className="text-muted-foreground group-hover:text-primary transition-colors" />
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-foreground tracking-tighter uppercase leading-none mb-1">
-                {recognizedEmployee?.name || "Registro de Ponto"}
+                Registro de Ponto
               </h1>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
                 Reconhecimento Facial
@@ -316,45 +345,6 @@ export default function PontoRegistro() {
           </div>
           <StatusBadge active={isWorking} />
         </header>
-
-        {/* Camera Overlay */}
-        {cameraOpen && (
-          <div className="relative bg-black rounded-[32px] overflow-hidden aspect-video border border-border">
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              className="w-full h-full object-cover"
-            />
-            {detecting && (
-              <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-                <span className="bg-primary/80 text-primary-foreground text-xs px-4 py-2 rounded-full animate-pulse flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin" /> Detectando rosto...
-                </span>
-              </div>
-            )}
-            <button
-              onClick={() => { stopCamera(); setPendingAction(null); setMessage(""); }}
-              className="absolute top-4 right-4 bg-card/80 backdrop-blur p-2 rounded-full border border-border hover:bg-destructive/20 transition-colors"
-            >
-              <X size={18} className="text-foreground" />
-            </button>
-          </div>
-        )}
-
-        {/* Success Result */}
-        {lastRecord && !cameraOpen && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-[32px] p-8 space-y-2">
-            <p className="font-black text-emerald-400 text-xl">{lastRecord.name}</p>
-            <p className="text-emerald-300 font-bold">
-              {lastRecord.type} registrada às {lastRecord.time}
-            </p>
-            <p className="text-emerald-500/60 text-xs font-bold">
-              Confiança: {(lastRecord.confidence * 100).toFixed(1)}%
-            </p>
-          </div>
-        )}
 
         {/* Loading progress */}
         {loadProgress && (
@@ -366,8 +356,90 @@ export default function PontoRegistro() {
           </div>
         )}
 
+        {/* Camera + Recognition Panel */}
+        {cameraOpen && (
+          <div className="space-y-6">
+            <div className="relative bg-black rounded-[32px] overflow-hidden aspect-video border border-border">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-4 left-4 right-4 flex justify-center">
+                <span className="bg-primary/80 text-primary-foreground text-xs px-4 py-2 rounded-full animate-pulse flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin" />
+                  Detectando rostos... {recognizedList.length > 0 && `(${recognizedList.length} encontrados)`}
+                </span>
+              </div>
+              <div className="absolute top-4 left-4">
+                <span className="bg-card/80 backdrop-blur text-foreground text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-border">
+                  {TYPE_LABELS[actionMode || ""] || actionMode}
+                </span>
+              </div>
+            </div>
+
+            {/* Recognized people list */}
+            {recognizedList.length > 0 && (
+              <div className="bg-card border border-border rounded-[24px] p-4 space-y-2">
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] px-2">
+                  Funcionários Detectados ({recognizedList.length})
+                </p>
+                <div className="space-y-1">
+                  {recognizedList.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                          <User size={16} className="text-emerald-400" />
+                        </div>
+                        <span className="text-sm font-bold text-foreground">{p.name}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-400">
+                        {(p.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Camera action buttons */}
+            <div className="flex gap-3">
+              <PontoButton
+                variant="success"
+                size="lg"
+                className="flex-1"
+                onClick={handleConfirm}
+                disabled={recognizedList.length === 0 || saving}
+              >
+                <span className="flex items-center gap-3">
+                  {saving ? <Loader2 size={22} className="animate-spin" /> : <Check size={22} />}
+                  {saving ? "Registrando..." : `Pronto (${recognizedList.length})`}
+                </span>
+              </PontoButton>
+              <PontoButton variant="secondary" size="md" onClick={handleCancel}>
+                <X size={18} />
+              </PontoButton>
+            </div>
+          </div>
+        )}
+
+        {/* Batch result */}
+        {lastBatchResult && !cameraOpen && (
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-[32px] p-8 space-y-2">
+            <p className="font-black text-emerald-400 text-xl">
+              {lastBatchResult.type} Registrada
+            </p>
+            <p className="text-emerald-300 font-bold">
+              {lastBatchResult.count} funcionário{lastBatchResult.count !== 1 ? "s" : ""} registrado{lastBatchResult.count !== 1 ? "s" : ""} às{" "}
+              {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          </div>
+        )}
+
         {/* Message */}
-        {message && !lastRecord && (
+        {message && !cameraOpen && (
           <p className="text-sm text-muted-foreground text-center">{message}</p>
         )}
 
@@ -397,10 +469,11 @@ export default function PontoRegistro() {
                 </div>
 
                 <div className="flex flex-col w-full max-w-sm gap-4">
+                  {/* Main action: Bater Ponto or Encerrar Turno */}
                   <PontoButton
                     variant="primary"
                     size="lg"
-                    onClick={() => startCamera("clock")}
+                    onClick={() => startCamera(isWorking ? "clock_out" : "clock_in")}
                     disabled={!modelsLoaded || !!loadProgress}
                     className={isWorking ? "bg-foreground text-background hover:bg-foreground/90" : ""}
                   >
@@ -414,20 +487,20 @@ export default function PontoRegistro() {
                       </span>
                     ) : (
                       <span className="flex items-center gap-3">
-                        <Play size={22} fill="currentColor" /> Registrar Entrada
+                        <Play size={22} fill="currentColor" /> Bater Ponto
                       </span>
                     )}
                   </PontoButton>
-                  <div className="grid grid-cols-1 gap-4">
-                    <PontoButton
-                      variant="secondary"
-                      className="rounded-2xl gap-2 text-xs"
-                      onClick={() => startCamera("break")}
-                      disabled={!modelsLoaded || !!loadProgress}
-                    >
-                      <Coffee size={16} className="text-amber-500" /> Intervalo
-                    </PontoButton>
-                  </div>
+
+                  {/* Intervalo */}
+                  <PontoButton
+                    variant="secondary"
+                    className="rounded-2xl gap-2 text-xs"
+                    onClick={() => startCamera(isWorking ? "break_out" : "break_in")}
+                    disabled={!modelsLoaded || !!loadProgress}
+                  >
+                    <Coffee size={16} className="text-amber-500" /> Intervalo
+                  </PontoButton>
                 </div>
               </div>
             </div>
@@ -436,7 +509,6 @@ export default function PontoRegistro() {
 
         {/* Stats + History */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
           {/* Today's Metrics */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 px-2">
