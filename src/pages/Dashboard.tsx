@@ -133,6 +133,15 @@ const SecondaryAction = ({
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="min-h-full bg-background text-foreground selection:bg-primary/30 pb-24 lg:pb-0">
 
@@ -197,46 +206,6 @@ const SecondaryAction = ({
           ))}
         </div>
 
-        {/* ── Metas ── */}
-        <section>
-          <div className="flex items-center gap-2 mb-4">
-            <Target size={14} className="text-primary" />
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Metas</p>
-          </div>
-
-          {/* Faturamento */}
-          <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-2 font-bold">Faturamento</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-            {(["daily", "weekly", "monthly"] as const).map((p) => (
-              <GoalCard
-                key={`revenue-${p}`}
-                type="revenue"
-                period={p}
-                current={p === "daily" ? metrics.revenueToday : p === "weekly" ? metrics.revenueWeek : metrics.revenueMonth}
-                target={getGoalTarget(goals, "revenue", p)}
-                isAdmin={isOwner}
-                onEdit={() => setEditGoal({ type: "revenue", period: p })}
-              />
-            ))}
-          </div>
-
-          {/* Lucro */}
-          <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-2 font-bold">Lucro Líquido</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {(["daily", "weekly", "monthly"] as const).map((p) => (
-              <GoalCard
-                key={`profit-${p}`}
-                type="profit"
-                period={p}
-                current={p === "daily" ? metrics.profitToday : p === "weekly" ? metrics.profitWeek : metrics.profitMonth}
-                target={getGoalTarget(goals, "profit", p)}
-                isAdmin={isOwner}
-                onEdit={() => setEditGoal({ type: "profit", period: p })}
-              />
-            ))}
-          </div>
-        </section>
-
         {/* Low Stock Alerts */}
         <LowStockAlerts />
 
@@ -260,16 +229,6 @@ const SecondaryAction = ({
           </div>
         </div>
       </main>
-
-      {/* Modal de edição de meta */}
-      {editGoal && (
-        <GoalEditModal
-          type={editGoal.type}
-          period={editGoal.period}
-          currentTarget={getGoalTarget(goals, editGoal.type, editGoal.period)}
-          onClose={() => setEditGoal(null)}
-        />
-      )}
     </div>
   );
 }
