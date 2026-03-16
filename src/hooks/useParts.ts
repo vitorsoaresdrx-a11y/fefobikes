@@ -21,6 +21,8 @@ export interface Part {
   unit_cost: number | null;
   sale_price: number | null;
   pix_price: number | null;
+  price_store: number | null;
+  price_ecommerce: number | null;
   installment_price: number | null;
   installment_count: number | null;
   alert_stock: number;
