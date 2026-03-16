@@ -74,6 +74,7 @@ export function useZapiQrCode(enabled: boolean) {
       return normalizeQrPayload(payload);
     },
     enabled,
+    staleTime: 1000 * 60 * 2,
     refetchInterval: enabled ? 20000 : false,
     retry: 1,
   });
