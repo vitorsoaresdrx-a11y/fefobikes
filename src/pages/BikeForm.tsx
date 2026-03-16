@@ -301,8 +301,14 @@ export default function BikeForm() {
         pix_price: values.price_store,
         price_store: values.price_store || null,
         price_ecommerce: values.price_ecommerce || null,
-        installment_price: values.installment_price,
-        installment_count: values.installment_count,
+        installments_enabled_store: values.installments_enabled_store,
+        installment_count_store: values.installments_enabled_store ? values.installment_count_store : null,
+        installment_value_store: values.installments_enabled_store ? values.installment_value_store : null,
+        installments_enabled_ecommerce: values.installments_enabled_ecommerce,
+        installment_count_ecommerce: values.installments_enabled_ecommerce ? values.installment_count_ecommerce : null,
+        installment_value_ecommerce: values.installments_enabled_ecommerce ? values.installment_value_ecommerce : null,
+        installment_price: values.installments_enabled_store ? values.installment_value_store : (values.installments_enabled_ecommerce ? values.installment_value_ecommerce : 0),
+        installment_count: values.installments_enabled_store ? values.installment_count_store : (values.installments_enabled_ecommerce ? values.installment_count_ecommerce : 1),
         images: bikeImages,
       };
       if (isEditing && values.sku) payload.sku = values.sku;
