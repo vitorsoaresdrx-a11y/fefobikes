@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Plus, Image as ImageIcon } from "lucide-react";
+import { X, Plus, Image as ImageIcon, Store, Globe } from "lucide-react";
 import { useCreatePart, useUpdatePart, type Part } from "@/hooks/useParts";
 import { usePartAttributes, useSavePartAttributes } from "@/hooks/usePartAttributes";
 import { CategoryCombobox } from "@/components/parts/CategoryCombobox";
