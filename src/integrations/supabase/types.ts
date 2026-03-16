@@ -1247,6 +1247,7 @@ export type Database = {
           notes: string | null
           payment_method: string | null
           responsible_name: string | null
+          status: string
           tenant_id: string | null
           total: number
         }
@@ -1259,6 +1260,7 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           responsible_name?: string | null
+          status?: string
           tenant_id?: string | null
           total?: number
         }
@@ -1271,6 +1273,7 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           responsible_name?: string | null
+          status?: string
           tenant_id?: string | null
           total?: number
         }

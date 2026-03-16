@@ -54,10 +54,26 @@ export function useSales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("id, created_at, customer_id, total, payment_method, card_fee, card_tax_percent, notes, responsible_name, sale_items(id, description, quantity, unit_price, part_id, bike_model_id), customers(id, name, whatsapp, cpf)")
+        .select("id, created_at, customer_id, total, payment_method, card_fee, card_tax_percent, notes, responsible_name, status, sale_items(id, description, quantity, unit_price, part_id, bike_model_id), customers(id, name, whatsapp, cpf)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+export function useCancelSale() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (saleId: string) => {
+      const { error } = await supabase
+        .from("sales")
+        .update({ status: "cancelled" })
+        .eq("id", saleId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sales"] });
     },
   });
 }

@@ -1,13 +1,16 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, ChevronDown, Printer, User, ShoppingBag, Download } from "lucide-react";
-import { useSales } from "@/hooks/useSales";
+import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban } from "lucide-react";
+import { useSales, useCancelSale } from "@/hooks/useSales";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { formatBRL } from "@/lib/format";
 import { exportSalesCSV } from "@/lib/export-csv";
 import { EmptyState } from "@/components/EmptyState";
 import { PaginationBar } from "@/components/PaginationBar";
 import { usePagination } from "@/hooks/usePagination";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 function formatDateShort(d: string) {
   return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
@@ -77,17 +80,20 @@ function SaleRow({
   isExpanded,
   onToggle,
   onReceipt,
+  onCancel,
 }: {
   sale: any;
   isExpanded: boolean;
   onToggle: () => void;
   onReceipt: () => void;
+  onCancel: () => void;
 }) {
   const items = sale.sale_items || [];
   const { date, time } = formatDateTime(sale.created_at);
   const method = sale.payment_method || "pix";
   const cardFee = Number(sale.card_fee) || 0;
   const cardTax = Number(sale.card_tax_percent) || 0;
+  const isCancelled = sale.status === "cancelled";
 
   return (
     <div className="px-4">
@@ -108,8 +114,13 @@ function SaleRow({
           >
             {paymentLabel[method] || method}
           </span>
+          {isCancelled && (
+            <Badge variant="destructive" className="ml-1 mt-1 text-[9px] px-2 py-0.5">
+              Cancelada
+            </Badge>
+          )}
         </div>
-        <p className="text-sm font-black text-white shrink-0">
+        <p className={`text-sm font-black shrink-0 ${isCancelled ? "line-through text-muted-foreground" : "text-white"}`}>
           {formatBRL(Number(sale.total))}
         </p>
         <ChevronDown
@@ -153,15 +164,28 @@ function SaleRow({
             <p className="text-xs text-muted-foreground italic px-2">Obs: {sale.notes}</p>
           )}
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onReceipt();
-            }}
-            className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-white transition-colors px-2 mt-1"
-          >
-            <Printer size={12} /> Reimprimir
-          </button>
+          <div className="flex items-center gap-3 px-2 mt-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onReceipt();
+              }}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-white transition-colors"
+            >
+              <Printer size={12} /> Reimprimir
+            </button>
+            {!isCancelled && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel();
+                }}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
+              >
+                <Ban size={12} /> Cancelar
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -176,6 +200,8 @@ export default function Historico() {
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [expandedSale, setExpandedSale] = useState<string | null>(null);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [cancelSaleId, setCancelSaleId] = useState<string | null>(null);
+  const cancelSale = useCancelSale();
 
   const customerGroups = useMemo(() => {
     const groups = new Map<string, CustomerGroup>();
@@ -187,7 +213,7 @@ export default function Historico() {
       if (groups.has(key)) {
         const group = groups.get(key)!;
         group.sales.push(sale);
-        group.totalSpent += Number(sale.total);
+        group.totalSpent += sale.status !== "cancelled" ? Number(sale.total) : 0;
         if (sale.created_at > group.lastPurchase) {
           group.lastPurchase = sale.created_at;
         }
@@ -198,7 +224,7 @@ export default function Historico() {
           customerWhatsapp: customer?.whatsapp || null,
           customerCpf: customer?.cpf || null,
           sales: [sale],
-          totalSpent: Number(sale.total),
+          totalSpent: sale.status !== "cancelled" ? Number(sale.total) : 0,
           lastPurchase: sale.created_at,
         });
       }
@@ -361,6 +387,7 @@ export default function Historico() {
                               onReceipt={() =>
                                 setReceiptData(buildReceiptFromSale(sale))
                               }
+                              onCancel={() => setCancelSaleId(sale.id)}
                             />
                           ))}
                       </div>
@@ -391,6 +418,25 @@ export default function Historico() {
             data={receiptData}
           />
         )}
+
+        {/* Cancel sale dialog */}
+        <ConfirmDeleteDialog
+          open={!!cancelSaleId}
+          onOpenChange={(open) => !open && setCancelSaleId(null)}
+          onConfirm={() => {
+            if (cancelSaleId) {
+              cancelSale.mutate(cancelSaleId, {
+                onSuccess: () => {
+                  toast.success("Venda cancelada com sucesso");
+                  setCancelSaleId(null);
+                },
+                onError: () => toast.error("Erro ao cancelar venda"),
+              });
+            }
+          }}
+          title="Cancelar venda"
+          description="Tem certeza que deseja cancelar esta venda? O valor deixará de ser contabilizado no DRE."
+        />
       </div>
     </div>
   );
