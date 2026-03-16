@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
+import { supabase } from "@/integrations/supabase/client";
+import { calculateWeightedAverage } from "@/lib/cost-average";
+import { useAllStockEntries } from "@/hooks/usePriceHistory";
 import {
   AreaChart,
   Area,
