@@ -76,6 +76,7 @@ export default function PontoRegistro() {
   const autoDetectRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const labeledRef = useRef<faceapi.LabeledFaceDescriptors[] | null>(null);
   const recognizedMapRef = useRef<Map<string, RecognizedPerson>>(new Map());
+  const pendingStreamRef = useRef<MediaStream | null>(null);
 
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState("");
