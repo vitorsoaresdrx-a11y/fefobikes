@@ -252,6 +252,47 @@ export default function DRE() {
     [fixedExpenses]
   );
 
+  // Build weighted average cost map per item
+  const avgCostMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const grouped = new Map<string, { quantity: number; unit_cost: number }[]>();
+    allStockEntries.forEach((e) => {
+      const key = `${e.item_type}-${e.item_id}`;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push({ quantity: e.quantity, unit_cost: e.unit_cost });
+    });
+    grouped.forEach((entries, key) => {
+      map.set(key, calculateWeightedAverage(entries));
+    });
+    return map;
+  }, [allStockEntries]);
+
+  // Map sale_id to sale for date filtering
+  const salesMap = useMemo(() => {
+    const m = new Map<string, any>();
+    sales.forEach((s: any) => m.set(s.id, s));
+    return m;
+  }, [sales]);
+
+  // Calculate CMV (Custo das Mercadorias Vendidas) for the selected year
+  const yearCMV = useMemo(() => {
+    let total = 0;
+    saleItems.forEach((item: any) => {
+      const sale = salesMap.get(item.sale_id);
+      if (!sale || sale.status === "cancelled") return;
+      const date = new Date(sale.created_at);
+      if (date.getFullYear() !== selectedYear) return;
+
+      const itemId = item.part_id || item.bike_model_id;
+      const itemType = item.part_id ? "part" : "bike";
+      if (!itemId) return;
+
+      const avgCost = avgCostMap.get(`${itemType}-${itemId}`) || 0;
+      total += avgCost * (item.quantity || 1);
+    });
+    return total;
+  }, [saleItems, salesMap, avgCostMap, selectedYear]);
+
   const monthlyData = useMemo(() => {
     const months = Array.from({ length: 12 }, (_, i) => ({
       month: i,
@@ -306,9 +347,9 @@ export default function DRE() {
     );
     const totalFixed = monthlyFixedCost * monthsInScope;
     const netRevenue = t.revenue - t.taxes - t.cardFees;
-    const netProfit = netRevenue - totalFixed - t.variableExpenses;
-    return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit };
-  }, [monthlyData, monthlyFixedCost, monthsInScope]);
+    const netProfit = netRevenue - totalFixed - t.variableExpenses - yearCMV;
+    return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit, cmv: yearCMV };
+  }, [monthlyData, monthlyFixedCost, monthsInScope, yearCMV]);
 
   const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
