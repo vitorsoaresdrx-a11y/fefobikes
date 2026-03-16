@@ -185,8 +185,33 @@ export default function PDV() {
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   // ── Derived ────────────────────────────────────────────────────────────────
 
-  const total = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
+  const subtotal = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
+
+  // Promotion discount calculation
+  const getItemPromotion = (item: CartItem): Promotion | null => {
+    return activePromotions.find((p) =>
+      p.scope !== "ecommerce" &&
+      (
+        (p.applies_to === "product" && (p.product_id === item.id || p.bike_model_id === item.id)) ||
+        (p.applies_to === "category" && p.category === item.category) ||
+        (p.applies_to === "both" && (p.product_id === item.id || p.bike_model_id === item.id || p.category === item.category))
+      )
+    ) || null;
+  };
+
+  const promotionDiscount = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const promo = getItemPromotion(item);
+      if (!promo) return sum;
+      const itemTotal = item.quantity * item.unit_price;
+      if (promo.discount_type === "percentage") return sum + itemTotal * (promo.discount_value / 100);
+      return sum + promo.discount_value * item.quantity;
+    }, 0);
+  }, [cart, activePromotions]);
+
+  const totalDiscount = promotionDiscount + manualDiscount;
+  const total = subtotal - totalDiscount;
 
   const isCardPayment = paymentMethod === "cartão de crédito" || paymentMethod === "cartão de débito";
   const cardTaxPercent = isCardPayment
