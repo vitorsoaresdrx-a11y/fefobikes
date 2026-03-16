@@ -13,6 +13,8 @@ import {
   Activity,
   Target,
   ShoppingBag,
+  Tag,
+  Scissors,
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
