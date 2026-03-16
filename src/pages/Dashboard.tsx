@@ -13,7 +13,6 @@ import {
   Monitor,
   Activity,
   ChevronRight,
-  Target,
 } from "lucide-react";
 
 const primaryActions = [
