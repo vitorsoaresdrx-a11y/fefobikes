@@ -92,13 +92,19 @@ export function BillPhotoCapture({ onExtracted }: BillPhotoCaptureProps) {
   };
 
   const removeDraft = (id: string) => {
-    setDrafts((prev) => prev.filter((d) => d.id !== id));
+    setDrafts((prev) => {
+      const removed = prev.find((d) => d.id === id);
+      if (removed) URL.revokeObjectURL(removed.preview);
+      return prev.filter((d) => d.id !== id);
+    });
     if (expandedId === id) setExpandedId(null);
   };
 
   const confirmAll = () => {
     const confirmed = drafts.filter((d) => d.status === "done" && d.extracted).map((d) => d.extracted!);
     onExtracted(confirmed);
+    // Libera memória das previews
+    drafts.forEach((d) => URL.revokeObjectURL(d.preview));
     setDrafts([]);
     setExpandedId(null);
   };
