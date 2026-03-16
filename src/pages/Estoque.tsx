@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { useInsertStockEntry } from "@/hooks/usePriceHistory";
 import {
   Search,
   AlertTriangle,
@@ -194,6 +196,10 @@ export default function Estoque() {
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
   const [mode, setMode] = useState<"add" | "subtract" | null>(null);
   const [qty, setQty] = useState("");
+  const [unitCost, setUnitCost] = useState(0);
+  const [supplierName, setSupplierName] = useState("");
+  const [entryNotes, setEntryNotes] = useState("");
+  const insertStockEntry = useInsertStockEntry();
 
   const isLoading = partsLoading || bikesLoading;
 
@@ -246,8 +252,8 @@ export default function Estoque() {
     ok: items.filter((i) => i.status === "ok").length,
   }), [items]);
 
-  const openModal = (item: StockItem) => { setSelectedItem(item); setMode(null); setQty(""); };
-  const closeModal = () => { setSelectedItem(null); setMode(null); setQty(""); };
+  const openModal = (item: StockItem) => { setSelectedItem(item); setMode(null); setQty(""); setUnitCost(0); setSupplierName(""); setEntryNotes(""); };
+  const closeModal = () => { setSelectedItem(null); setMode(null); setQty(""); setUnitCost(0); setSupplierName(""); setEntryNotes(""); };
 
   const handleConfirm = async () => {
     if (!selectedItem || !mode) return;
@@ -270,6 +276,18 @@ export default function Estoque() {
       new_qty: newQty,
       responsible_name: currentUserName,
     });
+
+    // Insert stock_entry for price history on "add" mode
+    if (mode === "add") {
+      await insertStockEntry.mutateAsync({
+        item_id: selectedItem.id,
+        item_type: selectedItem.type === "Peça" ? "part" : "bike",
+        quantity: value,
+        unit_cost: unitCost,
+        supplier_name: supplierName || undefined,
+        notes: entryNotes || undefined,
+      });
+    }
 
     if (selectedItem.type === "Peça") {
       updatePart.mutate({ id: selectedItem.id, stock_qty: newQty } as any);
@@ -568,7 +586,7 @@ export default function Estoque() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                       Quantidade para {mode === "add" ? "Adicionar" : "Retirar"}
@@ -580,15 +598,48 @@ export default function Estoque() {
                       value={qty}
                       onChange={(e) => setQty(e.target.value)}
                       placeholder="0"
-                      className="w-full h-14 bg-card border border-border rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-primary transition-all"
+                      className="w-full h-14 bg-card border border-border rounded-2xl px-6 text-2xl font-black text-foreground outline-none focus:border-primary transition-all"
                     />
                   </div>
+
+                  {mode === "add" && (
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                          Preço de Custo Unitário *
+                        </label>
+                        <CurrencyInput value={unitCost} onChange={setUnitCost} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                          Fornecedor
+                        </label>
+                        <input
+                          placeholder="Ex: Shimano Brasil, fornecedor local..."
+                          value={supplierName}
+                          onChange={(e) => setSupplierName(e.target.value)}
+                          className="w-full h-11 bg-card border border-border rounded-2xl px-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                          Observações
+                        </label>
+                        <input
+                          placeholder="Opcional..."
+                          value={entryNotes}
+                          onChange={(e) => setEntryNotes(e.target.value)}
+                          className="w-full h-11 bg-card border border-border rounded-2xl px-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {qty && parseInt(qty) > 0 && (
                     <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
                       <span>{selectedItem.stock_qty}</span>
                       <ArrowRight size={14} />
-                      <span className="font-black text-white text-lg">
+                      <span className="font-black text-foreground text-lg">
                         {mode === "add"
                           ? selectedItem.stock_qty + (parseInt(qty) || 0)
                           : Math.max(0, selectedItem.stock_qty - (parseInt(qty) || 0))}

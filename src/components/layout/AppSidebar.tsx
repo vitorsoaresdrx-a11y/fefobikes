@@ -22,6 +22,7 @@ import {
   ScanFace,
   Clock,
   FileBarChart,
+  TrendingUp,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
@@ -57,6 +58,7 @@ const navGroups = [
       { title: "Produtos", url: "/produtos", icon: Wrench },
       { title: "Bikes", url: "/bikes", icon: Bike },
       { title: "Estoque", url: "/estoque", icon: Package },
+      { title: "Preços", url: "/precos", icon: TrendingUp },
     ],
   },
   {

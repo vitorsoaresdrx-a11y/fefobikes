@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,
   TrendingDown,
@@ -11,9 +12,13 @@ import {
   ChevronRight,
   Activity,
   Target,
+  ShoppingBag,
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
+import { supabase } from "@/integrations/supabase/client";
+import { calculateWeightedAverage } from "@/lib/cost-average";
+import { useAllStockEntries } from "@/hooks/usePriceHistory";
 import {
   AreaChart,
   Area,
@@ -221,7 +226,22 @@ export default function DRE() {
   const { data: sales = [], isLoading: salesLoading } = useSales();
   const { data: fixedExpenses = [], isLoading: fixedLoading } = useFixedExpenses();
   const { data: variableExpenses = [], isLoading: varLoading } = useVariableExpenses();
-  const isLoading = salesLoading || fixedLoading || varLoading;
+  const { data: allStockEntries = [], isLoading: entriesLoading } = useAllStockEntries();
+
+  // Fetch sale_items to calculate CMV
+  const { data: saleItems = [] } = useQuery({
+    queryKey: ["sale_items_for_dre"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sale_items")
+        .select("sale_id, part_id, bike_model_id, quantity")
+        .order("sale_id");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const isLoading = salesLoading || fixedLoading || varLoading || entriesLoading;
 
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -231,6 +251,47 @@ export default function DRE() {
     () => fixedExpenses.filter((e) => e.active).reduce((s, e) => s + Number(e.amount), 0),
     [fixedExpenses]
   );
+
+  // Build weighted average cost map per item
+  const avgCostMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const grouped = new Map<string, { quantity: number; unit_cost: number }[]>();
+    allStockEntries.forEach((e) => {
+      const key = `${e.item_type}-${e.item_id}`;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push({ quantity: e.quantity, unit_cost: e.unit_cost });
+    });
+    grouped.forEach((entries, key) => {
+      map.set(key, calculateWeightedAverage(entries));
+    });
+    return map;
+  }, [allStockEntries]);
+
+  // Map sale_id to sale for date filtering
+  const salesMap = useMemo(() => {
+    const m = new Map<string, any>();
+    sales.forEach((s: any) => m.set(s.id, s));
+    return m;
+  }, [sales]);
+
+  // Calculate CMV (Custo das Mercadorias Vendidas) for the selected year
+  const yearCMV = useMemo(() => {
+    let total = 0;
+    saleItems.forEach((item: any) => {
+      const sale = salesMap.get(item.sale_id);
+      if (!sale || sale.status === "cancelled") return;
+      const date = new Date(sale.created_at);
+      if (date.getFullYear() !== selectedYear) return;
+
+      const itemId = item.part_id || item.bike_model_id;
+      const itemType = item.part_id ? "part" : "bike";
+      if (!itemId) return;
+
+      const avgCost = avgCostMap.get(`${itemType}-${itemId}`) || 0;
+      total += avgCost * (item.quantity || 1);
+    });
+    return total;
+  }, [saleItems, salesMap, avgCostMap, selectedYear]);
 
   const monthlyData = useMemo(() => {
     const months = Array.from({ length: 12 }, (_, i) => ({
@@ -286,9 +347,9 @@ export default function DRE() {
     );
     const totalFixed = monthlyFixedCost * monthsInScope;
     const netRevenue = t.revenue - t.taxes - t.cardFees;
-    const netProfit = netRevenue - totalFixed - t.variableExpenses;
-    return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit };
-  }, [monthlyData, monthlyFixedCost, monthsInScope]);
+    const netProfit = netRevenue - totalFixed - t.variableExpenses - yearCMV;
+    return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit, cmv: yearCMV };
+  }, [monthlyData, monthlyFixedCost, monthsInScope, yearCMV]);
 
   const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
@@ -512,7 +573,19 @@ export default function DRE() {
               </div>
             </div>
 
-            {/* Receita Líquida Operacional — card destaque */}
+            {/* CMV — Custo Médio Ponderado */}
+            {totals.cmv > 0 && (
+              <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5 bg-background border border-border rounded-xl md:rounded-2xl">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                  <ShoppingBag size={18} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Custo Médio Ponderado dos Produtos</span>
+                  <span className="text-base md:text-xl font-black tracking-tighter text-red-400/80">- {formatBRL(totals.cmv)}</span>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5 bg-background border border-border rounded-xl md:rounded-2xl">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl md:rounded-2xl flex items-center justify-center text-primary shrink-0">
                 <Target size={18} />
