@@ -93,6 +93,7 @@ function SaleRow({
   const method = sale.payment_method || "pix";
   const cardFee = Number(sale.card_fee) || 0;
   const cardTax = Number(sale.card_tax_percent) || 0;
+  const isCancelled = sale.status === "cancelled";
 
   return (
     <div className="px-4">
