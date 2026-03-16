@@ -338,6 +338,10 @@ export default function PDV() {
       }
 
       const saleId = crypto.randomUUID();
+      const activePromoId = activePromotions.find((p) =>
+        cart.some((item) => getItemPromotion(item)?.id === p.id)
+      )?.id || null;
+
       const salePayload = {
         id: saleId,
         customer_id: customerId,
@@ -346,6 +350,9 @@ export default function PDV() {
         notes: null,
         card_fee: cardFee,
         card_tax_percent: cardTaxPercent,
+        discount_amount: totalDiscount,
+        discount_type: manualDiscount > 0 ? "manual" : promotionDiscount > 0 ? "promotion" : null,
+        promotion_id: activePromoId,
       };
 
       const itemsPayload = cart.map((item) => ({
