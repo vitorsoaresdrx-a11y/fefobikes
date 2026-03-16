@@ -1074,6 +1074,99 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          active: boolean | null
+          applies_to: string
+          bike_model_id: string | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          ends_at: string
+          id: string
+          name: string
+          product_id: string | null
+          scope: string
+          starts_at: string
+          tenant_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          applies_to?: string
+          bike_model_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          ends_at?: string
+          id?: string
+          name: string
+          product_id?: string | null
+          scope?: string
+          starts_at?: string
+          tenant_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          applies_to?: string
+          bike_model_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          ends_at?: string
+          id?: string
+          name?: string
+          product_id?: string | null
+          scope?: string
+          starts_at?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotions_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_bike_model_id_fkey"
+            columns: ["bike_model_id"]
+            isOneToOne: false
+            referencedRelation: "bike_models_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "parts_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           created_at: string
@@ -1284,9 +1377,12 @@ export type Database = {
           card_tax_percent: number | null
           created_at: string
           customer_id: string | null
+          discount_amount: number | null
+          discount_type: string | null
           id: string
           notes: string | null
           payment_method: string | null
+          promotion_id: string | null
           responsible_name: string | null
           status: string
           tenant_id: string | null
@@ -1297,9 +1393,12 @@ export type Database = {
           card_tax_percent?: number | null
           created_at?: string
           customer_id?: string | null
+          discount_amount?: number | null
+          discount_type?: string | null
           id?: string
           notes?: string | null
           payment_method?: string | null
+          promotion_id?: string | null
           responsible_name?: string | null
           status?: string
           tenant_id?: string | null
@@ -1310,9 +1409,12 @@ export type Database = {
           card_tax_percent?: number | null
           created_at?: string
           customer_id?: string | null
+          discount_amount?: number | null
+          discount_type?: string | null
           id?: string
           notes?: string | null
           payment_method?: string | null
+          promotion_id?: string | null
           responsible_name?: string | null
           status?: string
           tenant_id?: string | null
@@ -1324,6 +1426,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
             referencedColumns: ["id"]
           },
           {

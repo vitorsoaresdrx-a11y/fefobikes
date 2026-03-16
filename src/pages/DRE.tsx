@@ -13,6 +13,8 @@ import {
   Activity,
   Target,
   ShoppingBag,
+  Tag,
+  Scissors,
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
@@ -300,6 +302,8 @@ export default function DRE() {
       revenue: 0,
       cardFees: 0,
       variableExpenses: 0,
+      promotionDiscounts: 0,
+      manualDiscounts: 0,
     }));
 
     sales.forEach((sale: any) => {
@@ -309,6 +313,9 @@ export default function DRE() {
       const m = date.getMonth();
       months[m].revenue += Number(sale.total) || 0;
       months[m].cardFees += Number(sale.card_fee) || 0;
+      const discountAmt = Number(sale.discount_amount) || 0;
+      if (sale.discount_type === "promotion") months[m].promotionDiscounts += discountAmt;
+      else if (sale.discount_type === "manual") months[m].manualDiscounts += discountAmt;
     });
 
     variableExpenses.forEach((exp: any) => {
@@ -342,11 +349,13 @@ export default function DRE() {
         cardFees: acc.cardFees + m.cardFees,
         taxes: acc.taxes + m.taxes,
         variableExpenses: acc.variableExpenses + m.variableExpenses,
+        promotionDiscounts: acc.promotionDiscounts + m.promotionDiscounts,
+        manualDiscounts: acc.manualDiscounts + m.manualDiscounts,
       }),
-      { revenue: 0, cardFees: 0, taxes: 0, variableExpenses: 0 }
+      { revenue: 0, cardFees: 0, taxes: 0, variableExpenses: 0, promotionDiscounts: 0, manualDiscounts: 0 }
     );
     const totalFixed = monthlyFixedCost * monthsInScope;
-    const netRevenue = t.revenue - t.taxes - t.cardFees;
+    const netRevenue = t.revenue - t.taxes - t.cardFees - t.promotionDiscounts - t.manualDiscounts;
     const netProfit = netRevenue - totalFixed - t.variableExpenses - yearCMV;
     return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit, cmv: yearCMV };
   }, [monthlyData, monthlyFixedCost, monthsInScope, yearCMV]);
@@ -573,7 +582,36 @@ export default function DRE() {
               </div>
             </div>
 
-            {/* CMV — Custo Médio Ponderado */}
+            {/* Descontos */}
+            {(totals.promotionDiscounts > 0 || totals.manualDiscounts > 0) && (
+              <div className="bg-background border border-border rounded-xl md:rounded-2xl overflow-hidden">
+                {totals.promotionDiscounts > 0 && (
+                  <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                      <Tag size={18} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Descontos de Promoções</span>
+                      <span className="text-base md:text-xl font-black tracking-tighter text-primary">- {formatBRL(totals.promotionDiscounts)}</span>
+                    </div>
+                  </div>
+                )}
+                {totals.promotionDiscounts > 0 && totals.manualDiscounts > 0 && (
+                  <div className="h-px bg-border/50 mx-4 md:mx-5" />
+                )}
+                {totals.manualDiscounts > 0 && (
+                  <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                      <Scissors size={18} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Descontos Manuais (PDV)</span>
+                      <span className="text-base md:text-xl font-black tracking-tighter text-amber-400">- {formatBRL(totals.manualDiscounts)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {totals.cmv > 0 && (
               <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5 bg-background border border-border rounded-xl md:rounded-2xl">
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">

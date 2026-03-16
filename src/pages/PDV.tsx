@@ -22,6 +22,8 @@ import {
   Banknote,
   WifiOff,
   Loader2,
+  Tag,
+  Scissors,
 } from "lucide-react";
 import { useBikeModels } from "@/hooks/useBikes";
 import { useParts } from "@/hooks/useParts";
@@ -31,6 +33,9 @@ import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { useCurrentCashRegister, useLinkSaleToCashRegister } from "@/hooks/useCashRegister";
+import { useActivePromotions, type Promotion } from "@/hooks/usePromotions";
+import { useMyPermissions } from "@/hooks/usePermissions";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -139,6 +144,9 @@ export default function PDV() {
   const pendingCount = getQueueCount();
   const { data: bikes = [] } = useBikeModels();
   const { data: parts = [] } = useParts();
+  const { data: activePromotions = [] } = useActivePromotions();
+  const { data: permsData } = useMyPermissions();
+  const isAdmin = permsData?.isOwner ?? false;
   
   const { data: customers = [] } = useCustomers();
   const { data: cardTaxes } = useCardTaxes();
@@ -168,10 +176,42 @@ export default function PDV() {
   // Receipt
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
+
+  // Manual discount
+  const [manualDiscount, setManualDiscount] = useState(0);
+  const [manualDiscountType, setManualDiscountType] = useState<"percentage" | "fixed">("percentage");
+  const [manualDiscountInput, setManualDiscountInput] = useState("");
+  const [manualDiscountValue, setManualDiscountValue] = useState(0);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
   // ── Derived ────────────────────────────────────────────────────────────────
 
-  const total = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
+  const subtotal = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
+
+  // Promotion discount calculation
+  const getItemPromotion = (item: CartItem): Promotion | null => {
+    return activePromotions.find((p) =>
+      p.scope !== "ecommerce" &&
+      (
+        (p.applies_to === "product" && (p.product_id === item.id || p.bike_model_id === item.id)) ||
+        (p.applies_to === "category" && p.category === item.category) ||
+        (p.applies_to === "both" && (p.product_id === item.id || p.bike_model_id === item.id || p.category === item.category))
+      )
+    ) || null;
+  };
+
+  const promotionDiscount = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const promo = getItemPromotion(item);
+      if (!promo) return sum;
+      const itemTotal = item.quantity * item.unit_price;
+      if (promo.discount_type === "percentage") return sum + itemTotal * (promo.discount_value / 100);
+      return sum + promo.discount_value * item.quantity;
+    }, 0);
+  }, [cart, activePromotions]);
+
+  const totalDiscount = promotionDiscount + manualDiscount;
+  const total = subtotal - totalDiscount;
 
   const isCardPayment = paymentMethod === "cartão de crédito" || paymentMethod === "cartão de débito";
   const cardTaxPercent = isCardPayment
@@ -180,6 +220,17 @@ export default function PDV() {
       : cardTaxes?.debit_tax || 0
     : 0;
   const cardFee = total * (cardTaxPercent / 100);
+
+  const applyManualDiscount = () => {
+    if (manualDiscountType === "percentage") {
+      const pct = Number(manualDiscountInput);
+      if (pct > 0 && pct <= 100) {
+        setManualDiscount(subtotal * (pct / 100));
+      }
+    } else {
+      setManualDiscount(manualDiscountValue);
+    }
+  };
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -282,6 +333,10 @@ export default function PDV() {
       }
 
       const saleId = crypto.randomUUID();
+      const activePromoId = activePromotions.find((p) =>
+        cart.some((item) => getItemPromotion(item)?.id === p.id)
+      )?.id || null;
+
       const salePayload = {
         id: saleId,
         customer_id: customerId,
@@ -290,6 +345,9 @@ export default function PDV() {
         notes: null,
         card_fee: cardFee,
         card_tax_percent: cardTaxPercent,
+        discount_amount: totalDiscount,
+        discount_type: manualDiscount > 0 ? "manual" : promotionDiscount > 0 ? "promotion" : null,
+        promotion_id: activePromoId,
       };
 
       const itemsPayload = cart.map((item) => ({
@@ -320,8 +378,8 @@ export default function PDV() {
           customerName: finalCustomerName,
           customerWhatsapp: finalWhatsapp,
           items: cart.map((i) => ({ name: i.name, quantity: i.quantity, unit_price: i.unit_price })),
-          subtotal: total,
-          discount: 0,
+          subtotal,
+          discount: totalDiscount,
           total,
           paymentMethod,
         };
@@ -338,6 +396,10 @@ export default function PDV() {
       }
 
       // Online — normal flow
+      const activePromoIdOnline = activePromotions.find((p) =>
+        cart.some((item) => getItemPromotion(item)?.id === p.id)
+      )?.id || null;
+
       const sale = await createSale.mutateAsync({
         customer_id: customerId,
         total,
@@ -345,6 +407,9 @@ export default function PDV() {
         notes: null,
         card_fee: cardFee,
         card_tax_percent: cardTaxPercent,
+        discount_amount: totalDiscount,
+        discount_type: manualDiscount > 0 ? "manual" : promotionDiscount > 0 ? "promotion" : null,
+        promotion_id: activePromoIdOnline,
         items: cart.map((item) => ({
           description: item.name,
           quantity: item.quantity,
@@ -377,8 +442,8 @@ export default function PDV() {
         customerName: finalCustomerName,
         customerWhatsapp: finalWhatsapp,
         items: cart.map((i) => ({ name: i.name, quantity: i.quantity, unit_price: i.unit_price })),
-        subtotal: total,
-        discount: 0,
+        subtotal,
+        discount: totalDiscount,
         total,
         paymentMethod,
       };
@@ -402,6 +467,9 @@ export default function PDV() {
     setCustName("");
     setCustWhatsapp("");
     setCustCpf("");
+    setManualDiscount(0);
+    setManualDiscountInput("");
+    setManualDiscountValue(0);
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -750,17 +818,39 @@ export default function PDV() {
                 </div>
                 <div className="space-y-2">
                   {/* Itens do carrinho */}
-                  {cart.map((item) => (
-                    <div key={item.key} className="flex justify-between text-muted-foreground text-xs md:text-sm">
-                      <span className="truncate mr-2">{item.name} ×{item.quantity}</span>
-                      <span className="shrink-0">{formatBRL(item.quantity * item.unit_price)}</span>
-                    </div>
-                  ))}
+                  {cart.map((item) => {
+                    const promo = getItemPromotion(item);
+                    return (
+                      <div key={item.key} className="flex justify-between text-muted-foreground text-xs md:text-sm">
+                        <span className="truncate mr-2 flex items-center gap-1.5">
+                          {item.name} ×{item.quantity}
+                          {promo && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                              {promo.discount_type === "percentage" ? `-${promo.discount_value}%` : `-${formatBRL(promo.discount_value)}`}
+                            </span>
+                          )}
+                        </span>
+                        <span className="shrink-0">{formatBRL(item.quantity * item.unit_price)}</span>
+                      </div>
+                    );
+                  })}
                   <div className="h-px bg-muted my-2" />
                   <div className="flex justify-between text-muted-foreground text-xs md:text-sm">
                     <span>Subtotal</span>
-                    <span>{formatBRL(total)}</span>
+                    <span>{formatBRL(subtotal)}</span>
                   </div>
+                  {promotionDiscount > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-primary flex items-center gap-1"><Tag size={10} /> Promoções</span>
+                      <span className="text-primary">-{formatBRL(promotionDiscount)}</span>
+                    </div>
+                  )}
+                  {manualDiscount > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-amber-400 flex items-center gap-1"><Scissors size={10} /> Desconto manual</span>
+                      <span className="text-amber-400">-{formatBRL(manualDiscount)}</span>
+                    </div>
+                  )}
                   {isCardPayment && cardTaxPercent > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Taxa cartão ({cardTaxPercent}%)</span>
@@ -779,6 +869,17 @@ export default function PDV() {
                     </div>
                   )}
                 </div>
+
+                {/* Manual discount button (admin only) */}
+                {isAdmin && (
+                  <button
+                    onClick={() => setDiscountModalOpen(true)}
+                    className="w-full h-10 rounded-xl border border-dashed border-border text-muted-foreground text-xs font-bold flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-all"
+                  >
+                    <Tag size={14} />
+                    {manualDiscount > 0 ? `Desconto: -${formatBRL(manualDiscount)}` : "Aplicar Desconto"}
+                  </button>
+                )}
               </div>
 
               <div className="flex gap-3 md:gap-4">
@@ -919,6 +1020,56 @@ export default function PDV() {
           </div>
         </div>
       )}
+      {/* ── Manual Discount Modal ─────────────────────────────────────── */}
+      {discountModalOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
+          <div className="bg-card w-full max-w-sm rounded-2xl border border-border p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black">Aplicar Desconto</h3>
+              <button onClick={() => setDiscountModalOpen(false)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={() => setManualDiscountType("percentage")} className={`flex-1 h-9 rounded-xl text-xs font-bold border transition-all ${manualDiscountType === "percentage" ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border text-muted-foreground"}`}>
+                % Percentual
+              </button>
+              <button onClick={() => setManualDiscountType("fixed")} className={`flex-1 h-9 rounded-xl text-xs font-bold border transition-all ${manualDiscountType === "fixed" ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border text-muted-foreground"}`}>
+                R$ Valor fixo
+              </button>
+            </div>
+
+            {manualDiscountType === "percentage" ? (
+              <div>
+                <input
+                  type="number" min="1" max="100"
+                  placeholder="Ex: 10"
+                  value={manualDiscountInput}
+                  onChange={(e) => setManualDiscountInput(e.target.value)}
+                  className="w-full h-14 bg-background border border-border rounded-2xl px-4 text-center text-2xl font-black text-foreground outline-none focus:border-primary"
+                />
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  = {formatBRL(subtotal * (Number(manualDiscountInput) / 100))} de desconto
+                </p>
+              </div>
+            ) : (
+              <CurrencyInput value={manualDiscountValue} onChange={setManualDiscountValue} />
+            )}
+
+            {manualDiscount > 0 && (
+              <button onClick={() => { setManualDiscount(0); setManualDiscountInput(""); setManualDiscountValue(0); setDiscountModalOpen(false); }} className="w-full h-9 rounded-xl border border-destructive/30 text-destructive text-xs font-bold">
+                Remover Desconto
+              </button>
+            )}
+
+            <button onClick={applyManualDiscount} className="w-full h-11 rounded-2xl bg-primary text-primary-foreground text-sm font-black">
+              Aplicar Desconto
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Receipt Modal ─────────────────────────────────────────────── */}
       {receiptData && (
         <SaleReceipt

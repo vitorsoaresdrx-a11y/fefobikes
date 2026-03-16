@@ -18,6 +18,9 @@ export interface CreateSalePayload {
   card_fee: number;
   card_tax_percent: number;
   responsible_name?: string | null;
+  discount_amount?: number;
+  discount_type?: string | null;
+  promotion_id?: string | null;
 }
 
 export function useCreateSale() {
@@ -54,7 +57,7 @@ export function useSales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("id, created_at, customer_id, total, payment_method, card_fee, card_tax_percent, notes, responsible_name, status, sale_items(id, description, quantity, unit_price, part_id, bike_model_id), customers(id, name, whatsapp, cpf)")
+        .select("id, created_at, customer_id, total, payment_method, card_fee, card_tax_percent, notes, responsible_name, status, discount_amount, discount_type, promotion_id, sale_items(id, description, quantity, unit_price, part_id, bike_model_id), customers(id, name, whatsapp, cpf)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

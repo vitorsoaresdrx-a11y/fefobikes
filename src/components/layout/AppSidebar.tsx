@@ -65,6 +65,7 @@ const navGroups = [
     label: "Vendas",
     items: [
       { title: "PDV", url: "/pdv", icon: ShoppingCart },
+      { title: "Promoções", url: "/promocoes", icon: Receipt },
       { title: "Caixa", url: "/caixa", icon: Landmark },
       { title: "Histórico", url: "/historico", icon: ClipboardList },
     ],
