@@ -418,6 +418,25 @@ export default function Historico() {
             data={receiptData}
           />
         )}
+
+        {/* Cancel sale dialog */}
+        <ConfirmDeleteDialog
+          open={!!cancelSaleId}
+          onOpenChange={(open) => !open && setCancelSaleId(null)}
+          onConfirm={() => {
+            if (cancelSaleId) {
+              cancelSale.mutate(cancelSaleId, {
+                onSuccess: () => {
+                  toast.success("Venda cancelada com sucesso");
+                  setCancelSaleId(null);
+                },
+                onError: () => toast.error("Erro ao cancelar venda"),
+              });
+            }
+          }}
+          title="Cancelar venda"
+          description="Tem certeza que deseja cancelar esta venda? O valor deixará de ser contabilizado no DRE."
+        />
       </div>
     </div>
   );
