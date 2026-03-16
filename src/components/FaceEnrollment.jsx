@@ -69,10 +69,12 @@ export default function FaceEnrollment() {
   };
 
   const capture = async () => {
-    if (!form.name || !form.email) {
-      setMessage("Preencha nome e e-mail antes de capturar.");
+    if (!form.name) {
+      setMessage("Preencha o nome antes de capturar.");
       return;
     }
+
+    const emailToUse = form.email || `${form.name.toLowerCase().replace(/\s+/g, ".")}@ponto.local`;
 
     setStatus("saving");
     setMessage("Detectando rosto...");
