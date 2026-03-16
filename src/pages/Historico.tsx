@@ -224,7 +224,7 @@ export default function Historico() {
           customerWhatsapp: customer?.whatsapp || null,
           customerCpf: customer?.cpf || null,
           sales: [sale],
-          totalSpent: Number(sale.total),
+          totalSpent: sale.status !== "cancelled" ? Number(sale.total) : 0,
           lastPurchase: sale.created_at,
         });
       }
