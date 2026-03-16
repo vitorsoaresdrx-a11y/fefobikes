@@ -75,6 +75,7 @@ export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/configuracoes": "configuracoes",
   "/ponto/cadastro": "configuracoes",
   "/precos": "estoque",
+  "/promocoes": "pdv",
 };
 
 export interface TenantMember {
