@@ -470,6 +470,62 @@ export type Database = {
           },
         ]
       }
+      employees: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          department: string | null
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          department?: string | null
+          email: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      face_embeddings: {
+        Row: {
+          created_at: string | null
+          descriptor: Json
+          employee_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          descriptor: Json
+          employee_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          descriptor?: Json
+          employee_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "face_embeddings_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fixed_expenses: {
         Row: {
           active: boolean
@@ -1451,6 +1507,41 @@ export type Database = {
           owner_id?: string
         }
         Relationships: []
+      }
+      time_records: {
+        Row: {
+          confidence: number | null
+          date: string | null
+          employee_id: string
+          id: string
+          timestamp: string | null
+          type: string
+        }
+        Insert: {
+          confidence?: number | null
+          date?: string | null
+          employee_id: string
+          id?: string
+          timestamp?: string | null
+          type: string
+        }
+        Update: {
+          confidence?: number | null
+          date?: string | null
+          employee_id?: string
+          id?: string
+          timestamp?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       variable_expenses: {
         Row: {

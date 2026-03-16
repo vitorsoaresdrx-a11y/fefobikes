@@ -19,6 +19,8 @@ import {
   History,
   FileText,
   Bell,
+  ScanFace,
+  Clock,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
@@ -85,6 +87,13 @@ const navGroups = [
     items: [
       { title: "Gastos", url: "/gastos", icon: Wallet },
       { title: "Contas", url: "/contas", icon: Receipt },
+    ],
+  },
+  {
+    label: "Ponto",
+    items: [
+      { title: "Bater Ponto", url: "/ponto/registro", icon: Clock },
+      { title: "Cadastro Facial", url: "/ponto/cadastro", icon: ScanFace },
     ],
   },
   {
