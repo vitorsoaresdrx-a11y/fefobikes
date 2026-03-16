@@ -221,6 +221,22 @@ export default function PDV() {
     : 0;
   const cardFee = total * (cardTaxPercent / 100);
 
+  const applyManualDiscount = () => {
+    if (manualDiscountType === "percentage") {
+      const pct = Number(manualDiscountInput);
+      if (pct > 0 && pct <= 100) {
+        setManualDiscount(subtotal * (pct / 100));
+      }
+    } else {
+      setManualDiscount(manualDiscountValue);
+    }
+    setDiscountModalOpen(false);
+  };
+      ? cardTaxes?.credit_tax || 0
+      : cardTaxes?.debit_tax || 0
+    : 0;
+  const cardFee = total * (cardTaxPercent / 100);
+
   const categories = useMemo(() => {
     const cats = new Set<string>();
     parts.forEach((p) => p.category && cats.add(p.category));
