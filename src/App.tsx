@@ -109,6 +109,7 @@ function AuthGate() {
         <Route path="/caixa" element={<GuardedRoute module="caixa"><PageTransition><CashRegister /></PageTransition></GuardedRoute>} />
         <Route path="/historico" element={<GuardedRoute module="historico"><PageTransition><Historico /></PageTransition></GuardedRoute>} />
         <Route path="/dre" element={<GuardedRoute module="dre"><PageTransition><DRE /></PageTransition></GuardedRoute>} />
+        <Route path="/metas" element={<GuardedRoute module="dre"><PageTransition><Metas /></PageTransition></GuardedRoute>} />
         <Route path="/gastos" element={<GuardedRoute module="gastos"><PageTransition><Gastos /></PageTransition></GuardedRoute>} />
         <Route path="/mecanica" element={<GuardedRoute module="mecanica"><PageTransition><Mecanica /></PageTransition></GuardedRoute>} />
         <Route path="/mecanicos" element={<GuardedRoute module="mecanica"><PageTransition><Mecanicos /></PageTransition></GuardedRoute>} />

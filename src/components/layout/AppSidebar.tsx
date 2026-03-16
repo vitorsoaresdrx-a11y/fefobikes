@@ -51,6 +51,7 @@ const navGroups = [
     items: [
       { title: "Ações Rápidas", url: "/", icon: LayoutDashboard },
       { title: "Dashboard", url: "/dre", icon: BarChart3 },
+      { title: "Metas", url: "/metas", icon: Target },
     ],
   },
   {
