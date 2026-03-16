@@ -56,8 +56,12 @@ const bikeSchema = z.object({
   cost_price: z.number().min(0).default(0),
   price_store: z.number().min(0).default(0),
   price_ecommerce: z.number().min(0).default(0),
-  installment_price: z.number().min(0).default(0),
-  installment_count: z.number().int().min(1).default(1),
+  installments_enabled_store: z.boolean().default(false),
+  installment_count_store: z.number().int().min(1).default(1),
+  installment_value_store: z.number().min(0).default(0),
+  installments_enabled_ecommerce: z.boolean().default(false),
+  installment_count_ecommerce: z.number().int().min(1).default(1),
+  installment_value_ecommerce: z.number().min(0).default(0),
 });
 
 type BikeFormValues = z.infer<typeof bikeSchema>;
