@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import {
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -11,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
   ChevronRight,
   Activity,
   Target,
+  ShoppingBag,
 } from "lucide-react";
 import { useSales } from "@/hooks/useSales";
 import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
