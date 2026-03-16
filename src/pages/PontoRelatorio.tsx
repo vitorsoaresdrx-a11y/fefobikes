@@ -250,7 +250,7 @@ export default function PontoRelatorio() {
         )}
 
         {!loading && summaries.map((summary) => (
-          <div key={summary.employee.id} className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div key={summary.employee.id} className="bg-card border border-border rounded-2xl">
             {/* Employee Header */}
             <button
               onClick={() => setExpandedEmployee(expandedEmployee === summary.employee.id ? null : summary.employee.id)}
