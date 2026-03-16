@@ -185,11 +185,11 @@ export default function FaceEnrollment() {
             </div>
             <div>
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                <Mail size={10} /> E-mail *
+                <Mail size={10} /> E-mail
               </label>
               <input
                 className="w-full bg-background border border-border rounded-xl h-10 px-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)] transition-all font-bold"
-                placeholder="joao@exemplo.com"
+                placeholder="Opcional"
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
