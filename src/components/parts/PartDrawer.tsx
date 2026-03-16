@@ -293,26 +293,29 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Preço de custo
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                  <Store size={12} /> Preço Loja Física
                 </label>
                 <CurrencyInput
-                  value={unitCost || 0}
-                  onChange={(val) => form.setValue("unit_cost", val)}
+                  value={priceStore || 0}
+                  onChange={(val) => form.setValue("price_store", val)}
                   className="h-11 text-sm rounded-xl"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Preço de venda
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                  <Globe size={12} /> Preço E-commerce
                 </label>
                 <CurrencyInput
-                  value={salePrice || 0}
-                  onChange={(val) => form.setValue("sale_price", val)}
+                  value={priceEcommerce || 0}
+                  onChange={(val) => form.setValue("price_ecommerce", val)}
                   className="h-11 text-sm rounded-xl"
                 />
               </div>
             </div>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">
+              Deixe em branco para não exibir o preço naquele canal.
+            </p>
 
             {/* Profit preview */}
             {(unitCost > 0 || salePrice > 0) && (
