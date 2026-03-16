@@ -300,6 +300,7 @@ export default function DRE() {
     }));
 
     sales.forEach((sale: any) => {
+      if (sale.status === "cancelled") return;
       const date = new Date(sale.created_at);
       if (date.getFullYear() !== selectedYear || date.getMonth() !== selectedMonth) return;
       const d = date.getDate() - 1;
