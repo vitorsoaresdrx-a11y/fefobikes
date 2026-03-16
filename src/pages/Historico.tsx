@@ -114,8 +114,13 @@ function SaleRow({
           >
             {paymentLabel[method] || method}
           </span>
+          {isCancelled && (
+            <Badge variant="destructive" className="ml-1 mt-1 text-[9px] px-2 py-0.5">
+              Cancelada
+            </Badge>
+          )}
         </div>
-        <p className="text-sm font-black text-white shrink-0">
+        <p className={`text-sm font-black shrink-0 ${isCancelled ? "line-through text-muted-foreground" : "text-white"}`}>
           {formatBRL(Number(sale.total))}
         </p>
         <ChevronDown
