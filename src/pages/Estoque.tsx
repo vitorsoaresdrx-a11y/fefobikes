@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { useInsertStockEntry } from "@/hooks/usePriceHistory";
 import {
   Search,
   AlertTriangle,
