@@ -87,8 +87,8 @@ export default function EmployeeList({ refreshKey, onReRegister }) {
               {emp.department && (
                 <p className="text-[10px] text-muted-foreground/60 truncate">{emp.department}</p>
               )}
-              <p className={`text-[10px] font-bold mt-1 ${emp.face_embeddings?.length ? "text-emerald-400" : "text-amber-400"}`}>
-                {emp.face_embeddings?.length ? "✓ Rosto cadastrado" : "⚠ Sem rosto"}
+              <p className={`text-[10px] font-bold mt-1 ${emp.face_embeddings ? "text-emerald-400" : "text-amber-400"}`}>
+                {emp.face_embeddings ? "✓ Rosto cadastrado" : "⚠ Sem rosto"}
               </p>
             </div>
 
