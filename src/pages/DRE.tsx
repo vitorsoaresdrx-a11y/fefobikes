@@ -349,11 +349,13 @@ export default function DRE() {
         cardFees: acc.cardFees + m.cardFees,
         taxes: acc.taxes + m.taxes,
         variableExpenses: acc.variableExpenses + m.variableExpenses,
+        promotionDiscounts: acc.promotionDiscounts + m.promotionDiscounts,
+        manualDiscounts: acc.manualDiscounts + m.manualDiscounts,
       }),
-      { revenue: 0, cardFees: 0, taxes: 0, variableExpenses: 0 }
+      { revenue: 0, cardFees: 0, taxes: 0, variableExpenses: 0, promotionDiscounts: 0, manualDiscounts: 0 }
     );
     const totalFixed = monthlyFixedCost * monthsInScope;
-    const netRevenue = t.revenue - t.taxes - t.cardFees;
+    const netRevenue = t.revenue - t.taxes - t.cardFees - t.promotionDiscounts - t.manualDiscounts;
     const netProfit = netRevenue - totalFixed - t.variableExpenses - yearCMV;
     return { ...t, fixedExpenses: totalFixed, netRevenue, netProfit, cmv: yearCMV };
   }, [monthlyData, monthlyFixedCost, monthsInScope, yearCMV]);
