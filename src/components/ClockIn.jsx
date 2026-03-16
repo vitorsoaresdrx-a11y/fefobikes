@@ -1,33 +1,38 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import * as faceapi from "face-api.js";
-import { supabase } from "@/integrations/supabase/client"; // ajuste o path se necessário
+import { supabase } from "@/integrations/supabase/client";
 
 const MODELS_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
-const SIMILARITY_THRESHOLD = 0.5; // distância máxima para considerar match (menor = mais rigoroso)
+const SIMILARITY_THRESHOLD = 0.5;
+const AUTO_DETECT_INTERVAL = 1500; // ms entre tentativas automáticas
 
 export default function ClockIn() {
   const videoRef = useRef(null);
+  const autoDetectRef = useRef(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [labeledDescriptors, setLabeledDescriptors] = useState(null);
-  const [status, setStatus] = useState("idle"); // idle | loading | ready | recognizing | success | error
+  const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [lastRecord, setLastRecord] = useState(null);
+  const [loadProgress, setLoadProgress] = useState("");
+  const labeledRef = useRef(null);
 
   // Carrega modelos e descritores do banco
   useEffect(() => {
     const init = async () => {
       setStatus("loading");
-      setMessage("Carregando sistema...");
 
       try {
-        // Carrega modelos
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(MODELS_URL),
-          faceapi.nets.faceLandmark68Net.loadFromUri(MODELS_URL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(MODELS_URL),
-        ]);
+        setLoadProgress("Carregando detector de rosto...");
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODELS_URL);
 
-        // Carrega todos os funcionários e seus descritores
+        setLoadProgress("Carregando pontos faciais...");
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODELS_URL);
+
+        setLoadProgress("Carregando reconhecimento...");
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODELS_URL);
+
+        setLoadProgress("Carregando funcionários...");
         const { data, error } = await supabase
           .from("face_embeddings")
           .select("employee_id, descriptor, employees(name)");
@@ -39,7 +44,6 @@ export default function ClockIn() {
           return;
         }
 
-        // Monta os LabeledFaceDescriptors para o matcher
         const labeled = data.map((row) => {
           const descriptor = new Float32Array(row.descriptor);
           return new faceapi.LabeledFaceDescriptors(
@@ -49,67 +53,55 @@ export default function ClockIn() {
         });
 
         setLabeledDescriptors(labeled);
+        labeledRef.current = labeled;
         setModelsLoaded(true);
         setStatus("idle");
-        setMessage("");
+        setMessage("Sistema pronto! Abra a câmera para registrar.");
+        setLoadProgress("");
       } catch (err) {
         setStatus("error");
         setMessage("Erro ao inicializar: " + (err.message || "tente novamente."));
+        setLoadProgress("");
       }
     };
 
     init();
+    return () => {
+      if (autoDetectRef.current) clearInterval(autoDetectRef.current);
+    };
   }, []);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoRef.current.srcObject = stream;
-      setStatus("ready");
-      setMessage("Posicione o rosto e clique em Reconhecer.");
-      setLastRecord(null);
-    } catch {
-      setStatus("error");
-      setMessage("Não foi possível acessar a câmera.");
+  const stopCamera = useCallback(() => {
+    if (autoDetectRef.current) {
+      clearInterval(autoDetectRef.current);
+      autoDetectRef.current = null;
     }
-  };
-
-  const stopCamera = () => {
     const stream = videoRef.current?.srcObject;
     stream?.getTracks().forEach((t) => t.stop());
     if (videoRef.current) videoRef.current.srcObject = null;
-  };
+  }, []);
 
-  const recognize = async () => {
-    setStatus("recognizing");
-    setMessage("Reconhecendo...");
+  const doRecognize = useCallback(async () => {
+    if (!videoRef.current || !labeledRef.current) return false;
 
     const detection = await faceapi
-      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
       .withFaceLandmarks()
       .withFaceDescriptor();
 
-    if (!detection) {
-      setStatus("ready");
-      setMessage("Rosto não detectado. Verifique a iluminação e tente novamente.");
-      return;
-    }
+    if (!detection) return false;
 
-    const matcher = new faceapi.FaceMatcher(labeledDescriptors, SIMILARITY_THRESHOLD);
+    const matcher = new faceapi.FaceMatcher(labeledRef.current, SIMILARITY_THRESHOLD);
     const match = matcher.findBestMatch(detection.descriptor);
 
     if (match.label === "unknown") {
-      setStatus("ready");
-      setMessage("Funcionário não reconhecido. Tente novamente ou verifique o cadastro.");
-      return;
+      setMessage("Rosto não reconhecido... Ajuste a posição.");
+      return false;
     }
 
-    // Extrai id e nome do label
     const { id: employeeId, name } = JSON.parse(match.label);
     const confidence = parseFloat((1 - match.distance).toFixed(3));
 
-    // Determina se é entrada ou saída
-    // Busca o último registro do dia para decidir o tipo
     const today = new Date().toISOString().split("T")[0];
     const { data: lastEntry } = await supabase
       .from("time_records")
@@ -123,7 +115,6 @@ export default function ClockIn() {
     const type =
       !lastEntry || lastEntry.type === "clock_out" ? "clock_in" : "clock_out";
 
-    // Salva o registro
     const { error } = await supabase.from("time_records").insert({
       employee_id: employeeId,
       type,
@@ -131,9 +122,8 @@ export default function ClockIn() {
     });
 
     if (error) {
-      setStatus("ready");
       setMessage("Erro ao registrar ponto: " + error.message);
-      return;
+      return false;
     }
 
     const typeLabel = type === "clock_in" ? "Entrada" : "Saída";
@@ -143,13 +133,39 @@ export default function ClockIn() {
     setStatus("success");
     setLastRecord({ name, type: typeLabel, time, confidence });
     setMessage("");
+    return true;
+  }, [stopCamera]);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+      });
+      videoRef.current.srcObject = stream;
+      setStatus("ready");
+      setMessage("Detectando automaticamente... Olhe para a câmera.");
+      setLastRecord(null);
+
+      // Inicia detecção automática contínua
+      if (autoDetectRef.current) clearInterval(autoDetectRef.current);
+      autoDetectRef.current = setInterval(async () => {
+        const found = await doRecognize();
+        if (found && autoDetectRef.current) {
+          clearInterval(autoDetectRef.current);
+          autoDetectRef.current = null;
+        }
+      }, AUTO_DETECT_INTERVAL);
+    } catch {
+      setStatus("error");
+      setMessage("Não foi possível acessar a câmera.");
+    }
   };
 
   return (
     <div className="max-w-md mx-auto p-6 space-y-4">
-      <h2 className="text-xl font-semibold">Registro de Ponto</h2>
+      <h2 className="text-xl font-semibold text-foreground">Registro de Ponto</h2>
 
-      <div className="relative bg-black rounded overflow-hidden aspect-video">
+      <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
         <video
           ref={videoRef}
           autoPlay
@@ -157,28 +173,45 @@ export default function ClockIn() {
           playsInline
           className="w-full h-full object-cover"
         />
+        {status === "ready" && (
+          <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+            <span className="bg-primary/80 text-primary-foreground text-xs px-3 py-1 rounded-full animate-pulse">
+              🔍 Detectando rosto...
+            </span>
+          </div>
+        )}
         {status !== "ready" && status !== "recognizing" && (
-          <div className="absolute inset-0 flex items-center justify-center text-white text-sm opacity-60">
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
             Câmera desligada
           </div>
         )}
       </div>
 
+      {/* Loading progress */}
+      {status === "loading" && loadProgress && (
+        <div className="space-y-2">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: "60%" }} />
+          </div>
+          <p className="text-xs text-muted-foreground text-center">{loadProgress}</p>
+        </div>
+      )}
+
       {/* Resultado do reconhecimento */}
       {lastRecord && status === "success" && (
-        <div className="bg-green-50 border border-green-200 rounded p-4 space-y-1">
-          <p className="font-semibold text-green-800 text-lg">{lastRecord.name}</p>
-          <p className="text-green-700">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 space-y-1">
+          <p className="font-semibold text-emerald-400 text-lg">{lastRecord.name}</p>
+          <p className="text-emerald-300">
             {lastRecord.type} registrada às {lastRecord.time}
           </p>
-          <p className="text-green-500 text-xs">
+          <p className="text-emerald-500/60 text-xs">
             Confiança: {(lastRecord.confidence * 100).toFixed(1)}%
           </p>
         </div>
       )}
 
-      {message && (
-        <p className={`text-sm ${status === "error" ? "text-red-500" : "text-gray-500"}`}>
+      {message && status !== "success" && (
+        <p className={`text-sm ${status === "error" ? "text-destructive" : "text-muted-foreground"}`}>
           {message}
         </p>
       )}
@@ -186,24 +219,24 @@ export default function ClockIn() {
       <div className="flex gap-2">
         {status !== "ready" && status !== "recognizing" ? (
           <button
-            onClick={() => { startCamera(); setStatus("ready"); }}
+            onClick={startCamera}
             disabled={!modelsLoaded || status === "loading"}
-            className="flex-1 bg-blue-600 text-white rounded py-2 disabled:opacity-50"
+            className="flex-1 bg-primary text-primary-foreground rounded-lg py-2.5 font-medium disabled:opacity-50 transition-colors"
           >
-            {status === "loading" ? "Carregando..." : "Abrir Câmera"}
+            {status === "loading" ? "Carregando modelos..." : status === "success" ? "Novo Registro" : "Abrir Câmera"}
           </button>
         ) : (
           <>
             <button
-              onClick={recognize}
+              onClick={doRecognize}
               disabled={status === "recognizing"}
-              className="flex-1 bg-green-600 text-white rounded py-2 disabled:opacity-50"
+              className="flex-1 bg-emerald-600 text-primary-foreground rounded-lg py-2.5 font-medium disabled:opacity-50"
             >
-              {status === "recognizing" ? "Reconhecendo..." : "Registrar Ponto"}
+              Registrar Agora
             </button>
             <button
               onClick={() => { stopCamera(); setStatus("idle"); setMessage(""); }}
-              className="px-4 border rounded py-2"
+              className="px-4 border border-border rounded-lg py-2.5 text-foreground"
             >
               Cancelar
             </button>
