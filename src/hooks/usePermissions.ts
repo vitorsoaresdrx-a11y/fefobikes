@@ -74,6 +74,7 @@ export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/whatsapp": "whatsapp",
   "/configuracoes": "configuracoes",
   "/ponto/cadastro": "configuracoes",
+  "/precos": "estoque",
 };
 
 export interface TenantMember {
