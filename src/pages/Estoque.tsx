@@ -586,7 +586,7 @@ export default function Estoque() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                       Quantidade para {mode === "add" ? "Adicionar" : "Retirar"}
@@ -598,15 +598,48 @@ export default function Estoque() {
                       value={qty}
                       onChange={(e) => setQty(e.target.value)}
                       placeholder="0"
-                      className="w-full h-14 bg-card border border-border rounded-2xl px-6 text-2xl font-black text-white outline-none focus:border-primary transition-all"
+                      className="w-full h-14 bg-card border border-border rounded-2xl px-6 text-2xl font-black text-foreground outline-none focus:border-primary transition-all"
                     />
                   </div>
+
+                  {mode === "add" && (
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                          Preço de Custo Unitário *
+                        </label>
+                        <CurrencyInput value={unitCost} onChange={setUnitCost} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                          Fornecedor
+                        </label>
+                        <input
+                          placeholder="Ex: Shimano Brasil, fornecedor local..."
+                          value={supplierName}
+                          onChange={(e) => setSupplierName(e.target.value)}
+                          className="w-full h-11 bg-card border border-border rounded-2xl px-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                          Observações
+                        </label>
+                        <input
+                          placeholder="Opcional..."
+                          value={entryNotes}
+                          onChange={(e) => setEntryNotes(e.target.value)}
+                          className="w-full h-11 bg-card border border-border rounded-2xl px-4 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {qty && parseInt(qty) > 0 && (
                     <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
                       <span>{selectedItem.stock_qty}</span>
                       <ArrowRight size={14} />
-                      <span className="font-black text-white text-lg">
+                      <span className="font-black text-foreground text-lg">
                         {mode === "add"
                           ? selectedItem.stock_qty + (parseInt(qty) || 0)
                           : Math.max(0, selectedItem.stock_qty - (parseInt(qty) || 0))}
