@@ -1033,8 +1033,8 @@ function drawWheel(wx,wy,r) {
 }
 
 resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-initClouds(); initStars(); initKites();
+window.addEventListener('resize', () => { resizeCanvas(); initBuildings(); });
+initClouds(); initStars(); initKites(); initBuildings();
 requestAnimationFrame(gameLoop);
 document.getElementById('gameOverScreen').style.display='none';
 </script>
