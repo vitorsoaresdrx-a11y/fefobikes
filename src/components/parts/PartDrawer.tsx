@@ -291,6 +291,17 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                Preço de custo
+              </label>
+              <CurrencyInput
+                value={unitCost || 0}
+                onChange={(val) => form.setValue("unit_cost", val)}
+                className="h-11 text-sm rounded-xl"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
@@ -318,7 +329,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
             </p>
 
             {/* Profit preview */}
-            {(unitCost > 0 || salePrice > 0) && (
+            {(unitCost > 0 || priceStore > 0) && (
               <div className="p-3 rounded-xl border border-border bg-background/50 flex justify-between items-center">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Lucro por unidade
