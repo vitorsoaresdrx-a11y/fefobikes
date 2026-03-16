@@ -100,7 +100,13 @@ export type Database = {
           id: string
           images: string[] | null
           installment_count: number | null
+          installment_count_ecommerce: number | null
+          installment_count_store: number | null
           installment_price: number | null
+          installment_value_ecommerce: number | null
+          installment_value_store: number | null
+          installments_enabled_ecommerce: boolean | null
+          installments_enabled_store: boolean | null
           name: string
           pix_price: number | null
           price_ecommerce: number | null
@@ -127,7 +133,13 @@ export type Database = {
           id?: string
           images?: string[] | null
           installment_count?: number | null
+          installment_count_ecommerce?: number | null
+          installment_count_store?: number | null
           installment_price?: number | null
+          installment_value_ecommerce?: number | null
+          installment_value_store?: number | null
+          installments_enabled_ecommerce?: boolean | null
+          installments_enabled_store?: boolean | null
           name: string
           pix_price?: number | null
           price_ecommerce?: number | null
@@ -154,7 +166,13 @@ export type Database = {
           id?: string
           images?: string[] | null
           installment_count?: number | null
+          installment_count_ecommerce?: number | null
+          installment_count_store?: number | null
           installment_price?: number | null
+          installment_value_ecommerce?: number | null
+          installment_value_store?: number | null
+          installments_enabled_ecommerce?: boolean | null
+          installments_enabled_store?: boolean | null
           name?: string
           pix_price?: number | null
           price_ecommerce?: number | null
@@ -1954,7 +1972,13 @@ export type Database = {
           id: string | null
           images: string[] | null
           installment_count: number | null
+          installment_count_ecommerce: number | null
+          installment_count_store: number | null
           installment_price: number | null
+          installment_value_ecommerce: number | null
+          installment_value_store: number | null
+          installments_enabled_ecommerce: boolean | null
+          installments_enabled_store: boolean | null
           name: string | null
           pix_price: number | null
           price_ecommerce: number | null
@@ -1977,7 +2001,13 @@ export type Database = {
           id?: string | null
           images?: string[] | null
           installment_count?: number | null
+          installment_count_ecommerce?: number | null
+          installment_count_store?: number | null
           installment_price?: number | null
+          installment_value_ecommerce?: number | null
+          installment_value_store?: number | null
+          installments_enabled_ecommerce?: boolean | null
+          installments_enabled_store?: boolean | null
           name?: string | null
           pix_price?: number | null
           price_ecommerce?: number | null
@@ -2000,7 +2030,13 @@ export type Database = {
           id?: string | null
           images?: string[] | null
           installment_count?: number | null
+          installment_count_ecommerce?: number | null
+          installment_count_store?: number | null
           installment_price?: number | null
+          installment_value_ecommerce?: number | null
+          installment_value_store?: number | null
+          installments_enabled_ecommerce?: boolean | null
+          installments_enabled_store?: boolean | null
           name?: string | null
           pix_price?: number | null
           price_ecommerce?: number | null

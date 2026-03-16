@@ -56,8 +56,12 @@ const bikeSchema = z.object({
   cost_price: z.number().min(0).default(0),
   price_store: z.number().min(0).default(0),
   price_ecommerce: z.number().min(0).default(0),
-  installment_price: z.number().min(0).default(0),
-  installment_count: z.number().int().min(1).default(1),
+  installments_enabled_store: z.boolean().default(false),
+  installment_count_store: z.number().int().min(1).default(1),
+  installment_value_store: z.number().min(0).default(0),
+  installments_enabled_ecommerce: z.boolean().default(false),
+  installment_count_ecommerce: z.number().int().min(1).default(1),
+  installment_value_ecommerce: z.number().min(0).default(0),
 });
 
 type BikeFormValues = z.infer<typeof bikeSchema>;
@@ -169,8 +173,12 @@ export default function BikeForm() {
       cost_price: 0,
       price_store: 0,
       price_ecommerce: 0,
-      installment_price: 0,
-      installment_count: 1,
+      installments_enabled_store: false,
+      installment_count_store: 1,
+      installment_value_store: 0,
+      installments_enabled_ecommerce: false,
+      installment_count_ecommerce: 1,
+      installment_value_ecommerce: 0,
     },
   });
 
@@ -178,8 +186,12 @@ export default function BikeForm() {
   const costPrice = form.watch("cost_price");
   const priceStore = form.watch("price_store");
   const priceEcommerce = form.watch("price_ecommerce");
-  const installmentPrice = form.watch("installment_price");
-  const installmentCount = form.watch("installment_count");
+  const installmentsEnabledStore = form.watch("installments_enabled_store");
+  const installmentCountStore = form.watch("installment_count_store");
+  const installmentValueStore = form.watch("installment_value_store");
+  const installmentsEnabledEcommerce = form.watch("installments_enabled_ecommerce");
+  const installmentCountEcommerce = form.watch("installment_count_ecommerce");
+  const installmentValueEcommerce = form.watch("installment_value_ecommerce");
 
   const manualCost = useMemo(
     () => templateParts.reduce((sum, p) => sum + p.unit_cost * p.quantity, 0),
@@ -210,8 +222,12 @@ export default function BikeForm() {
         cost_price: Number((bike as any).cost_price) || 0,
         price_store: Number((bike as any).price_store) || Number((bike as any).sale_price) || 0,
         price_ecommerce: Number((bike as any).price_ecommerce) || 0,
-        installment_price: Number((bike as any).installment_price) || 0,
-        installment_count: Number((bike as any).installment_count) || 1,
+        installments_enabled_store: !!(bike as any).installments_enabled_store,
+        installment_count_store: Number((bike as any).installment_count_store) || Number((bike as any).installment_count) || 1,
+        installment_value_store: Number((bike as any).installment_value_store) || Number((bike as any).installment_price) || 0,
+        installments_enabled_ecommerce: !!(bike as any).installments_enabled_ecommerce,
+        installment_count_ecommerce: Number((bike as any).installment_count_ecommerce) || 1,
+        installment_value_ecommerce: Number((bike as any).installment_value_ecommerce) || 0,
       });
       setBikeImages((bike as any).images || []);
     }
@@ -285,8 +301,14 @@ export default function BikeForm() {
         pix_price: values.price_store,
         price_store: values.price_store || null,
         price_ecommerce: values.price_ecommerce || null,
-        installment_price: values.installment_price,
-        installment_count: values.installment_count,
+        installments_enabled_store: values.installments_enabled_store,
+        installment_count_store: values.installments_enabled_store ? values.installment_count_store : null,
+        installment_value_store: values.installments_enabled_store ? values.installment_value_store : null,
+        installments_enabled_ecommerce: values.installments_enabled_ecommerce,
+        installment_count_ecommerce: values.installments_enabled_ecommerce ? values.installment_count_ecommerce : null,
+        installment_value_ecommerce: values.installments_enabled_ecommerce ? values.installment_value_ecommerce : null,
+        installment_price: values.installments_enabled_store ? values.installment_value_store : (values.installments_enabled_ecommerce ? values.installment_value_ecommerce : 0),
+        installment_count: values.installments_enabled_store ? values.installment_count_store : (values.installments_enabled_ecommerce ? values.installment_count_ecommerce : 1),
         images: bikeImages,
       };
       if (isEditing && values.sku) payload.sku = values.sku;
@@ -452,84 +474,105 @@ export default function BikeForm() {
             <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-6">
               <SectionHeader title="Financeiro" icon={DollarSign} />
 
-              {/* Dual pricing */}
-              <div className="p-8 bg-background border border-border rounded-[32px] relative overflow-hidden group">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4 block">
-                  Preços por Canal
-                </label>
-                <div className="grid grid-cols-2 gap-4 relative z-10">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
-                      <Store size={10} /> Loja Física
-                    </p>
-                    <CurrencyInput
-                      value={priceStore || 0}
-                      onChange={(val) => form.setValue("price_store", val)}
-                      className="text-xl font-black h-14 rounded-2xl"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
-                      <Globe size={10} /> E-commerce
-                    </p>
-                    <CurrencyInput
-                      value={priceEcommerce || 0}
-                      onChange={(val) => form.setValue("price_ecommerce", val)}
-                      className="text-xl font-black h-14 rounded-2xl"
-                    />
-                  </div>
-                </div>
-                <p className="text-[9px] text-muted-foreground/70 font-bold uppercase tracking-widest mt-2">
-                  Deixe em branco para não exibir naquele canal
+              {/* Loja Física */}
+              <div className="p-5 bg-background border border-border rounded-[28px] space-y-4">
+                <p className="text-xs font-black text-white flex items-center gap-1.5">
+                  <Store size={13} className="text-muted-foreground" /> Loja Física
                 </p>
-              </div>
-
-              {/* Installment */}
-              <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-[28px] space-y-4">
-                <div className="flex items-center gap-2">
-                  <CreditCard size={14} className="text-indigo-400" />
-                  <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
-                    Parcelamento no Cartão
-                  </span>
+                <div>
+                  <p className="text-[10px] text-muted-foreground mb-1">Preço à vista</p>
+                  <CurrencyInput
+                    value={priceStore || 0}
+                    onChange={(val) => form.setValue("price_store", val)}
+                    className="text-xl font-black h-14 rounded-2xl"
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                      Valor da Parcela
-                    </label>
-                    <CurrencyInput
-                      value={installmentPrice || 0}
-                      onChange={(val) => form.setValue("installment_price", val)}
-                      className="h-11 rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                      Nº Parcelas
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={24}
-                      value={installmentCount}
-                      onChange={(e) =>
-                        form.setValue(
-                          "installment_count",
-                          parseInt(e.target.value) || 1
-                        )
-                      }
-                      className="w-full h-11 bg-secondary border border-border rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-indigo-500 transition-all"
-                    />
-                  </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] text-muted-foreground">Oferecer parcelamento</p>
+                  <Switch
+                    checked={installmentsEnabledStore}
+                    onCheckedChange={(val) => form.setValue("installments_enabled_store", val)}
+                  />
                 </div>
-                {installmentPrice > 0 && (
-                  <p className="text-2xl font-black text-white">
-                    {installmentCount}x{" "}
-                    <span className="text-sm font-bold text-muted-foreground">de</span>{" "}
-                    {formatBRL(installmentPrice)}
-                  </p>
+                {installmentsEnabledStore && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Nº Parcelas</label>
+                      <input
+                        type="number" min={2} max={48}
+                        value={installmentCountStore}
+                        onChange={(e) => form.setValue("installment_count_store", parseInt(e.target.value) || 1)}
+                        className="w-full h-11 bg-secondary border border-border rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-primary transition-all text-center"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Valor Parcela</label>
+                      <CurrencyInput
+                        value={installmentValueStore || 0}
+                        onChange={(val) => form.setValue("installment_value_store", val)}
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+                    {installmentCountStore > 0 && installmentValueStore > 0 && (
+                      <p className="col-span-2 text-[10px] text-muted-foreground text-center">
+                        {installmentCountStore}x de {formatBRL(installmentValueStore)} = {formatBRL(installmentCountStore * installmentValueStore)}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
+
+              {/* E-commerce */}
+              <div className="p-5 bg-background border border-border rounded-[28px] space-y-4">
+                <p className="text-xs font-black text-white flex items-center gap-1.5">
+                  <Globe size={13} className="text-primary" /> E-commerce
+                </p>
+                <div>
+                  <p className="text-[10px] text-muted-foreground mb-1">Preço à vista</p>
+                  <CurrencyInput
+                    value={priceEcommerce || 0}
+                    onChange={(val) => form.setValue("price_ecommerce", val)}
+                    className="text-xl font-black h-14 rounded-2xl"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] text-muted-foreground">Oferecer parcelamento</p>
+                  <Switch
+                    checked={installmentsEnabledEcommerce}
+                    onCheckedChange={(val) => form.setValue("installments_enabled_ecommerce", val)}
+                  />
+                </div>
+                {installmentsEnabledEcommerce && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Nº Parcelas</label>
+                      <input
+                        type="number" min={2} max={48}
+                        value={installmentCountEcommerce}
+                        onChange={(e) => form.setValue("installment_count_ecommerce", parseInt(e.target.value) || 1)}
+                        className="w-full h-11 bg-secondary border border-border rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-primary transition-all text-center"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Valor Parcela</label>
+                      <CurrencyInput
+                        value={installmentValueEcommerce || 0}
+                        onChange={(val) => form.setValue("installment_value_ecommerce", val)}
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+                    {installmentCountEcommerce > 0 && installmentValueEcommerce > 0 && (
+                      <p className="col-span-2 text-[10px] text-muted-foreground text-center">
+                        {installmentCountEcommerce}x de {formatBRL(installmentValueEcommerce)} = {formatBRL(installmentCountEcommerce * installmentValueEcommerce)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-[9px] text-muted-foreground/70 font-bold uppercase tracking-widest">
+                Deixe em branco para não exibir naquele canal
+              </p>
 
               {/* Logística */}
               <div className="space-y-4 pt-2">
