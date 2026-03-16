@@ -176,7 +176,8 @@ export default function BikeForm() {
 
   const costMode = form.watch("cost_mode");
   const costPrice = form.watch("cost_price");
-  const pixPrice = form.watch("pix_price");
+  const priceStore = form.watch("price_store");
+  const priceEcommerce = form.watch("price_ecommerce");
   const installmentPrice = form.watch("installment_price");
   const installmentCount = form.watch("installment_count");
 
