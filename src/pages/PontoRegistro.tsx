@@ -76,6 +76,7 @@ export default function PontoRegistro() {
   const autoDetectRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const labeledRef = useRef<faceapi.LabeledFaceDescriptors[] | null>(null);
   const recognizedMapRef = useRef<Map<string, RecognizedPerson>>(new Map());
+  const pendingStreamRef = useRef<MediaStream | null>(null);
 
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState("");
@@ -221,8 +222,15 @@ export default function PontoRegistro() {
       clearInterval(autoDetectRef.current);
       autoDetectRef.current = null;
     }
-    const stream = videoRef.current?.srcObject as MediaStream | null;
-    stream?.getTracks().forEach((t) => t.stop());
+
+    const attachedStream = videoRef.current?.srcObject as MediaStream | null;
+    attachedStream?.getTracks().forEach((t) => t.stop());
+
+    if (pendingStreamRef.current && pendingStreamRef.current !== attachedStream) {
+      pendingStreamRef.current.getTracks().forEach((t) => t.stop());
+    }
+    pendingStreamRef.current = null;
+
     if (videoRef.current) videoRef.current.srcObject = null;
     setCameraOpen(false);
   }, []);
@@ -268,21 +276,49 @@ export default function PontoRegistro() {
     setRecognizedList([]);
 
     try {
+      // getUserMedia precisa ser acionado diretamente pelo clique
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setCameraOpen(true);
 
-      // Start continuous detection
-      if (autoDetectRef.current) clearInterval(autoDetectRef.current);
-      autoDetectRef.current = setInterval(detectFaces, AUTO_DETECT_INTERVAL);
-    } catch {
+      pendingStreamRef.current = stream;
+      setCameraOpen(true);
+    } catch (err) {
+      console.error("Falha ao abrir câmera no PontoRegistro:", err);
       setMessage("Não foi possível acessar a câmera.");
     }
   };
+
+  // Anexa stream somente depois que o <video> existir no DOM
+  useEffect(() => {
+    if (!cameraOpen) return;
+
+    const video = videoRef.current;
+    const stream = pendingStreamRef.current;
+    if (!video || !stream) return;
+
+    let cancelled = false;
+
+    const attachAndStart = async () => {
+      video.srcObject = stream;
+      try {
+        await video.play();
+      } catch {
+        // Ignora: alguns navegadores já reproduzem via autoPlay
+      }
+
+      if (cancelled) return;
+
+      if (autoDetectRef.current) clearInterval(autoDetectRef.current);
+      autoDetectRef.current = setInterval(detectFaces, AUTO_DETECT_INTERVAL);
+    };
+
+    attachAndStart();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cameraOpen, detectFaces]);
 
   // "Pronto" button — register all recognized people
   const handleConfirm = async () => {
