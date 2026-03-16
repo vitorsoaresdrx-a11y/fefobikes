@@ -171,44 +171,34 @@ export default function PontoRelatorio() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <div className="max-w-6xl mx-auto p-6 md:p-12 space-y-8">
+      <div className="max-w-6xl mx-auto p-4 md:p-12 space-y-4 md:space-y-8">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-[24px] bg-card border border-border flex items-center justify-center shadow-2xl">
-              <CalendarDays size={32} className="text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-foreground tracking-tighter uppercase leading-none mb-1">
-                Relatório de Ponto
-              </h1>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
-                Controle de frequência mensal
-              </p>
-            </div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+            <CalendarDays size={18} className="text-primary" />
           </div>
-        </header>
+          <div>
+            <h1 className="text-base font-black uppercase tracking-tight whitespace-nowrap">Relatório de Ponto</h1>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Controle de Frequência Mensal</p>
+          </div>
+        </div>
 
-        {/* Month Selector */}
-        <div className="flex items-center justify-center gap-4">
-          <button onClick={prevMonth} className="p-3 rounded-xl bg-card border border-border hover:bg-muted transition-colors">
-            <ChevronLeft size={20} className="text-foreground" />
+        {/* Month Selector — arrows inside card */}
+        <div className="flex items-center justify-between bg-card border border-border rounded-2xl px-4 py-3 mb-4">
+          <button onClick={prevMonth} className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft size={16} />
           </button>
-          <div className="bg-card border border-border rounded-2xl px-8 py-4 min-w-[260px] text-center">
-            <p className="text-xl font-black text-foreground uppercase tracking-tight capitalize">
-              {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-            </p>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-              {workDays.length} dias úteis
-            </p>
+          <div className="text-center">
+            <p className="text-sm font-black capitalize">{format(currentMonth, "MMMM yyyy", { locale: ptBR })}</p>
+            <p className="text-[10px] text-muted-foreground">{workDays.length} dias úteis</p>
           </div>
           <button
             onClick={nextMonth}
             disabled={startOfMonth(new Date()).getTime() <= currentMonth.getTime()}
-            className="p-3 rounded-xl bg-card border border-border hover:bg-muted transition-colors disabled:opacity-30"
+            className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
           >
-            <ChevronRight size={20} className="text-foreground" />
+            <ChevronRight size={16} />
           </button>
         </div>
 
@@ -221,32 +211,32 @@ export default function PontoRelatorio() {
 
         {/* Summary Cards */}
         {!loading && summaries.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-card border border-border rounded-[24px] p-6 space-y-1">
-              <Users size={18} className="text-primary" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="p-3 rounded-2xl bg-card border border-border">
+              <Users size={14} className="text-primary mb-2" />
               <p className="text-2xl font-black text-foreground">{employees.length}</p>
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Funcionários</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1">Funcionários</p>
             </div>
-            <div className="bg-card border border-border rounded-[24px] p-6 space-y-1">
-              <Timer size={18} className="text-emerald-400" />
-              <p className="text-2xl font-black text-foreground">
+            <div className="p-3 rounded-2xl bg-card border border-border">
+              <Timer size={14} className="text-emerald-400 mb-2" />
+              <p className="text-lg font-black text-foreground whitespace-nowrap">
                 {formatDuration(summaries.reduce((s, e) => s + e.totalHours * 60, 0) / Math.max(employees.length, 1))}
               </p>
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Média Horas/Func.</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1">Média Horas/Func.</p>
             </div>
-            <div className="bg-card border border-border rounded-[24px] p-6 space-y-1">
-              <Coffee size={18} className="text-amber-400" />
-              <p className="text-2xl font-black text-foreground">
+            <div className="p-3 rounded-2xl bg-card border border-border">
+              <Coffee size={14} className="text-amber-400 mb-2" />
+              <p className="text-lg font-black text-foreground whitespace-nowrap">
                 {formatDuration(summaries.reduce((s, e) => s + e.totalBreakMinutes, 0) / Math.max(employees.length, 1))}
               </p>
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Média Intervalo</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1">Média Intervalo</p>
             </div>
-            <div className="bg-card border border-border rounded-[24px] p-6 space-y-1">
-              <AlertTriangle size={18} className="text-destructive" />
-              <p className="text-2xl font-black text-foreground">
+            <div className="p-3 rounded-2xl bg-card border border-border">
+              <AlertTriangle size={14} className="text-destructive mb-2" />
+              <p className="text-2xl font-black text-destructive">
                 {summaries.reduce((s, e) => s + e.absences, 0)}
               </p>
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Total Faltas</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1">Total Faltas</p>
             </div>
           </div>
         )}
@@ -255,31 +245,31 @@ export default function PontoRelatorio() {
         {!loading && summaries.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             <Users size={48} className="mx-auto mb-4 opacity-30" />
-            <p className="font-bold">Nenhum funcionário cadastrado</p>
+            <p className="font-bold text-sm">Nenhum funcionário cadastrado</p>
           </div>
         )}
 
         {!loading && summaries.map((summary) => (
-          <div key={summary.employee.id} className="bg-card border border-border rounded-[32px] overflow-hidden">
+          <div key={summary.employee.id} className="bg-card border border-border rounded-2xl overflow-hidden">
             {/* Employee Header */}
             <button
               onClick={() => setExpandedEmployee(expandedEmployee === summary.employee.id ? null : summary.employee.id)}
-              className="w-full p-6 flex items-center gap-5 hover:bg-muted/30 transition-colors"
+              className="w-full p-3 flex items-center gap-3 hover:bg-muted/30 transition-colors"
             >
-              <div className="w-12 h-12 rounded-[16px] bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <User size={24} className="text-primary" />
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <User size={16} className="text-primary" />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-lg font-black text-foreground tracking-tight">{summary.employee.name}</p>
+                <p className="text-sm font-bold text-foreground truncate">{summary.employee.name}</p>
                 {summary.employee.department && (
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest truncate">
                     {summary.employee.department}
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <div className="text-right hidden md:block">
-                  <p className="text-sm font-black text-foreground">{formatDuration(summary.totalHours * 60)}</p>
+                  <p className="text-sm font-black text-foreground whitespace-nowrap">{formatDuration(summary.totalHours * 60)}</p>
                   <p className="text-[9px] font-bold text-muted-foreground uppercase">Trabalhadas</p>
                 </div>
                 <div className="text-right hidden md:block">
@@ -287,23 +277,22 @@ export default function PontoRelatorio() {
                   <p className="text-[9px] font-bold text-muted-foreground uppercase">Dias</p>
                 </div>
                 {summary.absences > 0 && (
-                  <div className="flex items-center gap-1 bg-destructive/10 text-destructive px-3 py-1.5 rounded-full">
-                    <AlertTriangle size={12} />
-                    <span className="text-[10px] font-black uppercase">{summary.absences} falta{summary.absences > 1 ? "s" : ""}</span>
-                  </div>
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20 whitespace-nowrap">
+                    {summary.absences} falta{summary.absences > 1 ? "s" : ""}
+                  </span>
                 )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     exportEmployeePontoPDF(summary, currentMonth);
                   }}
-                  className="p-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                  className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                   title="Exportar PDF"
                 >
-                  <FileDown size={16} />
+                  <FileDown size={12} />
                 </button>
                 <ChevronRight
-                  size={18}
+                  size={14}
                   className={`text-muted-foreground transition-transform ${expandedEmployee === summary.employee.id ? "rotate-90" : ""}`}
                 />
               </div>
@@ -313,13 +302,13 @@ export default function PontoRelatorio() {
             {expandedEmployee === summary.employee.id && (
               <div className="border-t border-border">
                 {/* Mobile summary */}
-                <div className="grid grid-cols-3 gap-4 p-4 md:hidden border-b border-border">
+                <div className="grid grid-cols-3 gap-3 p-3 md:hidden border-b border-border">
                   <div className="text-center">
-                    <p className="text-sm font-black text-foreground">{formatDuration(summary.totalHours * 60)}</p>
+                    <p className="text-sm font-black text-foreground whitespace-nowrap">{formatDuration(summary.totalHours * 60)}</p>
                     <p className="text-[8px] font-bold text-muted-foreground uppercase">Horas</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-black text-foreground">{formatDuration(summary.totalBreakMinutes)}</p>
+                    <p className="text-sm font-black text-foreground whitespace-nowrap">{formatDuration(summary.totalBreakMinutes)}</p>
                     <p className="text-[8px] font-bold text-muted-foreground uppercase">Intervalo</p>
                   </div>
                   <div className="text-center">
@@ -333,12 +322,12 @@ export default function PontoRelatorio() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left px-4 py-3 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Dia</th>
-                        <th className="text-center px-4 py-3 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
-                        <th className="text-center px-4 py-3 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Entrada</th>
-                        <th className="text-center px-4 py-3 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Saída</th>
-                        <th className="text-center px-4 py-3 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Horas</th>
-                        <th className="text-center px-4 py-3 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Intervalo</th>
+                        <th className="text-left px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Dia</th>
+                        <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
+                        <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Entrada</th>
+                        <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Saída</th>
+                        <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Horas</th>
+                        <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Intervalo</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -353,35 +342,35 @@ export default function PontoRelatorio() {
                               day.isWeekend ? "opacity-40" : day.isAbsent ? "bg-destructive/5" : ""
                             }`}
                           >
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               <span className="font-black text-foreground">{dayNum}</span>
                               <span className="text-muted-foreground ml-1 text-xs capitalize">{dayName}</span>
                             </td>
-                            <td className="px-4 py-3 text-center">
+                            <td className="px-3 py-2 text-center">
                               {day.isWeekend ? (
-                                <span className="text-[9px] font-bold text-muted-foreground uppercase">Fim de Semana</span>
+                                <span className="text-[9px] font-bold text-muted-foreground uppercase">FDS</span>
                               ) : day.isAbsent ? (
                                 <span className="inline-flex items-center gap-1 text-destructive text-[9px] font-black uppercase">
-                                  <XCircle size={12} /> Faltou
+                                  <XCircle size={10} /> Faltou
                                 </span>
                               ) : day.records.length > 0 ? (
                                 <span className="inline-flex items-center gap-1 text-emerald-400 text-[9px] font-black uppercase">
-                                  <CheckCircle2 size={12} /> Presente
+                                  <CheckCircle2 size={10} /> OK
                                 </span>
                               ) : (
                                 <span className="text-[9px] font-bold text-muted-foreground">—</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-center font-bold text-foreground tabular-nums">
+                            <td className="px-3 py-2 text-center font-bold text-foreground tabular-nums whitespace-nowrap">
                               {day.clockIn || "—"}
                             </td>
-                            <td className="px-4 py-3 text-center font-bold text-foreground tabular-nums">
+                            <td className="px-3 py-2 text-center font-bold text-foreground tabular-nums whitespace-nowrap">
                               {day.clockOut || "—"}
                             </td>
-                            <td className="px-4 py-3 text-center font-black text-foreground tabular-nums">
+                            <td className="px-3 py-2 text-center font-black text-foreground tabular-nums whitespace-nowrap">
                               {day.hoursWorked > 0 ? formatDuration(day.hoursWorked * 60) : "—"}
                             </td>
-                            <td className="px-4 py-3 text-center font-bold text-amber-400 tabular-nums">
+                            <td className="px-3 py-2 text-center font-bold text-amber-400 tabular-nums whitespace-nowrap">
                               {day.breakMinutes > 0 ? formatDuration(day.breakMinutes) : "—"}
                             </td>
                           </tr>
@@ -390,15 +379,15 @@ export default function PontoRelatorio() {
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-border bg-muted/30">
-                        <td className="px-4 py-3 font-black text-foreground text-[10px] uppercase" colSpan={2}>
+                        <td className="px-3 py-2 font-black text-foreground text-[10px] uppercase" colSpan={2}>
                           Total do Mês
                         </td>
-                        <td className="px-4 py-3" />
-                        <td className="px-4 py-3" />
-                        <td className="px-4 py-3 text-center font-black text-primary tabular-nums">
+                        <td className="px-3 py-2" />
+                        <td className="px-3 py-2" />
+                        <td className="px-3 py-2 text-center font-black text-primary tabular-nums whitespace-nowrap">
                           {formatDuration(summary.totalHours * 60)}
                         </td>
-                        <td className="px-4 py-3 text-center font-black text-amber-400 tabular-nums">
+                        <td className="px-3 py-2 text-center font-black text-amber-400 tabular-nums whitespace-nowrap">
                           {formatDuration(summary.totalBreakMinutes)}
                         </td>
                       </tr>
