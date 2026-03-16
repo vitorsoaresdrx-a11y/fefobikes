@@ -18,6 +18,9 @@ export interface CreateSalePayload {
   card_fee: number;
   card_tax_percent: number;
   responsible_name?: string | null;
+  discount_amount?: number;
+  discount_type?: string | null;
+  promotion_id?: string | null;
 }
 
 export function useCreateSale() {
