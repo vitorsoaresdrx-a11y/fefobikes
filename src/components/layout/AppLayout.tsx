@@ -52,7 +52,7 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-screen bg-background text-foreground">
+      <div className="flex h-screen w-screen bg-background text-foreground" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Top bar */}
