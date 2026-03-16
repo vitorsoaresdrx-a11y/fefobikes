@@ -1,13 +1,16 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, ChevronDown, Printer, User, ShoppingBag, Download } from "lucide-react";
-import { useSales } from "@/hooks/useSales";
+import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban } from "lucide-react";
+import { useSales, useCancelSale } from "@/hooks/useSales";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { formatBRL } from "@/lib/format";
 import { exportSalesCSV } from "@/lib/export-csv";
 import { EmptyState } from "@/components/EmptyState";
 import { PaginationBar } from "@/components/PaginationBar";
 import { usePagination } from "@/hooks/usePagination";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 function formatDateShort(d: string) {
   return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
