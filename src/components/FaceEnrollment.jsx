@@ -64,20 +64,26 @@ export default function FaceEnrollment() {
     setStatus("saving");
     setMessage("Detectando rosto...");
 
-    const detection = await faceapi
-      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-
-    if (!detection) {
-      setStatus("capturing");
-      setMessage("Rosto não detectado. Tente novamente com boa iluminação.");
-      return;
-    }
-
-    const descriptor = Array.from(detection.descriptor); // Float32Array → array serializável
-
     try {
+      console.log("[FaceEnrollment] modelsLoaded:", modelsLoaded);
+      console.log("[FaceEnrollment] videoRef.current:", !!videoRef.current);
+      console.log("[FaceEnrollment] video readyState:", videoRef.current?.readyState);
+
+      const detection = await faceapi
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      console.log("[FaceEnrollment] detection:", detection);
+
+      if (!detection) {
+        setStatus("capturing");
+        setMessage("Rosto não detectado. Tente novamente com boa iluminação.");
+        return;
+      }
+
+      const descriptor = Array.from(detection.descriptor);
+
       // 1. Cria o funcionário
       const { data: employee, error: empError } = await supabase
         .from("employees")
@@ -99,8 +105,9 @@ export default function FaceEnrollment() {
       setMessage(`Funcionário ${form.name} cadastrado com sucesso!`);
       setForm({ name: "", email: "", department: "" });
     } catch (err) {
+      console.error("[FaceEnrollment] capture error:", err);
       setStatus("error");
-      setMessage("Erro ao salvar: " + (err.message || "tente novamente."));
+      setMessage("Erro ao capturar/salvar: " + (err?.message || "tente novamente."));
     }
   };
 
