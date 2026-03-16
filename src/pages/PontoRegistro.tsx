@@ -222,8 +222,15 @@ export default function PontoRegistro() {
       clearInterval(autoDetectRef.current);
       autoDetectRef.current = null;
     }
-    const stream = videoRef.current?.srcObject as MediaStream | null;
-    stream?.getTracks().forEach((t) => t.stop());
+
+    const attachedStream = videoRef.current?.srcObject as MediaStream | null;
+    attachedStream?.getTracks().forEach((t) => t.stop());
+
+    if (pendingStreamRef.current && pendingStreamRef.current !== attachedStream) {
+      pendingStreamRef.current.getTracks().forEach((t) => t.stop());
+    }
+    pendingStreamRef.current = null;
+
     if (videoRef.current) videoRef.current.srcObject = null;
     setCameraOpen(false);
   }, []);
