@@ -141,7 +141,19 @@ export default function ClockIn() {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
       });
-      videoRef.current.srcObject = stream;
+      const video = videoRef.current;
+      video.srcObject = stream;
+
+      // Wait for video to actually start playing before detecting
+      await new Promise((resolve) => {
+        const onPlaying = () => {
+          video.removeEventListener("playing", onPlaying);
+          resolve();
+        };
+        video.addEventListener("playing", onPlaying);
+        video.play().catch(() => {});
+      });
+
       setStatus("ready");
       setMessage("Detectando automaticamente... Olhe para a câmera.");
       setLastRecord(null);
