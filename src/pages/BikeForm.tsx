@@ -452,23 +452,35 @@ export default function BikeForm() {
             <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-6">
               <SectionHeader title="Financeiro" icon={DollarSign} />
 
-              {/* PIX price */}
+              {/* Dual pricing */}
               <div className="p-8 bg-background border border-border rounded-[32px] relative overflow-hidden group">
-                <div className="absolute -right-4 -top-4 opacity-[0.05] text-muted-foreground/70 group-hover:rotate-12 transition-transform duration-700">
-                  <DollarSign size={120} />
-                </div>
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">
-                  Preço PIX / Dinheiro
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4 block">
+                  Preços por Canal
                 </label>
-                <div className="relative z-10">
-                  <CurrencyInput
-                    value={pixPrice || 0}
-                    onChange={(val) => form.setValue("pix_price", val)}
-                    className="text-4xl font-black h-16 rounded-2xl"
-                  />
+                <div className="grid grid-cols-2 gap-4 relative z-10">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
+                      <Store size={10} /> Loja Física
+                    </p>
+                    <CurrencyInput
+                      value={priceStore || 0}
+                      onChange={(val) => form.setValue("price_store", val)}
+                      className="text-xl font-black h-14 rounded-2xl"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
+                      <Globe size={10} /> E-commerce
+                    </p>
+                    <CurrencyInput
+                      value={priceEcommerce || 0}
+                      onChange={(val) => form.setValue("price_ecommerce", val)}
+                      className="text-xl font-black h-14 rounded-2xl"
+                    />
+                  </div>
                 </div>
                 <p className="text-[9px] text-muted-foreground/70 font-bold uppercase tracking-widest mt-2">
-                  Preço com desconto para pagamento à vista
+                  Deixe em branco para não exibir naquele canal
                 </p>
               </div>
 
