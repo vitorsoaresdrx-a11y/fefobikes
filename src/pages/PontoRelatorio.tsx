@@ -322,7 +322,7 @@ export default function PontoRelatorio() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Dia</th>
+                        <th className="text-left px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest sticky left-0 bg-card z-10">Dia</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Entrada</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Saída</th>
