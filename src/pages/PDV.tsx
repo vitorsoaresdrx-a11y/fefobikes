@@ -818,17 +818,39 @@ export default function PDV() {
                 </div>
                 <div className="space-y-2">
                   {/* Itens do carrinho */}
-                  {cart.map((item) => (
-                    <div key={item.key} className="flex justify-between text-muted-foreground text-xs md:text-sm">
-                      <span className="truncate mr-2">{item.name} ×{item.quantity}</span>
-                      <span className="shrink-0">{formatBRL(item.quantity * item.unit_price)}</span>
-                    </div>
-                  ))}
+                  {cart.map((item) => {
+                    const promo = getItemPromotion(item);
+                    return (
+                      <div key={item.key} className="flex justify-between text-muted-foreground text-xs md:text-sm">
+                        <span className="truncate mr-2 flex items-center gap-1.5">
+                          {item.name} ×{item.quantity}
+                          {promo && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                              {promo.discount_type === "percentage" ? `-${promo.discount_value}%` : `-${formatBRL(promo.discount_value)}`}
+                            </span>
+                          )}
+                        </span>
+                        <span className="shrink-0">{formatBRL(item.quantity * item.unit_price)}</span>
+                      </div>
+                    );
+                  })}
                   <div className="h-px bg-muted my-2" />
                   <div className="flex justify-between text-muted-foreground text-xs md:text-sm">
                     <span>Subtotal</span>
-                    <span>{formatBRL(total)}</span>
+                    <span>{formatBRL(subtotal)}</span>
                   </div>
+                  {promotionDiscount > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-primary flex items-center gap-1"><Tag size={10} /> Promoções</span>
+                      <span className="text-primary">-{formatBRL(promotionDiscount)}</span>
+                    </div>
+                  )}
+                  {manualDiscount > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-amber-400 flex items-center gap-1"><Scissors size={10} /> Desconto manual</span>
+                      <span className="text-amber-400">-{formatBRL(manualDiscount)}</span>
+                    </div>
+                  )}
                   {isCardPayment && cardTaxPercent > 0 && (
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Taxa cartão ({cardTaxPercent}%)</span>
@@ -847,6 +869,17 @@ export default function PDV() {
                     </div>
                   )}
                 </div>
+
+                {/* Manual discount button (admin only) */}
+                {isAdmin && (
+                  <button
+                    onClick={() => setDiscountModalOpen(true)}
+                    className="w-full h-10 rounded-xl border border-dashed border-border text-muted-foreground text-xs font-bold flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-all"
+                  >
+                    <Tag size={14} />
+                    {manualDiscount > 0 ? `Desconto: -${formatBRL(manualDiscount)}` : "Aplicar Desconto"}
+                  </button>
+                )}
               </div>
 
               <div className="flex gap-3 md:gap-4">
