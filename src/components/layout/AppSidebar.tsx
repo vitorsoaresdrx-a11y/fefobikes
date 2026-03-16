@@ -90,6 +90,13 @@ const navGroups = [
     ],
   },
   {
+    label: "Ponto",
+    items: [
+      { title: "Bater Ponto", url: "/ponto/registro", icon: Clock },
+      { title: "Cadastro Facial", url: "/ponto/cadastro", icon: ScanFace },
+    ],
+  },
+  {
     label: "Sistema",
     items: [
       { title: "Chamadas", url: "/chamadas", icon: Bell },
