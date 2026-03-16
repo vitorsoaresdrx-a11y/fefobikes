@@ -217,6 +217,59 @@ export default function WhatsApp() {
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
+
+  // Fullscreen QR Code when not connected
+  if (!connLoading && !isConnected) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-background text-foreground px-4 pb-24 lg:pb-0">
+        <div className="flex flex-col items-center gap-6 max-w-sm w-full">
+          <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-3xl flex items-center justify-center">
+            <QrCode size={32} className="text-primary" />
+          </div>
+          <div className="text-center space-y-2">
+            <h1 className="text-xl font-black uppercase tracking-tight text-foreground">
+              Conectar WhatsApp
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Escaneie o QR Code abaixo com seu WhatsApp para começar a receber e enviar mensagens.
+            </p>
+          </div>
+          <div className="bg-card border border-border rounded-3xl p-6 flex flex-col items-center gap-4 w-full">
+            {qrLoading ? (
+              <div className="w-56 h-56 flex items-center justify-center">
+                <Loader2 size={40} className="text-primary animate-spin" />
+              </div>
+            ) : qrData?.qrCode ? (
+              <img
+                src={qrData.qrCode}
+                alt="QR Code WhatsApp"
+                className="w-56 h-56 rounded-2xl bg-white p-3"
+              />
+            ) : (
+              <div className="w-56 h-56 flex items-center justify-center bg-muted rounded-2xl">
+                <p className="text-xs text-muted-foreground text-center px-4">
+                  Não foi possível gerar o QR Code. Tente novamente.
+                </p>
+              </div>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground/60 text-center leading-relaxed max-w-[260px]">
+            Abra o WhatsApp no celular → Configurações → Dispositivos Conectados → Conectar Dispositivo
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (connLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[70vh] pb-24 lg:pb-0">
+        <Loader2 size={32} className="text-primary animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden rounded-2xl md:rounded-[40px] border border-border/50 shadow-2xl pb-24 lg:pb-0">
 
@@ -271,35 +324,6 @@ export default function WhatsApp() {
             </DropdownMenu>
           </div>
 
-          {/* QR Code when not connected */}
-          {!connLoading && !isConnected && (
-            <div className="flex flex-col items-center gap-4 p-6 bg-card border border-border rounded-3xl">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <QrCode size={18} />
-                <span className="text-xs font-bold uppercase tracking-widest">Conectar WhatsApp</span>
-              </div>
-              {qrLoading ? (
-                <div className="w-48 h-48 flex items-center justify-center">
-                  <Loader2 size={32} className="text-primary animate-spin" />
-                </div>
-              ) : qrData?.qrCode ? (
-                <img
-                  src={qrData.qrCode}
-                  alt="QR Code WhatsApp"
-                  className="w-48 h-48 rounded-2xl bg-white p-2"
-                />
-              ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-background rounded-2xl">
-                  <p className="text-xs text-muted-foreground/70 text-center px-4">
-                    Não foi possível gerar o QR Code. Tente novamente.
-                  </p>
-                </div>
-              )}
-              <p className="text-[10px] text-muted-foreground/70 text-center leading-relaxed max-w-[200px]">
-                Abra o WhatsApp no celular, vá em Dispositivos Conectados e escaneie o código.
-              </p>
-            </div>
-          )}
 
           {/* Search */}
           <div className="space-y-4">
