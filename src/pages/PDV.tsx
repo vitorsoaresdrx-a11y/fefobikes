@@ -144,6 +144,9 @@ export default function PDV() {
   const pendingCount = getQueueCount();
   const { data: bikes = [] } = useBikeModels();
   const { data: parts = [] } = useParts();
+  const { data: activePromotions = [] } = useActivePromotions();
+  const { data: permsData } = useMyPermissions();
+  const isAdmin = permsData?.isOwner ?? false;
   
   const { data: customers = [] } = useCustomers();
   const { data: cardTaxes } = useCardTaxes();
@@ -173,6 +176,13 @@ export default function PDV() {
   // Receipt
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
+
+  // Manual discount
+  const [manualDiscount, setManualDiscount] = useState(0);
+  const [manualDiscountType, setManualDiscountType] = useState<"percentage" | "fixed">("percentage");
+  const [manualDiscountInput, setManualDiscountInput] = useState("");
+  const [manualDiscountValue, setManualDiscountValue] = useState(0);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
   // ── Derived ────────────────────────────────────────────────────────────────
 
   const total = useMemo(() => cart.reduce((sum, i) => sum + i.quantity * i.unit_price, 0), [cart]);
