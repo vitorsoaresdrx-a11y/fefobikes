@@ -318,11 +318,11 @@ export default function PontoRelatorio() {
                 </div>
 
                 {/* Days table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-3">
+                  <table className="min-w-[540px] text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest sticky left-0 bg-card z-10">Dia</th>
+                        <th className="text-left px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest sticky left-0 bg-card z-10 min-w-[80px]">Dia</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Entrada</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Saída</th>
@@ -342,7 +342,7 @@ export default function PontoRelatorio() {
                               day.isWeekend ? "opacity-40" : day.isAbsent ? "bg-destructive/5" : ""
                             }`}
                           >
-                            <td className="px-3 py-2 sticky left-0 bg-card z-10">
+                            <td className="px-3 py-2 sticky left-0 bg-card z-10 min-w-[80px]">
                               <span className="font-black text-foreground">{dayNum}</span>
                               <span className="text-muted-foreground ml-1 text-xs capitalize">{dayName}</span>
                             </td>
