@@ -226,7 +226,22 @@ export default function DRE() {
   const { data: sales = [], isLoading: salesLoading } = useSales();
   const { data: fixedExpenses = [], isLoading: fixedLoading } = useFixedExpenses();
   const { data: variableExpenses = [], isLoading: varLoading } = useVariableExpenses();
-  const isLoading = salesLoading || fixedLoading || varLoading;
+  const { data: allStockEntries = [], isLoading: entriesLoading } = useAllStockEntries();
+
+  // Fetch sale_items to calculate CMV
+  const { data: saleItems = [] } = useQuery({
+    queryKey: ["sale_items_for_dre"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sale_items")
+        .select("sale_id, part_id, bike_model_id, quantity")
+        .order("sale_id");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const isLoading = salesLoading || fixedLoading || varLoading || entriesLoading;
 
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
