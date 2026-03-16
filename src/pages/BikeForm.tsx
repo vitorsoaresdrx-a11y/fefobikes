@@ -173,8 +173,12 @@ export default function BikeForm() {
       cost_price: 0,
       price_store: 0,
       price_ecommerce: 0,
-      installment_price: 0,
-      installment_count: 1,
+      installments_enabled_store: false,
+      installment_count_store: 1,
+      installment_value_store: 0,
+      installments_enabled_ecommerce: false,
+      installment_count_ecommerce: 1,
+      installment_value_ecommerce: 0,
     },
   });
 
