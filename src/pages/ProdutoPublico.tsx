@@ -105,25 +105,25 @@ function LoadingState() {
 // ─── Price Section ────────────────────────────────────────────────────────────
 
 function PriceSection({ product }: { product: any }) {
-  const pixPrice = Number(product.pix_price) || 0;
+  const ecommercePrice = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
   const installmentPrice = Number(product.installment_price) || 0;
   const installmentCount = Number(product.installment_count) || 1;
-  const hasAnyPrice = pixPrice > 0 || installmentPrice > 0;
+  const hasAnyPrice = ecommercePrice > 0 || installmentPrice > 0;
 
   if (!hasAnyPrice) return null;
 
   return (
     <section className="space-y-4">
-      {pixPrice > 0 && (
+      {ecommercePrice > 0 && (
         <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-secondary to-card border border-primary/30 shadow-[0_20px_50px_rgba(41,82,255,0.15)] text-center group">
           <div className="absolute -right-10 -top-10 opacity-[0.05] text-primary group-hover:rotate-12 transition-transform duration-700">
             <Zap size={200} />
           </div>
           <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mb-2">
-            Valor Especial PIX
+            Valor à Vista
           </p>
           <p className="text-3xl lg:text-5xl font-black text-white tracking-tighter mb-2">
-            {formatBRL(pixPrice)}
+            {formatBRL(ecommercePrice)}
           </p>
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-xs font-bold uppercase tracking-widest">
             <ShieldCheck size={14} className="text-emerald-500" />

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Plus, Image as ImageIcon } from "lucide-react";
+import { X, Plus, Image as ImageIcon, Store, Globe } from "lucide-react";
 import { useCreatePart, useUpdatePart, type Part } from "@/hooks/useParts";
 import { usePartAttributes, useSavePartAttributes } from "@/hooks/usePartAttributes";
 import { CategoryCombobox } from "@/components/parts/CategoryCombobox";
@@ -19,7 +19,8 @@ const partSchema = z.object({
   stock_qty: z.coerce.number().int().min(0).default(0),
   alert_stock: z.coerce.number().int().min(0).default(0),
   unit_cost: z.coerce.number().min(0).default(0),
-  sale_price: z.coerce.number().min(0).default(0),
+  price_store: z.coerce.number().min(0).default(0),
+  price_ecommerce: z.coerce.number().min(0).default(0),
   visible_on_storefront: z.boolean().default(false),
   description: z.string().max(500).optional(),
 });
@@ -70,15 +71,17 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: 0,
       alert_stock: 0,
       unit_cost: 0,
-      sale_price: 0,
+      price_store: 0,
+      price_ecommerce: 0,
       visible_on_storefront: false,
       description: "",
     },
   });
 
   const unitCost = form.watch("unit_cost");
-  const salePrice = form.watch("sale_price");
-  const profit = salePrice - unitCost;
+  const priceStore = form.watch("price_store");
+  const priceEcommerce = form.watch("price_ecommerce");
+  const profit = priceStore - unitCost;
   const descriptionValue = form.watch("description") || "";
 
   useEffect(() => {
@@ -91,7 +94,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
           unit_cost: Number((part as any).unit_cost) || 0,
-          sale_price: Number((part as any).sale_price) || Number((part as any).pix_price) || 0,
+          price_store: Number((part as any).price_store) || Number((part as any).sale_price) || 0,
+          price_ecommerce: Number((part as any).price_ecommerce) || 0,
           visible_on_storefront: !!(part as any).visible_on_storefront,
           description: (part as any).description || "",
         });
@@ -123,8 +127,10 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
       stock_qty: values.stock_qty,
       alert_stock: values.alert_stock,
       unit_cost: values.unit_cost,
-      sale_price: values.sale_price,
-      pix_price: values.sale_price,
+      price_store: values.price_store || null,
+      price_ecommerce: values.price_ecommerce || null,
+      sale_price: values.price_store,
+      pix_price: values.price_store,
       installment_price: null,
       installment_count: null,
       description: values.description || null,
@@ -285,31 +291,45 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                Preço de custo
+              </label>
+              <CurrencyInput
+                value={unitCost || 0}
+                onChange={(val) => form.setValue("unit_cost", val)}
+                className="h-11 text-sm rounded-xl"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Preço de custo
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                  <Store size={12} /> Preço Loja Física
                 </label>
                 <CurrencyInput
-                  value={unitCost || 0}
-                  onChange={(val) => form.setValue("unit_cost", val)}
+                  value={priceStore || 0}
+                  onChange={(val) => form.setValue("price_store", val)}
                   className="h-11 text-sm rounded-xl"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  Preço de venda
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                  <Globe size={12} /> Preço E-commerce
                 </label>
                 <CurrencyInput
-                  value={salePrice || 0}
-                  onChange={(val) => form.setValue("sale_price", val)}
+                  value={priceEcommerce || 0}
+                  onChange={(val) => form.setValue("price_ecommerce", val)}
                   className="h-11 text-sm rounded-xl"
                 />
               </div>
             </div>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">
+              Deixe em branco para não exibir o preço naquele canal.
+            </p>
 
             {/* Profit preview */}
-            {(unitCost > 0 || salePrice > 0) && (
+            {(unitCost > 0 || priceStore > 0) && (
               <div className="p-3 rounded-xl border border-border bg-background/50 flex justify-between items-center">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Lucro por unidade

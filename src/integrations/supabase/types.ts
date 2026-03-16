@@ -103,6 +103,8 @@ export type Database = {
           installment_price: number | null
           name: string
           pix_price: number | null
+          price_ecommerce: number | null
+          price_store: number | null
           rim_size: string | null
           sale_price: number | null
           sku: string | null
@@ -128,6 +130,8 @@ export type Database = {
           installment_price?: number | null
           name: string
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -153,6 +157,8 @@ export type Database = {
           installment_price?: number | null
           name?: string
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -976,6 +982,8 @@ export type Database = {
           name: string
           notes: string | null
           pix_price: number | null
+          price_ecommerce: number | null
+          price_store: number | null
           rim_size: string | null
           sale_price: number | null
           sku: string | null
@@ -1003,6 +1011,8 @@ export type Database = {
           name: string
           notes?: string | null
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -1030,6 +1040,8 @@ export type Database = {
           name?: string
           notes?: string | null
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -1945,6 +1957,8 @@ export type Database = {
           installment_price: number | null
           name: string | null
           pix_price: number | null
+          price_ecommerce: number | null
+          price_store: number | null
           rim_size: string | null
           sale_price: number | null
           sku: string | null
@@ -1966,6 +1980,8 @@ export type Database = {
           installment_price?: number | null
           name?: string | null
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -1987,6 +2003,8 @@ export type Database = {
           installment_price?: number | null
           name?: string | null
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -2014,6 +2032,8 @@ export type Database = {
           name: string | null
           notes: string | null
           pix_price: number | null
+          price_ecommerce: number | null
+          price_store: number | null
           rim_size: string | null
           sale_price: number | null
           sku: string | null
@@ -2038,6 +2058,8 @@ export type Database = {
           name?: string | null
           notes?: string | null
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null
@@ -2062,6 +2084,8 @@ export type Database = {
           name?: string | null
           notes?: string | null
           pix_price?: number | null
+          price_ecommerce?: number | null
+          price_store?: number | null
           rim_size?: string | null
           sale_price?: number | null
           sku?: string | null

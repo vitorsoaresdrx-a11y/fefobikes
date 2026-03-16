@@ -21,6 +21,8 @@ export interface Part {
   unit_cost: number | null;
   sale_price: number | null;
   pix_price: number | null;
+  price_store: number | null;
+  price_ecommerce: number | null;
   installment_price: number | null;
   installment_count: number | null;
   alert_stock: number;
@@ -39,7 +41,7 @@ export function useParts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("parts")
-        .select("id, name, sku, category, material, gears, hub_style, color, rim_size, frame_size, stock_qty, visible_on_storefront, notes, description, unit_cost, sale_price, pix_price, installment_price, installment_count, alert_stock, images, weight_capacity_kg, created_at, updated_at")
+        .select("id, name, sku, category, material, gears, hub_style, color, rim_size, frame_size, stock_qty, visible_on_storefront, notes, description, unit_cost, sale_price, pix_price, price_store, price_ecommerce, installment_price, installment_count, alert_stock, images, weight_capacity_kg, created_at, updated_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Part[];

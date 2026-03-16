@@ -22,6 +22,8 @@ import {
   ChevronRight,
   Eye,
   Box,
+  Store,
+  Globe,
 } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Switch } from "@/components/ui/switch";
@@ -52,7 +54,8 @@ const bikeSchema = z.object({
   alert_stock: z.number().int().min(0).default(0),
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
   cost_price: z.number().min(0).default(0),
-  pix_price: z.number().min(0).default(0),
+  price_store: z.number().min(0).default(0),
+  price_ecommerce: z.number().min(0).default(0),
   installment_price: z.number().min(0).default(0),
   installment_count: z.number().int().min(1).default(1),
 });
@@ -164,7 +167,8 @@ export default function BikeForm() {
       alert_stock: 0,
       cost_mode: "fixed",
       cost_price: 0,
-      pix_price: 0,
+      price_store: 0,
+      price_ecommerce: 0,
       installment_price: 0,
       installment_count: 1,
     },
@@ -172,7 +176,8 @@ export default function BikeForm() {
 
   const costMode = form.watch("cost_mode");
   const costPrice = form.watch("cost_price");
-  const pixPrice = form.watch("pix_price");
+  const priceStore = form.watch("price_store");
+  const priceEcommerce = form.watch("price_ecommerce");
   const installmentPrice = form.watch("installment_price");
   const installmentCount = form.watch("installment_count");
 
@@ -182,7 +187,7 @@ export default function BikeForm() {
   );
 
   const effectiveCost = costMode === "fixed" ? costPrice : manualCost;
-  const profitValue = pixPrice - effectiveCost;
+  const profitValue = priceStore - effectiveCost;
   const profitPercent = effectiveCost > 0 ? (profitValue / effectiveCost) * 100 : 0;
 
   // Load existing data
@@ -203,7 +208,8 @@ export default function BikeForm() {
         alert_stock: Number((bike as any).alert_stock) || 0,
         cost_mode: (bike as any).cost_mode || "fixed",
         cost_price: Number((bike as any).cost_price) || 0,
-        pix_price: Number((bike as any).pix_price) || 0,
+        price_store: Number((bike as any).price_store) || Number((bike as any).sale_price) || 0,
+        price_ecommerce: Number((bike as any).price_ecommerce) || 0,
         installment_price: Number((bike as any).installment_price) || 0,
         installment_count: Number((bike as any).installment_count) || 1,
       });
@@ -275,8 +281,10 @@ export default function BikeForm() {
         alert_stock: values.alert_stock,
         cost_mode: values.cost_mode,
         cost_price: values.cost_mode === "fixed" ? values.cost_price : manualCost,
-        sale_price: values.pix_price,
-        pix_price: values.pix_price,
+        sale_price: values.price_store,
+        pix_price: values.price_store,
+        price_store: values.price_store || null,
+        price_ecommerce: values.price_ecommerce || null,
         installment_price: values.installment_price,
         installment_count: values.installment_count,
         images: bikeImages,
@@ -444,23 +452,35 @@ export default function BikeForm() {
             <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-6">
               <SectionHeader title="Financeiro" icon={DollarSign} />
 
-              {/* PIX price */}
+              {/* Dual pricing */}
               <div className="p-8 bg-background border border-border rounded-[32px] relative overflow-hidden group">
-                <div className="absolute -right-4 -top-4 opacity-[0.05] text-muted-foreground/70 group-hover:rotate-12 transition-transform duration-700">
-                  <DollarSign size={120} />
-                </div>
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">
-                  Preço PIX / Dinheiro
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4 block">
+                  Preços por Canal
                 </label>
-                <div className="relative z-10">
-                  <CurrencyInput
-                    value={pixPrice || 0}
-                    onChange={(val) => form.setValue("pix_price", val)}
-                    className="text-4xl font-black h-16 rounded-2xl"
-                  />
+                <div className="grid grid-cols-2 gap-4 relative z-10">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
+                      <Store size={10} /> Loja Física
+                    </p>
+                    <CurrencyInput
+                      value={priceStore || 0}
+                      onChange={(val) => form.setValue("price_store", val)}
+                      className="text-xl font-black h-14 rounded-2xl"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
+                      <Globe size={10} /> E-commerce
+                    </p>
+                    <CurrencyInput
+                      value={priceEcommerce || 0}
+                      onChange={(val) => form.setValue("price_ecommerce", val)}
+                      className="text-xl font-black h-14 rounded-2xl"
+                    />
+                  </div>
                 </div>
                 <p className="text-[9px] text-muted-foreground/70 font-bold uppercase tracking-widest mt-2">
-                  Preço com desconto para pagamento à vista
+                  Deixe em branco para não exibir naquele canal
                 </p>
               </div>
 
@@ -790,8 +810,8 @@ export default function BikeForm() {
               icon={<Wrench size={14} />}
             />
             <StatBox
-              title="Valor PIX"
-              value={formatBRL(pixPrice)}
+              title="Preço Loja"
+              value={formatBRL(priceStore)}
               icon={<DollarSign size={14} />}
               color="text-primary"
             />
