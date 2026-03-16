@@ -94,7 +94,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           stock_qty: part.stock_qty,
           alert_stock: Number((part as any).alert_stock) || 0,
           unit_cost: Number((part as any).unit_cost) || 0,
-          sale_price: Number((part as any).sale_price) || Number((part as any).pix_price) || 0,
+          price_store: Number((part as any).price_store) || Number((part as any).sale_price) || 0,
+          price_ecommerce: Number((part as any).price_ecommerce) || 0,
           visible_on_storefront: !!(part as any).visible_on_storefront,
           description: (part as any).description || "",
         });
