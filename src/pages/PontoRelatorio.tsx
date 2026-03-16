@@ -319,7 +319,7 @@ export default function PontoRelatorio() {
 
                 {/* Days table */}
                 <div className="overflow-x-auto">
-                  <table className="min-w-[540px] text-sm">
+                  <table className="min-w-[700px] text-sm">
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-left pl-4 pr-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest sticky left-0 bg-card z-10 min-w-[88px]">Dia</th>
