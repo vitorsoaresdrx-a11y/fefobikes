@@ -19,6 +19,8 @@ import {
   History,
   FileText,
   Bell,
+  ScanFace,
+  Clock,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
