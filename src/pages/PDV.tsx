@@ -378,8 +378,8 @@ export default function PDV() {
           customerName: finalCustomerName,
           customerWhatsapp: finalWhatsapp,
           items: cart.map((i) => ({ name: i.name, quantity: i.quantity, unit_price: i.unit_price })),
-          subtotal: total,
-          discount: 0,
+          subtotal,
+          discount: totalDiscount,
           total,
           paymentMethod,
         };
