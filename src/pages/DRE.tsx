@@ -573,7 +573,19 @@ export default function DRE() {
               </div>
             </div>
 
-            {/* Receita Líquida Operacional — card destaque */}
+            {/* CMV — Custo Médio Ponderado */}
+            {totals.cmv > 0 && (
+              <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5 bg-background border border-border rounded-xl md:rounded-2xl">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground shrink-0">
+                  <ShoppingBag size={18} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest">Custo Médio Ponderado dos Produtos</span>
+                  <span className="text-base md:text-xl font-black tracking-tighter text-red-400/80">- {formatBRL(totals.cmv)}</span>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 md:gap-4 p-3 md:p-5 bg-background border border-border rounded-xl md:rounded-2xl">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-xl md:rounded-2xl flex items-center justify-center text-primary shrink-0">
                 <Target size={18} />
