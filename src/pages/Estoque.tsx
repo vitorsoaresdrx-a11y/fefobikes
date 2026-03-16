@@ -196,6 +196,10 @@ export default function Estoque() {
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
   const [mode, setMode] = useState<"add" | "subtract" | null>(null);
   const [qty, setQty] = useState("");
+  const [unitCost, setUnitCost] = useState(0);
+  const [supplierName, setSupplierName] = useState("");
+  const [entryNotes, setEntryNotes] = useState("");
+  const insertStockEntry = useInsertStockEntry();
 
   const isLoading = partsLoading || bikesLoading;
 
