@@ -187,7 +187,7 @@ export default function BikeForm() {
   );
 
   const effectiveCost = costMode === "fixed" ? costPrice : manualCost;
-  const profitValue = pixPrice - effectiveCost;
+  const profitValue = priceStore - effectiveCost;
   const profitPercent = effectiveCost > 0 ? (profitValue / effectiveCost) * 100 : 0;
 
   // Load existing data
