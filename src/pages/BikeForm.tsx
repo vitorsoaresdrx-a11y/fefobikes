@@ -208,7 +208,8 @@ export default function BikeForm() {
         alert_stock: Number((bike as any).alert_stock) || 0,
         cost_mode: (bike as any).cost_mode || "fixed",
         cost_price: Number((bike as any).cost_price) || 0,
-        pix_price: Number((bike as any).pix_price) || 0,
+        price_store: Number((bike as any).price_store) || Number((bike as any).sale_price) || 0,
+        price_ecommerce: Number((bike as any).price_ecommerce) || 0,
         installment_price: Number((bike as any).installment_price) || 0,
         installment_count: Number((bike as any).installment_count) || 1,
       });
