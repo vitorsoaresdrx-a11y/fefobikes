@@ -322,7 +322,7 @@ export default function PontoRelatorio() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Dia</th>
+                        <th className="text-left px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest sticky left-0 bg-card z-10">Dia</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Entrada</th>
                         <th className="text-center px-3 py-2 text-[9px] font-black text-muted-foreground uppercase tracking-widest">Saída</th>
@@ -342,7 +342,7 @@ export default function PontoRelatorio() {
                               day.isWeekend ? "opacity-40" : day.isAbsent ? "bg-destructive/5" : ""
                             }`}
                           >
-                            <td className="px-3 py-2">
+                            <td className="px-3 py-2 sticky left-0 bg-card z-10">
                               <span className="font-black text-foreground">{dayNum}</span>
                               <span className="text-muted-foreground ml-1 text-xs capitalize">{dayName}</span>
                             </td>
@@ -379,7 +379,7 @@ export default function PontoRelatorio() {
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-border bg-muted/30">
-                        <td className="px-3 py-2 font-black text-foreground text-[10px] uppercase" colSpan={2}>
+                        <td className="px-3 py-2 font-black text-foreground text-[10px] uppercase sticky left-0 bg-muted/30 z-10" colSpan={2}>
                           Total do Mês
                         </td>
                         <td className="px-3 py-2" />
