@@ -277,6 +277,18 @@ export default function Estoque() {
       responsible_name: currentUserName,
     });
 
+    // Insert stock_entry for price history on "add" mode
+    if (mode === "add") {
+      await insertStockEntry.mutateAsync({
+        item_id: selectedItem.id,
+        item_type: selectedItem.type === "Peça" ? "part" : "bike",
+        quantity: value,
+        unit_cost: unitCost,
+        supplier_name: supplierName || undefined,
+        notes: entryNotes || undefined,
+      });
+    }
+
     if (selectedItem.type === "Peça") {
       updatePart.mutate({ id: selectedItem.id, stock_qty: newQty } as any);
     } else {
