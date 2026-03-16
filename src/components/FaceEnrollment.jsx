@@ -232,7 +232,7 @@ export default function FaceEnrollment() {
               </div>
             )}
             {!isCameraActive && (
-              <div className="h-36 flex flex-col items-center justify-center text-muted-foreground gap-2">
+              <div className="h-48 flex flex-col items-center justify-center text-muted-foreground gap-2">
                 <Camera size={24} className="opacity-30" />
                 <span className="text-[10px] font-bold opacity-50">Câmera desligada</span>
               </div>
