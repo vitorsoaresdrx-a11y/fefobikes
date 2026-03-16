@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import {
+import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
   TrendingUp,
   TrendingDown,
   DollarSign,
