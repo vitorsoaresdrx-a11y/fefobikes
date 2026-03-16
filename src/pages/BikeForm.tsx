@@ -222,8 +222,12 @@ export default function BikeForm() {
         cost_price: Number((bike as any).cost_price) || 0,
         price_store: Number((bike as any).price_store) || Number((bike as any).sale_price) || 0,
         price_ecommerce: Number((bike as any).price_ecommerce) || 0,
-        installment_price: Number((bike as any).installment_price) || 0,
-        installment_count: Number((bike as any).installment_count) || 1,
+        installments_enabled_store: !!(bike as any).installments_enabled_store,
+        installment_count_store: Number((bike as any).installment_count_store) || Number((bike as any).installment_count) || 1,
+        installment_value_store: Number((bike as any).installment_value_store) || Number((bike as any).installment_price) || 0,
+        installments_enabled_ecommerce: !!(bike as any).installments_enabled_ecommerce,
+        installment_count_ecommerce: Number((bike as any).installment_count_ecommerce) || 1,
+        installment_value_ecommerce: Number((bike as any).installment_value_ecommerce) || 0,
       });
       setBikeImages((bike as any).images || []);
     }
