@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import * as faceapi from "face-api.js";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -12,6 +12,7 @@ import {
   User,
   ShieldCheck,
 } from "lucide-react";
+import EmployeeList from "./EmployeeList";
 
 const MODELS_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
 
@@ -22,6 +23,7 @@ export default function FaceEnrollment() {
   const [message, setMessage] = useState("");
   const [loadProgress, setLoadProgress] = useState("");
   const [form, setForm] = useState({ name: "", email: "", department: "" });
+  const [listRefreshKey, setListRefreshKey] = useState(0);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -89,16 +91,20 @@ export default function FaceEnrollment() {
 
       const descriptor = Array.from(detection.descriptor);
 
+      // Upsert employee
       const { data: employee, error: empError } = await supabase
         .from("employees")
         .upsert(
-          { name: form.name, email: form.email, department: form.department },
+          { name: form.name, email: form.email, department: form.department, active: true },
           { onConflict: "email" }
         )
         .select()
         .single();
 
       if (empError) throw empError;
+
+      // Delete old face embedding if exists, then insert new one
+      await supabase.from("face_embeddings").delete().eq("employee_id", employee.id);
 
       const { error: faceError } = await supabase
         .from("face_embeddings")
@@ -110,11 +116,19 @@ export default function FaceEnrollment() {
       setStatus("success");
       setMessage(`Funcionário ${form.name} cadastrado com sucesso!`);
       setForm({ name: "", email: "", department: "" });
+      setListRefreshKey((k) => k + 1);
     } catch (err) {
       setStatus("error");
       setMessage("Erro ao capturar/salvar: " + (err?.message || "tente novamente."));
     }
   };
+
+  const handleReRegister = useCallback((empData) => {
+    setForm({ name: empData.name, email: empData.email, department: empData.department });
+    setStatus("idle");
+    setMessage("Preencha os dados e abra a câmera para recadastrar o rosto.");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const isCameraActive = status === "capturing" || status === "saving";
 
@@ -166,7 +180,6 @@ export default function FaceEnrollment() {
           <div className="absolute inset-0 transition-all duration-1000 blur-[80px] opacity-20 -z-10 bg-primary" />
 
           <div className="bg-card border border-border rounded-[40px] p-8 md:p-12 shadow-2xl overflow-hidden relative space-y-8">
-            {/* Background icon */}
             <div className="absolute -right-10 -top-10 opacity-[0.02] text-foreground">
               <UserPlus size={300} />
             </div>
@@ -179,7 +192,7 @@ export default function FaceEnrollment() {
                     <User size={12} /> Nome Completo *
                   </label>
                   <input
-                    className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(41,82,255,0.15)] transition-all text-sm font-bold"
+                    className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)] transition-all text-sm font-bold"
                     placeholder="Ex: João da Silva"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -190,7 +203,7 @@ export default function FaceEnrollment() {
                     <Mail size={12} /> E-mail *
                   </label>
                   <input
-                    className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(41,82,255,0.15)] transition-all text-sm font-bold"
+                    className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)] transition-all text-sm font-bold"
                     placeholder="joao@exemplo.com"
                     type="email"
                     value={form.email}
@@ -202,7 +215,7 @@ export default function FaceEnrollment() {
                     <Building2 size={12} /> Departamento
                   </label>
                   <input
-                    className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(41,82,255,0.15)] transition-all text-sm font-bold"
+                    className="w-full bg-background border border-border rounded-2xl px-5 py-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)] transition-all text-sm font-bold"
                     placeholder="Opcional"
                     value={form.department}
                     onChange={(e) => setForm({ ...form, department: e.target.value })}
@@ -262,7 +275,7 @@ export default function FaceEnrollment() {
                   <button
                     onClick={startCamera}
                     disabled={!modelsLoaded || status === "loading"}
-                    className="flex-1 inline-flex items-center justify-center gap-3 bg-primary text-primary-foreground rounded-[28px] h-20 px-10 text-lg font-black uppercase tracking-tighter shadow-[0_10px_30px_rgba(41,82,255,0.3)] transition-all active:scale-95 disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-3 bg-primary text-primary-foreground rounded-[28px] h-20 px-10 text-lg font-black uppercase tracking-tighter shadow-[0_10px_30px_hsl(var(--primary)/0.3)] transition-all active:scale-95 disabled:opacity-50"
                   >
                     {status === "loading" ? (
                       <>
@@ -302,6 +315,11 @@ export default function FaceEnrollment() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Employee List */}
+        <div className="bg-card border border-border rounded-[40px] p-8 md:p-12 shadow-2xl">
+          <EmployeeList refreshKey={listRefreshKey} onReRegister={handleReRegister} />
         </div>
       </div>
 
