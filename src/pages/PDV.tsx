@@ -689,7 +689,7 @@ export default function PDV() {
                 catalogItems.map((item: any) => {
                   const isBike = catalogTab === "bikes";
                   const type = isBike ? "bike" : "part";
-                  const price = Number(item.sale_price) || 0;
+                  const price = Number(item.price_store) || Number(item.sale_price) || 0;
                   const qty = getCartQty(item.id, type as "bike" | "part");
                   const stock = item.stock_qty ?? 0;
                   const outOfStock = stock <= 0;
