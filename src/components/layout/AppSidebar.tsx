@@ -94,6 +94,7 @@ const navGroups = [
     label: "Ponto",
     items: [
       { title: "Bater Ponto", url: "/ponto/registro", icon: Clock },
+      { title: "Relatório", url: "/ponto/relatorio", icon: FileBarChart },
       { title: "Cadastro Facial", url: "/ponto/cadastro", icon: ScanFace },
     ],
   },
