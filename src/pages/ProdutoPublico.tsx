@@ -106,9 +106,14 @@ function LoadingState() {
 
 function PriceSection({ product }: { product: any }) {
   const ecommercePrice = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
-  const installmentPrice = Number(product.installment_price) || 0;
-  const installmentCount = Number(product.installment_count) || 1;
-  const hasAnyPrice = ecommercePrice > 0 || installmentPrice > 0;
+  const installmentsEnabledEcommerce = !!product.installments_enabled_ecommerce;
+  const installmentCountEcommerce = Number(product.installment_count_ecommerce) || 0;
+  const installmentValueEcommerce = Number(product.installment_value_ecommerce) || 0;
+  // Fallback to legacy fields
+  const installmentPrice = installmentsEnabledEcommerce ? installmentValueEcommerce : (Number(product.installment_price) || 0);
+  const installmentCount = installmentsEnabledEcommerce ? installmentCountEcommerce : (Number(product.installment_count) || 1);
+  const hasInstallments = installmentsEnabledEcommerce ? (installmentCountEcommerce > 1 && installmentValueEcommerce > 0) : (installmentPrice > 0 && installmentCount > 1);
+  const hasAnyPrice = ecommercePrice > 0 || hasInstallments;
 
   if (!hasAnyPrice) return null;
 
@@ -135,7 +140,7 @@ function PriceSection({ product }: { product: any }) {
         </div>
       )}
 
-      {installmentPrice > 0 && installmentCount > 1 && (
+      {hasInstallments && (
         <div className="p-6 bg-card border border-border rounded-[32px] flex items-center justify-between px-8 group hover:border-border/80 transition-colors cursor-pointer">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-muted-foreground group-hover:text-foreground/80 transition-colors">
