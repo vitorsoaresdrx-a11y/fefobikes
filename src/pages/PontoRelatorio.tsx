@@ -318,7 +318,7 @@ export default function PontoRelatorio() {
                 </div>
 
                 {/* Days table */}
-                <div className="overflow-x-auto -mx-3">
+                <div className="overflow-x-auto">
                   <table className="min-w-[540px] text-sm">
                     <thead>
                       <tr className="border-b border-border">
