@@ -84,7 +84,7 @@ export function AppLayout() {
                   </span>
                 ))}
               </BreadcrumbList>
-            </Breadcrumb>
+            </div>
           </header>
 
           {/* Main content */}
