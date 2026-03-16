@@ -1020,6 +1020,56 @@ export default function PDV() {
           </div>
         </div>
       )}
+      {/* ── Manual Discount Modal ─────────────────────────────────────── */}
+      {discountModalOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6 animate-in fade-in">
+          <div className="bg-card w-full max-w-sm rounded-2xl border border-border p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black">Aplicar Desconto</h3>
+              <button onClick={() => setDiscountModalOpen(false)} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={() => setManualDiscountType("percentage")} className={`flex-1 h-9 rounded-xl text-xs font-bold border transition-all ${manualDiscountType === "percentage" ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border text-muted-foreground"}`}>
+                % Percentual
+              </button>
+              <button onClick={() => setManualDiscountType("fixed")} className={`flex-1 h-9 rounded-xl text-xs font-bold border transition-all ${manualDiscountType === "fixed" ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border text-muted-foreground"}`}>
+                R$ Valor fixo
+              </button>
+            </div>
+
+            {manualDiscountType === "percentage" ? (
+              <div>
+                <input
+                  type="number" min="1" max="100"
+                  placeholder="Ex: 10"
+                  value={manualDiscountInput}
+                  onChange={(e) => setManualDiscountInput(e.target.value)}
+                  className="w-full h-14 bg-background border border-border rounded-2xl px-4 text-center text-2xl font-black text-foreground outline-none focus:border-primary"
+                />
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  = {formatBRL(subtotal * (Number(manualDiscountInput) / 100))} de desconto
+                </p>
+              </div>
+            ) : (
+              <CurrencyInput value={manualDiscountValue} onChange={setManualDiscountValue} />
+            )}
+
+            {manualDiscount > 0 && (
+              <button onClick={() => { setManualDiscount(0); setManualDiscountInput(""); setManualDiscountValue(0); setDiscountModalOpen(false); }} className="w-full h-9 rounded-xl border border-destructive/30 text-destructive text-xs font-bold">
+                Remover Desconto
+              </button>
+            )}
+
+            <button onClick={applyManualDiscount} className="w-full h-11 rounded-2xl bg-primary text-primary-foreground text-sm font-black">
+              Aplicar Desconto
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Receipt Modal ─────────────────────────────────────────────── */}
       {receiptData && (
         <SaleReceipt
