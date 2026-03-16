@@ -27,14 +27,14 @@ const primaryActions = [
     label: "Novo Orçamento",
     description: "Crie uma proposta detalhada para o cliente revisar.",
     icon: FileText,
-    to: "/pdv",
+    to: "/orcamentos",
     color: "indigo" as const,
   },
   {
     label: "Manutenção",
     description: "Abertura de ordem de serviço e check-up técnico.",
     icon: Wrench,
-    to: "/pdv",
+    to: "/mecanica",
     color: "amber" as const,
   },
 ];
