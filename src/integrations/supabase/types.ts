@@ -1455,6 +1455,53 @@ export type Database = {
           },
         ]
       }
+      stock_entries: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          item_id: string
+          item_type: string
+          notes: string | null
+          quantity: number
+          supplier_name: string | null
+          tenant_id: string | null
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          item_id: string
+          item_type: string
+          notes?: string | null
+          quantity: number
+          supplier_name?: string | null
+          tenant_id?: string | null
+          unit_cost?: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          notes?: string | null
+          quantity?: number
+          supplier_name?: string | null
+          tenant_id?: string | null
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_members: {
         Row: {
           created_at: string
