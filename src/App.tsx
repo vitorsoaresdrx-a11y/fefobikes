@@ -49,6 +49,8 @@ const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 const Jogar = lazyRetry(() => import("@/pages/Jogar"));
 const Chamadas = lazyRetry(() => import("@/pages/Chamadas"));
 const Contas = lazyRetry(() => import("@/pages/Contas"));
+const PontoCadastro = lazyRetry(() => import("@/pages/PontoCadastro"));
+const PontoRegistro = lazyRetry(() => import("@/pages/PontoRegistro"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -115,6 +117,8 @@ function AuthGate() {
         <Route path="/permissoes" element={<GuardedRoute module="configuracoes"><PageTransition><Permissoes /></PageTransition></GuardedRoute>} />
         <Route path="/chamadas" element={<PageTransition><Chamadas /></PageTransition>} />
         <Route path="/contas" element={<GuardedRoute module="gastos"><PageTransition><Contas /></PageTransition></GuardedRoute>} />
+        <Route path="/ponto/cadastro" element={<GuardedRoute module="configuracoes"><PageTransition><PontoCadastro /></PageTransition></GuardedRoute>} />
+        <Route path="/ponto/registro" element={<PageTransition><PontoRegistro /></PageTransition>} />
       </Route>
       <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />
     </Routes>
