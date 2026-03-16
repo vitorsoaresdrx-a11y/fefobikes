@@ -55,6 +55,7 @@ export function useZapiConnectionStatus() {
       }
       return res.json() as Promise<{ connected?: boolean; smartphoneConnected?: boolean; error?: string }>;
     },
+    staleTime: 1000 * 60 * 2,
     refetchInterval: 15000,
     retry: 1,
   });
@@ -73,6 +74,7 @@ export function useZapiQrCode(enabled: boolean) {
       return normalizeQrPayload(payload);
     },
     enabled,
+    staleTime: 1000 * 60 * 2,
     refetchInterval: enabled ? 20000 : false,
     retry: 1,
   });
