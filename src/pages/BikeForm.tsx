@@ -22,6 +22,8 @@ import {
   ChevronRight,
   Eye,
   Box,
+  Store,
+  Globe,
 } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Switch } from "@/components/ui/switch";
