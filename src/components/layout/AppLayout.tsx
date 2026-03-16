@@ -52,11 +52,12 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-screen bg-background text-foreground" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="flex h-screen w-screen bg-background text-foreground">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 h-full">
-          {/* Top bar */}
-          <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0 sticky top-0 z-20 bg-background">
+          {/* Top bar with safe area */}
+          <header className="flex flex-col border-b border-border shrink-0 sticky top-0 z-20 bg-background" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+            <div className="h-12 flex items-center gap-3 px-4">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="h-4 w-px bg-border hidden lg:block" />
             <Breadcrumb>
