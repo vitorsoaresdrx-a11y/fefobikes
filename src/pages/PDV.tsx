@@ -467,6 +467,9 @@ export default function PDV() {
     setCustName("");
     setCustWhatsapp("");
     setCustCpf("");
+    setManualDiscount(0);
+    setManualDiscountInput("");
+    setManualDiscountValue(0);
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
