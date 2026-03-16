@@ -96,7 +96,7 @@ export default function FaceEnrollment() {
       const { data: employee, error: empError } = await supabase
         .from("employees")
         .upsert(
-          { name: form.name, email: form.email, department: form.department, active: true },
+          { name: form.name, email: emailToUse, department: form.department, active: true },
           { onConflict: "email" }
         )
         .select()
