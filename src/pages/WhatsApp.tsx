@@ -324,35 +324,6 @@ export default function WhatsApp() {
             </DropdownMenu>
           </div>
 
-          {/* QR Code when not connected */}
-          {!connLoading && !isConnected && (
-            <div className="flex flex-col items-center gap-4 p-6 bg-card border border-border rounded-3xl">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <QrCode size={18} />
-                <span className="text-xs font-bold uppercase tracking-widest">Conectar WhatsApp</span>
-              </div>
-              {qrLoading ? (
-                <div className="w-48 h-48 flex items-center justify-center">
-                  <Loader2 size={32} className="text-primary animate-spin" />
-                </div>
-              ) : qrData?.qrCode ? (
-                <img
-                  src={qrData.qrCode}
-                  alt="QR Code WhatsApp"
-                  className="w-48 h-48 rounded-2xl bg-white p-2"
-                />
-              ) : (
-                <div className="w-48 h-48 flex items-center justify-center bg-background rounded-2xl">
-                  <p className="text-xs text-muted-foreground/70 text-center px-4">
-                    Não foi possível gerar o QR Code. Tente novamente.
-                  </p>
-                </div>
-              )}
-              <p className="text-[10px] text-muted-foreground/70 text-center leading-relaxed max-w-[200px]">
-                Abra o WhatsApp no celular, vá em Dispositivos Conectados e escaneie o código.
-              </p>
-            </div>
-          )}
 
           {/* Search */}
           <div className="space-y-4">
