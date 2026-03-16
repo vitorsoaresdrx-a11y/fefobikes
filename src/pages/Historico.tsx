@@ -213,7 +213,7 @@ export default function Historico() {
       if (groups.has(key)) {
         const group = groups.get(key)!;
         group.sales.push(sale);
-        group.totalSpent += Number(sale.total);
+        group.totalSpent += sale.status !== "cancelled" ? Number(sale.total) : 0;
         if (sale.created_at > group.lastPurchase) {
           group.lastPurchase = sale.created_at;
         }
