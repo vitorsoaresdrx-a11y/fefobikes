@@ -304,10 +304,10 @@ export default function FaceEnrollment() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-2 mt-2 pb-4">
-          <ShieldCheck size={12} className="text-muted-foreground/40" />
-          <p className="text-[9px] uppercase tracking-widest text-muted-foreground/40">
-            Cadastro seguro via reconhecimento facial · FeFo Bikes 2026
+        <div className="flex items-center justify-center gap-1.5 mt-2 pb-4">
+          <ShieldCheck size={10} className="text-muted-foreground/40 shrink-0" />
+          <p className="text-[7px] uppercase tracking-wider text-muted-foreground/40 text-center">
+            Fefo Bikes Security · 2026
           </p>
         </div>
       </div>
