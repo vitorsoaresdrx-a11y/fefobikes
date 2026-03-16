@@ -80,11 +80,13 @@ function SaleRow({
   isExpanded,
   onToggle,
   onReceipt,
+  onCancel,
 }: {
   sale: any;
   isExpanded: boolean;
   onToggle: () => void;
   onReceipt: () => void;
+  onCancel: () => void;
 }) {
   const items = sale.sale_items || [];
   const { date, time } = formatDateTime(sale.created_at);
