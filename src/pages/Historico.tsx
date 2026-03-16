@@ -200,6 +200,8 @@ export default function Historico() {
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [expandedSale, setExpandedSale] = useState<string | null>(null);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [cancelSaleId, setCancelSaleId] = useState<string | null>(null);
+  const cancelSale = useCancelSale();
 
   const customerGroups = useMemo(() => {
     const groups = new Map<string, CustomerGroup>();
