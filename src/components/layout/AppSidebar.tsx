@@ -21,6 +21,7 @@ import {
   Bell,
   ScanFace,
   Clock,
+  FileBarChart,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
