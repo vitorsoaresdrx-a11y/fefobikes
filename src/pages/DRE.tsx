@@ -302,6 +302,8 @@ export default function DRE() {
       revenue: 0,
       cardFees: 0,
       variableExpenses: 0,
+      promotionDiscounts: 0,
+      manualDiscounts: 0,
     }));
 
     sales.forEach((sale: any) => {
@@ -311,6 +313,9 @@ export default function DRE() {
       const m = date.getMonth();
       months[m].revenue += Number(sale.total) || 0;
       months[m].cardFees += Number(sale.card_fee) || 0;
+      const discountAmt = Number(sale.discount_amount) || 0;
+      if (sale.discount_type === "promotion") months[m].promotionDiscounts += discountAmt;
+      else if (sale.discount_type === "manual") months[m].manualDiscounts += discountAmt;
     });
 
     variableExpenses.forEach((exp: any) => {
