@@ -56,7 +56,7 @@ export function AppLayout() {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Top bar */}
-          <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0">
+          <header className="h-12 flex items-center gap-3 border-b border-border px-4 shrink-0 sticky top-0 z-20 bg-background">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <div className="h-4 w-px bg-border hidden lg:block" />
             <Breadcrumb>
