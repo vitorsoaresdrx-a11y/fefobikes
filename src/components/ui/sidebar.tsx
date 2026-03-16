@@ -188,7 +188,7 @@ const Sidebar = React.forwardRef<
             style={{ "--sidebar-width": SIDEBAR_WIDTH_MOBILE } as React.CSSProperties}
             side={side}
           >
-            <div className="flex h-full w-full flex-col">{children}</div>
+            <div className="flex h-full w-full flex-col" style={{ paddingTop: 'env(safe-area-inset-top)' }}>{children}</div>
           </SheetContent>
         </Sheet>
       );
