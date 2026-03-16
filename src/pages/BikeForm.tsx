@@ -54,7 +54,8 @@ const bikeSchema = z.object({
   alert_stock: z.number().int().min(0).default(0),
   cost_mode: z.enum(["fixed", "manual"]).default("fixed"),
   cost_price: z.number().min(0).default(0),
-  pix_price: z.number().min(0).default(0),
+  price_store: z.number().min(0).default(0),
+  price_ecommerce: z.number().min(0).default(0),
   installment_price: z.number().min(0).default(0),
   installment_count: z.number().int().min(1).default(1),
 });
