@@ -105,10 +105,10 @@ function LoadingState() {
 // ─── Price Section ────────────────────────────────────────────────────────────
 
 function PriceSection({ product }: { product: any }) {
-  const pixPrice = Number(product.pix_price) || 0;
+  const ecommercePrice = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
   const installmentPrice = Number(product.installment_price) || 0;
   const installmentCount = Number(product.installment_count) || 1;
-  const hasAnyPrice = pixPrice > 0 || installmentPrice > 0;
+  const hasAnyPrice = ecommercePrice > 0 || installmentPrice > 0;
 
   if (!hasAnyPrice) return null;
 
