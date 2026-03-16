@@ -19,7 +19,8 @@ const partSchema = z.object({
   stock_qty: z.coerce.number().int().min(0).default(0),
   alert_stock: z.coerce.number().int().min(0).default(0),
   unit_cost: z.coerce.number().min(0).default(0),
-  sale_price: z.coerce.number().min(0).default(0),
+  price_store: z.coerce.number().min(0).default(0),
+  price_ecommerce: z.coerce.number().min(0).default(0),
   visible_on_storefront: z.boolean().default(false),
   description: z.string().max(500).optional(),
 });
