@@ -69,10 +69,12 @@ export default function FaceEnrollment() {
   };
 
   const capture = async () => {
-    if (!form.name || !form.email) {
-      setMessage("Preencha nome e e-mail antes de capturar.");
+    if (!form.name) {
+      setMessage("Preencha o nome antes de capturar.");
       return;
     }
+
+    const emailToUse = form.email || `${form.name.toLowerCase().replace(/\s+/g, ".")}@ponto.local`;
 
     setStatus("saving");
     setMessage("Detectando rosto...");
@@ -94,7 +96,7 @@ export default function FaceEnrollment() {
       const { data: employee, error: empError } = await supabase
         .from("employees")
         .upsert(
-          { name: form.name, email: form.email, department: form.department, active: true },
+          { name: form.name, email: emailToUse, department: form.department, active: true },
           { onConflict: "email" }
         )
         .select()
@@ -183,11 +185,11 @@ export default function FaceEnrollment() {
             </div>
             <div>
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                <Mail size={10} /> E-mail *
+                <Mail size={10} /> E-mail
               </label>
               <input
                 className="w-full bg-background border border-border rounded-xl h-10 px-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)] transition-all font-bold"
-                placeholder="joao@exemplo.com"
+                placeholder="Opcional"
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -230,7 +232,7 @@ export default function FaceEnrollment() {
               </div>
             )}
             {!isCameraActive && (
-              <div className="h-36 flex flex-col items-center justify-center text-muted-foreground gap-2">
+              <div className="h-48 flex flex-col items-center justify-center text-muted-foreground gap-2">
                 <Camera size={24} className="opacity-30" />
                 <span className="text-[10px] font-bold opacity-50">Câmera desligada</span>
               </div>
