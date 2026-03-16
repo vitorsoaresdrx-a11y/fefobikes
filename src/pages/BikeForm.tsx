@@ -186,8 +186,12 @@ export default function BikeForm() {
   const costPrice = form.watch("cost_price");
   const priceStore = form.watch("price_store");
   const priceEcommerce = form.watch("price_ecommerce");
-  const installmentPrice = form.watch("installment_price");
-  const installmentCount = form.watch("installment_count");
+  const installmentsEnabledStore = form.watch("installments_enabled_store");
+  const installmentCountStore = form.watch("installment_count_store");
+  const installmentValueStore = form.watch("installment_value_store");
+  const installmentsEnabledEcommerce = form.watch("installments_enabled_ecommerce");
+  const installmentCountEcommerce = form.watch("installment_count_ecommerce");
+  const installmentValueEcommerce = form.watch("installment_value_ecommerce");
 
   const manualCost = useMemo(
     () => templateParts.reduce((sum, p) => sum + p.unit_cost * p.quantity, 0),
