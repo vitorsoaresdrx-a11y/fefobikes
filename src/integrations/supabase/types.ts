@@ -567,6 +567,47 @@ export type Database = {
           },
         ]
       }
+      goals: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          period: string
+          reference_date: string
+          target_value: number
+          tenant_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          period: string
+          reference_date: string
+          target_value: number
+          tenant_id?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          period?: string
+          reference_date?: string
+          target_value?: number
+          tenant_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_call_replies: {
         Row: {
           call_id: string
