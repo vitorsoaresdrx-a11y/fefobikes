@@ -379,7 +379,7 @@ export default function PontoRelatorio() {
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-border bg-muted/30">
-                        <td className="px-3 py-2 font-black text-foreground text-[10px] uppercase" colSpan={2}>
+                        <td className="px-3 py-2 font-black text-foreground text-[10px] uppercase sticky left-0 bg-muted/30 z-10" colSpan={2}>
                           Total do Mês
                         </td>
                         <td className="px-3 py-2" />
