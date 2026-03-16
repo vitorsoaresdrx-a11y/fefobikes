@@ -23,6 +23,7 @@ import {
   Clock,
   FileBarChart,
   TrendingUp,
+  Target,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
