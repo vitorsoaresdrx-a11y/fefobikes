@@ -143,16 +143,7 @@ export default function ClockIn() {
       });
       const video = videoRef.current;
       video.srcObject = stream;
-
-      // Wait for video to actually start playing before detecting
-      await new Promise((resolve) => {
-        const onPlaying = () => {
-          video.removeEventListener("playing", onPlaying);
-          resolve();
-        };
-        video.addEventListener("playing", onPlaying);
-        video.play().catch(() => {});
-      });
+      await video.play();
 
       setStatus("ready");
       setMessage("Detectando automaticamente... Olhe para a câmera.");
@@ -167,7 +158,8 @@ export default function ClockIn() {
           autoDetectRef.current = null;
         }
       }, AUTO_DETECT_INTERVAL);
-    } catch {
+    } catch (err) {
+      console.error("Camera error:", err);
       setStatus("error");
       setMessage("Não foi possível acessar a câmera.");
     }
