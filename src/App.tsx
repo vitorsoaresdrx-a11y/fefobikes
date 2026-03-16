@@ -119,6 +119,7 @@ function AuthGate() {
         <Route path="/permissoes" element={<GuardedRoute module="configuracoes"><PageTransition><Permissoes /></PageTransition></GuardedRoute>} />
         <Route path="/chamadas" element={<PageTransition><Chamadas /></PageTransition>} />
         <Route path="/contas" element={<GuardedRoute module="gastos"><PageTransition><Contas /></PageTransition></GuardedRoute>} />
+        <Route path="/precos" element={<GuardedRoute module="estoque"><PageTransition><Precos /></PageTransition></GuardedRoute>} />
         <Route path="/ponto/cadastro" element={<GuardedRoute module="configuracoes"><PageTransition><PontoCadastro /></PageTransition></GuardedRoute>} />
         <Route path="/ponto/registro" element={<PageTransition><PontoRegistro /></PageTransition>} />
         <Route path="/ponto/relatorio" element={<GuardedRoute module="configuracoes"><PageTransition><PontoRelatorio /></PageTransition></GuardedRoute>} />
