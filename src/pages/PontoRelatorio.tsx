@@ -342,7 +342,7 @@ export default function PontoRelatorio() {
                               day.isWeekend ? "opacity-40" : day.isAbsent ? "bg-destructive/5" : ""
                             }`}
                           >
-                            <td className="px-3 py-2">
+                            <td className="px-3 py-2 sticky left-0 bg-card z-10">
                               <span className="font-black text-foreground">{dayNum}</span>
                               <span className="text-muted-foreground ml-1 text-xs capitalize">{dayName}</span>
                             </td>
