@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2, RefreshCw, Users, Loader2 } from "lucide-react";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 export default function EmployeeList({ refreshKey, onReRegister }) {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
-  const [confirmId, setConfirmId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
@@ -29,7 +30,7 @@ export default function EmployeeList({ refreshKey, onReRegister }) {
       await supabase.from("face_embeddings").delete().eq("employee_id", emp.id);
       await supabase.from("employees").update({ active: false }).eq("id", emp.id);
       setEmployees((prev) => prev.filter((e) => e.id !== emp.id));
-      setConfirmId(null);
+      setDeleteTarget(null);
     } catch (err) {
       console.error("Erro ao excluir:", err);
     } finally {
@@ -99,35 +100,25 @@ export default function EmployeeList({ refreshKey, onReRegister }) {
                 <RefreshCw size={13} />
               </button>
 
-              {confirmId === emp.id ? (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleDelete(emp)}
-                    disabled={deleting === emp.id}
-                    className="w-8 h-8 rounded-lg bg-destructive text-white flex items-center justify-center text-xs font-bold disabled:opacity-50"
-                  >
-                    {deleting === emp.id ? <Loader2 size={13} className="animate-spin" /> : "✓"}
-                  </button>
-                  <button
-                    onClick={() => setConfirmId(null)}
-                    className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground text-xs font-bold hover:bg-muted transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmId(emp.id)}
-                  className="w-8 h-8 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive hover:bg-destructive/20 transition-colors"
-                  title="Excluir funcionário"
-                >
-                  <Trash2 size={13} />
-                </button>
-              )}
+              <button
+                onClick={() => setDeleteTarget(emp)}
+                className="w-8 h-8 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive hover:bg-destructive/20 transition-colors"
+                title="Excluir funcionário"
+              >
+                <Trash2 size={13} />
+              </button>
             </div>
           </div>
         ))}
       </div>
+
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        title="Excluir funcionário"
+        description={`Tem certeza que deseja excluir ${deleteTarget?.name}? O cadastro facial será removido e esta ação não pode ser desfeita.`}
+      />
     </div>
   );
 }
