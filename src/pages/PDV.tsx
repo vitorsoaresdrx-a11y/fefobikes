@@ -230,12 +230,7 @@ export default function PDV() {
     } else {
       setManualDiscount(manualDiscountValue);
     }
-    setDiscountModalOpen(false);
   };
-      ? cardTaxes?.credit_tax || 0
-      : cardTaxes?.debit_tax || 0
-    : 0;
-  const cardFee = total * (cardTaxPercent / 100);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
