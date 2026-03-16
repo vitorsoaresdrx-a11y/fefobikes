@@ -22,6 +22,8 @@ import {
   Banknote,
   WifiOff,
   Loader2,
+  Tag,
+  Scissors,
 } from "lucide-react";
 import { useBikeModels } from "@/hooks/useBikes";
 import { useParts } from "@/hooks/useParts";
@@ -31,6 +33,9 @@ import { useCardTaxes } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { useCurrentCashRegister, useLinkSaleToCashRegister } from "@/hooks/useCashRegister";
+import { useActivePromotions, type Promotion } from "@/hooks/usePromotions";
+import { useMyPermissions } from "@/hooks/usePermissions";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
