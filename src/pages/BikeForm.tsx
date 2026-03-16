@@ -810,8 +810,8 @@ export default function BikeForm() {
               icon={<Wrench size={14} />}
             />
             <StatBox
-              title="Valor PIX"
-              value={formatBRL(pixPrice)}
+              title="Preço Loja"
+              value={formatBRL(priceStore)}
               icon={<DollarSign size={14} />}
               color="text-primary"
             />
