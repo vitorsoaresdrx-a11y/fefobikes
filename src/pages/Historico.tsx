@@ -387,6 +387,7 @@ export default function Historico() {
                               onReceipt={() =>
                                 setReceiptData(buildReceiptFromSale(sale))
                               }
+                              onCancel={() => setCancelSaleId(sale.id)}
                             />
                           ))}
                       </div>
