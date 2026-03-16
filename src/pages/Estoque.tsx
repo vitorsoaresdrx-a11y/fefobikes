@@ -252,8 +252,8 @@ export default function Estoque() {
     ok: items.filter((i) => i.status === "ok").length,
   }), [items]);
 
-  const openModal = (item: StockItem) => { setSelectedItem(item); setMode(null); setQty(""); };
-  const closeModal = () => { setSelectedItem(null); setMode(null); setQty(""); };
+  const openModal = (item: StockItem) => { setSelectedItem(item); setMode(null); setQty(""); setUnitCost(0); setSupplierName(""); setEntryNotes(""); };
+  const closeModal = () => { setSelectedItem(null); setMode(null); setQty(""); setUnitCost(0); setSupplierName(""); setEntryNotes(""); };
 
   const handleConfirm = async () => {
     if (!selectedItem || !mode) return;
