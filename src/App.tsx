@@ -54,6 +54,7 @@ const Promocoes = lazyRetry(() => import("@/pages/Promocoes"));
 const PontoCadastro = lazyRetry(() => import("@/pages/PontoCadastro"));
 const PontoRegistro = lazyRetry(() => import("@/pages/PontoRegistro"));
 const PontoRelatorio = lazyRetry(() => import("@/pages/PontoRelatorio"));
+const Metas = lazyRetry(() => import("@/pages/Metas"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
