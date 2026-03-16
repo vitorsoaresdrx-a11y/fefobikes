@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   XCircle,
   User,
+  FileDown,
 } from "lucide-react";
+import { exportEmployeePontoPDF } from "@/lib/export-ponto-pdf";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -275,7 +277,7 @@ export default function PontoRelatorio() {
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-6 flex-shrink-0">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 <div className="text-right hidden md:block">
                   <p className="text-sm font-black text-foreground">{formatDuration(summary.totalHours * 60)}</p>
                   <p className="text-[9px] font-bold text-muted-foreground uppercase">Trabalhadas</p>
@@ -290,6 +292,16 @@ export default function PontoRelatorio() {
                     <span className="text-[10px] font-black uppercase">{summary.absences} falta{summary.absences > 1 ? "s" : ""}</span>
                   </div>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    exportEmployeePontoPDF(summary, currentMonth);
+                  }}
+                  className="p-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                  title="Exportar PDF"
+                >
+                  <FileDown size={16} />
+                </button>
                 <ChevronRight
                   size={18}
                   className={`text-muted-foreground transition-transform ${expandedEmployee === summary.employee.id ? "rotate-90" : ""}`}
