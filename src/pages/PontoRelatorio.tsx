@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   XCircle,
   User,
+  FileDown,
 } from "lucide-react";
+import { exportEmployeePontoPDF } from "@/lib/export-ponto-pdf";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
