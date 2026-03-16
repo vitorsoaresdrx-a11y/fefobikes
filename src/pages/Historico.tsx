@@ -164,15 +164,28 @@ function SaleRow({
             <p className="text-xs text-muted-foreground italic px-2">Obs: {sale.notes}</p>
           )}
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onReceipt();
-            }}
-            className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-white transition-colors px-2 mt-1"
-          >
-            <Printer size={12} /> Reimprimir
-          </button>
+          <div className="flex items-center gap-3 px-2 mt-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onReceipt();
+              }}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-white transition-colors"
+            >
+              <Printer size={12} /> Reimprimir
+            </button>
+            {!isCancelled && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel();
+                }}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
+              >
+                <Ban size={12} /> Cancelar
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
