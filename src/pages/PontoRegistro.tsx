@@ -361,20 +361,19 @@ export default function PontoRegistro() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
-      <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12">
+      <div className="max-w-4xl mx-auto p-4 md:p-12 space-y-6 md:space-y-12">
 
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-[24px] bg-card border border-border flex items-center justify-center overflow-hidden shadow-2xl relative group">
-              <Users size={32} className="text-muted-foreground group-hover:text-primary transition-colors" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <header className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-card border border-border flex items-center justify-center shrink-0">
+              <Users size={18} className="text-muted-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-foreground tracking-tighter uppercase leading-none mb-1">
+              <h1 className="text-base font-black text-foreground tracking-tight uppercase leading-none">
                 Registro de Ponto
               </h1>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                 Reconhecimento Facial
               </p>
             </div>
@@ -385,17 +384,17 @@ export default function PontoRegistro() {
         {/* Loading progress */}
         {loadProgress && (
           <div className="space-y-2">
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
               <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: "60%" }} />
             </div>
-            <p className="text-xs text-muted-foreground text-center">{loadProgress}</p>
+            <p className="text-[10px] text-muted-foreground text-center">{loadProgress}</p>
           </div>
         )}
 
         {/* Camera + Recognition Panel */}
         {cameraOpen && (
-          <div className="space-y-6">
-            <div className="relative bg-black rounded-[32px] overflow-hidden aspect-video border border-border">
+          <div className="space-y-4">
+            <div className="relative bg-black rounded-2xl overflow-hidden aspect-video border border-border">
               <video
                 ref={videoRef}
                 autoPlay
@@ -403,13 +402,13 @@ export default function PontoRegistro() {
                 playsInline
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-                <span className="bg-primary/80 text-primary-foreground text-xs px-4 py-2 rounded-full animate-pulse flex items-center gap-2">
+              <div className="absolute bottom-3 left-3 right-3 flex justify-center">
+                <span className="bg-primary/80 text-primary-foreground text-xs px-3 py-1.5 rounded-full animate-pulse flex items-center gap-2">
                   <Loader2 size={14} className="animate-spin" />
-                  Detectando rostos... {recognizedList.length > 0 && `(${recognizedList.length} encontrados)`}
+                  Detectando... {recognizedList.length > 0 && `(${recognizedList.length})`}
                 </span>
               </div>
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-3 left-3">
                 <span className="bg-card/80 backdrop-blur text-foreground text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-border">
                   {TYPE_LABELS[actionMode || ""] || actionMode}
                 </span>
@@ -418,8 +417,8 @@ export default function PontoRegistro() {
 
             {/* Recognized people list */}
             {recognizedList.length > 0 && (
-              <div className="bg-card border border-border rounded-[24px] p-4 space-y-2">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] px-2">
+              <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">
                   Funcionários Detectados ({recognizedList.length})
                 </p>
                 <div className="space-y-1">
@@ -441,33 +440,32 @@ export default function PontoRegistro() {
             )}
 
             {/* Camera action buttons */}
-            <div className="flex gap-3">
-              <PontoButton
-                variant="success"
-                size="lg"
-                className="flex-1"
+            <div className="flex gap-2">
+              <button
+                className="flex-1 h-11 rounded-2xl bg-emerald-600 text-white text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
                 onClick={handleConfirm}
                 disabled={recognizedList.length === 0 || saving}
               >
-                <span className="flex items-center gap-3">
-                  {saving ? <Loader2 size={22} className="animate-spin" /> : <Check size={22} />}
-                  {saving ? "Registrando..." : `Pronto (${recognizedList.length})`}
-                </span>
-              </PontoButton>
-              <PontoButton variant="secondary" size="md" onClick={handleCancel}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                {saving ? "Registrando..." : `Pronto (${recognizedList.length})`}
+              </button>
+              <button
+                className="px-4 h-11 border border-border rounded-2xl text-foreground font-bold text-sm hover:bg-muted transition-colors"
+                onClick={handleCancel}
+              >
                 <X size={18} />
-              </PontoButton>
+              </button>
             </div>
           </div>
         )}
 
         {/* Batch result */}
         {lastBatchResult && !cameraOpen && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-[32px] p-8 space-y-2">
-            <p className="font-black text-emerald-400 text-xl">
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 space-y-1">
+            <p className="font-black text-emerald-400 text-sm">
               {lastBatchResult.type} Registrada
             </p>
-            <p className="text-emerald-300 font-bold">
+            <p className="text-emerald-300 font-bold text-xs">
               {lastBatchResult.count} funcionário{lastBatchResult.count !== 1 ? "s" : ""} registrado{lastBatchResult.count !== 1 ? "s" : ""} às{" "}
               {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
             </p>
@@ -476,123 +474,107 @@ export default function PontoRegistro() {
 
         {/* Message */}
         {message && !cameraOpen && (
-          <p className="text-sm text-muted-foreground text-center">{message}</p>
+          <p className="text-xs text-muted-foreground text-center">{message}</p>
         )}
 
         {/* Cockpit Central */}
         {!cameraOpen && (
-          <div className="relative group">
-            <div className={`absolute inset-0 transition-all duration-1000 blur-[80px] opacity-20 -z-10 ${isWorking ? 'bg-emerald-500' : 'bg-primary'}`} />
-
-            <div className="bg-card border border-border rounded-[40px] p-10 md:p-16 shadow-2xl overflow-hidden relative">
-              <div className="absolute -right-10 -top-10 opacity-[0.02] text-foreground">
-                <Clock size={300} />
+          <div className="bg-card border border-border rounded-2xl p-5 md:p-16 text-center">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="space-y-2">
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Horário Local Atualizado</p>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-5xl md:text-8xl font-black text-foreground tracking-tighter tabular-nums leading-none">
+                    {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <span className="text-lg md:text-2xl font-bold text-primary opacity-50">
+                    {time.toLocaleTimeString('pt-BR', { second: '2-digit' })}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground capitalize flex items-center justify-center gap-1.5">
+                  <CalendarDays size={11} className="text-primary" />
+                  {format(time, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                </p>
               </div>
 
-              <div className="relative z-10 flex flex-col items-center text-center space-y-8">
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em]">Horário Local Atualizado</p>
-                  <h2 className="text-7xl md:text-8xl font-black text-foreground tracking-tighter tabular-nums leading-none">
-                    {time.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    <span className="text-xl md:text-2xl text-primary ml-2 opacity-50">
-                      {time.toLocaleTimeString('pt-BR', { second: '2-digit' })}
-                    </span>
-                  </h2>
-                  <p className="text-sm font-bold text-muted-foreground capitalize flex items-center justify-center gap-2">
-                    <CalendarDays size={16} className="text-primary" />
-                    {format(time, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                </div>
+              <div className="flex flex-col w-full max-w-sm gap-2">
+                <button
+                  onClick={() => startCamera(isWorking ? "clock_out" : "clock_in")}
+                  disabled={!modelsLoaded || !!loadProgress}
+                  className={`w-full h-11 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap ${
+                    isWorking
+                      ? "bg-foreground text-background hover:bg-foreground/90"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                >
+                  {!modelsLoaded && loadProgress ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Carregando...
+                    </>
+                  ) : isWorking ? (
+                    <>
+                      <LogOut size={16} /> Encerrar Turno
+                    </>
+                  ) : (
+                    <>
+                      <Play size={16} fill="currentColor" /> Bater Ponto
+                    </>
+                  )}
+                </button>
 
-                <div className="flex flex-col w-full max-w-sm gap-4">
-                  {/* Main action: Bater Ponto or Encerrar Turno */}
-                  <PontoButton
-                    variant="primary"
-                    size="lg"
-                    onClick={() => startCamera(isWorking ? "clock_out" : "clock_in")}
-                    disabled={!modelsLoaded || !!loadProgress}
-                    className={isWorking ? "bg-foreground text-background hover:bg-foreground/90" : ""}
-                  >
-                    {!modelsLoaded && loadProgress ? (
-                      <span className="flex items-center gap-3">
-                        <Loader2 size={22} className="animate-spin" /> Carregando...
-                      </span>
-                    ) : isWorking ? (
-                      <span className="flex items-center gap-3">
-                        <LogOut size={22} /> Encerrar Turno
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-3">
-                        <Play size={22} fill="currentColor" /> Bater Ponto
-                      </span>
-                    )}
-                  </PontoButton>
-
-                  {/* Intervalo */}
-                  <PontoButton
-                    variant="secondary"
-                    className="rounded-2xl gap-2 text-xs"
-                    onClick={() => startCamera(isWorking ? "break_out" : "break_in")}
-                    disabled={!modelsLoaded || !!loadProgress}
-                  >
-                    <Coffee size={16} className="text-amber-500" /> Intervalo
-                  </PontoButton>
-                </div>
+                <button
+                  onClick={() => startCamera(isWorking ? "break_out" : "break_in")}
+                  disabled={!modelsLoaded || !!loadProgress}
+                  className="w-full h-10 rounded-2xl bg-card border border-border text-muted-foreground text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+                >
+                  <Coffee size={15} className="text-amber-500" /> Intervalo
+                </button>
               </div>
             </div>
           </div>
         )}
 
         {/* Stats + History */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
           {/* Today's Metrics */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 px-2">
-              <Timer size={16} className="text-primary" />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Métricas de Hoje</h3>
-            </div>
-            <div className="bg-card border border-border rounded-[32px] p-8 grid grid-cols-1 gap-8">
-              <div className="space-y-1">
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Total Trabalhado</p>
-                <p className="text-2xl font-black text-foreground tracking-tighter">{todayHours}</p>
-              </div>
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 px-1">
+              <Timer size={11} /> Métricas de Hoje
+            </p>
+            <div className="p-3 rounded-2xl bg-card border border-border">
+              <p className="text-[9px] uppercase text-muted-foreground mb-1">Total Trabalhado</p>
+              <p className="text-2xl font-black text-foreground tracking-tighter">{todayHours}</p>
             </div>
           </div>
 
           {/* Recent History */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-2">
-                <History size={16} className="text-primary" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Batidas Recentes</h3>
-              </div>
-            </div>
-            <div className="bg-card border border-border rounded-[32px] p-2 space-y-1">
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 px-1">
+              <History size={11} /> Batidas Recentes
+            </p>
+            <div className="space-y-2">
               {logs.length === 0 && (
-                <p className="text-muted-foreground text-sm text-center py-6">Nenhum registro hoje</p>
+                <p className="text-muted-foreground text-xs text-center py-6">Nenhum registro hoje</p>
               )}
               {logs.map((log, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 hover:bg-muted/50 rounded-2xl transition-all group">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      log.type.includes('Entrada') || log.type.includes('Retorno')
-                        ? 'bg-emerald-500/10 text-emerald-500'
-                        : 'bg-primary/10 text-primary'
-                    }`}>
-                      {log.type.includes('Intervalo') ? <UtensilsCrossed size={18} /> :
-                       log.type.includes('Entrada') || log.type.includes('Retorno') ? <Activity size={18} /> : <LogOut size={18} />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">{log.type}</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{log.name}</p>
-                    </div>
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                    log.type.includes('Entrada') || log.type.includes('Retorno')
+                      ? 'bg-emerald-500/10'
+                      : log.type.includes('Intervalo') ? 'bg-amber-500/10' : 'bg-primary/10'
+                  }`}>
+                    {log.type.includes('Intervalo') ? <UtensilsCrossed size={14} className="text-amber-400" /> :
+                     log.type.includes('Entrada') || log.type.includes('Retorno') ? <Activity size={14} className="text-emerald-400" /> : <LogOut size={14} className="text-primary" />}
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-black text-foreground tabular-nums">{log.time}</p>
-                    <div className="flex items-center gap-1 justify-end text-muted-foreground">
-                      <ShieldCheck size={10} />
-                      <span className="text-[8px] font-bold uppercase">Verificado</span>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-foreground">{log.type}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{log.name}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-black text-foreground tabular-nums">{log.time}</p>
+                    <p className="text-[9px] text-muted-foreground flex items-center gap-1 justify-end">
+                      <ShieldCheck size={9} /> Verificado
+                    </p>
                   </div>
                 </div>
               ))}
@@ -602,12 +584,11 @@ export default function PontoRegistro() {
       </div>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-border flex flex-col items-center gap-3 opacity-30 grayscale pointer-events-none">
-        <div className="flex items-center gap-2">
-          <Camera size={14} className="text-foreground" />
-          <span className="text-[9px] font-black uppercase tracking-widest">Registro via Reconhecimento Facial</span>
-        </div>
-        <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Fefo Bikes Security System // 2026</p>
+      <footer className="flex items-center justify-center gap-1.5 py-6 opacity-30">
+        <ShieldCheck size={10} className="text-muted-foreground shrink-0" />
+        <p className="text-[7px] uppercase tracking-wider text-muted-foreground">
+          Fefo Bikes Security · 2026
+        </p>
       </footer>
     </div>
   );
