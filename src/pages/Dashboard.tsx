@@ -1,13 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LowStockAlerts } from "@/components/LowStockAlerts";
-import { GoalCard } from "@/components/GoalCard";
-import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { useGoals, useUpsertGoal, getGoalTarget, getReferenceDate } from "@/hooks/useGoals";
-import { useSales } from "@/hooks/useSales";
-import { useFixedExpenses, useVariableExpenses } from "@/hooks/useExpenses";
-import { useMyPermissions } from "@/hooks/usePermissions";
-import { formatBRL } from "@/lib/format";
 import {
   ShoppingCart,
   Wrench,
