@@ -758,8 +758,8 @@ export default function BikeForm() {
                         </button>
                       </div>
 
-                      {/* Row 2: qty + cost + subtotal */}
-                      <div className="grid grid-cols-[3.25rem_minmax(0,1fr)_minmax(0,1fr)] gap-2">
+                      {/* Row 2: qty + cost */}
+                      <div className="grid grid-cols-2 gap-2 mb-2">
                         <div className="space-y-1">
                           <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Qtd</p>
                           <input
@@ -775,26 +775,23 @@ export default function BikeForm() {
                           />
                         </div>
                         <div className="space-y-1 min-w-0">
-                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custo unit.</p>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min={0}
-                            value={tp.unit_cost || ""}
-                            onChange={(e) =>
-                              updateRow(tp.key, {
-                                unit_cost: parseFloat(e.target.value) || 0,
-                              })
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custo unitário</p>
+                          <CurrencyInput
+                            value={tp.unit_cost || 0}
+                            onChange={(v) =>
+                              updateRow(tp.key, { unit_cost: v })
                             }
-                            className="w-full h-9 bg-secondary border border-border rounded-xl px-2 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
+                            className="h-9 rounded-xl text-sm"
                           />
                         </div>
-                        <div className="space-y-1 min-w-0">
-                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Subtotal</p>
-                          <div className="h-9 bg-secondary/50 rounded-xl flex items-center justify-center px-2">
-                            <p className="text-sm font-black text-primary whitespace-nowrap truncate">{formatBRL(tp.unit_cost * tp.quantity)}</p>
-                          </div>
-                        </div>
+                      </div>
+
+                      {/* Row 3: subtotal */}
+                      <div className="flex items-center justify-between bg-secondary/40 rounded-xl px-3 py-2">
+                        <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Subtotal</p>
+                        <p className="text-sm font-black text-primary whitespace-nowrap">
+                          {formatBRL(tp.unit_cost * tp.quantity)}
+                        </p>
                       </div>
                     </div>
                   ))
@@ -803,8 +800,8 @@ export default function BikeForm() {
                 {/* Total */}
                 {templateParts.length > 0 && (
                   <div className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Custo total das peças</p>
-                    <p className="text-base font-black text-foreground">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground whitespace-nowrap">Total das peças</p>
+                    <p className="text-base font-black text-foreground whitespace-nowrap ml-3">
                       {formatBRL(manualCost)}
                     </p>
                   </div>
