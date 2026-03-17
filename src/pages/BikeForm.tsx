@@ -392,7 +392,7 @@ export default function BikeForm() {
                 {bikeImages.length} / 5 Imagens
               </span>
             </div>
-            <ImageUpload images={bikeImages} onChange={setBikeImages} folder="bikes" />
+            <ImageUpload images={bikeImages} onChange={(imgs) => { setBikeImages(imgs); setImagesChanged(true); }} folder="bikes" />
           </div>
 
           {/* ── Identidade + Financeiro (side by side) ─────────────────── */}
