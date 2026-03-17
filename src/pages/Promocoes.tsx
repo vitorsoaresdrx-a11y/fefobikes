@@ -226,7 +226,7 @@ export default function Promocoes() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center animate-in fade-in">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center">
           <div className="w-full max-w-lg bg-card rounded-t-3xl md:rounded-3xl border border-border max-h-[90vh] overflow-y-auto">
 
             {/* Header fixo */}
