@@ -441,7 +441,7 @@ export default function BikeForm() {
                       className="w-full h-16 bg-secondary border border-border rounded-2xl px-6 outline-none focus:border-primary appearance-none text-sm font-bold text-foreground/80 cursor-pointer"
                     >
                       <option value="">Selecione...</option>
-                      {["MTB", "Speed / Road", "Gravel", "Urban / Cidade", "BMX", "Elétrica", "Infantil", "Dobrável", "Cargo", "Touring"].map((cat) => (
+                      {["MTB", "Speed / Road", "Gravel", "Urban / Cidade", "BMX", "Elétrica", "Infantil", "Dobrável", "Cargo", "Touring", "Freeride"].map((cat) => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
