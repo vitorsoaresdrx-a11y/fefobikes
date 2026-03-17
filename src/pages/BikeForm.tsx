@@ -861,23 +861,36 @@ export default function BikeForm() {
 
         </div>
 
-        {/* Fixed footer with save/cancel */}
-        <div className="fixed bottom-[4.5rem] lg:bottom-0 left-0 right-0 z-20 bg-background border-t border-border px-4 py-3 lg:pl-[calc(var(--sidebar-width,280px)+2rem)] lg:pr-8 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/bikes")}
-            className="h-11 px-5 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-sm font-bold transition-all"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="h-11 px-8 rounded-2xl bg-primary text-white hover:bg-primary/80 shadow-primary/30 text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
-          >
-            <Save size={16} />
-            {isEditing ? "Salvar" : "Criar Bike"}
-          </button>
-        </div>
+        <AnimatePresence>
+          {(isDirty || !isEditing) && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              className="fixed left-4 right-4 z-50 bg-card border border-border rounded-2xl p-3 flex items-center gap-3 shadow-2xl lg:left-auto lg:right-8 lg:max-w-md"
+              style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}
+            >
+              <p className="flex-1 text-xs text-muted-foreground font-medium">
+                {isEditing ? "Alterações não salvas" : "Preencha e salve"}
+              </p>
+              <button
+                type="button"
+                onClick={() => { form.reset(); navigate("/bikes"); }}
+                className="h-9 px-3 rounded-xl bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Descartar
+              </button>
+              <button
+                type="submit"
+                className="h-9 px-4 rounded-xl bg-primary text-xs font-black text-white hover:bg-primary/80 transition-all active:scale-95"
+              >
+                <Save size={14} className="inline mr-1.5" />
+                {isEditing ? "Salvar" : "Criar"}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </form>
     </div>
   );
