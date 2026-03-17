@@ -94,7 +94,7 @@ const SectionHeader = ({
       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
         <Icon size={20} />
       </div>
-      <h3 className="text-xl font-black text-white tracking-tight italic uppercase">{title}</h3>
+      <h3 className="text-xl font-black text-foreground tracking-tight italic uppercase">{title}</h3>
     </div>
     {subtitle && <p className="text-xs text-muted-foreground ml-13 font-medium">{subtitle}</p>}
   </div>
