@@ -153,7 +153,9 @@ export default function BikeForm() {
   const saveParts = useSaveBikeModelParts();
 
   const [templateParts, setTemplateParts] = useState<TemplatePart[]>([]);
+  const [partsChanged, setPartsChanged] = useState(false);
   const [bikeImages, setBikeImages] = useState<string[]>([]);
+  const [imagesChanged, setImagesChanged] = useState(false);
 
   const form = useForm<BikeFormValues>({
     resolver: zodResolver(bikeSchema),
