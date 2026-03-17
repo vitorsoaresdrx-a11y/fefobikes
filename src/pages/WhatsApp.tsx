@@ -190,6 +190,7 @@ export default function WhatsApp() {
         phone: selectedConv.contact_phone,
         message: messageText.trim(),
         conversationId: selectedConv.id,
+        sendAsAudio,
       },
       {
         onSuccess: () => setMessageText(""),
