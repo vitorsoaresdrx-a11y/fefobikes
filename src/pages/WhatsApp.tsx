@@ -639,22 +639,40 @@ export default function WhatsApp() {
                   <button className="p-3 text-muted-foreground/70 hover:text-primary transition-colors">
                     <Smile size={20} />
                   </button>
+                  <button
+                    onClick={() => setSendAsAudio(!sendAsAudio)}
+                    title={sendAsAudio ? "Enviar como texto" : "Enviar como áudio (ElevenLabs)"}
+                    className={`p-3 transition-colors ${
+                      sendAsAudio
+                        ? "text-primary"
+                        : "text-muted-foreground/70 hover:text-primary"
+                    }`}
+                  >
+                    <Volume2 size={20} />
+                  </button>
                 </div>
                 <input
-                  placeholder="Escreva sua mensagem..."
+                  placeholder={sendAsAudio ? "Digite o texto para enviar como áudio..." : "Escreva sua mensagem..."}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   onKeyDown={(e) =>
                     e.key === "Enter" && !e.shiftKey && handleSend()
                   }
-                  className="flex-1 bg-transparent border-none outline-none text-sm text-white py-4 placeholder:text-muted-foreground/70"
+                  className="flex-1 bg-transparent border-none outline-none text-sm text-foreground py-4 placeholder:text-muted-foreground/70"
                 />
+                {sendAsAudio && (
+                  <span className="text-[9px] font-bold text-primary uppercase tracking-widest shrink-0 mr-1">🔊 Áudio</span>
+                )}
                 <button
                   onClick={handleSend}
                   disabled={!messageText.trim() || sendMessage.isPending}
-                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-primary/80 flex items-center justify-center text-white shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
+                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-primary/80 flex items-center justify-center text-primary-foreground shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
                 >
-                  <Send size={20} />
+                  {sendMessage.isPending && sendAsAudio ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <Send size={20} />
+                  )}
                 </button>
               </div>
             </div>
