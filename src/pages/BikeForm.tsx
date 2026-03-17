@@ -745,13 +745,8 @@ export default function BikeForm() {
                             parts={allParts}
                             selectedPartId={tp.part_id}
                             customName={tp.part_name_override}
+                            allowCustom={false}
                             onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
-                            onCustomName={(name) =>
-                              updateRow(tp.key, {
-                                part_id: null,
-                                part_name_override: name,
-                              })
-                            }
                           />
                         </div>
                         <button
