@@ -673,34 +673,46 @@ export default function BikeForm() {
           {/* ── Build & Componentes (full width) ──────────────────────────── */}
           <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl">
             <SectionHeader
-              title="Cálculo de Preços"
+              title="Precificação"
               icon={Wrench}
-              subtitle="Mapeie as peças vinculadas para obter o custo de inventário preciso."
+              subtitle="Defina como o custo da bike será calculado."
             />
 
             {/* Cost mode toggle */}
-            <div className="flex p-1 bg-background border border-border rounded-2xl mb-8">
+            <div className="grid grid-cols-2 gap-3 mb-8">
               <button
                 type="button"
                 onClick={() => form.setValue("cost_mode", "fixed")}
-                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
                   costMode === "fixed"
-                    ? "bg-secondary text-white shadow-xl"
-                    : "text-muted-foreground hover:text-foreground/80"
+                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                    : "border-border bg-background hover:border-muted-foreground/30"
                 }`}
               >
-                Custo Direto (Fixo)
+                <DollarSign size={20} className={costMode === "fixed" ? "text-primary" : "text-muted-foreground"} />
+                <span className={`text-xs font-black uppercase tracking-wide ${costMode === "fixed" ? "text-primary" : "text-muted-foreground"}`}>
+                  Custo Manual
+                </span>
+                <span className="text-[10px] text-muted-foreground leading-tight text-center">
+                  Informe o custo diretamente
+                </span>
               </button>
               <button
                 type="button"
                 onClick={() => form.setValue("cost_mode", "manual")}
-                className={`flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
                   costMode === "manual"
-                    ? "bg-secondary text-white shadow-xl"
-                    : "text-muted-foreground hover:text-foreground/80"
+                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                    : "border-border bg-background hover:border-muted-foreground/30"
                 }`}
               >
-                Custo Composto (Peças)
+                <Wrench size={20} className={costMode === "manual" ? "text-primary" : "text-muted-foreground"} />
+                <span className={`text-xs font-black uppercase tracking-wide ${costMode === "manual" ? "text-primary" : "text-muted-foreground"}`}>
+                  Custo por Peça
+                </span>
+                <span className="text-[10px] text-muted-foreground leading-tight text-center">
+                  Soma automática das peças
+                </span>
               </button>
             </div>
 
