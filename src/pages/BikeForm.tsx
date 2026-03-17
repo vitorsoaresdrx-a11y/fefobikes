@@ -368,22 +368,7 @@ export default function BikeForm() {
                 </h1>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => navigate("/bikes")}
-                className="h-12 px-6 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-sm font-bold transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/80 shadow-primary/30 text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
-              >
-                <Save size={16} />
-                {isEditing ? "Salvar" : "Criar Bike"}
-              </button>
-            </div>
+            
           </header>
 
           {/* ── Galeria ───────────────────────────────────────────────────── */}
@@ -872,6 +857,24 @@ export default function BikeForm() {
             />
           </div>
 
+        </div>
+
+        {/* Sticky footer with save/cancel */}
+        <div className="sticky bottom-0 z-20 bg-background/80 backdrop-blur-xl border-t border-border px-4 py-4 -mx-4 lg:-mx-8 lg:px-8 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => navigate("/bikes")}
+            className="h-12 px-6 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-sm font-bold transition-all"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/80 shadow-primary/30 text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
+          >
+            <Save size={16} />
+            {isEditing ? "Salvar" : "Criar Bike"}
+          </button>
         </div>
       </form>
     </div>
