@@ -191,9 +191,41 @@ export function useToggleAi() {
         .update({ ai_enabled })
         .eq("id", id);
       if (error) throw error;
+
+      // When disabling AI, generate a handoff summary
+      if (!ai_enabled) {
+        try {
+          const { data: msgs } = await supabase
+            .from("whatsapp_messages")
+            .select("content, from_me, type")
+            .eq("conversation_id", id)
+            .order("created_at", { ascending: false })
+            .limit(15);
+
+          if (msgs && msgs.length > 0) {
+            const summary = msgs
+              .reverse()
+              .filter((m) => m.type === "text" && m.content)
+              .map((m) => `${m.from_me ? "🤖 IA" : "👤 Cliente"}: ${m.content}`)
+              .join("\n");
+
+            // Save summary as internal note
+            await supabase.from("whatsapp_messages").insert({
+              conversation_id: id,
+              from_me: true,
+              type: "text",
+              content: `📋 *Resumo da conversa (IA → Humano):*\n\n${summary}\n\n_IA desativada. Atendente humano assumiu._`,
+              status: "internal",
+            });
+          }
+        } catch (e) {
+          console.error("Failed to generate handoff summary:", e);
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
+      qc.invalidateQueries({ queryKey: MESSAGES_KEY });
     },
   });
 }

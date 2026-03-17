@@ -1,42 +1,45 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-export async function buildBusinessContext(): Promise<string> {
-  const supabase = createClient(
+const supabaseAdmin = () =>
+  createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const [partsRes, bikesRes, bikePartsRes] = await Promise.all([
+/** Build the full product catalog context */
+export async function buildBusinessContext(): Promise<string> {
+  const supabase = supabaseAdmin();
+
+  const [partsRes, bikesRes, bikePartsRes, promoRes] = await Promise.all([
     supabase
       .from("parts")
-      .select("name, category, sale_price, pix_price, stock_qty, material, color, rim_size, frame_size, gears")
+      .select("id, name, category, sale_price, pix_price, stock_qty, material, color, rim_size, frame_size, gears, images")
       .eq("visible_on_storefront", true)
       .order("name"),
     supabase
       .from("bike_models")
-      .select("id, name, category, sale_price, pix_price, stock_qty, brand, color, rim_size, frame_size, weight_kg, description")
+      .select("id, name, category, sale_price, pix_price, stock_qty, brand, color, rim_size, frame_size, weight_kg, description, images")
       .eq("visible_on_storefront", true)
       .order("name"),
     supabase
       .from("bike_model_parts")
       .select("bike_model_id, quantity, part_name_override, notes, part_id"),
+    supabase
+      .from("promotions")
+      .select("name, description, discount_type, discount_value, applies_to, category, product_id, bike_model_id, starts_at, ends_at")
+      .eq("active", true)
+      .gte("ends_at", new Date().toISOString()),
   ]);
 
   const parts = partsRes.data || [];
   const bikes = bikesRes.data || [];
   const bikeParts = bikePartsRes.data || [];
+  const promotions = promoRes.data || [];
 
   // Build parts lookup for bike components
+  const { data: allParts } = await supabase.from("parts").select("id, name");
   const partsById: Record<string, string> = {};
-  for (const p of parts) {
-    // We need all parts for lookup, fetch separately
-  }
-
-  // Fetch all parts for ID lookup
-  const { data: allParts } = await supabase
-    .from("parts")
-    .select("id, name");
-  for (const p of (allParts || [])) {
+  for (const p of allParts || []) {
     partsById[p.id] = p.name;
   }
 
@@ -45,7 +48,7 @@ export async function buildBusinessContext(): Promise<string> {
     const price = p.pix_price && p.pix_price > 0 ? `Pix: R$${p.pix_price}` : "";
     const salePrice = p.sale_price && p.sale_price > 0 ? `Preço: R$${p.sale_price}` : "";
     const specs = [p.category, p.material, p.color, p.rim_size, p.gears].filter(Boolean).join(", ");
-    ctx += `- ${p.name} | ${specs} | ${salePrice} ${price} | Estoque: ${p.stock_qty}\n`;
+    ctx += `- ${p.name} (ID: ${p.id}) | ${specs} | ${salePrice} ${price} | Estoque: ${p.stock_qty}\n`;
   }
 
   ctx += "\n=== CATÁLOGO DE BIKES ===\n";
@@ -53,10 +56,9 @@ export async function buildBusinessContext(): Promise<string> {
     const price = b.pix_price && b.pix_price > 0 ? `Pix: R$${b.pix_price}` : "";
     const salePrice = b.sale_price && b.sale_price > 0 ? `Preço: R$${b.sale_price}` : "";
     const specs = [b.brand, b.category, b.color, b.rim_size, b.frame_size, b.weight_kg ? `${b.weight_kg}kg` : null].filter(Boolean).join(", ");
-    ctx += `- ${b.name} | ${specs} | ${salePrice} ${price} | Estoque: ${b.stock_qty}\n`;
+    ctx += `- ${b.name} (ID: ${b.id}) | ${specs} | ${salePrice} ${price} | Estoque: ${b.stock_qty}\n`;
     if (b.description) ctx += `  Descrição: ${b.description}\n`;
 
-    // Components
     const components = bikeParts.filter((bp) => bp.bike_model_id === b.id);
     if (components.length > 0) {
       ctx += "  Componentes: ";
@@ -70,5 +72,89 @@ export async function buildBusinessContext(): Promise<string> {
     }
   }
 
+  // Active promotions
+  if (promotions.length > 0) {
+    ctx += "\n=== PROMOÇÕES ATIVAS ===\n";
+    for (const promo of promotions) {
+      const discount =
+        promo.discount_type === "percentage"
+          ? `${promo.discount_value}% de desconto`
+          : `R$${promo.discount_value} de desconto`;
+      const endsAt = new Date(promo.ends_at).toLocaleDateString("pt-BR");
+      ctx += `- ${promo.name}: ${discount} | Válida até ${endsAt}`;
+      if (promo.description) ctx += ` | ${promo.description}`;
+      ctx += "\n";
+    }
+  }
+
   return ctx;
+}
+
+/** Lookup customer info by phone number */
+export async function getCustomerContext(phone: string): Promise<string> {
+  const supabase = supabaseAdmin();
+  const cleanPhone = phone.replace(/\D/g, "");
+
+  // Try to find customer by whatsapp
+  const { data: customer } = await supabase
+    .from("customers")
+    .select("id, name, cpf, whatsapp, notes")
+    .or(`whatsapp.ilike.%${cleanPhone.slice(-8)}%`)
+    .limit(1)
+    .maybeSingle();
+
+  if (!customer) return "";
+
+  let ctx = `\n=== DADOS DO CLIENTE ===\nNome: ${customer.name}`;
+  if (customer.cpf) ctx += ` | CPF: ${customer.cpf}`;
+  if (customer.notes) ctx += `\nObs: ${customer.notes}`;
+
+  // Recent purchases
+  const { data: sales } = await supabase
+    .from("sales")
+    .select("id, total, payment_method, created_at, sale_items:sale_items(description, quantity, unit_price)")
+    .eq("customer_id", customer.id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (sales && sales.length > 0) {
+    ctx += `\nÚltimas compras (${sales.length}):`;
+    for (const s of sales) {
+      const date = new Date(s.created_at).toLocaleDateString("pt-BR");
+      const items = (s.sale_items as any[])?.map((i: any) => `${i.description} x${i.quantity}`).join(", ") || "";
+      ctx += `\n  ${date} - R$${s.total} (${s.payment_method || "N/A"}) | ${items}`;
+    }
+  }
+
+  return ctx;
+}
+
+/** Lookup service orders by phone */
+export async function getServiceOrdersByPhone(phone: string): Promise<string> {
+  const supabase = supabaseAdmin();
+  const cleanPhone = phone.replace(/\D/g, "");
+
+  const { data: orders } = await supabase
+    .from("service_orders")
+    .select("id, bike_name, problem, status, mechanic_name, price, created_at, completed_at")
+    .or(`customer_whatsapp.ilike.%${cleanPhone.slice(-8)}%`)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (!orders || orders.length === 0) {
+    return JSON.stringify({ found: false, message: "Nenhuma ordem de serviço encontrada para este telefone." });
+  }
+
+  const result = orders.map((o) => ({
+    id: o.id.slice(0, 8),
+    bike: o.bike_name || "N/A",
+    problema: o.problem,
+    status: o.status === "in_repair" ? "Em reparo" : o.status === "completed" ? "Concluído" : o.status === "waiting_parts" ? "Aguardando peças" : o.status,
+    mecanico: o.mechanic_name || "Não atribuído",
+    valor: o.price ? `R$${o.price}` : "A definir",
+    data: new Date(o.created_at!).toLocaleDateString("pt-BR"),
+    concluido: o.completed_at ? new Date(o.completed_at).toLocaleDateString("pt-BR") : null,
+  }));
+
+  return JSON.stringify({ found: true, orders: result });
 }
