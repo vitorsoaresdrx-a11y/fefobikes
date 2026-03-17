@@ -92,11 +92,13 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: evoHeaders(),
         body: JSON.stringify({
-          url: `${Deno.env.get("SUPABASE_URL")!}/functions/v1/zapi-webhook`,
-          webhook_by_events: true,
-          webhook_base64: false,
-          enabled: true,
-          events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+          webhook: {
+            url: `${Deno.env.get("SUPABASE_URL")!}/functions/v1/zapi-webhook`,
+            webhook_by_events: true,
+            webhook_base64: false,
+            enabled: true,
+            events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+          },
         }),
       });
       console.log(`Webhook set status=${webhookRes.status}`);
