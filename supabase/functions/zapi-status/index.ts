@@ -101,26 +101,38 @@ Deno.serve(async (req) => {
       });
       console.log(`Webhook set status=${webhookRes.status}`);
 
-      // Fetch QR
-      const qrRes = await fetch(
-        `${EVOLUTION_BASE}/instance/connect/${instName}`,
-        { headers: evoHeaders() }
-      );
+      const readQrFromResponse = async (res: Response) => {
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Connect failed (${res.status}): ${errText}`);
+        }
+        const payload = await res.json();
+        const extracted = payload?.qrcode?.base64 || payload?.base64 || null;
+        return { payload, extracted };
+      };
+
+      // Fetch QR (primary flow: GET)
+      const qrRes = await fetch(`${EVOLUTION_BASE}/instance/connect/${instName}`, {
+        method: "GET",
+        headers: evoHeaders(),
+      });
       console.log(`QR response status=${qrRes.status}`);
 
-      if (!qrRes.ok) {
-        const errText = await qrRes.text();
-        console.error("QR error:", errText);
-        return new Response(JSON.stringify({ error: errText }), {
-          status: qrRes.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      let { payload: qrData, extracted: qrCode } = await readQrFromResponse(qrRes);
+
+      // Fallback: some Evolution setups only return QR on POST connect
+      if (!qrCode) {
+        const qrPostRes = await fetch(`${EVOLUTION_BASE}/instance/connect/${instName}`, {
+          method: "POST",
+          headers: evoHeaders(),
         });
+        console.log(`QR POST response status=${qrPostRes.status}`);
+        const postParsed = await readQrFromResponse(qrPostRes);
+        qrData = postParsed.payload;
+        qrCode = postParsed.extracted;
       }
 
-      const qrData = await qrRes.json();
       console.log("QR data keys:", JSON.stringify(Object.keys(qrData || {})));
-      // Evolution returns { qrcode: { base64: "data:image/png;base64,..." } }
-      const qrCode = qrData?.qrcode?.base64 || qrData?.base64 || null;
 
       return new Response(JSON.stringify({ qrCode }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
