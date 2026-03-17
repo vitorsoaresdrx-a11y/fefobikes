@@ -118,12 +118,9 @@ Deno.serve(async (req) => {
       }
 
       const qrData = await qrRes.json();
-      // Evolution returns { base64: "data:image/..." } or { code: "..." }
-      const qrCode =
-        qrData?.base64 ||
-        (typeof qrData?.code === "string" && qrData.code.startsWith("data:image")
-          ? qrData.code
-          : null);
+      console.log("QR data keys:", JSON.stringify(Object.keys(qrData || {})));
+      // Evolution returns { qrcode: { base64: "data:image/png;base64,..." } }
+      const qrCode = qrData?.qrcode?.base64 || qrData?.base64 || null;
 
       return new Response(JSON.stringify({ qrCode }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
