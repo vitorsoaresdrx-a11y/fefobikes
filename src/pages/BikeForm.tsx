@@ -395,7 +395,7 @@ export default function BikeForm() {
             {/* Identidade */}
             <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl">
               <SectionHeader
-                title="Identidade do Modelo"
+                title="Modelo"
                 icon={Tag}
                 subtitle="Configure como o produto será exibido para o cliente final."
               />
