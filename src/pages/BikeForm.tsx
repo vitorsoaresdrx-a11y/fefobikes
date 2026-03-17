@@ -94,7 +94,7 @@ const SectionHeader = ({
       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
         <Icon size={20} />
       </div>
-      <h3 className="text-xl font-black text-white tracking-tight italic uppercase">{title}</h3>
+      <h3 className="text-xl font-black text-foreground tracking-tight italic uppercase">{title}</h3>
     </div>
     {subtitle && <p className="text-xs text-muted-foreground ml-13 font-medium">{subtitle}</p>}
   </div>
@@ -374,15 +374,15 @@ export default function BikeForm() {
           </header>
 
           {/* ── Galeria ───────────────────────────────────────────────────── */}
-          <div className="bg-card border border-border rounded-[40px] p-8 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-3">
-                <ImageIcon className="text-primary" size={20} />
-                <h3 className="text-sm font-black uppercase tracking-widest text-white italic">
-                  Fotos
-                </h3>
+          <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3 mb-0">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <ImageIcon size={20} />
+                </div>
+                <h3 className="text-xl font-black text-foreground tracking-tight italic uppercase">Fotos</h3>
               </div>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase mt-3">
                 {bikeImages.length} / 5 Imagens
               </span>
             </div>
