@@ -379,7 +379,7 @@ export default function BikeForm() {
               <div className="flex items-center gap-3">
                 <ImageIcon className="text-primary" size={20} />
                 <h3 className="text-sm font-black uppercase tracking-widest text-white italic">
-                  Fotos do Produto
+                  Fotos
                 </h3>
               </div>
               <span className="text-[10px] font-bold text-muted-foreground uppercase">
