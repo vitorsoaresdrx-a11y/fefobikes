@@ -153,7 +153,9 @@ export default function BikeForm() {
   const saveParts = useSaveBikeModelParts();
 
   const [templateParts, setTemplateParts] = useState<TemplatePart[]>([]);
+  const [partsChanged, setPartsChanged] = useState(false);
   const [bikeImages, setBikeImages] = useState<string[]>([]);
+  const [imagesChanged, setImagesChanged] = useState(false);
 
   const form = useForm<BikeFormValues>({
     resolver: zodResolver(bikeSchema),
@@ -184,6 +186,7 @@ export default function BikeForm() {
   });
 
   const { isDirty } = form.formState;
+  const hasUnsavedChanges = isDirty || partsChanged || imagesChanged;
   const costMode = form.watch("cost_mode");
   const costPrice = form.watch("cost_price");
   const priceStore = form.watch("price_store");
@@ -262,16 +265,19 @@ export default function BikeForm() {
         unit_cost: 0,
       },
     ]);
+    setPartsChanged(true);
   };
 
   const removeRow = (key: string) => {
     setTemplateParts((prev) => prev.filter((p) => p.key !== key));
+    setPartsChanged(true);
   };
 
   const updateRow = (key: string, updates: Partial<TemplatePart>) => {
     setTemplateParts((prev) =>
       prev.map((p) => (p.key === key ? { ...p, ...updates } : p))
     );
+    setPartsChanged(true);
   };
 
   const handleSelectPart = (key: string, partId: string) => {
@@ -386,7 +392,7 @@ export default function BikeForm() {
                 {bikeImages.length} / 5 Imagens
               </span>
             </div>
-            <ImageUpload images={bikeImages} onChange={setBikeImages} folder="bikes" />
+            <ImageUpload images={bikeImages} onChange={(imgs) => { setBikeImages(imgs); setImagesChanged(true); }} folder="bikes" />
           </div>
 
           {/* ── Identidade + Financeiro (side by side) ─────────────────── */}
@@ -849,7 +855,7 @@ export default function BikeForm() {
         </div>
 
         <AnimatePresence>
-          {isDirty && (
+          {hasUnsavedChanges && (
             <motion.div
               initial={{ y: 100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -863,7 +869,7 @@ export default function BikeForm() {
               </p>
               <button
                 type="button"
-                onClick={() => { form.reset(); navigate("/bikes"); }}
+                onClick={() => { form.reset(); setPartsChanged(false); setImagesChanged(false); navigate("/bikes"); }}
                 className="h-9 px-3 rounded-xl bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
               >
                 Descartar
