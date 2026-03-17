@@ -265,16 +265,19 @@ export default function BikeForm() {
         unit_cost: 0,
       },
     ]);
+    setPartsChanged(true);
   };
 
   const removeRow = (key: string) => {
     setTemplateParts((prev) => prev.filter((p) => p.key !== key));
+    setPartsChanged(true);
   };
 
   const updateRow = (key: string, updates: Partial<TemplatePart>) => {
     setTemplateParts((prev) =>
       prev.map((p) => (p.key === key ? { ...p, ...updates } : p))
     );
+    setPartsChanged(true);
   };
 
   const handleSelectPart = (key: string, partId: string) => {
