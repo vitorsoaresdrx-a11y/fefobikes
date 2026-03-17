@@ -15,60 +15,73 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body));
 
-    const callbackType = String(body.type || "");
-    const isStatusOnlyEvent =
-      callbackType === "MessageStatusCallback" ||
-      (Array.isArray(body.ids) && !body.messageId && !body.text && !body.body && !body.caption);
+    // Evolution API sends events like MESSAGES_UPSERT, CONNECTION_UPDATE
+    const event = body.event || "";
 
-    if (isStatusOnlyEvent) {
-      return new Response(JSON.stringify({ ok: true, ignored: "status_callback" }), {
+    // Handle CONNECTION_UPDATE events
+    if (event === "CONNECTION_UPDATE") {
+      console.log("Connection update:", body.data?.state);
+      return new Response(JSON.stringify({ ok: true, event: "connection_update" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const isFromMe = body.fromMe === true;
-    const rawPhone = body.phone || body.chatId || body.chatLid || "";
-
-    if (String(rawPhone).includes("status@broadcast")) {
-      return new Response(JSON.stringify({ ok: true, ignored: "status_broadcast" }), {
+    // Only process MESSAGES_UPSERT
+    if (event !== "MESSAGES_UPSERT") {
+      return new Response(JSON.stringify({ ok: true, ignored: event || "unknown_event" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Extract LID from chatLid field
-    const rawLid = body.chatLid || "";
-    const lid = String(rawLid).replace("@lid", "").replace(/\D/g, "");
+    const msgData = body.data;
+    if (!msgData) {
+      return new Response(JSON.stringify({ ok: true, ignored: "no_data" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const phone = String(rawPhone)
-      .replace("@c.us", "")
-      .replace("@lid", "")
-      .replace(/\D/g, "");
+    const key = msgData.key || {};
+    const isFromMe = key.fromMe === true;
+    const remoteJid = key.remoteJid || "";
 
-    const messageId =
-      body.messageId ||
-      body.id?.id ||
-      (Array.isArray(body.ids) ? body.ids[0] : "") ||
-      "";
+    // Skip status broadcasts
+    if (remoteJid.includes("status@broadcast") || remoteJid.includes("@g.us")) {
+      return new Response(JSON.stringify({ ok: true, ignored: "broadcast_or_group" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const rawText =
-      body.text?.message ?? body.text ?? body.body ?? body.message ?? body.caption ?? "";
-    const text =
-      typeof rawText === "string"
-        ? rawText
-        : typeof rawText === "object" && rawText !== null
-          ? String((rawText as { message?: unknown }).message ?? "")
-          : String(rawText ?? "");
-    const content = text.trim();
+    // Extract phone number from remoteJid (format: 5511999999999@s.whatsapp.net)
+    const phone = remoteJid.replace("@s.whatsapp.net", "").replace("@c.us", "").replace(/\D/g, "");
+    const messageId = key.id || "";
 
-    const type = body.isMedia
-      ? body.mimetype?.startsWith("image")
-        ? "image"
-        : body.mimetype?.startsWith("audio")
-          ? "audio"
-          : "document"
-      : "text";
+    // Extract message content
+    const messageObj = msgData.message || {};
+    let content = "";
+    let type = "text";
+    let mediaUrl: string | null = null;
 
-    const mediaUrl = body.mediaUrl || null;
+    if (messageObj.conversation) {
+      content = messageObj.conversation;
+    } else if (messageObj.extendedTextMessage?.text) {
+      content = messageObj.extendedTextMessage.text;
+    } else if (messageObj.imageMessage) {
+      type = "image";
+      content = messageObj.imageMessage.caption || "[image]";
+      mediaUrl = messageObj.imageMessage.url || null;
+    } else if (messageObj.audioMessage) {
+      type = "audio";
+      content = "[audio]";
+      mediaUrl = messageObj.audioMessage.url || null;
+    } else if (messageObj.documentMessage) {
+      type = "document";
+      content = messageObj.documentMessage.fileName || "[document]";
+      mediaUrl = messageObj.documentMessage.url || null;
+    } else if (messageObj.videoMessage) {
+      type = "document";
+      content = messageObj.videoMessage.caption || "[video]";
+      mediaUrl = messageObj.videoMessage.url || null;
+    }
 
     if (!phone || (!content && !mediaUrl)) {
       return new Response(JSON.stringify({ ok: true, ignored: "empty_payload" }), {
@@ -81,7 +94,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Resolve tenant_id for WhatsApp data isolation
+    // Resolve tenant_id
     const { data: tenantRow } = await supabase
       .from("tenants")
       .select("id")
@@ -92,35 +105,26 @@ Deno.serve(async (req) => {
 
     let convId: string | null = null;
 
+    // Extract contact info from Evolution payload
+    const pushName = msgData.pushName || null;
+    const contactName = pushName;
+
     if (isFromMe) {
-      // For outgoing messages, phone is a LID — find conversation by contact_lid
-      if (lid) {
-        const { data: byLid } = await supabase
-          .from("whatsapp_conversations")
-          .select("id")
-          .eq("contact_lid", lid)
-          .maybeSingle();
-        if (byLid) convId = byLid.id;
-      }
+      // Outgoing message — find existing conversation
+      const { data: byPhone } = await supabase
+        .from("whatsapp_conversations")
+        .select("id")
+        .eq("contact_phone", phone)
+        .maybeSingle();
 
-      // Fallback: try matching by phone digits (in case it's a real number)
-      if (!convId) {
-        const { data: byPhone } = await supabase
-          .from("whatsapp_conversations")
-          .select("id")
-          .eq("contact_phone", phone)
-          .maybeSingle();
-        if (byPhone) convId = byPhone.id;
-      }
-
-      if (!convId) {
-        // Can't find the conversation — skip to avoid creating orphan chats
+      if (!byPhone) {
         return new Response(JSON.stringify({ ok: true, ignored: "from_me_no_conv" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Update conversation last message
+      convId = byPhone.id;
+
       await supabase
         .from("whatsapp_conversations")
         .update({
@@ -129,7 +133,6 @@ Deno.serve(async (req) => {
         })
         .eq("id", convId);
 
-      // Save the outgoing message
       await supabase.from("whatsapp_messages").insert({
         conversation_id: convId,
         message_id: messageId,
@@ -146,16 +149,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // --- Incoming message (fromMe = false) ---
-    const chatName   = typeof body.chatName   === "string" ? body.chatName.trim()   : "";
-    const senderName = typeof body.senderName === "string" ? body.senderName.trim() : "";
-    const pushName   = typeof body.pushName   === "string" ? body.pushName.trim()   : "";
-    const contactName  = chatName || senderName || pushName || null;
-    const contactPhoto =
-      (typeof body.photo       === "string" ? body.photo       : null) ||
-      (typeof body.senderPhoto === "string" ? body.senderPhoto : null) ||
-      null;
-
+    // --- Incoming message ---
     const { data: existing } = await supabase
       .from("whatsapp_conversations")
       .select("id, unread_count")
@@ -170,9 +164,7 @@ Deno.serve(async (req) => {
         last_message_at: new Date().toISOString(),
         unread_count: (existing.unread_count || 0) + 1,
       };
-      if (contactName)  updates.contact_name  = contactName;
-      if (contactPhoto) updates.contact_photo = contactPhoto;
-      if (lid)          updates.contact_lid   = lid;
+      if (contactName) updates.contact_name = contactName;
 
       await supabase
         .from("whatsapp_conversations")
@@ -181,15 +173,13 @@ Deno.serve(async (req) => {
     } else {
       const insertData: Record<string, unknown> = {
         contact_phone: phone,
-        contact_name:  contactName,
-        contact_photo: contactPhoto,
-        last_message:  content || `[${type}]`,
+        contact_name: contactName,
+        last_message: content || `[${type}]`,
         last_message_at: new Date().toISOString(),
         unread_count: 1,
         status: "open",
         tenant_id: tenantId,
       };
-      if (lid) insertData.contact_lid = lid;
 
       const { data: newConv } = await supabase
         .from("whatsapp_conversations")
@@ -203,13 +193,13 @@ Deno.serve(async (req) => {
     // Save incoming message
     await supabase.from("whatsapp_messages").insert({
       conversation_id: convId,
-      message_id:      messageId,
-      from_me:         false,
+      message_id: messageId,
+      from_me: false,
       type,
-      content:         content || `[${type}]`,
-      media_url:       mediaUrl,
-      status:          "delivered",
-      tenant_id:       tenantId,
+      content: content || `[${type}]`,
+      media_url: mediaUrl,
+      status: "delivered",
+      tenant_id: tenantId,
     });
 
     // Trigger AI responder for incoming text messages
