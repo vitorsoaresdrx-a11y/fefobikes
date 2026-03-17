@@ -17,6 +17,7 @@ import {
 import {
   MessageCircle,
   Send,
+  Volume2,
   Search,
   CheckCheck,
   ChevronLeft,
