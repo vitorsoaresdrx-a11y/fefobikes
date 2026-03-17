@@ -724,7 +724,7 @@ export default function BikeForm() {
 
             {/* Manual parts */}
             {costMode === "manual" && (
-              <div className="space-y-4">
+              <div className="w-full overflow-hidden space-y-2">
                 {templateParts.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-8 text-center">
                     Nenhuma peça adicionada
@@ -733,14 +733,14 @@ export default function BikeForm() {
                   templateParts.map((tp) => (
                     <div
                       key={tp.key}
-                      className="rounded-2xl bg-background border border-border p-3 mb-2 overflow-hidden"
+                      className="rounded-2xl bg-background border border-border p-3 overflow-hidden"
                     >
-                      {/* Row 1: part selector */}
-                      <div className="flex items-center gap-2 mb-3">
+                      {/* Row 1: icon + selector + remove */}
+                      <div className="flex items-center gap-2 mb-3 w-full">
                         <div className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center shrink-0">
                           <Layers size={14} className="text-muted-foreground" />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           <PartSelector
                             parts={allParts}
                             selectedPartId={tp.part_id}
@@ -765,8 +765,8 @@ export default function BikeForm() {
 
                       {/* Row 2: qty + cost + subtotal */}
                       <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <p className="text-[9px] uppercase text-muted-foreground mb-1">Qtd</p>
+                        <div className="space-y-1">
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Qtd</p>
                           <input
                             type="number"
                             min={1}
@@ -779,8 +779,8 @@ export default function BikeForm() {
                             className="w-full h-9 bg-secondary border border-border rounded-xl text-center text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
                           />
                         </div>
-                        <div>
-                          <p className="text-[9px] uppercase text-muted-foreground mb-1">Custo unit.</p>
+                        <div className="space-y-1">
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custo unit.</p>
                           <input
                             type="number"
                             step="0.01"
@@ -794,10 +794,10 @@ export default function BikeForm() {
                             className="w-full h-9 bg-secondary border border-border rounded-xl px-2 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
                           />
                         </div>
-                        <div>
-                          <p className="text-[9px] uppercase text-muted-foreground mb-1">Subtotal</p>
+                        <div className="space-y-1">
+                          <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Subtotal</p>
                           <div className="h-9 bg-secondary/50 rounded-xl flex items-center justify-center">
-                            <p className="text-sm font-black text-primary">{formatBRL(tp.unit_cost * tp.quantity)}</p>
+                            <p className="text-sm font-black text-primary whitespace-nowrap">{formatBRL(tp.unit_cost * tp.quantity)}</p>
                           </div>
                         </div>
                       </div>
@@ -807,7 +807,7 @@ export default function BikeForm() {
 
                 {/* Total */}
                 {templateParts.length > 0 && (
-                  <div className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3 mb-3">
+                  <div className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3">
                     <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Custo total das peças</p>
                     <p className="text-base font-black text-foreground">
                       {formatBRL(manualCost)}
