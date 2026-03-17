@@ -161,6 +161,25 @@ Deno.serve(async (req) => {
       const state = statusData?.instance?.state || statusData?.state || "";
       const connected = state === "open";
 
+      // Re-set webhook every time we detect instance is connected
+      if (connected) {
+        const webhookUrl = `${Deno.env.get("SUPABASE_URL")!}/functions/v1/zapi-webhook`;
+        console.log(`Setting webhook for connected instance ${instName} -> ${webhookUrl}`);
+        const whRes = await fetch(`${EVOLUTION_BASE}/webhook/set/${instName}`, {
+          method: "POST",
+          headers: evoHeaders(),
+          body: JSON.stringify({
+            url: webhookUrl,
+            webhook_by_events: true,
+            webhook_base64: false,
+            enabled: true,
+            events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+          }),
+        });
+        const whBody = await whRes.text();
+        console.log(`Webhook set status=${whRes.status} body=${whBody}`);
+      }
+
       return new Response(
         JSON.stringify({ connected, smartphoneConnected: connected }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }

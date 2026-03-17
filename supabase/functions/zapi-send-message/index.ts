@@ -39,13 +39,11 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: claims, error: claimsError } = await supabase.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
-    if (claimsError || !claims?.claims) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: corsHeaders,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -54,7 +52,7 @@ Deno.serve(async (req) => {
     if (!phone || !message) {
       return new Response(
         JSON.stringify({ error: "phone and message are required" }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -64,7 +62,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const userId = claims.claims.sub as string;
+    const userId = user.id;
     const { data: member } = await adminClient
       .from("tenant_members")
       .select("tenant_id")
@@ -76,6 +74,7 @@ Deno.serve(async (req) => {
     const instName = member ? instanceName(member.tenant_id) : "fefo-default";
 
     // Send via Evolution API
+    console.log(`Sending message to ${phone} via instance ${instName}`);
     const evoRes = await fetch(
       `${EVOLUTION_BASE}/message/sendText/${instName}`,
       {
@@ -86,6 +85,14 @@ Deno.serve(async (req) => {
     );
 
     const evoData = await evoRes.json();
+    console.log(`Evolution sendText status=${evoRes.status}`, JSON.stringify(evoData));
+
+    if (!evoRes.ok) {
+      return new Response(JSON.stringify({ error: "Evolution API error", details: evoData }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Ensure conversation exists
     let convId = conversationId;
@@ -99,9 +106,10 @@ Deno.serve(async (req) => {
       if (existing) {
         convId = existing.id;
       } else {
+        const tenantId = member?.tenant_id || null;
         const { data: newConv } = await adminClient
           .from("whatsapp_conversations")
-          .insert({ contact_phone: phone, last_message: message, status: "open" })
+          .insert({ contact_phone: phone, last_message: message, status: "open", tenant_id: tenantId })
           .select("id")
           .single();
         convId = newConv?.id;
@@ -109,6 +117,7 @@ Deno.serve(async (req) => {
     }
 
     // Save message
+    const tenantId = member?.tenant_id || null;
     await adminClient.from("whatsapp_messages").insert({
       conversation_id: convId,
       message_id: evoData?.key?.id || null,
@@ -116,6 +125,7 @@ Deno.serve(async (req) => {
       type: "text",
       content: message,
       status: "sent",
+      tenant_id: tenantId,
     });
 
     // Update conversation
@@ -131,9 +141,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
+    console.error("zapi-send-message error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
-      headers: corsHeaders,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
