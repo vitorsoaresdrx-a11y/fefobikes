@@ -731,75 +731,77 @@ export default function BikeForm() {
                   templateParts.map((tp) => (
                     <div
                       key={tp.key}
-                      className="group flex items-start gap-4 p-6 bg-background border border-border rounded-[32px] hover:border-border/80 transition-all"
+                      className="group p-4 md:p-6 bg-background border border-border rounded-2xl md:rounded-[32px] hover:border-border/80 transition-all overflow-hidden"
                     >
-                      <div className="w-12 h-12 bg-background rounded-2xl flex items-center justify-center text-muted-foreground/70 border border-border shrink-0">
-                        <Layers size={20} />
+                      <div className="flex items-start gap-3 md:gap-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-background rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground/70 border border-border shrink-0">
+                          <Layers size={18} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <PartSelector
+                            parts={allParts}
+                            selectedPartId={tp.part_id}
+                            customName={tp.part_name_override}
+                            onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
+                            onCustomName={(name) =>
+                              updateRow(tp.key, {
+                                part_id: null,
+                                part_name_override: name,
+                              })
+                            }
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeRow(tp.key)}
+                          className="w-9 h-9 rounded-xl bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center shrink-0"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
-                      <div className="flex-1 space-y-3 min-w-0">
-                        <PartSelector
-                          parts={allParts}
-                          selectedPartId={tp.part_id}
-                          customName={tp.part_name_override}
-                          onSelectPart={(partId) => handleSelectPart(tp.key, partId)}
-                          onCustomName={(name) =>
-                            updateRow(tp.key, {
-                              part_id: null,
-                              part_name_override: name,
-                            })
-                          }
-                        />
-                        <div className="flex gap-3">
-                          <div className="w-20">
-                            <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                              Qtd
-                            </label>
-                            <input
-                              type="number"
-                              min={1}
-                              value={tp.quantity}
-                              onChange={(e) =>
-                                updateRow(tp.key, {
-                                  quantity: parseInt(e.target.value) || 1,
-                                })
-                              }
-                              className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-primary transition-all"
-                            />
-                          </div>
-                          <div className="w-36">
-                            <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                              Custo unit. (R$)
-                            </label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min={0}
-                              value={tp.unit_cost || ""}
-                              onChange={(e) =>
-                                updateRow(tp.key, {
-                                  unit_cost: parseFloat(e.target.value) || 0,
-                                })
-                              }
-                              className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm font-bold text-white outline-none focus:border-primary transition-all"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                              Subtotal
-                            </label>
-                            <div className="h-10 flex items-center text-sm font-bold text-primary">
-                              {formatBRL(tp.unit_cost * tp.quantity)}
-                            </div>
+                      <div className="grid grid-cols-3 gap-2 md:gap-3 mt-3 md:mt-4">
+                        <div>
+                          <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
+                            Qtd
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={tp.quantity}
+                            onChange={(e) =>
+                              updateRow(tp.key, {
+                                quantity: parseInt(e.target.value) || 1,
+                              })
+                            }
+                            className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
+                            Custo unit.
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            value={tp.unit_cost || ""}
+                            onChange={(e) =>
+                              updateRow(tp.key, {
+                                unit_cost: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
+                            Subtotal
+                          </label>
+                          <div className="h-10 flex items-center text-sm font-bold text-primary truncate">
+                            {formatBRL(tp.unit_cost * tp.quantity)}
                           </div>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeRow(tp.key)}
-                        className="w-10 h-10 rounded-xl bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center shrink-0 mt-1"
-                      >
-                        <Trash2 size={16} />
-                      </button>
                     </div>
                   ))
                 )}
