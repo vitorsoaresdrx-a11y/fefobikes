@@ -869,7 +869,7 @@ export default function BikeForm() {
               </p>
               <button
                 type="button"
-                onClick={() => { form.reset(); navigate("/bikes"); }}
+                onClick={() => { form.reset(); setPartsChanged(false); setImagesChanged(false); navigate("/bikes"); }}
                 className="h-9 px-3 rounded-xl bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
               >
                 Descartar
