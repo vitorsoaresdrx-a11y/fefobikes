@@ -672,37 +672,39 @@ export default function BikeForm() {
 
           {/* ── Build & Componentes (full width) ──────────────────────────── */}
           <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl">
-            <SectionHeader
-              title="Precificação"
-              icon={Wrench}
-              subtitle="Defina como o custo da bike será calculado."
-            />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                <Wrench size={15} className="text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-black uppercase tracking-tight text-foreground">Precificação</p>
+                <p className="text-[10px] text-muted-foreground">Defina como o custo da bike será calculado</p>
+              </div>
+            </div>
 
             {/* Cost mode toggle */}
-            <div className="flex p-1 bg-background border border-border rounded-2xl mb-8">
+            <div className="flex bg-background border border-border rounded-2xl p-1 mb-4">
               <button
                 type="button"
                 onClick={() => form.setValue("cost_mode", "fixed")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all whitespace-nowrap ${
+                className={`flex-1 h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                   costMode === "fixed"
-                    ? "bg-primary/10 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground/80"
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground"
                 }`}
               >
-                <DollarSign size={16} />
-                <span className="text-xs font-black uppercase tracking-wide">Manual</span>
+                <DollarSign size={13} /> Manual
               </button>
               <button
                 type="button"
                 onClick={() => form.setValue("cost_mode", "manual")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all whitespace-nowrap ${
+                className={`flex-1 h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                   costMode === "manual"
-                    ? "bg-primary/10 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground/80"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground"
                 }`}
               >
-                <Wrench size={16} />
-                <span className="text-xs font-black uppercase tracking-wide">Por Peça</span>
+                <Layers size={13} /> Por Peça
               </button>
             </div>
 
