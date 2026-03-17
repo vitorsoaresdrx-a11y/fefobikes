@@ -375,9 +375,14 @@ export default function BikeForm() {
 
           {/* ── Galeria ───────────────────────────────────────────────────── */}
           <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between">
-              <SectionHeader title="Fotos" icon={ImageIcon} />
-              <span className="text-[10px] font-bold text-muted-foreground uppercase">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3 mb-0">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <ImageIcon size={20} />
+                </div>
+                <h3 className="text-xl font-black text-foreground tracking-tight italic uppercase">Fotos</h3>
+              </div>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase mt-3">
                 {bikeImages.length} / 5 Imagens
               </span>
             </div>
