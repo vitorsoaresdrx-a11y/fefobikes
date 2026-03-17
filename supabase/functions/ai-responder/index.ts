@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 import { buildBusinessContext, getCustomerContext, getServiceOrdersByPhone } from "./context.ts";
 import { toolDefinitions, executeCalcularFrete } from "./tools.ts";
 
@@ -9,6 +10,7 @@ const corsHeaders = {
 };
 
 const EVOLUTION_BASE = "https://evolution.fefobikes.com.br";
+const ELEVENLABS_VOICE_ID = "xNGAXaCH8MaasNuo7Hr7";
 
 function evoHeaders() {
   return {
@@ -21,15 +23,42 @@ function instanceName(tenantId: string): string {
   return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
 }
 
+/** Convert text to speech via ElevenLabs and return base64 */
+async function textToSpeechBase64(text: string): Promise<string> {
+  const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY not configured");
+
+  const res = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`,
+    {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text,
+        model_id: "eleven_multilingual_v2",
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`ElevenLabs error ${res.status}: ${err}`);
+  }
+
+  const audioBuffer = await res.arrayBuffer();
+  return base64Encode(audioBuffer);
+}
+
 /** Check if currently within business hours (Sorocaba, SP) */
 function isBusinessHours(): { open: boolean; message: string } {
   const now = new Date();
-  // Sorocaba is UTC-3
   const brHour = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-  const day = brHour.getDay(); // 0=Sun
+  const day = brHour.getDay();
   const hour = brHour.getHours();
 
-  // Mon-Fri 9-18, Sat 9-14, Sun closed
   if (day === 0) return { open: false, message: "Estamos fechados aos domingos. Retornamos na segunda-feira às 9h." };
   if (day === 6) {
     if (hour >= 9 && hour < 14) return { open: true, message: "" };
@@ -55,7 +84,8 @@ Regras:
 - Nunca invente preços ou disponibilidade — use apenas o contexto fornecido
 - Se houver promoções ativas relevantes ao que o cliente pergunta, mencione-as proativamente
 - Mensagens curtas e diretas, sem excessos
-- Use emojis com moderação para um tom amigável 🚴`;
+- Use emojis com moderação para um tom amigável 🚴
+- IMPORTANTE: quando a resposta for enviada como áudio, mantenha o texto AINDA MAIS curto e conversacional, como se estivesse falando normalmente. Evite listas e formatação markdown.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -63,7 +93,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { conversationId, phone, message } = await req.json();
+    const { conversationId, phone, message, respondWithAudio } = await req.json();
 
     if (!conversationId || !phone || !message) {
       return new Response(
@@ -77,7 +107,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Resolve tenant_id
     const { data: tenantRow } = await supabase
       .from("tenants")
       .select("id")
@@ -110,10 +139,10 @@ Deno.serve(async (req) => {
 
     const history = (recentMessages || [])
       .reverse()
-      .filter((m) => m.type === "text" && m.content)
+      .filter((m) => (m.type === "text" || m.type === "audio") && m.content && !m.content.startsWith("["))
       .map((m) => ({
         role: m.from_me ? "assistant" : "user",
-        content: m.content!,
+        content: m.content!.replace(/^🎤 /, "").replace(/^🔊 /, ""),
       }));
 
     // Build contexts in parallel
@@ -122,15 +151,18 @@ Deno.serve(async (req) => {
       getCustomerContext(phone),
     ]);
 
-    // Business hours info
     const bh = isBusinessHours();
     const hoursNote = bh.open
       ? "A loja está ABERTA agora."
       : `A loja está FECHADA agora. ${bh.message} Se o cliente precisar de algo urgente, informe que um atendente retornará no próximo horário de funcionamento.`;
 
-    // Build system message
+    const audioNote = respondWithAudio
+      ? "\n\nIMPORTANTE: Esta resposta será convertida em ÁUDIO. Seja conciso, conversacional, evite formatação markdown, listas e caracteres especiais."
+      : "";
+
     const systemContent = [
       SYSTEM_PROMPT,
+      audioNote,
       `\n--- HORÁRIO ---\n${hoursNote}`,
       `\n--- CONTEXTO DO CATÁLOGO ---\n${businessContext}`,
       customerContext ? `\n${customerContext}` : "",
@@ -251,27 +283,64 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Send response via Evolution API
     const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+    let evoData: any;
+    let sentAsAudio = false;
 
-    const evoRes = await fetch(
-      `${EVOLUTION_BASE}/message/sendText/${instName}`,
-      {
-        method: "POST",
-        headers: evoHeaders(),
-        body: JSON.stringify({ number: phone, text: responseText }),
+    // If respondWithAudio, convert to speech and send as audio
+    if (respondWithAudio) {
+      try {
+        console.log("Converting AI response to audio via ElevenLabs...");
+        const audioBase64 = await textToSpeechBase64(responseText);
+
+        const evoRes = await fetch(
+          `${EVOLUTION_BASE}/message/sendMedia/${instName}`,
+          {
+            method: "POST",
+            headers: evoHeaders(),
+            body: JSON.stringify({
+              number: phone,
+              mediatype: "audio",
+              media: `data:audio/mpeg;base64,${audioBase64}`,
+              mimetype: "audio/mpeg",
+              fileName: "audio.mp3",
+            }),
+          }
+        );
+
+        evoData = await evoRes.json();
+        console.log(`Evolution sendMedia (audio) status=${evoRes.status}`);
+
+        if (evoRes.ok) {
+          sentAsAudio = true;
+        } else {
+          console.error("Evolution sendMedia failed, falling back to text:", JSON.stringify(evoData));
+        }
+      } catch (ttsErr) {
+        console.error("ElevenLabs TTS failed, falling back to text:", ttsErr);
       }
-    );
+    }
 
-    const evoData = await evoRes.json();
+    // Fallback to text or if not audio mode
+    if (!sentAsAudio) {
+      const evoRes = await fetch(
+        `${EVOLUTION_BASE}/message/sendText/${instName}`,
+        {
+          method: "POST",
+          headers: evoHeaders(),
+          body: JSON.stringify({ number: phone, text: responseText }),
+        }
+      );
+      evoData = await evoRes.json();
+    }
 
     // Save AI message to DB
     await supabase.from("whatsapp_messages").insert({
       conversation_id: conversationId,
       message_id: evoData?.key?.id || null,
       from_me: true,
-      type: "text",
-      content: responseText,
+      type: sentAsAudio ? "audio" : "text",
+      content: sentAsAudio ? `🔊 ${responseText}` : responseText,
       status: "sent",
       tenant_id: tenantId,
     });
@@ -280,13 +349,13 @@ Deno.serve(async (req) => {
     await supabase
       .from("whatsapp_conversations")
       .update({
-        last_message: responseText,
+        last_message: sentAsAudio ? "🔊 Áudio enviado" : responseText,
         last_message_at: new Date().toISOString(),
       })
       .eq("id", conversationId);
 
     return new Response(
-      JSON.stringify({ ok: true, response: responseText }),
+      JSON.stringify({ ok: true, response: responseText, sentAsAudio }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

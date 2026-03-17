@@ -6,6 +6,90 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const EVOLUTION_BASE = "https://evolution.fefobikes.com.br";
+
+function evoHeaders() {
+  return {
+    "Content-Type": "application/json",
+    apikey: Deno.env.get("EVOLUTION_API_KEY")!,
+  };
+}
+
+function instanceName(tenantId: string): string {
+  return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
+}
+
+/** Download audio from Evolution API and transcribe via Groq Whisper */
+async function transcribeAudio(instName: string, messageId: string, remoteJid: string): Promise<string> {
+  // Download media as base64 from Evolution
+  const mediaRes = await fetch(
+    `${EVOLUTION_BASE}/chat/getBase64FromMediaMessage/${instName}`,
+    {
+      method: "POST",
+      headers: evoHeaders(),
+      body: JSON.stringify({
+        message: { key: { id: messageId, remoteJid } },
+        convertToMp4: false,
+      }),
+    }
+  );
+
+  if (!mediaRes.ok) {
+    const errText = await mediaRes.text();
+    console.error("Evolution getBase64 error:", mediaRes.status, errText);
+    throw new Error(`Failed to download media: ${mediaRes.status}`);
+  }
+
+  const mediaData = await mediaRes.json();
+  const base64Audio = mediaData.base64 || mediaData.mediaBase64 || mediaData.data;
+
+  if (!base64Audio) {
+    console.error("No base64 audio in response:", JSON.stringify(mediaData).slice(0, 200));
+    throw new Error("No audio data returned from Evolution");
+  }
+
+  // Decode base64 to binary
+  const binaryStr = atob(base64Audio.replace(/^data:audio\/[^;]+;base64,/, ""));
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+
+  // Send to Groq Whisper for transcription
+  const formData = new FormData();
+  formData.append("file", new Blob([bytes], { type: "audio/ogg" }), "audio.ogg");
+  formData.append("model", "whisper-large-v3");
+  formData.append("language", "pt");
+
+  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
+  const whisperRes = await fetch(
+    "https://api.groq.com/openai/v1/audio/transcriptions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+      },
+      body: formData,
+    }
+  );
+
+  if (!whisperRes.ok) {
+    const errText = await whisperRes.text();
+    console.error("Groq Whisper error:", whisperRes.status, errText);
+    throw new Error(`Whisper transcription failed: ${whisperRes.status}`);
+  }
+
+  const whisperData = await whisperRes.json();
+  const transcript = whisperData.text?.trim();
+  console.log("Transcription result:", transcript);
+
+  if (!transcript) {
+    throw new Error("Empty transcription");
+  }
+
+  return transcript;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -15,10 +99,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body));
 
-    // Evolution API sends events like MESSAGES_UPSERT, CONNECTION_UPDATE
     const event = body.event || "";
 
-    // Handle CONNECTION_UPDATE events
     if (event === "CONNECTION_UPDATE") {
       console.log("Connection update:", body.data?.state);
       return new Response(JSON.stringify({ ok: true, event: "connection_update" }), {
@@ -26,7 +108,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Only process MESSAGES_UPSERT
     if (event !== "MESSAGES_UPSERT") {
       return new Response(JSON.stringify({ ok: true, ignored: event || "unknown_event" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -44,18 +125,15 @@ Deno.serve(async (req) => {
     const isFromMe = key.fromMe === true;
     const remoteJid = key.remoteJid || "";
 
-    // Skip status broadcasts
     if (remoteJid.includes("status@broadcast") || remoteJid.includes("@g.us")) {
       return new Response(JSON.stringify({ ok: true, ignored: "broadcast_or_group" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Extract phone number from remoteJid (format: 5511999999999@s.whatsapp.net)
     const phone = remoteJid.replace("@s.whatsapp.net", "").replace("@c.us", "").replace(/\D/g, "");
     const messageId = key.id || "";
 
-    // Extract message content
     const messageObj = msgData.message || {};
     let content = "";
     let type = "text";
@@ -94,7 +172,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Resolve tenant_id
     const { data: tenantRow } = await supabase
       .from("tenants")
       .select("id")
@@ -104,13 +181,10 @@ Deno.serve(async (req) => {
     const tenantId = tenantRow?.id ?? null;
 
     let convId: string | null = null;
-
-    // Extract contact info from Evolution payload
     const pushName = msgData.pushName || null;
     const contactName = pushName;
 
     if (isFromMe) {
-      // Outgoing message — find existing conversation
       const { data: byPhone } = await supabase
         .from("whatsapp_conversations")
         .select("id")
@@ -202,10 +276,52 @@ Deno.serve(async (req) => {
       tenant_id: tenantId,
     });
 
-    // Trigger AI responder for incoming text messages
-    if (type === "text" && content) {
+    // Handle audio: transcribe and respond with audio
+    if (type === "audio" && !isFromMe) {
+      const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+
+      try {
+        const transcript = await transcribeAudio(instName, messageId, remoteJid);
+
+        // Update the saved message content with transcription
+        await supabase
+          .from("whatsapp_messages")
+          .update({ content: `🎤 ${transcript}` })
+          .eq("conversation_id", convId)
+          .eq("message_id", messageId);
+
+        // Also update conversation last_message
+        await supabase
+          .from("whatsapp_conversations")
+          .update({ last_message: `🎤 ${transcript}` })
+          .eq("id", convId);
+
+        // Invoke AI responder with transcribed text, requesting audio response
+        supabase.functions.invoke("ai-responder", {
+          body: {
+            conversationId: convId,
+            phone,
+            message: transcript,
+            respondWithAudio: true,
+          },
+        }).catch((err: unknown) => console.error("AI responder invoke error:", err));
+      } catch (err) {
+        console.error("Audio transcription failed:", err);
+        // Still try to invoke AI with a fallback
+        supabase.functions.invoke("ai-responder", {
+          body: {
+            conversationId: convId,
+            phone,
+            message: "[O cliente enviou um áudio que não pôde ser transcrito. Peça para ele repetir por texto.]",
+            respondWithAudio: false,
+          },
+        }).catch((err2: unknown) => console.error("AI responder fallback error:", err2));
+      }
+    }
+    // Handle text: respond with text
+    else if (type === "text" && content) {
       supabase.functions.invoke("ai-responder", {
-        body: { conversationId: convId, phone, message: content },
+        body: { conversationId: convId, phone, message: content, respondWithAudio: false },
       }).catch((err: unknown) => console.error("AI responder invoke error:", err));
     }
 
