@@ -327,6 +327,18 @@ export default function WhatsApp() {
             </DropdownMenu>
           </div>
 
+          {/* Disconnection warning banner */}
+          {!connLoading && !isConnected && (
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-destructive/10 border border-destructive/30 animate-pulse">
+              <WifiOff size={18} className="text-destructive shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-destructive">WhatsApp desconectado</p>
+                <p className="text-[10px] text-destructive/70 leading-tight">
+                  Escaneie o QR Code no menu acima para reconectar.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Search */}
           <div className="space-y-4">
