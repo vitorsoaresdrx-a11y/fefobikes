@@ -226,44 +226,49 @@ export default function Promocoes() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xl flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in">
-          <div className="bg-card w-full max-w-lg rounded-t-3xl md:rounded-2xl border border-border overflow-hidden">
-            <div className="p-4 md:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-black">{editingPromo ? "Editar" : "Nova"} Promoção</h2>
-                <button onClick={() => { setModalOpen(false); resetForm(); }} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground">
-                  <X size={16} />
-                </button>
-              </div>
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center animate-in fade-in">
+          <div className="w-full max-w-lg bg-card rounded-t-3xl md:rounded-3xl border border-border max-h-[90vh] overflow-y-auto">
 
+            {/* Header fixo */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border sticky top-0 bg-card z-10">
+              <h2 className="text-base font-black">{editingPromo ? "Editar" : "Nova"} Promoção</h2>
+              <button onClick={() => { setModalOpen(false); resetForm(); }} className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground">
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Conteúdo scrollável */}
+            <div className="px-5 py-4 space-y-4">
+
+              {/* Nome */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Nome *</p>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Black Friday..." className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm outline-none focus:border-primary" />
               </div>
 
+              {/* Descrição */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Descrição</p>
                 <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Opcional..." className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm outline-none focus:border-primary" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Tipo</p>
-                  <div className="flex gap-2">
-                    <button onClick={() => setDiscountType("percentage")} className={`flex-1 h-9 rounded-xl text-xs font-bold border transition-all ${discountType === "percentage" ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border text-muted-foreground"}`}>%</button>
-                    <button onClick={() => setDiscountType("fixed")} className={`flex-1 h-9 rounded-xl text-xs font-bold border transition-all ${discountType === "fixed" ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border text-muted-foreground"}`}>R$</button>
+              {/* Tipo + Valor */}
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Tipo e valor</p>
+                <div className="flex gap-2">
+                  <div className="flex bg-background border border-border rounded-xl p-1 shrink-0">
+                    <button onClick={() => setDiscountType("percentage")} className={`w-10 h-8 rounded-lg text-xs font-black transition-all ${discountType === "percentage" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>%</button>
+                    <button onClick={() => setDiscountType("fixed")} className={`w-12 h-8 rounded-lg text-xs font-black transition-all ${discountType === "fixed" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>R$</button>
                   </div>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Valor</p>
                   {discountType === "percentage" ? (
-                    <input type="number" min="1" max="100" value={discountValue || ""} onChange={(e) => setDiscountValue(Number(e.target.value))} placeholder="Ex: 10" className="w-full h-9 bg-background border border-border rounded-xl px-3 text-sm outline-none focus:border-primary" />
+                    <input type="number" min="1" max="100" value={discountValue || ""} onChange={(e) => setDiscountValue(Number(e.target.value))} placeholder="Ex: 10" className="flex-1 h-10 bg-background border border-border rounded-xl px-3 text-sm outline-none focus:border-primary" />
                   ) : (
-                    <CurrencyInput value={discountValue} onChange={setDiscountValue} className="!h-9 !rounded-xl" />
+                    <div className="flex-1"><CurrencyInput value={discountValue} onChange={setDiscountValue} className="!h-10 !rounded-xl" /></div>
                   )}
                 </div>
               </div>
 
+              {/* Aplica-se a */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Aplica-se a</p>
                 <div className="flex gap-2 mb-2">
@@ -286,6 +291,7 @@ export default function Promocoes() {
                 )}
               </div>
 
+              {/* Válido em */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Válido em</p>
                 <div className="flex gap-2">
@@ -295,6 +301,7 @@ export default function Promocoes() {
                 </div>
               </div>
 
+              {/* Datas */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Início *</p>
@@ -306,10 +313,15 @@ export default function Promocoes() {
                 </div>
               </div>
 
+            </div>
+
+            {/* Botão fixo no rodapé */}
+            <div className="px-5 pb-5 pt-3 border-t border-border sticky bottom-0 bg-card">
               <button onClick={handleSave} disabled={createPromo.isPending || updatePromo.isPending} className="w-full h-11 rounded-2xl bg-primary text-primary-foreground text-sm font-black disabled:opacity-50">
                 {editingPromo ? "Salvar Alterações" : "Criar Promoção"}
               </button>
             </div>
+
           </div>
         </div>
       )}
