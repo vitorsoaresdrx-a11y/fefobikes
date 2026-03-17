@@ -103,14 +103,12 @@ Deno.serve(async (req) => {
       });
       console.log(`Webhook set status=${webhookRes.status}`);
 
-      const readQrFromResponse = async (res: Response) => {
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`Connect failed (${res.status}): ${errText}`);
-        }
-        const payload = await res.json();
-        const extracted = payload?.qrcode?.base64 || payload?.base64 || null;
-        return { payload, extracted };
+      const extractQr = (payload: any): string | null => {
+        return payload?.qrcode?.base64
+          || payload?.base64
+          || payload?.qr?.base64
+          || payload?.code
+          || null;
       };
 
       // Fetch QR (primary flow: GET)
@@ -120,23 +118,37 @@ Deno.serve(async (req) => {
       });
       console.log(`QR response status=${qrRes.status}`);
 
-      let { payload: qrData, extracted: qrCode } = await readQrFromResponse(qrRes);
+      let qrData: any = null;
+      let qrCode: string | null = null;
+
+      if (qrRes.ok) {
+        qrData = await qrRes.json();
+        qrCode = extractQr(qrData);
+        console.log("QR GET data keys:", JSON.stringify(Object.keys(qrData || {})));
+      } else {
+        console.log(`QR GET failed: ${qrRes.status}`);
+      }
 
       // Fallback: some Evolution setups only return QR on POST connect
       if (!qrCode) {
-        const qrPostRes = await fetch(`${EVOLUTION_BASE}/instance/connect/${instName}`, {
-          method: "POST",
-          headers: evoHeaders(),
-        });
-        console.log(`QR POST response status=${qrPostRes.status}`);
-        const postParsed = await readQrFromResponse(qrPostRes);
-        qrData = postParsed.payload;
-        qrCode = postParsed.extracted;
+        try {
+          const qrPostRes = await fetch(`${EVOLUTION_BASE}/instance/connect/${instName}`, {
+            method: "POST",
+            headers: evoHeaders(),
+          });
+          console.log(`QR POST response status=${qrPostRes.status}`);
+          if (qrPostRes.ok) {
+            const postData = await qrPostRes.json();
+            qrCode = extractQr(postData);
+            qrData = postData;
+            console.log("QR POST data keys:", JSON.stringify(Object.keys(postData || {})));
+          }
+        } catch (postErr) {
+          console.log("QR POST fallback failed:", postErr);
+        }
       }
 
-      console.log("QR data keys:", JSON.stringify(Object.keys(qrData || {})));
-
-      return new Response(JSON.stringify({ qrCode }), {
+      return new Response(JSON.stringify({ qrCode, error: qrCode ? null : "QR code não disponível. Tente novamente." }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
