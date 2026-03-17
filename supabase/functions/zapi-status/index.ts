@@ -86,7 +86,20 @@ Deno.serve(async (req) => {
         }),
       });
       console.log(`Instance create status=${createRes.status}`);
-      // Ignore errors if already exists
+
+      // Configure webhook right after instance creation
+      const webhookRes = await fetch(`${EVOLUTION_BASE}/webhook/set/${instName}`, {
+        method: "POST",
+        headers: evoHeaders(),
+        body: JSON.stringify({
+          url: `${Deno.env.get("SUPABASE_URL")!}/functions/v1/zapi-webhook`,
+          webhook_by_events: true,
+          webhook_base64: false,
+          enabled: true,
+          events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+        }),
+      });
+      console.log(`Webhook set status=${webhookRes.status}`);
 
       // Fetch QR
       const qrRes = await fetch(
