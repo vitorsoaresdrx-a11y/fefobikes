@@ -379,7 +379,7 @@ export default function BikeForm() {
               <div className="flex items-center gap-3">
                 <ImageIcon className="text-primary" size={20} />
                 <h3 className="text-sm font-black uppercase tracking-widest text-white italic">
-                  Fotos do Produto
+                  Fotos
                 </h3>
               </div>
               <span className="text-[10px] font-bold text-muted-foreground uppercase">
@@ -395,7 +395,7 @@ export default function BikeForm() {
             {/* Identidade */}
             <div className="bg-card border border-border rounded-[40px] p-6 lg:p-10 shadow-2xl">
               <SectionHeader
-                title="Identidade do Modelo"
+                title="Modelo"
                 icon={Tag}
                 subtitle="Configure como o produto será exibido para o cliente final."
               />
@@ -833,7 +833,7 @@ export default function BikeForm() {
           </div>
 
           {/* ── Stats ─────────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatBox
               title="Custo Montagem"
               value={formatBRL(effectiveCost)}
