@@ -126,15 +126,17 @@ export function useSendMessage() {
       message,
       conversationId,
       sendAsAudio,
+      instanceName,
     }: {
       phone: string;
       message: string;
       conversationId?: string;
       sendAsAudio?: boolean;
+      instanceName?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke(
         "zapi-send-message",
-        { body: { phone, message, conversationId, sendAsAudio } }
+        { body: { phone, message, conversationId, sendAsAudio, instanceName } }
       );
       if (error) throw error;
       return data;

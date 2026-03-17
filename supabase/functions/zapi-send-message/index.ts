@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { phone, message, conversationId, sendAsAudio } = await req.json();
+    const { phone, message, conversationId, sendAsAudio, instanceName: customInstance } = await req.json();
 
     if (!phone || !message) {
       return new Response(
@@ -101,7 +101,8 @@ Deno.serve(async (req) => {
       .limit(1)
       .single();
 
-    const instName = member ? instanceName(member.tenant_id) : "fefo-default";
+    // Use custom instance name if provided, otherwise fall back to tenant-derived name
+    const instName = customInstance || (member ? instanceName(member.tenant_id) : "fefo-default");
 
     let evoRes: Response;
     let evoData: any;
