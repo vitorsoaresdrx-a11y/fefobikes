@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.station-login]
 verify_jwt = false
+
+[functions.zapi-health-check]
+verify_jwt = false
