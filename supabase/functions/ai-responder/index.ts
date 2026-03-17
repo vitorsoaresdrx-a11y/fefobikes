@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildBusinessContext } from "./context.ts";
+import { buildBusinessContext, getCustomerContext, getServiceOrdersByPhone } from "./context.ts";
 import { toolDefinitions, executeCalcularFrete } from "./tools.ts";
 
 const corsHeaders = {
@@ -21,20 +21,41 @@ function instanceName(tenantId: string): string {
   return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
 }
 
+/** Check if currently within business hours (Sorocaba, SP) */
+function isBusinessHours(): { open: boolean; message: string } {
+  const now = new Date();
+  // Sorocaba is UTC-3
+  const brHour = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const day = brHour.getDay(); // 0=Sun
+  const hour = brHour.getHours();
+
+  // Mon-Fri 9-18, Sat 9-14, Sun closed
+  if (day === 0) return { open: false, message: "Estamos fechados aos domingos. Retornamos na segunda-feira às 9h." };
+  if (day === 6) {
+    if (hour >= 9 && hour < 14) return { open: true, message: "" };
+    return { open: false, message: "Aos sábados funcionamos das 9h às 14h. Retornamos na segunda-feira às 9h." };
+  }
+  if (hour >= 9 && hour < 18) return { open: true, message: "" };
+  return { open: false, message: "Nosso horário é de segunda a sexta das 9h às 18h e sábados das 9h às 14h." };
+}
+
 const SYSTEM_PROMPT = `Você é a assistente virtual da Fefo Bikes, uma loja especializada em bikes de alta performance em Sorocaba, SP.
 
 Seu papel é atender clientes pelo WhatsApp com simpatia, objetividade e conhecimento técnico sobre ciclismo.
 
-Você tem acesso ao catálogo completo de bikes e peças da loja (fornecido no contexto), e pode calcular frete via transportadora Rodonaves.
+Você tem acesso ao catálogo completo de bikes e peças da loja (fornecido no contexto), pode calcular frete via transportadora Rodonaves e consultar ordens de serviço da oficina.
 
 Regras:
 - Sempre que um cliente perguntar sobre frete ou envio, ANTES de calcular, pergunte o CEP de destino, se ele quer a bike completa montada ou somente o quadro, e o valor do produto
 - Só chame a tool calcular_frete após ter os três dados confirmados: CEP, tipo de carga e valor do produto
+- Quando o cliente perguntar sobre o status da bike dele na oficina, use a tool consultar_ordem_servico
 - Responda sempre em português brasileiro, de forma direta e amigável
 - Para dúvidas técnicas sobre bikes, use seu conhecimento geral de ciclismo
 - Se não souber responder algo, diga que vai verificar e que um atendente entrará em contato
 - Nunca invente preços ou disponibilidade — use apenas o contexto fornecido
-- Mensagens curtas e diretas, sem excessos`;
+- Se houver promoções ativas relevantes ao que o cliente pergunta, mencione-as proativamente
+- Mensagens curtas e diretas, sem excessos
+- Use emojis com moderação para um tom amigável 🚴`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -56,7 +77,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Resolve tenant_id for data isolation
+    // Resolve tenant_id
     const { data: tenantRow } = await supabase
       .from("tenants")
       .select("id")
@@ -65,7 +86,7 @@ Deno.serve(async (req) => {
       .single();
     const tenantId = tenantRow?.id ?? null;
 
-    // Check if AI is enabled for this conversation
+    // Check if AI is enabled
     const { data: conv } = await supabase
       .from("whatsapp_conversations")
       .select("ai_enabled")
@@ -79,7 +100,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch last 10 messages for conversation history
+    // Fetch last 10 messages for history
     const { data: recentMessages } = await supabase
       .from("whatsapp_messages")
       .select("content, from_me, type")
@@ -95,15 +116,28 @@ Deno.serve(async (req) => {
         content: m.content!,
       }));
 
-    // Build business context
-    const businessContext = await buildBusinessContext();
+    // Build contexts in parallel
+    const [businessContext, customerContext] = await Promise.all([
+      buildBusinessContext(),
+      getCustomerContext(phone),
+    ]);
 
-    // Prepare messages for Groq
-    const groqMessages = [
-      {
-        role: "system",
-        content: `${SYSTEM_PROMPT}\n\n--- CONTEXTO DO CATÁLOGO ---\n${businessContext}`,
-      },
+    // Business hours info
+    const bh = isBusinessHours();
+    const hoursNote = bh.open
+      ? "A loja está ABERTA agora."
+      : `A loja está FECHADA agora. ${bh.message} Se o cliente precisar de algo urgente, informe que um atendente retornará no próximo horário de funcionamento.`;
+
+    // Build system message
+    const systemContent = [
+      SYSTEM_PROMPT,
+      `\n--- HORÁRIO ---\n${hoursNote}`,
+      `\n--- CONTEXTO DO CATÁLOGO ---\n${businessContext}`,
+      customerContext ? `\n${customerContext}` : "",
+    ].join("");
+
+    const groqMessages: any[] = [
+      { role: "system", content: systemContent },
       ...history,
     ];
 
@@ -140,29 +174,39 @@ Deno.serve(async (req) => {
     let groqData = await groqResponse.json();
     let assistantMessage = groqData.choices?.[0]?.message;
 
-    // Handle tool calls
-    if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
+    // Handle tool calls (supports multiple rounds)
+    let toolRounds = 0;
+    while (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0 && toolRounds < 3) {
+      toolRounds++;
       groqMessages.push(assistantMessage);
 
       for (const toolCall of assistantMessage.tool_calls) {
-        if (toolCall.function.name === "calcular_frete") {
-          try {
-            const args = JSON.parse(toolCall.function.arguments);
-            const result = await executeCalcularFrete(args);
-            groqMessages.push({
-              role: "tool",
-              content: JSON.stringify(result),
-              tool_call_id: toolCall.id,
-            } as any);
-          } catch (err) {
-            groqMessages.push({
-              role: "tool",
-              content: JSON.stringify({
-                error: err instanceof Error ? err.message : "Erro ao calcular frete",
-              }),
-              tool_call_id: toolCall.id,
-            } as any);
+        const fnName = toolCall.function.name;
+        try {
+          const args = JSON.parse(toolCall.function.arguments);
+          let result: unknown;
+
+          if (fnName === "calcular_frete") {
+            result = await executeCalcularFrete(args);
+          } else if (fnName === "consultar_ordem_servico") {
+            result = await getServiceOrdersByPhone(args.telefone || phone);
+          } else {
+            result = { error: `Ferramenta desconhecida: ${fnName}` };
           }
+
+          groqMessages.push({
+            role: "tool",
+            content: typeof result === "string" ? result : JSON.stringify(result),
+            tool_call_id: toolCall.id,
+          });
+        } catch (err) {
+          groqMessages.push({
+            role: "tool",
+            content: JSON.stringify({
+              error: err instanceof Error ? err.message : "Erro ao executar ferramenta",
+            }),
+            tool_call_id: toolCall.id,
+          });
         }
       }
 
@@ -177,6 +221,8 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             model: "llama-3.3-70b-versatile",
             messages: groqMessages,
+            tools: toolDefinitions,
+            tool_choice: "auto",
             max_tokens: 1024,
           }),
         }
