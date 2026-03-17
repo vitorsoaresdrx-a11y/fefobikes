@@ -759,7 +759,7 @@ export default function BikeForm() {
                       </div>
 
                       {/* Row 2: qty + cost + subtotal */}
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-[3.25rem_minmax(0,1fr)_minmax(0,1fr)] gap-2">
                         <div className="space-y-1">
                           <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Qtd</p>
                           <input
@@ -774,7 +774,7 @@ export default function BikeForm() {
                             className="w-full h-9 bg-secondary border border-border rounded-xl text-center text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
                           />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 min-w-0">
                           <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custo unit.</p>
                           <input
                             type="number"
@@ -789,10 +789,10 @@ export default function BikeForm() {
                             className="w-full h-9 bg-secondary border border-border rounded-xl px-2 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
                           />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 min-w-0">
                           <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Subtotal</p>
-                          <div className="h-9 bg-secondary/50 rounded-xl flex items-center justify-center">
-                            <p className="text-sm font-black text-primary whitespace-nowrap">{formatBRL(tp.unit_cost * tp.quantity)}</p>
+                          <div className="h-9 bg-secondary/50 rounded-xl flex items-center justify-center px-2">
+                            <p className="text-sm font-black text-primary whitespace-nowrap truncate">{formatBRL(tp.unit_cost * tp.quantity)}</p>
                           </div>
                         </div>
                       </div>
