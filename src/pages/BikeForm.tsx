@@ -183,6 +183,7 @@ export default function BikeForm() {
     },
   });
 
+  const { isDirty } = form.formState;
   const costMode = form.watch("cost_mode");
   const costPrice = form.watch("cost_price");
   const priceStore = form.watch("price_store");
