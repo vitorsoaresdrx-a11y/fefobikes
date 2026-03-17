@@ -171,11 +171,13 @@ Deno.serve(async (req) => {
           method: "POST",
           headers: evoHeaders(),
           body: JSON.stringify({
-            url: webhookUrl,
-            webhook_by_events: true,
-            webhook_base64: false,
-            enabled: true,
-            events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+            webhook: {
+              url: webhookUrl,
+              webhook_by_events: true,
+              webhook_base64: false,
+              enabled: true,
+              events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+            },
           }),
         });
         const whBody = await whRes.text();
