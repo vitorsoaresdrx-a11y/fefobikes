@@ -733,11 +733,12 @@ export default function BikeForm() {
                   templateParts.map((tp) => (
                     <div
                       key={tp.key}
-                      className="group p-4 md:p-6 bg-background border border-border rounded-2xl md:rounded-[32px] hover:border-border/80 transition-all overflow-hidden"
+                      className="rounded-2xl bg-background border border-border p-3 mb-2 overflow-hidden"
                     >
-                      <div className="flex items-start gap-3 md:gap-4">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-background rounded-xl md:rounded-2xl flex items-center justify-center text-muted-foreground/70 border border-border shrink-0">
-                          <Layers size={18} />
+                      {/* Row 1: part selector */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                          <Layers size={14} className="text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <PartSelector
@@ -756,16 +757,16 @@ export default function BikeForm() {
                         <button
                           type="button"
                           onClick={() => removeRow(tp.key)}
-                          className="w-9 h-9 rounded-xl bg-red-500/5 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center shrink-0"
+                          className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors shrink-0"
                         >
                           <Trash2 size={14} />
                         </button>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 md:gap-3 mt-3 md:mt-4">
+
+                      {/* Row 2: qty + cost + subtotal */}
+                      <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                            Qtd
-                          </label>
+                          <p className="text-[9px] uppercase text-muted-foreground mb-1">Qtd</p>
                           <input
                             type="number"
                             min={1}
@@ -775,13 +776,11 @@ export default function BikeForm() {
                                 quantity: parseInt(e.target.value) || 1,
                               })
                             }
-                            className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
+                            className="w-full h-9 bg-secondary border border-border rounded-xl text-center text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
                           />
                         </div>
                         <div>
-                          <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                            Custo unit.
-                          </label>
+                          <p className="text-[9px] uppercase text-muted-foreground mb-1">Custo unit.</p>
                           <input
                             type="number"
                             step="0.01"
@@ -792,15 +791,13 @@ export default function BikeForm() {
                                 unit_cost: parseFloat(e.target.value) || 0,
                               })
                             }
-                            className="w-full h-10 bg-background border border-border rounded-xl px-3 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
+                            className="w-full h-9 bg-secondary border border-border rounded-xl px-2 text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
                           />
                         </div>
                         <div>
-                          <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
-                            Subtotal
-                          </label>
-                          <div className="h-10 flex items-center text-sm font-bold text-primary truncate">
-                            {formatBRL(tp.unit_cost * tp.quantity)}
+                          <p className="text-[9px] uppercase text-muted-foreground mb-1">Subtotal</p>
+                          <div className="h-9 bg-secondary/50 rounded-xl flex items-center justify-center">
+                            <p className="text-sm font-black text-primary">{formatBRL(tp.unit_cost * tp.quantity)}</p>
                           </div>
                         </div>
                       </div>
@@ -810,13 +807,11 @@ export default function BikeForm() {
 
                 {/* Total */}
                 {templateParts.length > 0 && (
-                  <div className="flex justify-between items-center px-6 py-4 bg-background border border-border rounded-[28px]">
-                    <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
-                      Custo Total das Peças
-                    </span>
-                    <span className="text-xl font-black text-white">
+                  <div className="flex items-center justify-between bg-background border border-border rounded-2xl px-4 py-3 mb-3">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Custo total das peças</p>
+                    <p className="text-base font-black text-foreground">
                       {formatBRL(manualCost)}
-                    </span>
+                    </p>
                   </div>
                 )}
 
@@ -824,15 +819,9 @@ export default function BikeForm() {
                 <button
                   type="button"
                   onClick={addRow}
-                  className="w-full rounded-[32px] border-dashed border-2 border-border py-10 flex flex-col items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group"
+                  className="w-full h-10 rounded-2xl border border-dashed border-border text-muted-foreground text-xs font-bold flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-all"
                 >
-                  <Plus
-                    size={24}
-                    className="text-primary group-hover:scale-110 transition-transform"
-                  />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground group-hover:text-foreground/80">
-                    Vincular Novo Componente
-                  </span>
+                  <Plus size={14} /> Vincular novo componente
                 </button>
               </div>
             )}
