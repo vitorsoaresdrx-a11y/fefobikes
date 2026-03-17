@@ -90,7 +90,7 @@ export function AppLayout() {
 
           {/* Main content */}
           <main
-            className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 lg:px-6 lg:pt-6 lg:pb-8"
+            className="flex-1 min-w-0 min-h-screen overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 lg:px-6 lg:pt-6 lg:pb-8 bg-background"
           >
             <Suspense
               fallback={

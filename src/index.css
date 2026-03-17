@@ -77,6 +77,11 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    min-height: 100%;
+    background-color: hsl(var(--background));
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
