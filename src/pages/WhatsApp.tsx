@@ -10,9 +10,9 @@ import {
   type Conversation,
 } from "@/hooks/useWhatsApp";
 import {
-  useZapiConnectionStatus,
-  useZapiQrCode,
-  useZapiDisconnect,
+  useEvolutionInstances,
+  useSelectedInstance,
+  useInstanceStatus,
 } from "@/hooks/useZapiStatus";
 import {
   MessageCircle,
@@ -29,13 +29,13 @@ import {
   Hash,
   Paperclip,
   Smile,
-  LogOut,
   Loader2,
-  QrCode,
   Wifi,
   WifiOff,
   Bot,
   BotOff,
+  Radio,
+  Server,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -145,11 +145,19 @@ export default function WhatsApp() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Z-API connection status
-  const { data: connStatus, isLoading: connLoading } = useZapiConnectionStatus();
-  const isConnected = connStatus?.connected === true || connStatus?.smartphoneConnected === true;
-  const { data: qrData, isLoading: qrLoading } = useZapiQrCode(!isConnected && !connLoading);
-  const disconnect = useZapiDisconnect();
+  // Evolution instances
+  const { data: instances = [], isLoading: instancesLoading } = useEvolutionInstances();
+  const { selected: selectedInstance, setSelected: setSelectedInstance } = useSelectedInstance();
+  const { data: instanceStatus } = useInstanceStatus(selectedInstance);
+  const isConnected = instanceStatus?.connected === true;
+
+  // Auto-select first connected instance if none selected
+  useEffect(() => {
+    if (!selectedInstance && instances.length > 0) {
+      const connected = instances.find((i) => i.connected);
+      setSelectedInstance(connected?.instanceName || instances[0].instanceName);
+    }
+  }, [instances, selectedInstance, setSelectedInstance]);
 
   const { data: conversations = [] } = useConversations(statusFilter);
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
@@ -191,6 +199,7 @@ export default function WhatsApp() {
         message: messageText.trim(),
         conversationId: selectedConv.id,
         sendAsAudio,
+        instanceName: selectedInstance || undefined,
       },
       {
         onSuccess: () => setMessageText(""),
@@ -198,13 +207,6 @@ export default function WhatsApp() {
           toast({ title: "Erro ao enviar mensagem", variant: "destructive" }),
       }
     );
-  };
-
-  const handleDisconnect = () => {
-    disconnect.mutate(undefined, {
-      onSuccess: () => toast({ title: "WhatsApp desconectado" }),
-      onError: () => toast({ title: "Erro ao desconectar", variant: "destructive" }),
-    });
   };
 
   // Mobile: show chat full screen when conversation selected
@@ -221,54 +223,60 @@ export default function WhatsApp() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
-  // Fullscreen QR Code when not connected
-  if (!connLoading && !isConnected) {
+  // Instance selection screen when no instance is selected or loading
+  if (instancesLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-background text-foreground px-4 pb-24 lg:pb-0">
-        <div className="flex flex-col items-center gap-6 max-w-sm w-full">
-          <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-3xl flex items-center justify-center">
-            <QrCode size={32} className="text-primary" />
-          </div>
-          <div className="text-center space-y-2">
-            <h1 className="text-xl font-black uppercase tracking-tight text-foreground">
-              Conectar WhatsApp
-            </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Escaneie o QR Code abaixo com seu WhatsApp para começar a receber e enviar mensagens.
-            </p>
-          </div>
-          <div className="bg-card border border-border rounded-3xl p-6 flex flex-col items-center gap-4 w-full">
-            {qrLoading ? (
-              <div className="w-56 h-56 flex items-center justify-center">
-                <Loader2 size={40} className="text-primary animate-spin" />
-              </div>
-            ) : qrData?.qrCode ? (
-              <img
-                src={qrData.qrCode}
-                alt="QR Code WhatsApp"
-                className="w-56 h-56 rounded-2xl bg-white p-3"
-              />
-            ) : (
-              <div className="w-56 h-56 flex items-center justify-center bg-muted rounded-2xl">
-                <p className="text-xs text-muted-foreground text-center px-4">
-                  Não foi possível gerar o QR Code. Tente novamente.
-                </p>
-              </div>
-            )}
-          </div>
-          <p className="text-[10px] text-muted-foreground/60 text-center leading-relaxed max-w-[260px]">
-            Abra o WhatsApp no celular → Configurações → Dispositivos Conectados → Conectar Dispositivo
-          </p>
-        </div>
+      <div className="flex items-center justify-center min-h-[70vh] pb-24 lg:pb-0">
+        <Loader2 size={32} className="text-primary animate-spin" />
       </div>
     );
   }
 
-  // Loading state
-  if (connLoading) {
+  if (!selectedInstance || instances.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh] pb-24 lg:pb-0">
-        <Loader2 size={32} className="text-primary animate-spin" />
+      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-background text-foreground px-4 pb-24 lg:pb-0">
+        <div className="flex flex-col items-center gap-6 max-w-md w-full">
+          <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-3xl flex items-center justify-center">
+            <Server size={32} className="text-primary" />
+          </div>
+          <div className="text-center space-y-2">
+            <h1 className="text-xl font-black uppercase tracking-tight text-foreground">
+              Selecionar Instância
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {instances.length === 0
+                ? "Nenhuma instância encontrada na Evolution API. Crie uma instância no painel da Evolution primeiro."
+                : "Selecione uma instância do WhatsApp para começar a atender."}
+            </p>
+          </div>
+
+          {instances.length > 0 && (
+            <div className="w-full space-y-3">
+              {instances.map((inst) => (
+                <button
+                  key={inst.instanceName}
+                  onClick={() => setSelectedInstance(inst.instanceName)}
+                  className="w-full p-4 rounded-2xl border border-border bg-card hover:border-primary/50 transition-all flex items-center gap-4 group"
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${inst.connected ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
+                    {inst.connected ? (
+                      <Wifi size={18} className="text-emerald-400" />
+                    ) : (
+                      <WifiOff size={18} className="text-destructive" />
+                    )}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-bold text-foreground">{inst.instanceName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {inst.connected ? "Conectado" : inst.state === "connecting" ? "Conectando..." : "Desconectado"}
+                    </p>
+                  </div>
+                  <Radio size={16} className={`shrink-0 ${inst.connected ? "text-emerald-400" : "text-muted-foreground/40"}`} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -290,10 +298,7 @@ export default function WhatsApp() {
                 <h1 className="text-xl font-black italic uppercase tracking-tighter">
                   Mensagens
                 </h1>
-                {/* Connection indicator */}
-                {connLoading ? (
-                  <Loader2 size={14} className="text-muted-foreground animate-spin" />
-                ) : isConnected ? (
+                {isConnected ? (
                   <Wifi size={14} className="text-emerald-400" />
                 ) : (
                   <WifiOff size={14} className="text-red-400" />
@@ -307,38 +312,37 @@ export default function WhatsApp() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border">
-                {isConnected && (
+                <DropdownMenuItem
+                  onClick={() => setSelectedInstance(null)}
+                  className="gap-2"
+                >
+                  <Server size={14} />
+                  Trocar instância
+                </DropdownMenuItem>
+                {instances.map((inst) => (
                   <DropdownMenuItem
-                    onClick={handleDisconnect}
-                    disabled={disconnect.isPending}
-                    className="text-red-400 focus:text-red-400 focus:bg-red-500/10 gap-2"
+                    key={inst.instanceName}
+                    onClick={() => setSelectedInstance(inst.instanceName)}
+                    className={`gap-2 ${selectedInstance === inst.instanceName ? "text-primary" : ""}`}
                   >
-                    <LogOut size={14} />
-                    {disconnect.isPending ? "Desconectando..." : "Desconectar WhatsApp"}
+                    {inst.connected ? <Wifi size={14} className="text-emerald-400" /> : <WifiOff size={14} className="text-red-400" />}
+                    {inst.instanceName}
                   </DropdownMenuItem>
-                )}
-                {!isConnected && !connLoading && (
-                  <DropdownMenuItem disabled className="text-muted-foreground gap-2">
-                    <QrCode size={14} />
-                    Escaneie o QR Code abaixo
-                  </DropdownMenuItem>
-                )}
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          {/* Disconnection warning banner */}
-          {!connLoading && !isConnected && (
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-destructive/10 border border-destructive/30 animate-pulse">
-              <WifiOff size={18} className="text-destructive shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-destructive">WhatsApp desconectado</p>
-                <p className="text-[10px] text-destructive/70 leading-tight">
-                  Escaneie o QR Code no menu acima para reconectar.
-                </p>
-              </div>
+          {/* Instance info bar */}
+          <div className={`flex items-center gap-3 p-3 rounded-2xl border ${isConnected ? "bg-emerald-500/5 border-emerald-500/20" : "bg-destructive/10 border-destructive/30"}`}>
+            {isConnected ? <Wifi size={16} className="text-emerald-400 shrink-0" /> : <WifiOff size={16} className="text-destructive shrink-0" />}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold truncate">{selectedInstance}</p>
+              <p className={`text-[10px] ${isConnected ? "text-emerald-400/70" : "text-destructive/70"}`}>
+                {isConnected ? "Conectado" : "Desconectado — conecte pelo painel da Evolution"}
+              </p>
             </div>
-          )}
+          </div>
 
           {/* Search */}
           <div className="space-y-4">
