@@ -6,14 +6,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function normalizeQrCode(raw: unknown): string | undefined {
-  if (typeof raw !== "string") return undefined;
-  const trimmed = raw.trim();
-  if (!trimmed) return undefined;
-  if (trimmed.startsWith("data:image")) return trimmed;
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
-  const cleaned = trimmed.replace(/^base64,?/i, "");
-  return `data:image/png;base64,${cleaned}`;
+const EVOLUTION_BASE = "https://evolution.fefobikes.com.br";
+
+function evoHeaders() {
+  return {
+    "Content-Type": "application/json",
+    apikey: Deno.env.get("EVOLUTION_API_KEY")!,
+  };
+}
+
+/** Derive a deterministic instance name from tenant id */
+function instanceName(tenantId: string): string {
+  return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
 }
 
 Deno.serve(async (req) => {
@@ -30,7 +34,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate the user via getUser
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
@@ -45,82 +48,122 @@ Deno.serve(async (req) => {
       });
     }
 
-    const instanceId = Deno.env.get("ZAPI_INSTANCE_ID");
-    const token = Deno.env.get("ZAPI_TOKEN");
-    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
+    // Resolve tenant
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: member } = await adminClient
+      .from("tenant_members")
+      .select("tenant_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .single();
 
-    const url = new URL(req.url);
-    const action = url.searchParams.get("action") || "qr-code";
-
-    let endpoint = "";
-    let method = "GET";
-
-    if (action === "qr-code") {
-      endpoint = `https://api.z-api.io/instances/${instanceId}/token/${token}/qr-code/image`;
-    } else if (action === "status") {
-      endpoint = `https://api.z-api.io/instances/${instanceId}/token/${token}/status`;
-    } else if (action === "disconnect") {
-      endpoint = `https://api.z-api.io/instances/${instanceId}/token/${token}/disconnect`;
-      method = "POST";
-    }
-
-    console.log(`Z-API action=${action}, endpoint=${endpoint}`);
-
-    console.log(`Z-API request: method=${method}, endpoint=${endpoint}`);
-    const zapiRes = await fetch(endpoint, {
-      method,
-      headers: { "client-token": clientToken! },
-    });
-    console.log(`Z-API response: status=${zapiRes.status}, contentType=${zapiRes.headers.get("content-type")}`);
-
-    if (action === "qr-code" && zapiRes.ok) {
-      const contentType = zapiRes.headers.get("content-type") || "";
-      if (contentType.includes("image")) {
-        const buffer = await zapiRes.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        let binary = "";
-        for (let i = 0; i < bytes.length; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        const base64 = btoa(binary);
-        return new Response(
-          JSON.stringify({ qrCode: `data:image/png;base64,${base64}` }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const data = await zapiRes.json();
-      const candidate = typeof data === "string"
-        ? data
-        : data?.qrCode ?? data?.qrcode ?? data?.value ?? data?.base64 ?? data?.image;
-      const normalizedQrCode = normalizeQrCode(candidate);
-
-      console.log(
-        `Z-API qr payload keys=${typeof data === "object" && data ? Object.keys(data).join(",") : "n/a"}, hasQr=${Boolean(normalizedQrCode)}`
-      );
-
-      if (normalizedQrCode) {
-        const payload = typeof data === "object" && data
-          ? { ...data, qrCode: normalizedQrCode }
-          : { qrCode: normalizedQrCode };
-        return new Response(JSON.stringify(payload), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      return new Response(JSON.stringify(data), {
+    if (!member) {
+      return new Response(JSON.stringify({ error: "No tenant" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await zapiRes.json();
-    console.log(`Z-API body:`, JSON.stringify(data));
-    return new Response(JSON.stringify(data), {
-      status: zapiRes.ok ? 200 : zapiRes.status,
+    const instName = instanceName(member.tenant_id);
+    const url = new URL(req.url);
+    const action = url.searchParams.get("action") || "qr-code";
+
+    console.log(`Evolution action=${action}, instance=${instName}`);
+
+    // ── QR Code ─────────────────────────────────────────────────────────
+    if (action === "qr-code") {
+      // First ensure instance exists (create if needed)
+      const createRes = await fetch(`${EVOLUTION_BASE}/instance/create`, {
+        method: "POST",
+        headers: evoHeaders(),
+        body: JSON.stringify({
+          instanceName: instName,
+          integration: "WHATSAPP-BAILEYS",
+        }),
+      });
+      console.log(`Instance create status=${createRes.status}`);
+      // Ignore errors if already exists
+
+      // Fetch QR
+      const qrRes = await fetch(
+        `${EVOLUTION_BASE}/instance/connect/${instName}`,
+        { headers: evoHeaders() }
+      );
+      console.log(`QR response status=${qrRes.status}`);
+
+      if (!qrRes.ok) {
+        const errText = await qrRes.text();
+        console.error("QR error:", errText);
+        return new Response(JSON.stringify({ error: errText }), {
+          status: qrRes.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const qrData = await qrRes.json();
+      // Evolution returns { base64: "data:image/..." } or { code: "..." }
+      const qrCode =
+        qrData?.base64 ||
+        (typeof qrData?.code === "string" && qrData.code.startsWith("data:image")
+          ? qrData.code
+          : null);
+
+      return new Response(JSON.stringify({ qrCode }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Status ──────────────────────────────────────────────────────────
+    if (action === "status") {
+      const statusRes = await fetch(
+        `${EVOLUTION_BASE}/instance/connectionState/${instName}`,
+        { headers: evoHeaders() }
+      );
+
+      if (!statusRes.ok) {
+        // Instance doesn't exist yet — not connected
+        return new Response(
+          JSON.stringify({ connected: false, smartphoneConnected: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const statusData = await statusRes.json();
+      console.log("Evolution status:", JSON.stringify(statusData));
+
+      // Evolution returns { instance: { state: "open" | "close" | "connecting" } }
+      const state = statusData?.instance?.state || statusData?.state || "";
+      const connected = state === "open";
+
+      return new Response(
+        JSON.stringify({ connected, smartphoneConnected: connected }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── Disconnect ──────────────────────────────────────────────────────
+    if (action === "disconnect") {
+      const logoutRes = await fetch(
+        `${EVOLUTION_BASE}/instance/logout/${instName}`,
+        { method: "DELETE", headers: evoHeaders() }
+      );
+      console.log(`Logout status=${logoutRes.status}`);
+
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Unknown action" }), {
+      status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("zapi-status error:", err);
+    console.error("evolution-status error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

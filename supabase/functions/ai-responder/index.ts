@@ -8,6 +8,19 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const EVOLUTION_BASE = "https://evolution.fefobikes.com.br";
+
+function evoHeaders() {
+  return {
+    "Content-Type": "application/json",
+    apikey: Deno.env.get("EVOLUTION_API_KEY")!,
+  };
+}
+
+function instanceName(tenantId: string): string {
+  return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
+}
+
 const SYSTEM_PROMPT = `Você é a assistente virtual da Fefo Bikes, uma loja especializada em bikes de alta performance em Sorocaba, SP.
 
 Seu papel é atender clientes pelo WhatsApp com simpatia, objetividade e conhecimento técnico sobre ciclismo.
@@ -129,7 +142,6 @@ Deno.serve(async (req) => {
 
     // Handle tool calls
     if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
-      // Add assistant message with tool calls to history
       groqMessages.push(assistantMessage);
 
       for (const toolCall of assistantMessage.tool_calls) {
@@ -154,7 +166,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Call Groq again with tool results
       groqResponse = await fetch(
         "https://api.groq.com/openai/v1/chat/completions",
         {
@@ -194,29 +205,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Send response directly via Z-API and save to DB
-    const instanceId = Deno.env.get("ZAPI_INSTANCE_ID")!;
-    const zapiToken = Deno.env.get("ZAPI_TOKEN")!;
-    const clientToken = Deno.env.get("ZAPI_CLIENT_TOKEN")!;
+    // Send response via Evolution API
+    const instName = tenantId ? instanceName(tenantId) : "fefo-default";
 
-    const zapiRes = await fetch(
-      `https://api.z-api.io/instances/${instanceId}/token/${zapiToken}/send-text`,
+    const evoRes = await fetch(
+      `${EVOLUTION_BASE}/message/sendText/${instName}`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "client-token": clientToken,
-        },
-        body: JSON.stringify({ phone, message: responseText }),
+        headers: evoHeaders(),
+        body: JSON.stringify({ number: phone, text: responseText }),
       }
     );
 
-    const zapiData = await zapiRes.json();
+    const evoData = await evoRes.json();
 
     // Save AI message to DB
     await supabase.from("whatsapp_messages").insert({
       conversation_id: conversationId,
-      message_id: zapiData?.messageId || null,
+      message_id: evoData?.key?.id || null,
       from_me: true,
       type: "text",
       content: responseText,
