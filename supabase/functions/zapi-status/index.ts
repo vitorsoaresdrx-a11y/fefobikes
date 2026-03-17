@@ -15,17 +15,13 @@ function evoHeaders() {
   };
 }
 
-/** Derive a deterministic instance name from tenant id */
-function instanceName(tenantId: string): string {
-  return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -48,159 +44,75 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Resolve tenant
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-    const { data: member } = await adminClient
-      .from("tenant_members")
-      .select("tenant_id")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .single();
-
-    if (!member) {
-      return new Response(JSON.stringify({ error: "No tenant" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const instName = instanceName(member.tenant_id);
     const url = new URL(req.url);
-    const action = url.searchParams.get("action") || "qr-code";
+    const action = url.searchParams.get("action") || "list-instances";
 
-    console.log(`Evolution action=${action}, instance=${instName}`);
+    console.log(`Evolution action=${action}`);
 
-    // ── QR Code ─────────────────────────────────────────────────────────
-    if (action === "qr-code") {
-      // First ensure instance exists (create if needed)
-      const createRes = await fetch(`${EVOLUTION_BASE}/instance/create`, {
-        method: "POST",
-        headers: evoHeaders(),
-        body: JSON.stringify({
-          instanceName: instName,
-          integration: "WHATSAPP-BAILEYS",
-        }),
-      });
-      console.log(`Instance create status=${createRes.status}`);
-
-      // Configure webhook right after instance creation
-      const webhookRes = await fetch(`${EVOLUTION_BASE}/webhook/set/${instName}`, {
-        method: "POST",
-        headers: evoHeaders(),
-        body: JSON.stringify({
-          webhook: {
-            url: `${Deno.env.get("SUPABASE_URL")!}/functions/v1/zapi-webhook`,
-            webhook_by_events: true,
-            webhook_base64: false,
-            enabled: true,
-            events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
-          },
-        }),
-      });
-      console.log(`Webhook set status=${webhookRes.status}`);
-
-      const readQrFromResponse = async (res: Response) => {
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`Connect failed (${res.status}): ${errText}`);
-        }
-        const payload = await res.json();
-        const extracted = payload?.qrcode?.base64 || payload?.base64 || null;
-        return { payload, extracted };
-      };
-
-      // Fetch QR (primary flow: GET)
-      const qrRes = await fetch(`${EVOLUTION_BASE}/instance/connect/${instName}`, {
+    // ── List all instances with their connection state ───────────────────
+    if (action === "list-instances") {
+      const res = await fetch(`${EVOLUTION_BASE}/instance/fetchInstances`, {
         method: "GET",
         headers: evoHeaders(),
       });
-      console.log(`QR response status=${qrRes.status}`);
 
-      let { payload: qrData, extracted: qrCode } = await readQrFromResponse(qrRes);
-
-      // Fallback: some Evolution setups only return QR on POST connect
-      if (!qrCode) {
-        const qrPostRes = await fetch(`${EVOLUTION_BASE}/instance/connect/${instName}`, {
-          method: "POST",
-          headers: evoHeaders(),
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`fetchInstances failed (${res.status}): ${errText}`);
+        return new Response(JSON.stringify({ instances: [] }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-        console.log(`QR POST response status=${qrPostRes.status}`);
-        const postParsed = await readQrFromResponse(qrPostRes);
-        qrData = postParsed.payload;
-        qrCode = postParsed.extracted;
       }
 
-      console.log("QR data keys:", JSON.stringify(Object.keys(qrData || {})));
+      const rawInstances = await res.json();
+      console.log(`Fetched ${Array.isArray(rawInstances) ? rawInstances.length : 0} instances`);
 
-      return new Response(JSON.stringify({ qrCode }), {
+      // Normalize: Evolution returns array of instance objects
+      const instances = (Array.isArray(rawInstances) ? rawInstances : []).map((inst: any) => {
+        const name = inst.instance?.instanceName || inst.instanceName || inst.name || "unknown";
+        const state = inst.instance?.state || inst.state || "close";
+        return {
+          instanceName: name,
+          state, // "open" | "close" | "connecting"
+          connected: state === "open",
+        };
+      });
+
+      return new Response(JSON.stringify({ instances }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ── Status ──────────────────────────────────────────────────────────
+    // ── Get status of a specific instance ────────────────────────────────
     if (action === "status") {
+      const instanceName = url.searchParams.get("instance");
+      if (!instanceName) {
+        return new Response(JSON.stringify({ error: "instance parameter required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const statusRes = await fetch(
-        `${EVOLUTION_BASE}/instance/connectionState/${instName}`,
+        `${EVOLUTION_BASE}/instance/connectionState/${instanceName}`,
         { headers: evoHeaders() }
       );
 
       if (!statusRes.ok) {
-        // Instance doesn't exist yet — not connected
         return new Response(
-          JSON.stringify({ connected: false, smartphoneConnected: false }),
+          JSON.stringify({ connected: false, state: "close" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       const statusData = await statusRes.json();
-      console.log("Evolution status:", JSON.stringify(statusData));
-
-      // Evolution returns { instance: { state: "open" | "close" | "connecting" } }
-      const state = statusData?.instance?.state || statusData?.state || "";
+      const state = statusData?.instance?.state || statusData?.state || "close";
       const connected = state === "open";
 
-      // Re-set webhook every time we detect instance is connected
-      if (connected) {
-        const webhookUrl = `${Deno.env.get("SUPABASE_URL")!}/functions/v1/zapi-webhook`;
-        console.log(`Setting webhook for connected instance ${instName} -> ${webhookUrl}`);
-        const whRes = await fetch(`${EVOLUTION_BASE}/webhook/set/${instName}`, {
-          method: "POST",
-          headers: evoHeaders(),
-          body: JSON.stringify({
-            webhook: {
-              url: webhookUrl,
-              webhook_by_events: true,
-              webhook_base64: false,
-              enabled: true,
-              events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
-            },
-          }),
-        });
-        const whBody = await whRes.text();
-        console.log(`Webhook set status=${whRes.status} body=${whBody}`);
-      }
-
       return new Response(
-        JSON.stringify({ connected, smartphoneConnected: connected }),
+        JSON.stringify({ connected, state, instanceName }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    }
-
-    // ── Disconnect ──────────────────────────────────────────────────────
-    if (action === "disconnect") {
-      const logoutRes = await fetch(
-        `${EVOLUTION_BASE}/instance/logout/${instName}`,
-        { method: "DELETE", headers: evoHeaders() }
-      );
-      console.log(`Logout status=${logoutRes.status}`);
-
-      return new Response(JSON.stringify({ ok: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), {
