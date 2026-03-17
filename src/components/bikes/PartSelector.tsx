@@ -21,9 +21,10 @@ import type { Part } from "@/hooks/useParts";
 interface PartSelectorProps {
   parts: Part[];
   selectedPartId: string | null;
-  customName: string | null;
+  customName?: string | null;
   onSelectPart: (partId: string) => void;
-  onCustomName: (name: string) => void;
+  onCustomName?: (name: string) => void;
+  allowCustom?: boolean;
 }
 
 export function PartSelector({
@@ -32,23 +33,24 @@ export function PartSelector({
   customName,
   onSelectPart,
   onCustomName,
+  allowCustom = true,
 }: PartSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [useCustom, setUseCustom] = useState(!!customName && !selectedPartId);
+  const [useCustom, setUseCustom] = useState(allowCustom && !!customName && !selectedPartId);
 
   const selectedPart = parts.find((p) => p.id === selectedPartId);
   const displayLabel = selectedPart
     ? `${selectedPart.name}${selectedPart.category ? ` (${selectedPart.category})` : ""}`
     : customName || "";
 
-  if (useCustom) {
+  if (allowCustom && useCustom) {
     return (
-      <div className="flex gap-2">
+      <div className="flex gap-2 w-full min-w-0">
         <Input
           value={customName || ""}
-          onChange={(e) => onCustomName(e.target.value)}
+          onChange={(e) => onCustomName?.(e.target.value)}
           placeholder="Nome personalizado da peça"
-          className="bg-background border-border h-8 text-xs flex-1"
+          className="bg-background border-border h-8 text-xs flex-1 min-w-0"
         />
         <Button
           type="button"
@@ -64,13 +66,13 @@ export function PartSelector({
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 w-full min-w-0">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
-            className="flex-1 justify-between h-8 text-xs font-normal bg-background border-border"
+            className="flex-1 min-w-0 justify-between h-8 text-xs font-normal bg-background border-border"
           >
             <span className="truncate">{displayLabel || "Selecionar peça do catálogo..."}</span>
             <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
@@ -111,18 +113,21 @@ export function PartSelector({
           </Command>
         </PopoverContent>
       </Popover>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-8 text-xs shrink-0"
-        onClick={() => {
-          setUseCustom(true);
-          onCustomName("");
-        }}
-      >
-        Manual
-      </Button>
+      {allowCustom && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 text-xs shrink-0"
+          onClick={() => {
+            setUseCustom(true);
+            onCustomName?.("");
+          }}
+        >
+          Manual
+        </Button>
+      )}
     </div>
   );
 }
+
