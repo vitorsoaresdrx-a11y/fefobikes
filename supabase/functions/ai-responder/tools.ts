@@ -26,6 +26,24 @@ export const toolDefinitions = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "consultar_ordem_servico",
+      description:
+        "Consulta ordens de serviço (mecânica) do cliente pelo telefone. Use quando o cliente perguntar sobre o status da bike dele na oficina.",
+      parameters: {
+        type: "object",
+        properties: {
+          telefone: {
+            type: "string",
+            description: "Telefone do cliente (o mesmo do WhatsApp da conversa)",
+          },
+        },
+        required: ["telefone"],
+      },
+    },
+  },
 ];
 
 interface FreteResult {
@@ -44,7 +62,6 @@ export async function executeCalcularFrete(args: {
   const cep = cep_destino.replace(/\D/g, "");
   const peso = tipo_carga === "bike_completa" ? 15.5 : 6;
 
-  // 1. Lookup CEP via ViaCEP
   const viacepRes = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
   const viacepData = await viacepRes.json();
 
@@ -59,7 +76,6 @@ export async function executeCalcularFrete(args: {
     throw new Error("Não foi possível identificar cidade/estado para o CEP informado.");
   }
 
-  // 2. Authenticate with Rodonaves
   const RODONAVES_USER = Deno.env.get("RODONAVES_USER");
   const RODONAVES_PASS = Deno.env.get("RODONAVES_PASS");
 
@@ -85,34 +101,19 @@ export async function executeCalcularFrete(args: {
 
     if (!tokenRes.ok) {
       const errText = await tokenRes.text();
-      console.error("Rodonaves token error:", {
-        status: tokenRes.status,
-        auth_type: authType,
-        body: errText.slice(0, 300),
-      });
+      console.error("Rodonaves token error:", { status: tokenRes.status, auth_type: authType, body: errText.slice(0, 300) });
       continue;
     }
 
     const tokenData = await tokenRes.json();
     accessToken = tokenData?.access_token ?? null;
-
-    if (accessToken) {
-      break;
-    }
-
-    console.error("Rodonaves token response missing access_token", {
-      auth_type: authType,
-      token_keys: Object.keys(tokenData || {}),
-    });
+    if (accessToken) break;
   }
 
   if (!accessToken) {
-    throw new Error(
-      "Erro ao autenticar na transportadora Rodonaves. Confira credenciais e ambiente da conta."
-    );
+    throw new Error("Erro ao autenticar na transportadora Rodonaves.");
   }
 
-  // 3. Get quotation
   const cotacaoRes = await fetch(
     "https://quotation-apigateway.rte.com.br/api/v1/gera-cotacao",
     {
@@ -145,7 +146,6 @@ export async function executeCalcularFrete(args: {
   }
 
   const cotacao = await cotacaoRes.json();
-
   const valor = cotacao.Valor ?? cotacao.valor ?? cotacao.value ?? "N/A";
   const prazo = cotacao.Prazo ?? cotacao.prazo ?? cotacao.deadline ?? "N/A";
 
