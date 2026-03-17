@@ -11,10 +11,12 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { Part } from "@/hooks/useParts";
 
@@ -67,8 +69,8 @@ export function PartSelector({
 
   return (
     <div className="flex gap-2 w-full min-w-0">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
@@ -77,12 +79,15 @@ export function PartSelector({
             <span className="truncate">{displayLabel || "Selecionar peça do catálogo..."}</span>
             <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border" align="start">
-          <Command>
-            <CommandInput placeholder="Buscar peça..." className="text-xs" />
-            <CommandList>
-              <CommandEmpty className="py-2 text-center text-xs text-muted-foreground">
+        </DialogTrigger>
+        <DialogContent className="w-[92vw] max-w-lg p-0 border-border bg-popover overflow-hidden">
+          <DialogHeader className="px-4 pt-4 pb-2 border-b border-border">
+            <DialogTitle className="text-sm font-black text-foreground">Selecionar peça</DialogTitle>
+          </DialogHeader>
+          <Command className="bg-popover">
+            <CommandInput placeholder="Buscar peça..." className="text-sm" />
+            <CommandList className="max-h-[60vh] overflow-y-auto">
+              <CommandEmpty className="py-3 text-center text-xs text-muted-foreground">
                 Nenhuma peça encontrada
               </CommandEmpty>
               <CommandGroup>
@@ -94,25 +99,26 @@ export function PartSelector({
                       onSelectPart(part.id);
                       setOpen(false);
                     }}
-                    className="text-xs"
+                    className="text-sm"
                   >
                     <Check
                       className={cn(
-                        "mr-2 h-3 w-3",
+                        "mr-2 h-4 w-4",
                         selectedPartId === part.id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <span>{part.name}</span>
+                    <span className="truncate">{part.name}</span>
                     {part.category && (
-                      <span className="ml-1 text-muted-foreground">({part.category})</span>
+                      <span className="ml-1 text-muted-foreground truncate">({part.category})</span>
                     )}
                   </CommandItem>
                 ))}
               </CommandGroup>
             </CommandList>
           </Command>
-        </PopoverContent>
-      </Popover>
+        </DialogContent>
+      </Dialog>
+
       {allowCustom && (
         <Button
           type="button"
