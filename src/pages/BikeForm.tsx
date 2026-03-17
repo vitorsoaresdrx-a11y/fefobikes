@@ -679,40 +679,30 @@ export default function BikeForm() {
             />
 
             {/* Cost mode toggle */}
-            <div className="grid grid-cols-2 gap-3 mb-8">
+            <div className="flex p-1 bg-background border border-border rounded-2xl mb-8">
               <button
                 type="button"
                 onClick={() => form.setValue("cost_mode", "fixed")}
-                className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all whitespace-nowrap ${
                   costMode === "fixed"
-                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-                    : "border-border bg-background hover:border-muted-foreground/30"
+                    ? "bg-primary/10 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground/80"
                 }`}
               >
-                <DollarSign size={20} className={costMode === "fixed" ? "text-primary" : "text-muted-foreground"} />
-                <span className={`text-xs font-black uppercase tracking-wide ${costMode === "fixed" ? "text-primary" : "text-muted-foreground"}`}>
-                  Custo Manual
-                </span>
-                <span className="text-[10px] text-muted-foreground leading-tight text-center">
-                  Informe o custo diretamente
-                </span>
+                <DollarSign size={16} />
+                <span className="text-xs font-black uppercase tracking-wide">Manual</span>
               </button>
               <button
                 type="button"
                 onClick={() => form.setValue("cost_mode", "manual")}
-                className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all whitespace-nowrap ${
                   costMode === "manual"
-                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-                    : "border-border bg-background hover:border-muted-foreground/30"
+                    ? "bg-primary/10 text-primary border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground/80"
                 }`}
               >
-                <Wrench size={20} className={costMode === "manual" ? "text-primary" : "text-muted-foreground"} />
-                <span className={`text-xs font-black uppercase tracking-wide ${costMode === "manual" ? "text-primary" : "text-muted-foreground"}`}>
-                  Custo por Peça
-                </span>
-                <span className="text-[10px] text-muted-foreground leading-tight text-center">
-                  Soma automática das peças
-                </span>
+                <Wrench size={16} />
+                <span className="text-xs font-black uppercase tracking-wide">Por Peça</span>
               </button>
             </div>
 
