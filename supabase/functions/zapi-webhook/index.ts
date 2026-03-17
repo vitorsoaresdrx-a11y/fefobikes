@@ -99,17 +99,18 @@ Deno.serve(async (req) => {
     const body = await req.json();
     console.log("Webhook received:", JSON.stringify(body));
 
-    const event = body.event || "";
+    const rawEvent = String(body.event || "").trim();
+    const normalizedEvent = rawEvent.toUpperCase().replace(/[.\s-]/g, "_");
 
-    if (event === "CONNECTION_UPDATE") {
+    if (normalizedEvent === "CONNECTION_UPDATE") {
       console.log("Connection update:", body.data?.state);
-      return new Response(JSON.stringify({ ok: true, event: "connection_update" }), {
+      return new Response(JSON.stringify({ ok: true, event: normalizedEvent.toLowerCase() }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (event !== "MESSAGES_UPSERT") {
-      return new Response(JSON.stringify({ ok: true, ignored: event || "unknown_event" }), {
+    if (normalizedEvent !== "MESSAGES_UPSERT") {
+      return new Response(JSON.stringify({ ok: true, ignored: rawEvent || "unknown_event" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
