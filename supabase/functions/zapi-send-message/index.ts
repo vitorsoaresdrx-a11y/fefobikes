@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +8,7 @@ const corsHeaders = {
 };
 
 const EVOLUTION_BASE = "https://evolution.fefobikes.com.br";
+const ELEVENLABS_VOICE_ID = "xNGAXaCH8MaasNuo7Hr7";
 
 function evoHeaders() {
   return {
@@ -17,6 +19,34 @@ function evoHeaders() {
 
 function instanceName(tenantId: string): string {
   return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
+}
+
+async function textToSpeech(text: string): Promise<string> {
+  const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
+  if (!apiKey) throw new Error("ELEVENLABS_API_KEY not configured");
+
+  const res = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`,
+    {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text,
+        model_id: "eleven_multilingual_v2",
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`ElevenLabs error ${res.status}: ${err}`);
+  }
+
+  const audioBuffer = await res.arrayBuffer();
+  return base64Encode(audioBuffer);
 }
 
 Deno.serve(async (req) => {
@@ -47,7 +77,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { phone, message, conversationId } = await req.json();
+    const { phone, message, conversationId, sendAsAudio } = await req.json();
 
     if (!phone || !message) {
       return new Response(
@@ -73,19 +103,44 @@ Deno.serve(async (req) => {
 
     const instName = member ? instanceName(member.tenant_id) : "fefo-default";
 
-    // Send via Evolution API
-    console.log(`Sending message to ${phone} via instance ${instName}`);
-    const evoRes = await fetch(
-      `${EVOLUTION_BASE}/message/sendText/${instName}`,
-      {
-        method: "POST",
-        headers: evoHeaders(),
-        body: JSON.stringify({ number: phone, text: message }),
-      }
-    );
+    let evoRes: Response;
+    let evoData: any;
 
-    const evoData = await evoRes.json();
-    console.log(`Evolution sendText status=${evoRes.status}`, JSON.stringify(evoData));
+    if (sendAsAudio) {
+      // Convert text to speech via ElevenLabs, then send as audio
+      console.log(`Converting text to speech and sending audio to ${phone} via instance ${instName}`);
+      const audioBase64 = await textToSpeech(message);
+
+      evoRes = await fetch(
+        `${EVOLUTION_BASE}/message/sendMedia/${instName}`,
+        {
+          method: "POST",
+          headers: evoHeaders(),
+          body: JSON.stringify({
+            number: phone,
+            mediatype: "audio",
+            media: `data:audio/mpeg;base64,${audioBase64}`,
+            mimetype: "audio/mpeg",
+            fileName: "audio.mp3",
+          }),
+        }
+      );
+      evoData = await evoRes.json();
+      console.log(`Evolution sendMedia status=${evoRes.status}`, JSON.stringify(evoData));
+    } else {
+      // Send as text
+      console.log(`Sending message to ${phone} via instance ${instName}`);
+      evoRes = await fetch(
+        `${EVOLUTION_BASE}/message/sendText/${instName}`,
+        {
+          method: "POST",
+          headers: evoHeaders(),
+          body: JSON.stringify({ number: phone, text: message }),
+        }
+      );
+      evoData = await evoRes.json();
+      console.log(`Evolution sendText status=${evoRes.status}`, JSON.stringify(evoData));
+    }
 
     if (!evoRes.ok) {
       return new Response(JSON.stringify({ error: "Evolution API error", details: evoData }), {
@@ -122,8 +177,8 @@ Deno.serve(async (req) => {
       conversation_id: convId,
       message_id: evoData?.key?.id || null,
       from_me: true,
-      type: "text",
-      content: message,
+      type: sendAsAudio ? "audio" : "text",
+      content: sendAsAudio ? `🔊 ${message}` : message,
       status: "sent",
       tenant_id: tenantId,
     });
@@ -132,7 +187,7 @@ Deno.serve(async (req) => {
     await adminClient
       .from("whatsapp_conversations")
       .update({
-        last_message: message,
+        last_message: sendAsAudio ? `🔊 Áudio enviado` : message,
         last_message_at: new Date().toISOString(),
       })
       .eq("id", convId);
