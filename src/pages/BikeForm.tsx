@@ -765,8 +765,8 @@ export default function BikeForm() {
                       </div>
 
                       {/* Row 2: qty + cost */}
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <div className="space-y-1">
+                      <div className="flex gap-2 mb-2">
+                        <div className="w-20 shrink-0 space-y-1">
                           <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Qtd</p>
                           <input
                             type="number"
@@ -780,7 +780,7 @@ export default function BikeForm() {
                             className="w-full h-9 bg-secondary border border-border rounded-xl text-center text-sm font-bold text-foreground outline-none focus:border-primary transition-all"
                           />
                         </div>
-                        <div className="space-y-1 min-w-0">
+                        <div className="flex-1 min-w-0 space-y-1">
                           <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Custo unitário</p>
                           <CurrencyInput
                             value={tp.unit_cost || 0}
