@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
