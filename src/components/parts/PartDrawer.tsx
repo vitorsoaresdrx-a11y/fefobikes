@@ -1,10 +1,11 @@
 import { formatBRL } from "@/lib/format";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { X, Plus, Image as ImageIcon, Store, Globe } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCreatePart, useUpdatePart, type Part } from "@/hooks/useParts";
 import { usePartAttributes, useSavePartAttributes } from "@/hooks/usePartAttributes";
 import { CategoryCombobox } from "@/components/parts/CategoryCombobox";
@@ -58,6 +59,8 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
 
   const [partImages, setPartImages] = useState<string[]>([]);
   const [attributes, setAttributes] = useState<LocalAttribute[]>([]);
+  const [imagesChanged, setImagesChanged] = useState(false);
+  const [attributesChanged, setAttributesChanged] = useState(false);
 
   // Load existing attributes
   const { data: existingAttrs } = usePartAttributes(part?.id);
@@ -78,16 +81,29 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
     },
   });
 
+  const setDirtyValue = <K extends keyof PartFormValues>(key: K, value: PartFormValues[K]) =>
+    form.setValue(key, value, { shouldDirty: true, shouldTouch: true });
+
   const unitCost = form.watch("unit_cost");
   const priceStore = form.watch("price_store");
   const priceEcommerce = form.watch("price_ecommerce");
   const profit = priceStore - unitCost;
   const descriptionValue = form.watch("description") || "";
+  const hasUnsavedChanges = form.formState.isDirty || imagesChanged || attributesChanged;
+
+  const titleText = useMemo(
+    () => (isEditing ? "Alterações não salvas" : "Preencha e salve"),
+    [isEditing],
+  );
+
+  const initialValuesRef = useRef<PartFormValues | null>(null);
+  const initialImagesRef = useRef<string[]>([]);
+  const initialAttributesRef = useRef<LocalAttribute[]>([]);
 
   useEffect(() => {
     if (open) {
       if (part) {
-        form.reset({
+        const initialValues: PartFormValues = {
           name: part.name,
           sku: part.sku || "",
           category: part.category || "",
@@ -98,12 +114,35 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           price_ecommerce: Number((part as any).price_ecommerce) || 0,
           visible_on_storefront: !!(part as any).visible_on_storefront,
           description: (part as any).description || "",
-        });
-        setPartImages((part as any).images || []);
+        };
+        initialValuesRef.current = initialValues;
+        initialImagesRef.current = ((part as any).images || []) as string[];
+        initialAttributesRef.current = [];
+
+        form.reset(initialValues);
+        setPartImages(initialImagesRef.current);
+        setImagesChanged(false);
+        setAttributesChanged(false);
       } else {
         form.reset();
         setPartImages([]);
         setAttributes([]);
+        initialValuesRef.current = {
+          name: "",
+          sku: "",
+          category: "",
+          stock_qty: 0,
+          alert_stock: 0,
+          unit_cost: 0,
+          price_store: 0,
+          price_ecommerce: 0,
+          visible_on_storefront: false,
+          description: "",
+        };
+        initialImagesRef.current = [];
+        initialAttributesRef.current = [];
+        setImagesChanged(false);
+        setAttributesChanged(false);
       }
     }
   }, [open, part]);
@@ -111,14 +150,43 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   // Sync existing attributes when loaded
   useEffect(() => {
     if (existingAttrs && open && isEditing) {
-      setAttributes(existingAttrs.map((a) => ({ name: a.name, value: a.value })));
+      const mapped = existingAttrs.map((a) => ({ name: a.name, value: a.value }));
+      setAttributes(mapped);
+      initialAttributesRef.current = mapped;
+      setAttributesChanged(false);
     }
   }, [existingAttrs, open, isEditing]);
 
-  const addAttribute = () => setAttributes((prev) => [...prev, { name: "", value: "" }]);
-  const removeAttribute = (i: number) => setAttributes((prev) => prev.filter((_, idx) => idx !== i));
+  const discardChanges = () => {
+    if (initialValuesRef.current) {
+      form.reset(initialValuesRef.current);
+    } else {
+      form.reset();
+    }
+    setPartImages(initialImagesRef.current);
+    setAttributes(initialAttributesRef.current);
+    setImagesChanged(false);
+    setAttributesChanged(false);
+  };
+
+  const addAttribute = () => {
+    setAttributes((prev) => [...prev, { name: "", value: "" }]);
+    setAttributesChanged(true);
+  };
+  const removeAttribute = (i: number) => {
+    setAttributes((prev) => prev.filter((_, idx) => idx !== i));
+    setAttributesChanged(true);
+  };
   const updateAttribute = (i: number, field: "name" | "value", val: string) =>
-    setAttributes((prev) => prev.map((a, idx) => (idx === i ? { ...a, [field]: val } : a)));
+    setAttributes((prev) => {
+      const next = prev.map((a, idx) => (idx === i ? { ...a, [field]: val } : a));
+      return next;
+    });
+
+  const handleUpdateAttribute = (i: number, field: "name" | "value", val: string) => {
+    updateAttribute(i, field, val);
+    setAttributesChanged(true);
+  };
 
   const onSubmit = async (values: PartFormValues) => {
     const payload: any = {
@@ -178,7 +246,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+    <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
@@ -215,7 +283,15 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                 <ImageIcon size={12} /> Fotos
               </label>
-              <ImageUpload images={partImages} onChange={setPartImages} folder="parts" maxImages={2} />
+              <ImageUpload
+                images={partImages}
+                onChange={(imgs) => {
+                  setPartImages(imgs);
+                  setImagesChanged(true);
+                }}
+                folder="parts"
+                maxImages={2}
+              />
             </div>
 
             {/* Name */}
@@ -241,7 +317,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               </label>
               <CategoryCombobox
                 value={form.watch("category") || ""}
-                onChange={(val) => form.setValue("category", val)}
+                onChange={(val) => setDirtyValue("category", val)}
               />
             </div>
 
@@ -273,7 +349,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 <input
                   type="number"
                   min={0}
-                  {...form.register("stock_qty")}
+                  {...form.register("stock_qty", { valueAsNumber: true })}
                   className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                 />
               </div>
@@ -284,7 +360,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 <input
                   type="number"
                   min={0}
-                  {...form.register("alert_stock")}
+                  {...form.register("alert_stock", { valueAsNumber: true })}
                   className="w-full h-11 px-4 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                   placeholder="Ex: 3"
                 />
@@ -297,7 +373,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               </label>
               <CurrencyInput
                 value={unitCost || 0}
-                onChange={(val) => form.setValue("unit_cost", val)}
+                onChange={(val) => setDirtyValue("unit_cost", val)}
                 className="h-11 text-sm rounded-xl"
               />
             </div>
@@ -309,7 +385,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 </label>
                 <CurrencyInput
                   value={priceStore || 0}
-                  onChange={(val) => form.setValue("price_store", val)}
+                  onChange={(val) => setDirtyValue("price_store", val)}
                   className="h-11 text-sm rounded-xl"
                 />
               </div>
@@ -319,7 +395,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 </label>
                 <CurrencyInput
                   value={priceEcommerce || 0}
-                  onChange={(val) => form.setValue("price_ecommerce", val)}
+                  onChange={(val) => setDirtyValue("price_ecommerce", val)}
                   className="h-11 text-sm rounded-xl"
                 />
               </div>
@@ -369,7 +445,7 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
               <input
                 type="checkbox"
                 checked={form.watch("visible_on_storefront")}
-                onChange={(e) => form.setValue("visible_on_storefront", e.target.checked)}
+                onChange={(e) => setDirtyValue("visible_on_storefront", e.target.checked)}
                 className="w-5 h-5 rounded accent-primary"
               />
             </label>
@@ -393,13 +469,13 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
                 <input
                   placeholder="Ex: Material"
                   value={attr.name}
-                  onChange={(e) => updateAttribute(i, "name", e.target.value)}
+                  onChange={(e) => handleUpdateAttribute(i, "name", e.target.value)}
                   className="flex-1 h-9 px-3 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                 />
                 <input
                   placeholder="Ex: Borracha"
                   value={attr.value}
-                  onChange={(e) => updateAttribute(i, "value", e.target.value)}
+                  onChange={(e) => handleUpdateAttribute(i, "value", e.target.value)}
                   className="flex-1 h-9 px-3 text-sm rounded-xl bg-background border border-border text-white placeholder:text-muted-foreground/70 outline-none focus:border-primary transition-colors"
                 />
                 <button
@@ -420,25 +496,37 @@ export function PartDrawer({ open, onOpenChange, part }: PartDrawerProps) {
           </section>
         </form>
 
-        {/* Fixed footer */}
-        <div className="px-4 md:px-6 py-4 border-t border-border flex gap-3 shrink-0 bg-background">
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="flex-1 h-11 rounded-xl border border-border/80 text-sm font-bold text-foreground/80 hover:bg-muted transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            form="part-form"
-            disabled={createPart.isPending || updatePart.isPending}
-            className="flex-1 h-11 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/80 transition-colors disabled:opacity-50 shadow-primary/20"
-          >
-            {isEditing ? "Salvar" : "Criar Produto"}
-          </button>
-        </div>
       </div>
+
+      <AnimatePresence>
+        {hasUnsavedChanges && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed left-4 right-4 z-[70] bg-card border border-border rounded-2xl p-3 flex items-center gap-3 shadow-2xl md:left-auto md:right-6 md:max-w-md"
+            style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}
+          >
+            <p className="flex-1 text-xs text-muted-foreground font-medium">{titleText}</p>
+            <button
+              type="button"
+              onClick={discardChanges}
+              className="h-9 px-3 rounded-xl bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Descartar
+            </button>
+            <button
+              type="submit"
+              form="part-form"
+              disabled={createPart.isPending || updatePart.isPending}
+              className="h-9 px-4 rounded-xl bg-primary text-xs font-black text-white hover:bg-primary/80 transition-all active:scale-95 disabled:opacity-50"
+            >
+              {isEditing ? "Salvar" : "Criar"}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

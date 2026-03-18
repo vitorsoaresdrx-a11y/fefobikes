@@ -185,6 +185,9 @@ export default function BikeForm() {
     },
   });
 
+  const setDirtyValue = <K extends keyof BikeFormValues>(key: K, value: BikeFormValues[K]) =>
+    form.setValue(key, value, { shouldDirty: true, shouldTouch: true });
+
   const { isDirty } = form.formState;
   const hasUnsavedChanges = isDirty || partsChanged || imagesChanged;
   const costMode = form.watch("cost_mode");
@@ -430,7 +433,7 @@ export default function BikeForm() {
                   <div className="relative">
                     <select
                       value={form.watch("category") || ""}
-                      onChange={(e) => form.setValue("category", e.target.value)}
+                      onChange={(e) => setDirtyValue("category", e.target.value)}
                       className="w-full h-16 bg-secondary border border-border rounded-2xl px-6 outline-none focus:border-primary appearance-none text-sm font-bold text-foreground/80 cursor-pointer"
                     >
                       <option value="">Selecione...</option>
@@ -476,7 +479,7 @@ export default function BikeForm() {
                   <p className="text-[10px] text-muted-foreground mb-1">Preço à vista</p>
                   <CurrencyInput
                     value={priceStore || 0}
-                    onChange={(val) => form.setValue("price_store", val)}
+                    onChange={(val) => setDirtyValue("price_store", val)}
                     className="text-xl font-black h-14 rounded-2xl"
                   />
                 </div>
@@ -484,7 +487,7 @@ export default function BikeForm() {
                   <p className="text-[10px] text-muted-foreground">Oferecer parcelamento</p>
                   <Switch
                     checked={installmentsEnabledStore}
-                    onCheckedChange={(val) => form.setValue("installments_enabled_store", val)}
+                    onCheckedChange={(val) => setDirtyValue("installments_enabled_store", val)}
                   />
                 </div>
                 {installmentsEnabledStore && (
@@ -494,7 +497,7 @@ export default function BikeForm() {
                       <input
                         type="number" min={2} max={48}
                         value={installmentCountStore}
-                        onChange={(e) => form.setValue("installment_count_store", parseInt(e.target.value) || 1)}
+                        onChange={(e) => setDirtyValue("installment_count_store", parseInt(e.target.value) || 1)}
                         className="w-full h-11 bg-secondary border border-border rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-primary transition-all text-center"
                       />
                     </div>
@@ -502,7 +505,7 @@ export default function BikeForm() {
                       <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Valor Parcela</label>
                       <CurrencyInput
                         value={installmentValueStore || 0}
-                        onChange={(val) => form.setValue("installment_value_store", val)}
+                        onChange={(val) => setDirtyValue("installment_value_store", val)}
                         className="h-11 rounded-xl"
                       />
                     </div>
@@ -524,7 +527,7 @@ export default function BikeForm() {
                   <p className="text-[10px] text-muted-foreground mb-1">Preço à vista</p>
                   <CurrencyInput
                     value={priceEcommerce || 0}
-                    onChange={(val) => form.setValue("price_ecommerce", val)}
+                    onChange={(val) => setDirtyValue("price_ecommerce", val)}
                     className="text-xl font-black h-14 rounded-2xl"
                   />
                 </div>
@@ -532,7 +535,7 @@ export default function BikeForm() {
                   <p className="text-[10px] text-muted-foreground">Oferecer parcelamento</p>
                   <Switch
                     checked={installmentsEnabledEcommerce}
-                    onCheckedChange={(val) => form.setValue("installments_enabled_ecommerce", val)}
+                    onCheckedChange={(val) => setDirtyValue("installments_enabled_ecommerce", val)}
                   />
                 </div>
                 {installmentsEnabledEcommerce && (
@@ -542,7 +545,7 @@ export default function BikeForm() {
                       <input
                         type="number" min={2} max={48}
                         value={installmentCountEcommerce}
-                        onChange={(e) => form.setValue("installment_count_ecommerce", parseInt(e.target.value) || 1)}
+                        onChange={(e) => setDirtyValue("installment_count_ecommerce", parseInt(e.target.value) || 1)}
                         className="w-full h-11 bg-secondary border border-border rounded-xl px-4 text-sm font-bold text-white outline-none focus:border-primary transition-all text-center"
                       />
                     </div>
@@ -550,7 +553,7 @@ export default function BikeForm() {
                       <label className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Valor Parcela</label>
                       <CurrencyInput
                         value={installmentValueEcommerce || 0}
-                        onChange={(val) => form.setValue("installment_value_ecommerce", val)}
+                        onChange={(val) => setDirtyValue("installment_value_ecommerce", val)}
                         className="h-11 rounded-xl"
                       />
                     </div>
@@ -587,7 +590,7 @@ export default function BikeForm() {
                       min={0}
                       value={form.watch("stock_qty")}
                       onChange={(e) =>
-                        form.setValue("stock_qty", parseInt(e.target.value) || 0)
+                        setDirtyValue("stock_qty", parseInt(e.target.value) || 0)
                       }
                       className="w-full h-12 bg-secondary border border-border rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-primary transition-all"
                     />
@@ -601,7 +604,7 @@ export default function BikeForm() {
                       min={0}
                       value={form.watch("alert_stock")}
                       onChange={(e) =>
-                        form.setValue("alert_stock", parseInt(e.target.value) || 0)
+                        setDirtyValue("alert_stock", parseInt(e.target.value) || 0)
                       }
                       className="w-full h-12 bg-secondary border border-border rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-primary transition-all"
                       placeholder="Ex: 2"
@@ -625,7 +628,7 @@ export default function BikeForm() {
                   <Switch
                     checked={form.watch("visible_on_storefront")}
                     onCheckedChange={(val) =>
-                      form.setValue("visible_on_storefront", val)
+                      setDirtyValue("visible_on_storefront", val)
                     }
                   />
                 </div>
@@ -667,7 +670,7 @@ export default function BikeForm() {
                   min={0}
                   value={form.watch("weight_kg") ?? ""}
                   onChange={(e) =>
-                    form.setValue("weight_kg", parseFloat(e.target.value) || undefined)
+                    setDirtyValue("weight_kg", parseFloat(e.target.value) || undefined)
                   }
                   className="w-full h-12 bg-secondary border border-border rounded-xl px-5 text-sm font-bold text-white outline-none focus:border-primary transition-all"
                   placeholder="Ex: 12.5"
@@ -692,7 +695,7 @@ export default function BikeForm() {
             <div className="flex bg-background border border-border rounded-2xl p-1 mb-4">
               <button
                 type="button"
-                onClick={() => form.setValue("cost_mode", "fixed")}
+                onClick={() => setDirtyValue("cost_mode", "fixed")}
                 className={`flex-1 h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                   costMode === "fixed"
                     ? "bg-secondary text-foreground"
@@ -703,7 +706,7 @@ export default function BikeForm() {
               </button>
               <button
                 type="button"
-                onClick={() => form.setValue("cost_mode", "manual")}
+                onClick={() => setDirtyValue("cost_mode", "manual")}
                 className={`flex-1 h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                   costMode === "manual"
                     ? "bg-primary text-primary-foreground"
@@ -722,7 +725,7 @@ export default function BikeForm() {
                 </label>
                 <CurrencyInput
                   value={costPrice || 0}
-                  onChange={(val) => form.setValue("cost_price", val)}
+                  onChange={(val) => setDirtyValue("cost_price", val)}
                   className="h-16 text-xl rounded-2xl"
                 />
               </div>
