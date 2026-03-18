@@ -308,6 +308,7 @@ export default function PDV() {
     setCustName("");
     setCustWhatsapp("");
     setCustCpf("");
+    setCustCep("");
     setCustSearch("");
     setSelectedCustomerId(null);
     setStep("customer");
