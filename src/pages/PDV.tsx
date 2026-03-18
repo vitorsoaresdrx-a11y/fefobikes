@@ -1005,6 +1005,13 @@ export default function PDV() {
                         onChange={(e) => setCustCpf(e.target.value)}
                         maxLength={14}
                       />
+                      <InputEl
+                        placeholder="CEP 00000-000"
+                        className="h-12 px-4"
+                        value={custCep}
+                        onChange={(e) => setCustCep(e.target.value)}
+                        maxLength={9}
+                      />
                     </div>
                   </>
                 )}
