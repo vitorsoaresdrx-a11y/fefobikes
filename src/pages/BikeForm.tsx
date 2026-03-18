@@ -865,7 +865,10 @@ export default function BikeForm() {
               exit={{ y: 100, opacity: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
               className="fixed left-4 right-4 z-50 bg-card border border-border rounded-2xl p-3 flex items-center gap-3 shadow-2xl lg:left-auto lg:right-8 lg:max-w-md"
-              style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}
+              style={{
+                bottom:
+                  "calc(env(safe-area-inset-bottom, 0px) + var(--bottom-nav-height, 0px) + 12px)",
+              }}
             >
               <p className="flex-1 text-xs text-muted-foreground font-medium">
                 {isEditing ? "Alterações não salvas" : "Preencha e salve"}

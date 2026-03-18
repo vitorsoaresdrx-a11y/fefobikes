@@ -455,6 +455,12 @@ export type Database = {
       }
       customers: {
         Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
           cep: string | null
           cpf: string | null
           created_at: string
@@ -466,6 +472,12 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
           cep?: string | null
           cpf?: string | null
           created_at?: string
@@ -477,6 +489,12 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
           cep?: string | null
           cpf?: string | null
           created_at?: string

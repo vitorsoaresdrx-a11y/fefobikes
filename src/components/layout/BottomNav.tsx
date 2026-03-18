@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingCart, Wrench, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -12,17 +13,39 @@ const tabs = [
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
+
+  useEffect(() => {
+    const el = contentRef.current;
+    const root = document.documentElement;
+    const apply = () => {
+      const h = el?.offsetHeight ?? 0;
+      root.style.setProperty("--bottom-nav-height", `${h}px`);
+    };
+    apply();
+
+    if (!el) return;
+    const ro = new ResizeObserver(() => apply());
+    ro.observe(el);
+    window.addEventListener("resize", apply);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", apply);
+      root.style.setProperty("--bottom-nav-height", "0px");
+    };
+  }, []);
 
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-card border-t border-border/50"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="flex items-center justify-around px-2 h-16">
+      <div ref={contentRef} className="flex items-center justify-around px-2 h-16">
         {tabs.map((tab) => {
           const active = isActive(tab.path);
           return (

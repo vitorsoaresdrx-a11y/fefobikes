@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { addToQueue, getQueueCount } from "@/lib/offline-queue";
 import {
@@ -42,6 +42,26 @@ import { CurrencyInput } from "@/components/ui/CurrencyInput";
 
 import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
+
+type CepInfo = {
+  cep: string;
+  logradouro: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+};
+
+const CEP_CACHE = new Map<string, CepInfo | null>();
+
+function normalizeCep(raw: string) {
+  return raw.replace(/\D/g, "").slice(0, 8);
+}
+
+function formatCep(raw: string) {
+  const d = normalizeCep(raw);
+  if (d.length <= 5) return d;
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -172,7 +192,17 @@ export default function PDV() {
   const [custWhatsapp, setCustWhatsapp] = useState("");
   const [custCpf, setCustCpf] = useState("");
   const [custCep, setCustCep] = useState("");
+  const [custStreet, setCustStreet] = useState("");
+  const [custNumber, setCustNumber] = useState("");
+  const [custComplement, setCustComplement] = useState("");
+  const [custNeighborhood, setCustNeighborhood] = useState("");
+  const [custCity, setCustCity] = useState("");
+  const [custState, setCustState] = useState("");
+  const [cepInfo, setCepInfo] = useState<CepInfo | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepNotFound, setCepNotFound] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const cepAbortRef = useRef<AbortController | null>(null);
 
   // Receipt
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
@@ -264,6 +294,72 @@ export default function PDV() {
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
 
+  // CEP lookup (ViaCEP) — super rápido (cache + abort)
+  useEffect(() => {
+    const digits = normalizeCep(custCep);
+    setCepNotFound(false);
+
+    if (digits.length < 8) {
+      setCepInfo(null);
+      setCepLoading(false);
+      cepAbortRef.current?.abort();
+      return;
+    }
+
+    if (!online) {
+      // offline: don't try to fetch; keep UI clean
+      setCepInfo(null);
+      setCepLoading(false);
+      return;
+    }
+
+    // cache hit => instant
+    if (CEP_CACHE.has(digits)) {
+      const cached = CEP_CACHE.get(digits) ?? null;
+      setCepInfo(cached);
+      setCepLoading(false);
+      setCepNotFound(!cached);
+      return;
+    }
+
+    const t = window.setTimeout(async () => {
+      try {
+        cepAbortRef.current?.abort();
+        const ac = new AbortController();
+        cepAbortRef.current = ac;
+        setCepLoading(true);
+
+        const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`, { signal: ac.signal });
+        if (!res.ok) throw new Error("Falha ao consultar CEP");
+        const data: any = await res.json();
+
+        if (data?.erro) {
+          CEP_CACHE.set(digits, null);
+          setCepInfo(null);
+          setCepNotFound(true);
+          return;
+        }
+
+        const info: CepInfo = {
+          cep: data.cep || formatCep(digits),
+          logradouro: data.logradouro || "",
+          bairro: data.bairro || "",
+          localidade: data.localidade || "",
+          uf: data.uf || "",
+        };
+        CEP_CACHE.set(digits, info);
+        setCepInfo(info);
+      } catch (e: any) {
+        if (e?.name === "AbortError") return;
+        setCepInfo(null);
+      } finally {
+        setCepLoading(false);
+      }
+    }, 120);
+
+    return () => window.clearTimeout(t);
+  }, [custCep, online]);
+
   // ── Cart actions ───────────────────────────────────────────────────────────
 
   const getStockQty = (id: string, type: "bike" | "part"): number => {
@@ -309,6 +405,15 @@ export default function PDV() {
     setCustWhatsapp("");
     setCustCpf("");
     setCustCep("");
+    setCustStreet("");
+    setCustNumber("");
+    setCustComplement("");
+    setCustNeighborhood("");
+    setCustCity("");
+    setCustState("");
+    setCepInfo(null);
+    setCepLoading(false);
+    setCepNotFound(false);
     setCustSearch("");
     setSelectedCustomerId(null);
     setStep("customer");
@@ -330,6 +435,12 @@ export default function PDV() {
             whatsapp: custWhatsapp.trim() || null,
             cpf: custCpf.trim() || null,
             cep: custCep.trim() || null,
+            address_street: custStreet.trim() || null,
+            address_number: custNumber.trim() || null,
+            address_complement: custComplement.trim() || null,
+            address_neighborhood: custNeighborhood.trim() || null,
+            address_city: custCity.trim() || null,
+            address_state: custState.trim() || null,
           });
           customerId = created.id;
         }
@@ -471,6 +582,15 @@ export default function PDV() {
     setCustWhatsapp("");
     setCustCpf("");
     setCustCep("");
+    setCustStreet("");
+    setCustNumber("");
+    setCustComplement("");
+    setCustNeighborhood("");
+    setCustCity("");
+    setCustState("");
+    setCepInfo(null);
+    setCepLoading(false);
+    setCepNotFound(false);
     setManualDiscount(0);
     setManualDiscountInput("");
     setManualDiscountValue(0);
@@ -939,6 +1059,12 @@ export default function PDV() {
                           setCustWhatsapp(c.whatsapp || "");
                           setCustCpf(c.cpf || "");
                           setCustCep(c.cep || "");
+                          setCustStreet((c as any).address_street || "");
+                          setCustNumber((c as any).address_number || "");
+                          setCustComplement((c as any).address_complement || "");
+                          setCustNeighborhood((c as any).address_neighborhood || "");
+                          setCustCity((c as any).address_city || "");
+                          setCustState((c as any).address_state || "");
                         }}
                         className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
                           selectedCustomerId === c.id
@@ -1011,8 +1137,96 @@ export default function PDV() {
                         placeholder="CEP 00000-000"
                         className="h-12 px-4"
                         value={custCep}
-                        onChange={(e) => setCustCep(e.target.value)}
+                        onChange={(e) => setCustCep(formatCep(e.target.value))}
                         maxLength={9}
+                      />
+                      {(cepLoading || cepInfo || cepNotFound) && (
+                        <div className="px-1 -mt-2">
+                          {cepLoading && (
+                            <p className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-widest">
+                              Buscando endereço…
+                            </p>
+                          )}
+                          {!cepLoading && cepInfo && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!cepInfo) return;
+                                if (cepInfo.logradouro) setCustStreet(cepInfo.logradouro);
+                                if (cepInfo.bairro) setCustNeighborhood(cepInfo.bairro);
+                                if (cepInfo.localidade) setCustCity(cepInfo.localidade);
+                                if (cepInfo.uf) setCustState(cepInfo.uf);
+                              }}
+                              className="text-left w-full p-3 rounded-xl border border-border bg-background/40 hover:bg-background/60 transition-colors"
+                            >
+                              <p className="text-[11px] text-foreground/90 font-medium">
+                                {cepInfo.logradouro || "Rua não informada"}{" "}
+                                <span className="text-muted-foreground/70">
+                                  {[
+                                    cepInfo.bairro || null,
+                                    cepInfo.localidade ? `${cepInfo.localidade}/${cepInfo.uf}` : null,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
+                                </span>
+                              </p>
+                              <p className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-widest mt-1">
+                                Toque para preencher endereço
+                              </p>
+                            </button>
+                          )}
+                          {!cepLoading && cepNotFound && (
+                            <p className="text-[10px] text-amber-400 font-bold uppercase tracking-widest">
+                              CEP não encontrado
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      <InputEl
+                        placeholder="Endereço (Rua / Av.)"
+                        className="h-12 px-4"
+                        value={custStreet}
+                        onChange={(e) => setCustStreet(e.target.value)}
+                        maxLength={120}
+                      />
+                      <div className="grid grid-cols-2 gap-3">
+                        <InputEl
+                          placeholder="Número"
+                          className="h-12 px-4"
+                          value={custNumber}
+                          onChange={(e) => setCustNumber(e.target.value)}
+                          maxLength={20}
+                        />
+                        <InputEl
+                          placeholder="Complemento"
+                          className="h-12 px-4"
+                          value={custComplement}
+                          onChange={(e) => setCustComplement(e.target.value)}
+                          maxLength={60}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <InputEl
+                          placeholder="Bairro"
+                          className="h-12 px-4"
+                          value={custNeighborhood}
+                          onChange={(e) => setCustNeighborhood(e.target.value)}
+                          maxLength={80}
+                        />
+                        <InputEl
+                          placeholder="Cidade"
+                          className="h-12 px-4"
+                          value={custCity}
+                          onChange={(e) => setCustCity(e.target.value)}
+                          maxLength={80}
+                        />
+                      </div>
+                      <InputEl
+                        placeholder="Estado (UF)"
+                        className="h-12 px-4"
+                        value={custState}
+                        onChange={(e) => setCustState(e.target.value.toUpperCase())}
+                        maxLength={2}
                       />
                     </div>
                   </>
