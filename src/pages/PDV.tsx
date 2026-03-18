@@ -329,6 +329,7 @@ export default function PDV() {
             name: custName.trim(),
             whatsapp: custWhatsapp.trim() || null,
             cpf: custCpf.trim() || null,
+            cep: custCep.trim() || null,
           });
           customerId = created.id;
         }
