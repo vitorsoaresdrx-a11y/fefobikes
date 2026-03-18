@@ -12,6 +12,7 @@ export interface Conversation {
   unread_count: number;
   status: string;
   ai_enabled: boolean;
+  instance_name: string | null;
   created_at: string;
 }
 
@@ -30,10 +31,9 @@ export interface Message {
 const CONVERSATIONS_KEY = ["whatsapp_conversations"];
 const MESSAGES_KEY = ["whatsapp_messages"];
 
-export function useConversations(statusFilter?: string) {
+export function useConversations(statusFilter?: string, instanceName?: string | null) {
   const qc = useQueryClient();
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("whatsapp_conversations_changes")
@@ -49,15 +49,19 @@ export function useConversations(statusFilter?: string) {
   }, [qc]);
 
   return useQuery({
-    queryKey: [...CONVERSATIONS_KEY, statusFilter],
+    queryKey: [...CONVERSATIONS_KEY, statusFilter, instanceName],
     queryFn: async () => {
       let query = supabase
         .from("whatsapp_conversations")
-        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, created_at")
+        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, instance_name, created_at")
         .order("last_message_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "all") {
         query = query.eq("status", statusFilter);
+      }
+
+      if (instanceName) {
+        query = query.eq("instance_name", instanceName);
       }
 
       const { data, error } = await query;
@@ -111,7 +115,6 @@ export function useMessages(conversationId: string | null) {
           !msg.message_id &&
           !msg.media_url &&
           (!msg.content || msg.content === "[text]" || msg.content === "text");
-
         return !isGhostStatusMessage;
       });
     },
@@ -151,13 +154,7 @@ export function useSendMessage() {
 export function useUpdateConversationStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      status,
-    }: {
-      id: string;
-      status: string;
-    }) => {
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
         .from("whatsapp_conversations")
         .update({ status })
@@ -196,7 +193,6 @@ export function useToggleAi() {
         .eq("id", id);
       if (error) throw error;
 
-      // When disabling AI, generate a handoff summary
       if (!ai_enabled) {
         try {
           const { data: msgs } = await supabase
@@ -213,7 +209,6 @@ export function useToggleAi() {
               .map((m) => `${m.from_me ? "🤖 IA" : "👤 Cliente"}: ${m.content}`)
               .join("\n");
 
-            // Save summary as internal note
             await supabase.from("whatsapp_messages").insert({
               conversation_id: id,
               from_me: true,
