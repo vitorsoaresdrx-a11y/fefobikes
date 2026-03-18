@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CreditCard, Save, HardHat, Plus, Power, Lock, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import {
   useCardTaxes,
   useUpdateCardTaxes,
@@ -12,7 +13,7 @@ import {
   useUpdateSalaoNames,
   type StationPasswords,
 } from "@/hooks/useSettings";
-import { useMechanics, useCreateMechanic, useToggleMechanic } from "@/hooks/useMechanics";
+import { useMechanics, useCreateMechanic, useToggleMechanic, useDeleteMechanic } from "@/hooks/useMechanics";
 import { useMyPermissions } from "@/hooks/usePermissions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,9 +34,15 @@ export default function Configuracoes() {
   // Mechanics settings
   const [showMechanicsSettings, setShowMechanicsSettings] = useState(false);
   const [newMechanicName, setNewMechanicName] = useState("");
+  const [deleteMechanicId, setDeleteMechanicId] = useState<string | null>(null);
   const { data: mechanics = [] } = useMechanics();
   const createMechanic = useCreateMechanic();
   const toggleMechanic = useToggleMechanic();
+  const deleteMechanic = useDeleteMechanic();
+  const mechanicToDelete = useMemo(
+    () => mechanics.find((m) => m.id === deleteMechanicId) ?? null,
+    [mechanics, deleteMechanicId],
+  );
 
   // Station passwords settings
   const [showStationSettings, setShowStationSettings] = useState(false);
@@ -72,6 +79,22 @@ export default function Configuracoes() {
       setNewMechanicName("");
     } catch {
       toast({ title: "Erro ao adicionar mecânico", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteMechanic = async () => {
+    if (!deleteMechanicId) return;
+    const id = deleteMechanicId;
+    setDeleteMechanicId(null);
+    try {
+      await deleteMechanic.mutateAsync(id);
+      toast({ title: "Mecânico excluído" });
+    } catch (e: any) {
+      const msg =
+        typeof e?.message === "string" && e.message
+          ? e.message
+          : "Não foi possível excluir. Se este mecânico já foi usado em ordens/serviços, desative ao invés de excluir.";
+      toast({ title: "Erro ao excluir mecânico", description: msg, variant: "destructive" });
     }
   };
 
@@ -263,16 +286,28 @@ export default function Configuracoes() {
                     <span className={`text-sm font-medium ${m.active ? "text-foreground" : "text-muted-foreground line-through"}`}>
                       {m.name}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="gap-1.5 text-xs"
-                      onClick={() => toggleMechanic.mutate({ id: m.id, active: !m.active })}
-                      disabled={toggleMechanic.isPending}
-                    >
-                      <Power className="h-3.5 w-3.5" />
-                      {m.active ? "Desativar" : "Reativar"}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 text-xs"
+                        onClick={() => toggleMechanic.mutate({ id: m.id, active: !m.active })}
+                        disabled={toggleMechanic.isPending || deleteMechanic.isPending}
+                      >
+                        <Power className="h-3.5 w-3.5" />
+                        {m.active ? "Desativar" : "Reativar"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 text-xs text-destructive hover:text-destructive"
+                        onClick={() => setDeleteMechanicId(m.id)}
+                        disabled={toggleMechanic.isPending || deleteMechanic.isPending}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Remover
+                      </Button>
+                    </div>
                   </div>
                 ))}
                 {mechanics.length === 0 && (
@@ -287,6 +322,18 @@ export default function Configuracoes() {
               </div>
             </div>
           )}
+
+          <ConfirmDeleteDialog
+            open={!!deleteMechanicId}
+            onOpenChange={(open) => !open && setDeleteMechanicId(null)}
+            onConfirm={handleDeleteMechanic}
+            title="Excluir mecânico"
+            description={
+              mechanicToDelete
+                ? `Tem certeza que deseja excluir o mecânico “${mechanicToDelete.name}”? Esta ação não pode ser desfeita.`
+                : "Tem certeza que deseja excluir este mecânico? Esta ação não pode ser desfeita."
+            }
+          />
 
           {/* Station Passwords - Owner only */}
           {!showStationSettings ? (
