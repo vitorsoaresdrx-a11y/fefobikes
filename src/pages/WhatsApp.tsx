@@ -159,7 +159,7 @@ export default function WhatsApp() {
     }
   }, [instances, selectedInstance, setSelectedInstance]);
 
-  const { data: conversations = [] } = useConversations(statusFilter);
+  const { data: conversations = [] } = useConversations(statusFilter, selectedInstance);
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
   const sendMessage = useSendMessage();
   const updateStatus = useUpdateConversationStatus();
