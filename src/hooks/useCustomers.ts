@@ -6,6 +6,7 @@ export interface Customer {
   name: string;
   whatsapp: string | null;
   cpf: string | null;
+  cep: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -19,7 +20,7 @@ export function useCustomers() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customers")
-        .select("id, name, whatsapp, cpf, notes, created_at, updated_at")
+        .select("id, name, whatsapp, cpf, cep, notes, created_at, updated_at")
         .order("name");
       if (error) throw error;
       return data as Customer[];
@@ -30,7 +31,7 @@ export function useCustomers() {
 export function useCreateCustomer() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (customer: { name: string; whatsapp?: string | null; cpf?: string | null }) => {
+    mutationFn: async (customer: { name: string; whatsapp?: string | null; cpf?: string | null; cep?: string | null }) => {
       const { data, error } = await supabase
         .from("customers")
         .insert(customer)

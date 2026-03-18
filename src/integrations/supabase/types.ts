@@ -455,6 +455,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          cep: string | null
           cpf: string | null
           created_at: string
           id: string
@@ -465,6 +466,7 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          cep?: string | null
           cpf?: string | null
           created_at?: string
           id?: string
@@ -475,6 +477,7 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          cep?: string | null
           cpf?: string | null
           created_at?: string
           id?: string

@@ -171,6 +171,7 @@ export default function PDV() {
   const [custName, setCustName] = useState("");
   const [custWhatsapp, setCustWhatsapp] = useState("");
   const [custCpf, setCustCpf] = useState("");
+  const [custCep, setCustCep] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   // Receipt
@@ -307,6 +308,7 @@ export default function PDV() {
     setCustName("");
     setCustWhatsapp("");
     setCustCpf("");
+    setCustCep("");
     setCustSearch("");
     setSelectedCustomerId(null);
     setStep("customer");
@@ -327,6 +329,7 @@ export default function PDV() {
             name: custName.trim(),
             whatsapp: custWhatsapp.trim() || null,
             cpf: custCpf.trim() || null,
+            cep: custCep.trim() || null,
           });
           customerId = created.id;
         }
@@ -467,6 +470,7 @@ export default function PDV() {
     setCustName("");
     setCustWhatsapp("");
     setCustCpf("");
+    setCustCep("");
     setManualDiscount(0);
     setManualDiscountInput("");
     setManualDiscountValue(0);
@@ -933,7 +937,8 @@ export default function PDV() {
                           setCustSearch("");
                           setCustName(c.name);
                           setCustWhatsapp(c.whatsapp || "");
-                          setCustCpf((c as any).cpf || "");
+                          setCustCpf(c.cpf || "");
+                          setCustCep(c.cep || "");
                         }}
                         className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
                           selectedCustomerId === c.id
@@ -1001,6 +1006,13 @@ export default function PDV() {
                         value={custCpf}
                         onChange={(e) => setCustCpf(e.target.value)}
                         maxLength={14}
+                      />
+                      <InputEl
+                        placeholder="CEP 00000-000"
+                        className="h-12 px-4"
+                        value={custCep}
+                        onChange={(e) => setCustCep(e.target.value)}
+                        maxLength={9}
                       />
                     </div>
                   </>
