@@ -937,7 +937,8 @@ export default function PDV() {
                           setCustSearch("");
                           setCustName(c.name);
                           setCustWhatsapp(c.whatsapp || "");
-                          setCustCpf((c as any).cpf || "");
+                          setCustCpf(c.cpf || "");
+                          setCustCep(c.cep || "");
                         }}
                         className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between ${
                           selectedCustomerId === c.id
