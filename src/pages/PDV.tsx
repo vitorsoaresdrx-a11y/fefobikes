@@ -171,6 +171,7 @@ export default function PDV() {
   const [custName, setCustName] = useState("");
   const [custWhatsapp, setCustWhatsapp] = useState("");
   const [custCpf, setCustCpf] = useState("");
+  const [custCep, setCustCep] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   // Receipt
