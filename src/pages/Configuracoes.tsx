@@ -42,7 +42,7 @@ const Button = ({
   size?: "sm" | "md" | "lg";
 }) => {
   const variants = {
-    primary: "bg-[#820AD1] text-white hover:bg-[#9D3BE1] shadow-[0_10px_30px_rgba(130,10,209,0.3)]",
+    primary: "bg-primary text-white hover:bg-primary/80 shadow-primary/20",
     secondary: "bg-[#1C1C1E] text-zinc-100 hover:bg-[#2C2C2E] border border-zinc-800",
     ghost: "hover:bg-white/5 text-zinc-400 hover:text-white",
     destructive: "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20",
@@ -83,14 +83,14 @@ const ConfigSection = ({
     {!active ? (
       <button
         onClick={onClick}
-        className="w-full text-left p-8 bg-[#161618] border border-zinc-800 rounded-[32px] hover:border-[#820AD1]/50 group transition-all relative overflow-hidden"
+        className="w-full text-left p-8 bg-[#161618] border border-zinc-800 rounded-[32px] hover:border-primary/50 group transition-all relative overflow-hidden"
       >
         <div className="absolute -right-4 -top-4 opacity-[0.02] text-white group-hover:scale-110 transition-transform">
           <Icon size={120} />
         </div>
         <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-6">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-[#820AD1] group-hover:border-[#820AD1]/30 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-primary group-hover:border-primary/30 transition-all">
               <Icon size={24} />
             </div>
             <div>
@@ -105,10 +105,10 @@ const ConfigSection = ({
         </div>
       </button>
     ) : (
-      <div className="bg-[#161618] border border-[#820AD1]/30 rounded-[40px] p-8 md:p-12 shadow-2xl animate-in zoom-in-95 duration-300">
+      <div className="bg-[#161618] border border-primary/30 rounded-[40px] p-8 md:p-12 shadow-2xl animate-in zoom-in-95 duration-300">
         <div className="flex items-center justify-between mb-10 pb-8 border-b border-zinc-800/50">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#820AD1]/10 flex items-center justify-center text-[#820AD1]">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
               <Icon size={24} />
             </div>
             <div>
@@ -138,7 +138,7 @@ const StationInput = ({
   value: string;
   onChange: (v: string) => void;
 }) => (
-  <div className="p-6 bg-zinc-900/30 border border-zinc-800 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-4 group focus-within:border-[#820AD1]/50 transition-all">
+  <div className="p-6 bg-zinc-900/30 border border-zinc-800 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-4 group focus-within:border-primary/50 transition-all">
     <span className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em]">{label}</span>
     <div className="flex items-center gap-4 flex-1 md:max-w-xs">
       <input
@@ -273,16 +273,16 @@ export default function Configuracoes() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-[#820AD1]/30 pb-24">
+    <div className="min-h-screen bg-[#0A0A0B] text-zinc-100 font-sans selection:bg-primary/30 pb-24">
       <div className="max-w-4xl mx-auto p-6 md:p-12 space-y-12">
 
         {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#820AD1] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(130,10,209,0.3)]">
+            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
               <Settings2 size={20} className="text-white" />
             </div>
-            <span className="text-[10px] font-black tracking-[0.4em] text-[#820AD1] uppercase">
+            <span className="text-[10px] font-black tracking-[0.4em] text-primary uppercase">
               System Preferences
             </span>
           </div>
@@ -316,7 +316,7 @@ export default function Configuracoes() {
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1]">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-primary">
                     Taxa de Crédito (%)
                   </label>
                   <div className="relative">
@@ -333,7 +333,7 @@ export default function Configuracoes() {
                   </div>
                 </div>
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-[#820AD1]">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-primary">
                     Taxa de Débito (%)
                   </label>
                   <div className="relative">
@@ -351,7 +351,7 @@ export default function Configuracoes() {
                 </div>
               </div>
               <div className="p-6 bg-zinc-900/50 rounded-3xl border border-zinc-800 flex items-center gap-4">
-                <ShieldCheck size={20} className="text-[#820AD1]" />
+                <ShieldCheck size={20} className="text-primary" />
                 <p className="text-xs text-zinc-500 font-medium leading-relaxed">
                   Taxas aplicadas automaticamente no cálculo do Lucro Líquido do PDV e do DRE Financeiro.
                 </p>
@@ -412,7 +412,7 @@ export default function Configuracoes() {
                           <div
                             className={`w-3 h-3 rounded-full ${
                               m.active
-                                ? "bg-[#820AD1] shadow-[0_0_10px_rgba(130,10,209,0.5)]"
+                                ? "bg-primary shadow-primary/50"
                                 : "bg-zinc-800"
                             }`}
                           />
@@ -547,9 +547,9 @@ export default function Configuracoes() {
                     {salaoNames.map((name) => (
                       <div
                         key={name}
-                        className="flex items-center gap-3 px-6 py-3 bg-[#820AD1]/10 border border-[#820AD1]/20 rounded-2xl group"
+                        className="flex items-center gap-3 px-6 py-3 bg-primary/10 border border-primary/20 rounded-2xl group"
                       >
-                        <span className="text-sm font-black text-[#820AD1] uppercase tracking-widest">
+                        <span className="text-sm font-black text-primary uppercase tracking-widest">
                           {name}
                         </span>
                         <button
@@ -596,8 +596,8 @@ export default function Configuracoes() {
           font-family: inherit;
         }
         .premium-input:focus {
-          border-color: #820AD1;
-          box-shadow: 0 0 0 1px rgba(130, 10, 209, 0.1);
+          border-color: var(--primary);
+          box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 10%, transparent);
           background: #111113;
         }
       `}</style>
