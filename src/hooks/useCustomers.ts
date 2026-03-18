@@ -6,6 +6,7 @@ export interface Customer {
   name: string;
   whatsapp: string | null;
   cpf: string | null;
+  cep: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
