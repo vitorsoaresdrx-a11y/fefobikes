@@ -371,8 +371,8 @@ export default function Configuracoes() {
           {isOwner && (
             <>
               <ConfigSection
-                title="Corpo Técnico"
-                description="Gerencie os mecânicos autorizados na oficina."
+                title="Mecânicos"
+                description="Cadastre e gerencie os mecânicos da oficina."
                 icon={HardHat}
                 active={activeTab === "mechanics"}
                 onClick={() => toggle("mechanics")}
@@ -470,8 +470,8 @@ export default function Configuracoes() {
 
               {/* 3. Senhas das Estações */}
               <ConfigSection
-                title="Segurança & Estações"
-                description="Senhas de acesso para cada terminal de operação."
+                title="Senhas de Acesso"
+                description="Defina a senha de cada estação: admin, salão e mecânica."
                 icon={Lock}
                 active={activeTab === "security"}
                 onClick={() => toggle("security")}
@@ -511,8 +511,8 @@ export default function Configuracoes() {
 
               {/* 4. Nomes do Salão */}
               <ConfigSection
-                title="Nomes do Salão"
-                description="Configuração de visibilidade para login rápido."
+                title="Operadores do Salão"
+                description="Nomes que aparecem na tela de login do salão."
                 icon={Users}
                 active={activeTab === "salao"}
                 onClick={() => toggle("salao")}
