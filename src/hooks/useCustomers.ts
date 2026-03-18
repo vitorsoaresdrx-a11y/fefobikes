@@ -31,7 +31,7 @@ export function useCustomers() {
 export function useCreateCustomer() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (customer: { name: string; whatsapp?: string | null; cpf?: string | null }) => {
+    mutationFn: async (customer: { name: string; whatsapp?: string | null; cpf?: string | null; cep?: string | null }) => {
       const { data, error } = await supabase
         .from("customers")
         .insert(customer)
