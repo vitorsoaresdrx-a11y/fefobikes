@@ -200,7 +200,7 @@ export default function Contas() {
       </div>
 
       {/* KPIs */}
-      <div className="grid-cols-1 sm:grid-cols-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="p-3 rounded-2xl bg-card border border-border">
           <p className="text-[9px] uppercase text-muted-foreground font-bold tracking-wider">A Pagar</p>
           <p className="text-lg font-black text-foreground">{formatBRL(totalPending)}</p>
