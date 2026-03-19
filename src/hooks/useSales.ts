@@ -23,6 +23,18 @@ export interface CreateSalePayload {
   promotion_id?: string | null;
 }
 
+export interface UpdateSalePayload {
+  saleId: string;
+  customer_id: string | null;
+  total: number;
+  payment_method: string | null;
+  discount_amount: number;
+  discount_type: string | null;
+  card_fee: number;
+  card_tax_percent: number;
+  items: SaleItem[];
+}
+
 export function useCreateSale() {
   const qc = useQueryClient();
   return useMutation({
@@ -34,19 +46,61 @@ export function useCreateSale() {
         .select()
         .single();
       if (error) throw error;
-
       if (items.length > 0) {
         const rows = items.map((item) => ({ ...item, sale_id: sale.id }));
         const { error: itemsError } = await supabase.from("sale_items").insert(rows);
         if (itemsError) throw itemsError;
       }
-
       return sale;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["customers"] });
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["stock_changes"] });
+    },
+  });
+}
+
+export function useUpdateSale() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: UpdateSalePayload) => {
+      const { saleId, items, ...saleData } = payload;
+
+      // 1. Deleta itens antigos — o trigger do banco devolve o estoque automaticamente
+      const { error: deleteError } = await supabase
+        .from("sale_items")
+        .delete()
+        .eq("sale_id", saleId);
+      if (deleteError) throw deleteError;
+
+      // 2. Insere novos itens — o trigger desconta o estoque automaticamente
+      if (items.length > 0) {
+        const rows = items.map((item) => ({ ...item, sale_id: saleId }));
+        const { error: insertError } = await supabase.from("sale_items").insert(rows);
+        if (insertError) throw insertError;
+      }
+
+      // 3. Atualiza dados da venda
+      const { error: updateError } = await supabase
+        .from("sales")
+        .update({
+          customer_id: saleData.customer_id,
+          total: saleData.total,
+          payment_method: saleData.payment_method,
+          discount_amount: saleData.discount_amount,
+          discount_type: saleData.discount_type,
+          card_fee: saleData.card_fee,
+          card_tax_percent: saleData.card_tax_percent,
+        })
+        .eq("id", saleId);
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["stock_changes"] });
+      qc.invalidateQueries({ queryKey: ["parts"] });
+      qc.invalidateQueries({ queryKey: ["bikes"] });
     },
   });
 }
