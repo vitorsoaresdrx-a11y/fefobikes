@@ -26,7 +26,6 @@ export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const { data: categories = [] } = useCategories();
-
   const options = categories.map((c) => ({ label: c.name, value: c.name }));
 
   const handleSelect = (selected: string) => {
@@ -35,19 +34,24 @@ export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between h-9 text-sm font-normal bg-card border-border"
+          className="w-full justify-between h-11 text-sm font-normal bg-background border-border"
         >
           {value || "Selecionar categoria..."}
           <ChevronsUpDown className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border" align="start">
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] p-0 bg-popover border-border z-[200]"
+        align="start"
+        side="bottom"
+        avoidCollisions={false}
+      >
         <Command>
           <CommandInput
             placeholder="Buscar categoria..."
@@ -57,16 +61,22 @@ export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
           />
           <CommandList>
             <CommandEmpty>
-              <button
-                type="button"
-                className="w-full px-2 py-1.5 text-sm text-left hover:bg-accent rounded-sm"
-                onClick={() => {
-                  onChange(inputValue);
-                  setOpen(false);
-                }}
-              >
-                Usar "{inputValue}"
-              </button>
+              {inputValue.trim() ? (
+                <button
+                  type="button"
+                  className="w-full px-2 py-1.5 text-sm text-left hover:bg-accent rounded-sm"
+                  onClick={() => {
+                    onChange(inputValue.trim());
+                    setOpen(false);
+                  }}
+                >
+                  Usar "{inputValue}"
+                </button>
+              ) : (
+                <p className="px-2 py-3 text-sm text-muted-foreground text-center">
+                  Nenhuma categoria encontrada
+                </p>
+              )}
             </CommandEmpty>
             <CommandGroup>
               {options.map((opt) => (

@@ -15,6 +15,10 @@ import {
   useInstanceStatus,
 } from "@/hooks/useZapiStatus";
 import {
+  useInstanceAi,
+  useToggleInstanceAi,
+} from "@/hooks/useInstanceAi";
+import {
   MessageCircle,
   Send,
   Volume2,
@@ -87,6 +91,17 @@ function getDisplayContactName(
   return getDisplayContactPhone(conversation.contact_phone);
 }
 
+function formatSummary(text: string) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/_(.*?)_/g, "<em>$1</em>")
+    .replace(/\*/g, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("<br/><br/>");
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const STATUS_FILTERS = [
@@ -151,6 +166,11 @@ export default function WhatsApp() {
   const { data: instanceStatus } = useInstanceStatus(selectedInstance);
   const isConnected = instanceStatus?.connected === true;
 
+  // Instance AI control
+  const { data: instanceAiData } = useInstanceAi(selectedInstance);
+  const toggleInstanceAi = useToggleInstanceAi();
+  const isInstanceAiEnabled = instanceAiData?.ai_enabled !== false;
+
   // Auto-select first connected instance if none selected
   useEffect(() => {
     if (!selectedInstance && instances.length > 0) {
@@ -159,7 +179,7 @@ export default function WhatsApp() {
     }
   }, [instances, selectedInstance, setSelectedInstance]);
 
-  const { data: conversations = [] } = useConversations(statusFilter);
+  const { data: conversations = [] } = useConversations(statusFilter, selectedInstance);
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
   const sendMessage = useSendMessage();
   const updateStatus = useUpdateConversationStatus();
@@ -223,7 +243,6 @@ export default function WhatsApp() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
-  // Instance selection screen when no instance is selected or loading
   if (instancesLoading) {
     return (
       <div className="flex items-center justify-center min-h-[70vh] pb-24 lg:pb-0">
@@ -343,6 +362,58 @@ export default function WhatsApp() {
               </p>
             </div>
           </div>
+
+          {/* Botão de IA Global da Instância */}
+          <button
+            onClick={() => {
+              if (selectedInstance) {
+                const newVal = !isInstanceAiEnabled;
+                toggleInstanceAi.mutate(
+                  { instanceName: selectedInstance, ai_enabled: newVal },
+                  {
+                    onSuccess: () => {
+                      toast({
+                        title: newVal ? "IA Global Ativada" : "IA Global Pausada",
+                        description: newVal
+                          ? "A IA voltará a responder todos os chats desta instância."
+                          : "A IA não responderá nenhum chat desta instância até ser reativada.",
+                      });
+                    },
+                  }
+                );
+              }
+            }}
+            className={`w-full p-4 rounded-2xl border font-bold text-sm transition-all flex items-center justify-between group ${
+              isInstanceAiEnabled
+                ? "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20"
+                : "bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              {isInstanceAiEnabled ? (
+                <Bot size={20} className="text-emerald-400" />
+              ) : (
+                <BotOff size={20} className="text-orange-400" />
+              )}
+              <div className="text-left">
+                <p className={`text-xs font-black uppercase tracking-wider ${
+                  isInstanceAiEnabled ? "text-emerald-400" : "text-orange-400"
+                }`}>
+                  IA da Instância
+                </p>
+                <p className="text-[10px] text-muted-foreground/70">
+                  {isInstanceAiEnabled ? "Respondendo todos os chats" : "Pausada para todos os chats"}
+                </p>
+              </div>
+            </div>
+            <div className={`w-12 h-6 rounded-full transition-all relative ${
+              isInstanceAiEnabled ? "bg-emerald-500" : "bg-orange-500/50"
+            }`}>
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
+                isInstanceAiEnabled ? "right-1" : "left-1"
+              }`} />
+            </div>
+          </button>
 
           {/* Search */}
           <div className="space-y-4">
@@ -618,17 +689,26 @@ export default function WhatsApp() {
                         className="max-w-full rounded-[24px] mb-2"
                       />
                     )}
-                    <div
-                      className={`p-5 shadow-lg ${
-                        msg.from_me
-                          ? "bg-primary text-white rounded-[32px] rounded-tr-lg"
-                          : "bg-card text-foreground/90 border border-border rounded-[32px] rounded-tl-lg"
-                      }`}
-                    >
-                      <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                    </div>
+                    {msg.status === "internal" ? (
+                      <div className="p-5 shadow-lg bg-amber-500/10 border border-amber-500/20 rounded-[32px] rounded-tr-lg">
+                        <p
+                          className="text-sm font-medium leading-relaxed text-amber-100"
+                          dangerouslySetInnerHTML={{ __html: formatSummary(msg.content) }}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className={`p-5 shadow-lg ${
+                          msg.from_me
+                            ? "bg-primary text-white rounded-[32px] rounded-tr-lg"
+                            : "bg-card text-foreground/90 border border-border rounded-[32px] rounded-tl-lg"
+                        }`}
+                      >
+                        <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                          {msg.content}
+                        </p>
+                      </div>
+                    )}
                     <div
                       className={`flex items-center gap-1.5 px-2 ${
                         msg.from_me ? "justify-end" : "justify-start"
@@ -637,7 +717,9 @@ export default function WhatsApp() {
                       <span className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-widest">
                         {format(new Date(msg.created_at), "HH:mm")}
                       </span>
-                      {msg.from_me && <MessageStatus status={msg.status} />}
+                      {msg.from_me && msg.status !== "internal" && (
+                        <MessageStatus status={msg.status} />
+                      )}
                     </div>
                   </div>
                 </div>

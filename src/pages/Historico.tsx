@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban } from "lucide-react";
+import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban, Pencil } from "lucide-react";
 import { useSales, useCancelSale } from "@/hooks/useSales";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
+import { SaleEditModal } from "@/components/pdv/SaleEditModal";
 import { formatBRL } from "@/lib/format";
 import { exportSalesCSV } from "@/lib/export-csv";
 import { EmptyState } from "@/components/EmptyState";
@@ -81,12 +82,14 @@ function SaleRow({
   onToggle,
   onReceipt,
   onCancel,
+  onEdit,
 }: {
   sale: any;
   isExpanded: boolean;
   onToggle: () => void;
   onReceipt: () => void;
   onCancel: () => void;
+  onEdit: () => void;
 }) {
   const items = sale.sale_items || [];
   const { date, time } = formatDateTime(sale.created_at);
@@ -166,24 +169,26 @@ function SaleRow({
 
           <div className="flex items-center gap-3 px-2 mt-1">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onReceipt();
-              }}
+              onClick={(e) => { e.stopPropagation(); onReceipt(); }}
               className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground hover:text-white transition-colors"
             >
               <Printer size={12} /> Reimprimir
             </button>
             {!isCancelled && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCancel();
-                }}
-                className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
-              >
-                <Ban size={12} /> Cancelar
-              </button>
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-primary hover:text-primary/80 transition-colors"
+                >
+                  <Pencil size={12} /> Editar
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onCancel(); }}
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <Ban size={12} /> Cancelar
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -201,6 +206,7 @@ export default function Historico() {
   const [expandedSale, setExpandedSale] = useState<string | null>(null);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [cancelSaleId, setCancelSaleId] = useState<string | null>(null);
+  const [editingSale, setEditingSale] = useState<any | null>(null);
   const cancelSale = useCancelSale();
 
   const customerGroups = useMemo(() => {
@@ -380,14 +386,11 @@ export default function Historico() {
                               sale={sale}
                               isExpanded={expandedSale === sale.id}
                               onToggle={() =>
-                                setExpandedSale(
-                                  expandedSale === sale.id ? null : sale.id
-                                )
+                                setExpandedSale(expandedSale === sale.id ? null : sale.id)
                               }
-                              onReceipt={() =>
-                                setReceiptData(buildReceiptFromSale(sale))
-                              }
+                              onReceipt={() => setReceiptData(buildReceiptFromSale(sale))}
                               onCancel={() => setCancelSaleId(sale.id)}
+                              onEdit={() => setEditingSale(sale)}
                             />
                           ))}
                       </div>
@@ -418,6 +421,13 @@ export default function Historico() {
             data={receiptData}
           />
         )}
+
+        {/* Edit modal */}
+        <SaleEditModal
+          sale={editingSale}
+          open={!!editingSale}
+          onClose={() => setEditingSale(null)}
+        />
 
         {/* Cancel sale dialog */}
         <ConfirmDeleteDialog

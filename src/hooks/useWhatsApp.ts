@@ -12,6 +12,7 @@ export interface Conversation {
   unread_count: number;
   status: string;
   ai_enabled: boolean;
+  instance_name: string | null;
   created_at: string;
 }
 
@@ -30,10 +31,9 @@ export interface Message {
 const CONVERSATIONS_KEY = ["whatsapp_conversations"];
 const MESSAGES_KEY = ["whatsapp_messages"];
 
-export function useConversations(statusFilter?: string) {
+export function useConversations(statusFilter?: string, instanceName?: string | null) {
   const qc = useQueryClient();
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("whatsapp_conversations_changes")
@@ -49,15 +49,19 @@ export function useConversations(statusFilter?: string) {
   }, [qc]);
 
   return useQuery({
-    queryKey: [...CONVERSATIONS_KEY, statusFilter],
+    queryKey: [...CONVERSATIONS_KEY, statusFilter, instanceName],
     queryFn: async () => {
       let query = supabase
         .from("whatsapp_conversations")
-        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, created_at")
+        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, instance_name, created_at")
         .order("last_message_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "all") {
         query = query.eq("status", statusFilter);
+      }
+
+      if (instanceName) {
+        query = query.eq("instance_name", instanceName);
       }
 
       const { data, error } = await query;
@@ -89,6 +93,18 @@ export function useMessages(conversationId: string | null) {
           qc.invalidateQueries({ queryKey: [...MESSAGES_KEY, conversationId] });
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "whatsapp_messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: [...MESSAGES_KEY, conversationId] });
+        }
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [conversationId, qc]);
@@ -111,7 +127,6 @@ export function useMessages(conversationId: string | null) {
           !msg.message_id &&
           !msg.media_url &&
           (!msg.content || msg.content === "[text]" || msg.content === "text");
-
         return !isGhostStatusMessage;
       });
     },
@@ -151,13 +166,7 @@ export function useSendMessage() {
 export function useUpdateConversationStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      status,
-    }: {
-      id: string;
-      status: string;
-    }) => {
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
         .from("whatsapp_conversations")
         .update({ status })
@@ -196,7 +205,6 @@ export function useToggleAi() {
         .eq("id", id);
       if (error) throw error;
 
-      // When disabling AI, generate a handoff summary
       if (!ai_enabled) {
         try {
           const { data: msgs } = await supabase
@@ -207,18 +215,46 @@ export function useToggleAi() {
             .limit(15);
 
           if (msgs && msgs.length > 0) {
-            const summary = msgs
+            const conversation = msgs
               .reverse()
-              .filter((m) => m.type === "text" && m.content)
-              .map((m) => `${m.from_me ? "🤖 IA" : "👤 Cliente"}: ${m.content}`)
+              .filter((m) => m.type === "text" && m.content && !m.content.startsWith("📋"))
+              .map((m) => {
+                const cleanContent = m.content.replace(/^🎤 /, "").replace(/^🔊 /, "");
+                return `${m.from_me ? "IA" : "Cliente"}: ${cleanContent}`;
+              })
               .join("\n");
 
-            // Save summary as internal note
+            const { data: summaryData, error: summaryError } = await supabase.functions.invoke(
+              "generate-handoff-summary",
+              {
+                body: {
+                  conversationId: id,
+                  conversation,
+                },
+              }
+            );
+
+            let finalSummary: string;
+
+            if (summaryError || !summaryData?.summary) {
+              console.error("Failed to generate AI summary, using fallback:", summaryError);
+              finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${conversation}\n\n_IA desativada. Atendente humano assumiu._`;
+            } else {
+              finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${summaryData.summary}\n\n_IA desativada. Atendente humano assumiu._`;
+            }
+
+            // Remove resumo anterior antes de inserir o novo
+            await supabase
+              .from("whatsapp_messages")
+              .delete()
+              .eq("conversation_id", id)
+              .eq("status", "internal");
+
             await supabase.from("whatsapp_messages").insert({
               conversation_id: id,
               from_me: true,
               type: "text",
-              content: `📋 *Resumo da conversa (IA → Humano):*\n\n${summary}\n\n_IA desativada. Atendente humano assumiu._`,
+              content: finalSummary,
               status: "internal",
             });
           }
