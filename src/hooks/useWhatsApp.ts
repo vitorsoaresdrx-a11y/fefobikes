@@ -195,7 +195,6 @@ export function useToggleAi() {
 
       if (!ai_enabled) {
         try {
-          // Busca as últimas 15 mensagens
           const { data: msgs } = await supabase
             .from("whatsapp_messages")
             .select("content, from_me, type")
@@ -204,7 +203,6 @@ export function useToggleAi() {
             .limit(15);
 
           if (msgs && msgs.length > 0) {
-            // Prepara o histórico para a IA
             const conversation = msgs
               .reverse()
               .filter((m) => m.type === "text" && m.content && !m.content.startsWith("📋"))
@@ -214,14 +212,13 @@ export function useToggleAi() {
               })
               .join("\n");
 
-            // Chama a edge function para gerar resumo inteligente
             const { data: summaryData, error: summaryError } = await supabase.functions.invoke(
               "generate-handoff-summary",
-              { 
-                body: { 
+              {
+                body: {
                   conversationId: id,
-                  conversation 
-                } 
+                  conversation,
+                },
               }
             );
 
@@ -229,12 +226,17 @@ export function useToggleAi() {
 
             if (summaryError || !summaryData?.summary) {
               console.error("Failed to generate AI summary, using fallback:", summaryError);
-              // Fallback: resumo simples
               finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${conversation}\n\n_IA desativada. Atendente humano assumiu._`;
             } else {
-              // Usa o resumo gerado pela IA
               finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${summaryData.summary}\n\n_IA desativada. Atendente humano assumiu._`;
             }
+
+            // Remove resumo anterior antes de inserir o novo
+            await supabase
+              .from("whatsapp_messages")
+              .delete()
+              .eq("conversation_id", id)
+              .eq("status", "internal");
 
             await supabase.from("whatsapp_messages").insert({
               conversation_id: id,
