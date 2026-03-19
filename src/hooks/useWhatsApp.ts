@@ -93,6 +93,18 @@ export function useMessages(conversationId: string | null) {
           qc.invalidateQueries({ queryKey: [...MESSAGES_KEY, conversationId] });
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "whatsapp_messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: [...MESSAGES_KEY, conversationId] });
+        }
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [conversationId, qc]);
