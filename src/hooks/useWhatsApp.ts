@@ -195,6 +195,7 @@ export function useToggleAi() {
 
       if (!ai_enabled) {
         try {
+          // Busca as últimas 15 mensagens
           const { data: msgs } = await supabase
             .from("whatsapp_messages")
             .select("content, from_me, type")
@@ -203,17 +204,43 @@ export function useToggleAi() {
             .limit(15);
 
           if (msgs && msgs.length > 0) {
-            const summary = msgs
+            // Prepara o histórico para a IA
+            const conversation = msgs
               .reverse()
-              .filter((m) => m.type === "text" && m.content)
-              .map((m) => `${m.from_me ? "🤖 IA" : "👤 Cliente"}: ${m.content}`)
+              .filter((m) => m.type === "text" && m.content && !m.content.startsWith("📋"))
+              .map((m) => {
+                const cleanContent = m.content.replace(/^🎤 /, "").replace(/^🔊 /, "");
+                return `${m.from_me ? "IA" : "Cliente"}: ${cleanContent}`;
+              })
               .join("\n");
+
+            // Chama a edge function para gerar resumo inteligente
+            const { data: summaryData, error: summaryError } = await supabase.functions.invoke(
+              "generate-handoff-summary",
+              { 
+                body: { 
+                  conversationId: id,
+                  conversation 
+                } 
+              }
+            );
+
+            let finalSummary: string;
+
+            if (summaryError || !summaryData?.summary) {
+              console.error("Failed to generate AI summary, using fallback:", summaryError);
+              // Fallback: resumo simples
+              finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${conversation}\n\n_IA desativada. Atendente humano assumiu._`;
+            } else {
+              // Usa o resumo gerado pela IA
+              finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${summaryData.summary}\n\n_IA desativada. Atendente humano assumiu._`;
+            }
 
             await supabase.from("whatsapp_messages").insert({
               conversation_id: id,
               from_me: true,
               type: "text",
-              content: `📋 *Resumo da conversa (IA → Humano):*\n\n${summary}\n\n_IA desativada. Atendente humano assumiu._`,
+              content: finalSummary,
               status: "internal",
             });
           }
