@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Receipt, Zap, Droplets, CreditCard, FileText, Copy, CheckCircle, Trash2, MoreVertical, ScanLine, Sparkles } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInDays, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { formatBRL } from "@/lib/format";
 import { parseBarcode, type ParsedBill } from "@/lib/barcode-parser";
@@ -33,7 +33,53 @@ const FILTERS = [
   { key: "pending", label: "Pendentes" },
   { key: "overdue", label: "Vencidas" },
   { key: "paid", label: "Pagas" },
+  { key: "due_1", label: "Vence hoje" },
+  { key: "due_7", label: "7 dias" },
+  { key: "due_15", label: "15 dias" },
+  { key: "due_30", label: "30 dias" },
 ];
+
+function daysUntilDue(dueDate: string | null): number | null {
+  if (!dueDate) return null;
+  return differenceInDays(parseISO(dueDate + "T12:00:00"), new Date());
+}
+
+function applyFilter(bills: Bill[], filter: string): Bill[] {
+  switch (filter) {
+    case "pending":
+      return bills.filter((b) => b.status === "pending");
+    case "overdue":
+      return bills.filter((b) => b.status === "overdue");
+    case "paid":
+      return bills.filter((b) => b.status === "paid");
+    case "due_1":
+      return bills.filter((b) => {
+        if (b.status === "paid") return false;
+        const d = daysUntilDue(b.due_date);
+        return d !== null && d <= 1 && d >= 0;
+      });
+    case "due_7":
+      return bills.filter((b) => {
+        if (b.status === "paid") return false;
+        const d = daysUntilDue(b.due_date);
+        return d !== null && d <= 7 && d >= 0;
+      });
+    case "due_15":
+      return bills.filter((b) => {
+        if (b.status === "paid") return false;
+        const d = daysUntilDue(b.due_date);
+        return d !== null && d <= 15 && d >= 0;
+      });
+    case "due_30":
+      return bills.filter((b) => {
+        if (b.status === "paid") return false;
+        const d = daysUntilDue(b.due_date);
+        return d !== null && d <= 30 && d >= 0;
+      });
+    default:
+      return bills;
+  }
+}
 
 function StatusBadge({ status, dueDate }: { status: string; dueDate: string | null }) {
   if (status === "paid") {
@@ -42,6 +88,15 @@ function StatusBadge({ status, dueDate }: { status: string; dueDate: string | nu
   if (status === "overdue") {
     return <span className="text-[9px] font-bold uppercase text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">Vencida</span>;
   }
+
+  const days = daysUntilDue(dueDate);
+  if (days !== null && days <= 1) {
+    return <span className="text-[9px] font-bold uppercase text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">Vence hoje</span>;
+  }
+  if (days !== null && days <= 7) {
+    return <span className="text-[9px] font-bold uppercase text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-full">Vence em {days}d</span>;
+  }
+
   return <span className="text-[9px] font-bold uppercase text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">Pendente</span>;
 }
 
@@ -65,12 +120,11 @@ export default function Contas() {
   const [manualBarcode, setManualBarcode] = useState("");
   const [inputMode, setInputMode] = useState<"scan" | "photo">("scan");
 
-  // KPIs
   const totalPending = bills.filter((b) => b.status === "pending").reduce((s, b) => s + (b.amount || 0), 0);
   const totalOverdue = bills.filter((b) => b.status === "overdue").reduce((s, b) => s + (b.amount || 0), 0);
   const totalPaid = bills.filter((b) => b.status === "paid").reduce((s, b) => s + (b.amount || 0), 0);
 
-  const filtered = filter === "all" ? bills : bills.filter((b) => b.status === filter);
+  const filtered = applyFilter(bills, filter);
 
   const handleScanned = (code: string) => {
     const result = parseBarcode(code);
@@ -213,7 +267,7 @@ export default function Contas() {
         />
       )}
 
-      {/* Manual input toggle */}
+      {/* Manual input */}
       <div className="flex gap-2">
         <button
           onClick={() => setShowManualInput(!showManualInput)}
@@ -242,13 +296,13 @@ export default function Contas() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex gap-2">
+      {/* Filters — scroll horizontal em mobile */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
         {FILTERS.map((f) => (
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`h-8 px-3 rounded-xl text-xs font-bold border transition-all ${
+            className={`h-8 px-3 rounded-xl text-xs font-bold border transition-all whitespace-nowrap shrink-0 ${
               filter === f.key
                 ? "bg-primary border-primary text-primary-foreground"
                 : "bg-secondary border-border text-muted-foreground hover:text-foreground"
@@ -259,6 +313,13 @@ export default function Contas() {
         ))}
       </div>
 
+      {/* Contagem do filtro ativo */}
+      {filter !== "all" && (
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest px-1">
+          {filtered.length} conta{filtered.length !== 1 ? "s" : ""} encontrada{filtered.length !== 1 ? "s" : ""}
+        </p>
+      )}
+
       {/* Bills list */}
       <div className="space-y-2">
         {isLoading && <p className="text-sm text-muted-foreground text-center py-8">Carregando...</p>}
@@ -268,8 +329,15 @@ export default function Contas() {
         {filtered.map((bill) => {
           const cfg = TYPE_CONFIG[bill.barcode_type] || TYPE_CONFIG.desconhecido;
           const Icon = cfg.icon;
+          const days = daysUntilDue(bill.due_date);
+          const isUrgent = bill.status !== "paid" && days !== null && days <= 1;
           return (
-            <div key={bill.id} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+            <div
+              key={bill.id}
+              className={`flex items-center gap-3 p-4 rounded-2xl bg-card border transition-colors ${
+                isUrgent ? "border-red-500/30 bg-red-500/5" : "border-border"
+              }`}
+            >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${cfg.bg}`}>
                 <Icon size={18} className={cfg.color} />
               </div>
@@ -278,7 +346,14 @@ export default function Contas() {
                   {bill.beneficiary || bill.bank_name || "Conta"}
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  {bill.due_date ? `Vence ${format(new Date(bill.due_date + "T12:00:00"), "dd/MM/yyyy")}` : "Sem vencimento"}
+                  {bill.due_date
+                    ? `Vence ${format(new Date(bill.due_date + "T12:00:00"), "dd/MM/yyyy")}`
+                    : "Sem vencimento"}
+                  {days !== null && bill.status !== "paid" && days >= 0 && (
+                    <span className={`ml-1 font-bold ${days <= 1 ? "text-red-400" : days <= 7 ? "text-orange-400" : "text-muted-foreground"}`}>
+                      · {days === 0 ? "hoje" : `em ${days}d`}
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="text-right shrink-0">
