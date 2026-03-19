@@ -130,3 +130,47 @@ export function useUpdateSalaoNames() {
     onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
   });
 }
+
+// ─── AI Instructions ──────────────────────────────────────────────────────────
+
+export function useAiInstructions() {
+  return useQuery({
+    queryKey: [...SETTINGS_KEY, "ai_instructions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "ai_instructions")
+        .maybeSingle();
+      if (error) throw error;
+      return ((data?.value as any)?.prompt as string) || "";
+    },
+  });
+}
+
+export function useUpdateAiInstructions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (prompt: string) => {
+      const { data: existing } = await supabase
+        .from("settings")
+        .select("id")
+        .eq("key", "ai_instructions")
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("settings")
+          .update({ value: { prompt } as any, updated_at: new Date().toISOString() })
+          .eq("key", "ai_instructions");
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("settings")
+          .insert({ key: "ai_instructions", value: { prompt } as any });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
+  });
+}

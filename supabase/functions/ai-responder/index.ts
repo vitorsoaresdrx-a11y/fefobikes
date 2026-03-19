@@ -146,9 +146,15 @@ Deno.serve(async (req) => {
       }));
 
     // Build contexts in parallel
-    const [businessContext, customerContext] = await Promise.all([
+    const [businessContext, customerContext, aiInstructionsRow] = await Promise.all([
       buildBusinessContext(),
       getCustomerContext(phone),
+      supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "ai_instructions")
+        .maybeSingle()
+        .then(({ data }: { data: { value: unknown } | null }) => (data?.value as any)?.prompt as string | undefined),
     ]);
 
     const bh = isBusinessHours();
@@ -166,6 +172,7 @@ Deno.serve(async (req) => {
       `\n--- HORÁRIO ---\n${hoursNote}`,
       `\n--- CONTEXTO DO CATÁLOGO ---\n${businessContext}`,
       customerContext ? `\n${customerContext}` : "",
+      aiInstructionsRow ? `\n--- INSTRUÇÕES ADICIONAIS ---\n${aiInstructionsRow}` : "",
     ].join("");
 
     const groqMessages: any[] = [

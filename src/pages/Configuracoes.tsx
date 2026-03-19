@@ -14,6 +14,7 @@ import {
   Cpu,
   ArrowLeft,
   Trash2,
+  Bot,
 } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import {
@@ -23,6 +24,8 @@ import {
   useUpdateStationPasswords,
   useSalaoNames,
   useUpdateSalaoNames,
+  useAiInstructions,
+  useUpdateAiInstructions,
   type StationPasswords,
 } from "@/hooks/useSettings";
 import { useMechanics, useCreateMechanic, useToggleMechanic, useDeleteMechanic } from "@/hooks/useMechanics";
@@ -197,6 +200,12 @@ export default function Configuracoes() {
   const updateSalaoNames = useUpdateSalaoNames();
   const [newSalaoName, setNewSalaoName] = useState("");
 
+  // AI Instructions
+  const { data: aiInstructions = "" } = useAiInstructions();
+  const updateAiInstructions = useUpdateAiInstructions();
+  const [aiInstructionsText, setAiInstructionsText] = useState<string | null>(null);
+  const effectiveAiInstructions = aiInstructionsText ?? aiInstructions;
+
   // --- Handlers ---
 
   const handleSaveTaxes = async () => {
@@ -269,6 +278,16 @@ export default function Configuracoes() {
       toast({ title: "Nome removido" });
     } catch {
       toast({ title: "Erro ao remover nome", variant: "destructive" });
+    }
+  };
+
+  const handleSaveAiInstructions = async () => {
+    try {
+      await updateAiInstructions.mutateAsync(effectiveAiInstructions);
+      toast({ title: "Instruções da IA salvas" });
+      setAiInstructionsText(null);
+    } catch {
+      toast({ title: "Erro ao salvar instruções", variant: "destructive" });
     }
   };
 
@@ -565,6 +584,39 @@ export default function Configuracoes() {
                       <p className="text-xs text-zinc-600 py-4">Nenhum nome cadastrado</p>
                     )}
                   </div>
+                </div>
+              </ConfigSection>
+              {/* 5. Instruções pra IA */}
+              <ConfigSection
+                title="Instruções pra IA"
+                description="Regras personalizadas que a IA sempre considera antes de responder no WhatsApp."
+                icon={Bot}
+                active={activeTab === "ai_instructions"}
+                onClick={() => toggle("ai_instructions")}
+                summary={
+                  aiInstructions ? (
+                    <span className="text-[9px] font-bold text-zinc-600 uppercase">Configuradas</span>
+                  ) : null
+                }
+              >
+                <div className="space-y-6">
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    Escreva aqui as regras que a IA deve sempre seguir ao atender clientes pelo WhatsApp. Por exemplo: tom de voz, saudações obrigatórias, restrições de assunto, etc.
+                  </p>
+                  <textarea
+                    className="w-full h-48 bg-[#0A0A0B] border border-zinc-800 rounded-[20px] p-5 text-zinc-100 text-sm resize-none outline-none focus:border-primary transition-all font-medium leading-relaxed placeholder:text-zinc-700"
+                    placeholder={`Ex:\n- Sempre termine com "Abraços da equipe Fefo Bikes! 🚴"\n- Nunca ofereça desconto sem consultar o atendente\n- Se o cliente pedir prazo de pagamento, encaminhe para um humano`}
+                    value={effectiveAiInstructions}
+                    onChange={(e) => setAiInstructionsText(e.target.value)}
+                  />
+                  <Button
+                    className="w-full"
+                    onClick={handleSaveAiInstructions}
+                    disabled={updateAiInstructions.isPending}
+                  >
+                    <Save size={16} />
+                    Salvar Instruções
+                  </Button>
                 </div>
               </ConfigSection>
             </>
