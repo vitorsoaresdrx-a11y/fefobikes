@@ -15,6 +15,10 @@ import {
   useInstanceStatus,
 } from "@/hooks/useZapiStatus";
 import {
+  useInstanceAi,
+  useToggleInstanceAi,
+} from "@/hooks/useInstanceAi";
+import {
   MessageCircle,
   Send,
   Volume2,
@@ -150,6 +154,11 @@ export default function WhatsApp() {
   const { selected: selectedInstance, setSelected: setSelectedInstance } = useSelectedInstance();
   const { data: instanceStatus } = useInstanceStatus(selectedInstance);
   const isConnected = instanceStatus?.connected === true;
+
+  // Instance AI control
+  const { data: instanceAiData } = useInstanceAi(selectedInstance);
+  const toggleInstanceAi = useToggleInstanceAi();
+  const isInstanceAiEnabled = instanceAiData?.ai_enabled !== false;
 
   // Auto-select first connected instance if none selected
   useEffect(() => {
@@ -343,6 +352,58 @@ export default function WhatsApp() {
               </p>
             </div>
           </div>
+
+          {/* Botão de IA Global da Instância */}
+          <button
+            onClick={() => {
+              if (selectedInstance) {
+                const newVal = !isInstanceAiEnabled;
+                toggleInstanceAi.mutate(
+                  { instanceName: selectedInstance, ai_enabled: newVal },
+                  {
+                    onSuccess: () => {
+                      toast({
+                        title: newVal ? "IA Global Ativada" : "IA Global Pausada",
+                        description: newVal 
+                          ? "A IA voltará a responder todos os chats desta instância." 
+                          : "A IA não responderá nenhum chat desta instância até ser reativada.",
+                      });
+                    },
+                  }
+                );
+              }
+            }}
+            className={`w-full p-4 rounded-2xl border font-bold text-sm transition-all flex items-center justify-between group ${
+              isInstanceAiEnabled
+                ? "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20"
+                : "bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              {isInstanceAiEnabled ? (
+                <Bot size={20} className="text-emerald-400" />
+              ) : (
+                <BotOff size={20} className="text-orange-400" />
+              )}
+              <div className="text-left">
+                <p className={`text-xs font-black uppercase tracking-wider ${
+                  isInstanceAiEnabled ? "text-emerald-400" : "text-orange-400"
+                }`}>
+                  IA da Instância
+                </p>
+                <p className="text-[10px] text-muted-foreground/70">
+                  {isInstanceAiEnabled ? "Respondendo todos os chats" : "Pausada para todos os chats"}
+                </p>
+              </div>
+            </div>
+            <div className={`w-12 h-6 rounded-full transition-all relative ${
+              isInstanceAiEnabled ? "bg-emerald-500" : "bg-orange-500/50"
+            }`}>
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
+                isInstanceAiEnabled ? "right-1" : "left-1"
+              }`} />
+            </div>
+          </button>
 
           {/* Search */}
           <div className="space-y-4">
