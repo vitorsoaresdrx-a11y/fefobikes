@@ -91,6 +91,17 @@ function getDisplayContactName(
   return getDisplayContactPhone(conversation.contact_phone);
 }
 
+function formatSummary(text: string) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/_(.*?)_/g, "<em>$1</em>")
+    .replace(/\*/g, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("<br/><br/>");
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const STATUS_FILTERS = [
@@ -232,7 +243,6 @@ export default function WhatsApp() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
-  // Instance selection screen when no instance is selected or loading
   if (instancesLoading) {
     return (
       <div className="flex items-center justify-center min-h-[70vh] pb-24 lg:pb-0">
@@ -364,8 +374,8 @@ export default function WhatsApp() {
                     onSuccess: () => {
                       toast({
                         title: newVal ? "IA Global Ativada" : "IA Global Pausada",
-                        description: newVal 
-                          ? "A IA voltará a responder todos os chats desta instância." 
+                        description: newVal
+                          ? "A IA voltará a responder todos os chats desta instância."
                           : "A IA não responderá nenhum chat desta instância até ser reativada.",
                       });
                     },
@@ -679,17 +689,26 @@ export default function WhatsApp() {
                         className="max-w-full rounded-[24px] mb-2"
                       />
                     )}
-                    <div
-                      className={`p-5 shadow-lg ${
-                        msg.from_me
-                          ? "bg-primary text-white rounded-[32px] rounded-tr-lg"
-                          : "bg-card text-foreground/90 border border-border rounded-[32px] rounded-tl-lg"
-                      }`}
-                    >
-                      <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                    </div>
+                    {msg.status === "internal" ? (
+                      <div className="p-5 shadow-lg bg-amber-500/10 border border-amber-500/20 rounded-[32px] rounded-tr-lg">
+                        <p
+                          className="text-sm font-medium leading-relaxed text-amber-100"
+                          dangerouslySetInnerHTML={{ __html: formatSummary(msg.content) }}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className={`p-5 shadow-lg ${
+                          msg.from_me
+                            ? "bg-primary text-white rounded-[32px] rounded-tr-lg"
+                            : "bg-card text-foreground/90 border border-border rounded-[32px] rounded-tl-lg"
+                        }`}
+                      >
+                        <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                          {msg.content}
+                        </p>
+                      </div>
+                    )}
                     <div
                       className={`flex items-center gap-1.5 px-2 ${
                         msg.from_me ? "justify-end" : "justify-start"
@@ -698,7 +717,9 @@ export default function WhatsApp() {
                       <span className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-widest">
                         {format(new Date(msg.created_at), "HH:mm")}
                       </span>
-                      {msg.from_me && <MessageStatus status={msg.status} />}
+                      {msg.from_me && msg.status !== "internal" && (
+                        <MessageStatus status={msg.status} />
+                      )}
                     </div>
                   </div>
                 </div>
