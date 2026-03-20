@@ -280,7 +280,7 @@ export default function ClienteDetalhe() {
                   <div>
                     <p className={labelClass}>WhatsApp</p>
                     {customer.whatsapp ? (
-                      
+                      <a
                         href={"https://wa.me/" + customer.whatsapp.replace(/\D/g, "")}
                         target="_blank"
                         rel="noopener noreferrer"
