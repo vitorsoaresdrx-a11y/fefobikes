@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Wrench,
   CheckCircle2,
@@ -80,7 +81,10 @@ export default function Mecanicos() {
     acceptOrder.mutate(
       { id: selectedOrder.id, mechanic_id: mechanicId, mechanic_name: mechanicName },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          // Atualiza também o status na tabela mechanic_jobs para sincronizar o Kanban
+          await supabase.from("mechanic_jobs" as any).update({ status: "in_maintenance" }).eq("id", selectedOrder.id);
+
           if (selectedOrder.customer_whatsapp) {
             const phone = selectedOrder.customer_whatsapp.replace(/\D/g, "");
             const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
@@ -106,6 +110,10 @@ export default function Mecanicos() {
     }
     try {
       await finishOrder.mutateAsync({ id: order.id, frame_number: frame });
+      
+      // Atualiza também o status na tabela mechanic_jobs para sincronizar o Kanban
+      await supabase.from("mechanic_jobs" as any).update({ status: "in_analysis" }).eq("id", order.id);
+
       await createHistory.mutateAsync({
         frame_number: frame,
         bike_name: order.bike_name || "Bike",
