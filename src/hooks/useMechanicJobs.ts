@@ -181,6 +181,7 @@ export function useCreateMechanicJob() {
       payment?: {
         tipo: 'integral' | 'parcial' | 'nenhum';
         valor_pago: number;
+        method: string;
       }
     }) => {
       const { payment, ...jobData } = job;
@@ -193,13 +194,26 @@ export function useCreateMechanicJob() {
       
       if (payment && payment.tipo !== 'nenhum') {
         const valor_total = job.price;
-        const valor_restante = valor_total - payment.valor_pago;
+        const valor_pago = payment.tipo === 'integral' ? valor_total : payment.valor_pago;
+        const valor_restante = valor_total - valor_pago;
+        
+        // 1. Record payment
         await supabase.from("os_pagamentos" as any).insert({
           os_id: (data as any).id,
           tipo: payment.tipo,
           valor_total,
-          valor_pago: payment.valor_pago,
+          valor_pago,
           valor_restante
+        });
+
+        // 2. Create sales record for DRE/History
+        await supabase.from("sales" as any).insert({
+          mechanic_job_id: (data as any).id,
+          total: valor_pago,
+          payment_method: payment.method || 'pix',
+          origin: 'oficina',
+          notes: `OS Oficina (Adiantamento)${job.bike_name ? ` — ${job.bike_name}` : ""}${job.problem ? `: ${job.problem.slice(0, 40)}` : ""}`,
+          status: 'completed'
         });
       }
 
@@ -247,13 +261,17 @@ export function useFinalizeJob() {
         .eq("id", jobId);
       if (jobErr) throw jobErr;
 
-      // 2. Upsert payment record in os_pagamentos (full payment at finalization)
+      // 2. Fetch existing payments to handle partial/integral upfront correctly
       const { data: existingPay } = await supabase
         .from("os_pagamentos" as any)
-        .select("id")
+        .select("*")
         .eq("os_id", jobId)
         .maybeSingle();
 
+      const remainingAtFinalize = existingPay ? (existingPay as any).valor_restante : totalValue;
+      const isAlreadyPaid = remainingAtFinalize <= 0;
+
+      // 3. Upsert payment record in os_pagamentos (always mark as full payment when finalizing)
       if (existingPay) {
         await supabase.from("os_pagamentos" as any)
           .update({ tipo: 'integral', valor_total: totalValue, valor_pago: totalValue, valor_restante: 0 })
@@ -267,7 +285,6 @@ export function useFinalizeJob() {
       let resolvedCustomerId = customerId || null;
       if (!resolvedCustomerId && (customerName || customerWhatsapp)) {
         const phone = (customerWhatsapp || "").replace(/\D/g, "");
-        // Try find by phone first
         if (phone.length >= 10) {
           const { data: existCust } = await supabase
             .from("customers" as any)
@@ -278,7 +295,6 @@ export function useFinalizeJob() {
             resolvedCustomerId = (existCust as any).id;
           }
         }
-        // If still not found, create
         if (!resolvedCustomerId && customerName) {
           const { data: newCust } = await supabase
             .from("customers" as any)
@@ -289,23 +305,27 @@ export function useFinalizeJob() {
         }
       }
 
-      // 4. Create a sale record for DRE + Histórico
-      const { data: sale, error: saleErr } = await supabase
-        .from("sales" as any)
-        .insert({
-          customer_id: resolvedCustomerId,
-          total: totalValue,
-          payment_method: paymentMethod,
-          notes: `OS Oficina${bikeName ? ` — ${bikeName}` : ""}${problem ? `: ${problem.slice(0, 80)}` : ""}`,
-          card_fee: 0,
-          card_tax_percent: 0,
-          responsible_name: null,
-          origin: 'oficina',
-          mechanic_job_id: jobId,
-        })
-        .select("id")
-        .single();
-      if (saleErr) console.warn("Could not create sale for OS:", saleErr);
+      // 4. Create sale record ONLY for the remaining balance (if any)
+      let finalSaleId: string | null = null;
+      if (!isAlreadyPaid) {
+        const { data: sale, error: saleErr } = await supabase
+          .from("sales" as any)
+          .insert({
+            customer_id: resolvedCustomerId,
+            total: remainingAtFinalize,
+            payment_method: paymentMethod,
+            notes: `OS Oficina (Finalização)${bikeName ? ` — ${bikeName}` : ""}${problem ? `: ${problem.slice(0, 40)}` : ""}`,
+            card_fee: 0,
+            card_tax_percent: 0,
+            responsible_name: null,
+            origin: 'oficina',
+            mechanic_job_id: jobId,
+          })
+          .select("id")
+          .single();
+        if (saleErr) console.warn("Could not create sale for OS:", saleErr);
+        finalSaleId = (sale as any)?.id || null;
+      }
 
       // 5. Also update customer_id on the mechanic_job itself
       if (resolvedCustomerId && !customerId) {
@@ -314,7 +334,7 @@ export function useFinalizeJob() {
           .eq("id", jobId);
       }
 
-      return { success: true, saleId: (sale as any)?.id };
+      return { success: true, saleId: finalSaleId };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
@@ -353,6 +373,7 @@ export function useUpdateMechanicJobDetails() {
       payment?: {
         tipo: 'integral' | 'parcial' | 'nenhum';
         valor_pago: number;
+        method: string;
       }
     }) => {
       const { error } = await supabase
@@ -364,32 +385,60 @@ export function useUpdateMechanicJobDetails() {
       if (payment) {
         const { data: existing } = await supabase.from("os_pagamentos" as any).select("*").eq("os_id", id).maybeSingle();
         const valor_total = updates.price || 0;
-        const valor_restante = valor_total - payment.valor_pago;
+        const valor_pago = payment.tipo === 'integral' ? valor_total : payment.valor_pago;
+        const valor_restante = valor_total - valor_pago;
         
         if (existing) {
+          const prevPaid = Number((existing as any).valor_pago) || 0;
+          const diff = valor_pago - prevPaid;
+
           if (payment.tipo === 'nenhum') {
-            // Se mudou para nenhum, deleta o pagamento adiantado do banco para refletir corretamente as badges
             await supabase.from("os_pagamentos" as any).delete().eq("os_id", id);
           } else {
             await supabase.from("os_pagamentos" as any).update({
               tipo: payment.tipo,
               valor_total,
-              valor_pago: payment.valor_pago,
+              valor_pago,
               valor_restante
             }).eq("os_id", id);
+
+            // Record a sale for the DIFFERENCE if they paid more
+            if (diff > 0) {
+              await supabase.from("sales" as any).insert({
+                mechanic_job_id: id,
+                total: diff,
+                payment_method: payment.method || 'pix',
+                origin: 'oficina',
+                notes: `OS Oficina (Ajuste Pagamento)${updates.bike_name ? ` — ${updates.bike_name}` : ""}`,
+                status: 'completed'
+              });
+            }
           }
         } else if (payment.tipo !== 'nenhum') {
           await supabase.from("os_pagamentos" as any).insert({
             os_id: id,
             tipo: payment.tipo,
             valor_total,
-            valor_pago: payment.valor_pago,
+            valor_pago,
             valor_restante
+          });
+
+          // Record sale for the initial payment
+          await supabase.from("sales" as any).insert({
+            mechanic_job_id: id,
+            total: valor_pago,
+            payment_method: payment.method || 'pix',
+            origin: 'oficina',
+            notes: `OS Oficina (Pagamento)${updates.bike_name ? ` — ${updates.bike_name}` : ""}`,
+            status: 'completed'
           });
         }
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["sales"] });
+    },
   });
 }
 

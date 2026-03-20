@@ -508,6 +508,33 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                 )}
               </InputGroup>
 
+              {editForm.paymentType !== 'nenhum' && (
+                <InputGroup label="Forma de Pagamento *">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { key: "pix", label: "PIX" },
+                      { key: "dinheiro", label: "Dinheiro" },
+                      { key: "cartao_debito", label: "Débito" },
+                      { key: "cartao_credito", label: "Crédito" },
+                    ].map((pm) => (
+                      <button
+                        key={pm.key}
+                        type="button"
+                        onClick={() => setEditForm((f: any) => ({ ...f, paymentMethod: pm.key }))}
+                        className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                          editForm.paymentMethod === pm.key
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-card text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {editForm.paymentMethod === pm.key && <Check size={10} />}
+                        {pm.label}
+                      </button>
+                    ))}
+                  </div>
+                </InputGroup>
+              )}
+
               {editJob && editJob.additions && editJob.additions.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Reparos Extras ({editJob.additions.length})</p>
@@ -622,6 +649,7 @@ export default function Mecanica() {
     initialStatus: "in_approval" as "in_approval" | "in_repair",
     paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
     paymentAmount: 0,
+    paymentMethod: "pix",
   });
 
   const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
@@ -643,6 +671,7 @@ export default function Mecanica() {
     price: 0,
     paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
     paymentAmount: 0,
+    paymentMethod: "pix",
   });
 
   // Modal de finalização com pagamento
@@ -669,7 +698,8 @@ export default function Mecanica() {
       status: form.initialStatus,
       payment: form.paymentType !== 'nenhum' ? {
         tipo: form.paymentType,
-        valor_pago: form.paymentType === 'integral' ? form.price : form.paymentAmount
+        valor_pago: form.paymentType === 'integral' ? form.price : form.paymentAmount,
+        method: form.paymentMethod
       } : undefined
     };
 
@@ -684,7 +714,7 @@ export default function Mecanica() {
           sendMessage.mutate({ phone: formattedPhone, message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` });
         }
         toast.success("Manutenção criada!");
-        setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", paymentAmount: 0 });
+        setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", paymentAmount: 0, paymentMethod: "pix" });
         setOpen(false);
       },
       onError: () => toast.error("Erro ao criar"),
@@ -694,14 +724,14 @@ export default function Mecanica() {
   const handleAddRepair = (job: MechanicJob) => { setAddJob(job); setAddForm({ problem: "", labor_cost: 0, parts: [] }); setAddOpen(true); };
   const handleEditJob = (job: MechanicJob) => {
     setEditJob(job);
-    setEditForm({ customer_name: job.customer_name || "", bike_name: job.bike_name || "", customer_cpf: job.customer_cpf || "", customer_whatsapp: job.customer_whatsapp || "", customer_id: job.customer_id || null, problem: job.problem, price: job.price, paymentType: job.payment?.tipo || "nenhum", paymentAmount: job.payment?.valor_pago || 0 });
+    setEditForm({ customer_name: job.customer_name || "", bike_name: job.bike_name || "", customer_cpf: job.customer_cpf || "", customer_whatsapp: job.customer_whatsapp || "", customer_id: job.customer_id || null, problem: job.problem, price: job.price, paymentType: job.payment?.tipo || "nenhum", paymentAmount: job.payment?.valor_pago || 0, paymentMethod: "pix" });
     setEditOpen(true);
   };
 
   const handleSaveEdit = () => {
     if (!editJob || !editForm.problem.trim()) { toast.error("Descreva o problema"); return; }
     updateDetails.mutate(
-      { id: editJob.id, customer_name: editForm.customer_name || null, customer_cpf: editForm.customer_cpf || null, customer_whatsapp: editForm.customer_whatsapp || null, customer_id: editForm.customer_id || null, bike_name: editForm.bike_name || null, problem: editForm.problem, price: editForm.price, payment: { tipo: editForm.paymentType, valor_pago: editForm.paymentType === 'integral' ? editForm.price : editForm.paymentAmount } },
+      { id: editJob.id, customer_name: editForm.customer_name || null, customer_cpf: editForm.customer_cpf || null, customer_whatsapp: editForm.customer_whatsapp || null, customer_id: editForm.customer_id || null, bike_name: editForm.bike_name || null, problem: editForm.problem, price: editForm.price, payment: { tipo: editForm.paymentType, valor_pago: editForm.paymentType === 'integral' ? editForm.price : editForm.paymentAmount, method: editForm.paymentMethod } },
       { onSuccess: () => { toast.success("Serviço atualizado!"); setEditOpen(false); setEditJob(null); }, onError: () => toast.error("Erro ao atualizar") }
     );
   };
@@ -1018,6 +1048,33 @@ export default function Mecanica() {
                   </button>
                 </div>
               </InputGroup>
+              
+              {form.paymentType !== 'nenhum' && (
+                <InputGroup label="Forma de Pagamento *">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { key: "pix", label: "PIX" },
+                      { key: "dinheiro", label: "Dinheiro" },
+                      { key: "cartao_debito", label: "Débito" },
+                      { key: "cartao_credito", label: "Crédito" },
+                    ].map((pm) => (
+                      <button
+                        key={pm.key}
+                        type="button"
+                        onClick={() => setForm((f: any) => ({ ...f, paymentMethod: pm.key }))}
+                        className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                          form.paymentMethod === pm.key
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-card text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {form.paymentMethod === pm.key && <Check size={10} />}
+                        {pm.label}
+                      </button>
+                    ))}
+                  </div>
+                </InputGroup>
+              )}
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={() => setOpen(false)} className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all">Cancelar</button>
