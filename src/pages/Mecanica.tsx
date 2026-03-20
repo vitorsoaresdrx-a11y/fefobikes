@@ -708,20 +708,23 @@ export default function Mecanica() {
     const partsTotal = addForm.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
     const total = addForm.labor_cost + partsTotal;
 
+    let savedRowId = null;
+
     try {
-      // 1. Salva na tabela os_adicionais (fallback pro mechanic_job_additions caso dê erro de schema)
-      const { error: adErr } = await supabase.from("os_adicionais" as any).insert({
+      // 1. Salva na tabela com status "rascunho" para não impactar visualmente ainda
+      const { data: adData, error: adErr } = await supabase.from("os_adicionais" as any).insert({
         os_id: addJob.id,
         pecas: addForm.parts,
         observacoes: addForm.problem,
         valor_total: total,
-        status: "pendente"
-      });
+        status: "rascunho"
+      }).select().single();
       
       if (adErr) {
-        // Fallback p/ tabela antiga
-        await createAddition.mutateAsync({ job_id: addJob.id, problem: addForm.problem, price: total, labor_cost: addForm.labor_cost, parts_used: addForm.parts });
+        throw new Error("Falha ao criar o registro adicional.");
       }
+
+      savedRowId = (adData as any).id;
 
       // 2. Chama Edge Function que usa IA pra formatar e enviar via zap
       const { data: edgeData, error: edgeErr } = await supabase.functions.invoke("formatar-adicional", {
@@ -731,17 +734,22 @@ export default function Mecanica() {
           observacoes: addForm.problem
         }
       });
-      if (edgeErr) throw edgeErr;
+      
+      if (edgeErr || edgeData?.error) throw new Error(edgeErr?.message || edgeData?.error || "Insucesso na Edge Function");
 
-      // 3. Move o card para aprovação
-      await advance.mutateAsync({ id: addJob.id, status: addJob.status }); // Retira do status atual
-      await supabase.from("mechanic_jobs" as any).update({ status: "in_approval" }).eq("id", addJob.id);
+      // A Edge Function já move para "in_approval" e avança o status pra "enviado".
+      // Porém vamos forçar a atualização via UI Mutations para re-renderizar o board localmente (React Query).
+      await advance.mutateAsync({ id: addJob.id, status: addJob.status });
 
       toast.success("Enviado para o cliente com sucesso!");
       setAddOpen(false);
       setAddJob(null);
     } catch (err: any) {
-      toast.error("Erro ao enviar: " + err.message);
+      if (savedRowId) {
+        // Rollback transacional! Fallback reverter ao não poder comunicar com cliente
+        await supabase.from("os_adicionais" as any).delete().eq("id", savedRowId);
+      }
+      toast.error("Erro no envio: " + err.message + ". O registro foi cancelado e desfeito.");
     } finally {
       setSendingAddition(false);
     }

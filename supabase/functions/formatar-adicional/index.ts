@@ -87,6 +87,7 @@ Deno.serve(async (req) => {
     if (!evoRes.ok) {
       const err = await evoRes.text();
       console.error("Evolution API error:", err);
+      throw new Error(`Falha no envio do WhatsApp: ${err}`);
     }
 
     // 4. Move card to 'in_approval'
