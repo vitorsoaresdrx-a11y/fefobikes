@@ -182,6 +182,35 @@ Deno.serve(async (req) => {
 
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
 
+    // Check for pending additions
+    let pendingAdditionId = null;
+    let pendingOsId = null;
+    let pendingAdditionValue = 0;
+    
+    // We try to match phone loosely if it has country code
+    const phoneSuffix = phone.length > 10 ? phone.slice(-10) : phone;
+    const { data: jobs } = await supabase
+      .from('mechanic_jobs')
+      .select('id, os_adicionais ( id, status, valor_total )')
+      .eq('status', 'in_approval')
+      .filter('customer_whatsapp', 'ilike', `%${phoneSuffix}%`);
+
+    if (jobs) {
+      for (const j of jobs) {
+        const pendings = j.os_adicionais?.filter((a: any) => a.status === 'enviado' || a.status === 'pendente') || [];
+        if (pendings.length > 0) {
+          pendingAdditionId = pendings[0].id;
+          pendingOsId = j.id;
+          pendingAdditionValue = Number(pendings[0].valor_total || 0);
+          break;
+        }
+      }
+    }
+
+    const sysClassifyContent = pendingAdditionId
+      ? 'O cliente tem um orçamento extra PENDENTE de aprovação na oficina. Classifique a mensagem abaixo em UMA destas opções:\n- APROVACAO: cliente concorda em fazer o reparo extra (ex: "pode fazer", "ok pode seguir", "sim").\n- NEGACAO: cliente não quer o reparo (ex: "não precisa", "deixa pra lá", "não").\n- CONFIRMACAO: apenas agradecimentos sem relação com aprovar algo (ex: "ok", "obrigado", "👍").\n- DUVIDA: perguntas, pechincha, incertezas.\n\nResponda APENAS: APROVACAO, NEGACAO, CONFIRMACAO ou DUVIDA.'
+      : 'Classifique a mensagem abaixo em uma categoria:\n- CONFIRMACAO: agradecimentos, "ok", "entendi", "obrigado", "👍", confirmações simples\n- DUVIDA: perguntas, solicitações, reclamações, qualquer coisa que exige resposta\n\nResponda apenas: CONFIRMACAO ou DUVIDA';
+
     // INITIAL CLASSIFICATION STEP
     const classificationRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -192,7 +221,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         messages: [
-          { role: "system", content: 'Classifique a mensagem abaixo em uma categoria:\n- CONFIRMACAO: agradecimentos, "ok", "entendi", "obrigado", "👍", confirmações simples\n- DUVIDA: perguntas, solicitações, reclamações, qualquer coisa que exige resposta\n\nResponda apenas: CONFIRMACAO ou DUVIDA' },
+          { role: "system", content: sysClassifyContent },
           { role: "user", content: `Mensagem: "${message}"` }
         ],
         max_tokens: 10,
@@ -202,25 +231,24 @@ Deno.serve(async (req) => {
 
     if (classificationRes.ok) {
       const classData = await classificationRes.json();
-      const intent = classData.choices?.[0]?.message?.content?.trim()?.toUpperCase();
+      const intent = classData.choices?.[0]?.message?.content?.trim()?.toUpperCase().replace(/[^A-Z]/g, '');
       
+      console.log(`Intent classification: ${intent}`);
+
       if (intent === "CONFIRMACAO") {
         console.log("Intent classified as CONFIRMACAO. Skipping main flow.");
         const responseText = "😊";
         const instName = tenantId ? instanceName(tenantId) : "fefo-default";
         
-        // Simple text response for confirmations
-        const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+        await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
           method: "POST",
           headers: evoHeaders(),
           body: JSON.stringify({ number: phone, text: responseText }),
         });
-        const evoData = await evoRes.json();
 
         // Save to DB
         await supabase.from("whatsapp_messages").insert({
           conversation_id: conversationId,
-          message_id: evoData?.key?.id || null,
           from_me: true,
           type: "text",
           content: responseText,
@@ -231,6 +259,67 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ ok: true, skipped: "confirmation_intent" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
+      }
+
+      if (intent === "APROVACAO" && pendingAdditionId) {
+        console.log("Intent: APROVACAO. Approving extra repair.");
+        
+        await supabase.from('os_adicionais').update({ status: 'aprovado' }).eq('id', pendingAdditionId);
+        
+        const { data: pgData } = await supabase.from('os_pagamentos').select('*').eq('os_id', pendingOsId).maybeSingle();
+        if (pgData) {
+          await supabase.from('os_pagamentos').update({
+            valor_total: Number(pgData.valor_total) + pendingAdditionValue,
+            valor_restante: Number(pgData.valor_restante) + pendingAdditionValue
+          }).eq('id', pgData.id);
+        }
+
+        const responseText = "Perfeito! Já aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
+        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+        
+        await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+          method: "POST",
+          headers: evoHeaders(),
+          body: JSON.stringify({ number: phone, text: responseText }),
+        });
+
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationId,
+          from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
+        });
+
+        return new Response(JSON.stringify({ ok: true, processed: "approval" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      if ((intent === "NEGACAO" || intent === "DUVIDA") && pendingAdditionId) {
+        console.log(`Intent: ${intent}. Flagging for human agent.`);
+        
+        if (intent === "NEGACAO") {
+          await supabase.from('os_adicionais').update({ status: 'negado' }).eq('id', pendingAdditionId);
+        }
+
+        // Flag conversation for human
+        await supabase.from('whatsapp_conversations').update({ require_human: true }).eq('id', conversationId);
+
+        // Fallthrough: it's a DUVIDA or NEGACAO, we will let the AI answer OR we just stop here if we want human.
+        // Actually, if it's NEGACAO/DUVIDA and needs a human, let's stop AI from answering and just notify.
+        const responseText = intent === "NEGACAO" 
+          ? "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais, tudo bem?"
+          : "Certo, entendi sua dúvida. Vou chamar um atendente humano para analisar seu caso e te responder melhor.";
+        
+        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+        await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+          method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
+        });
+
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationId, from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
+        });
+        
+        // Also turn off AI
+        await supabase.from('whatsapp_conversations').update({ ai_enabled: false }).eq('id', conversationId);
+
+        return new Response(JSON.stringify({ ok: true, processed: intent.toLowerCase() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 
