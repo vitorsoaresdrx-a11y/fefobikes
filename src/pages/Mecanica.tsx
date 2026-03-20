@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
@@ -291,11 +292,25 @@ function JobCard({
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
+    // Tenta apagar a OS vinculada se existir
+    if (job.status !== "in_approval" && job.status !== "ready") {
+      try {
+        await supabase
+          .from("service_orders")
+          .delete()
+          .eq("problem", job.problem)
+          .eq("bike_name", job.bike_name || "")
+          .in("mechanic_status", ["pending", "accepted", "done"]);
+      } catch (err) {
+        console.error("Erro ao remover OS vinculada:", err);
+      }
+    }
+
     remove.mutate(job.id, {
       onError: () => toast.error("Erro ao remover"),
       onSuccess: () => {
-        toast.success("Finalizado com sucesso");
+        toast.success("Serviço removido com sucesso");
         setDeleteDialogOpen(false);
       },
     });
@@ -306,90 +321,94 @@ function JobCard({
   const showRetreat = columnKey === "in_analysis";
   const hasBike = !!job.bike_name;
 
-  const statusLabels: Record<string, { text: string; cls: string }> = {
-    in_approval: { text: "Aguardando", cls: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
-    in_repair: { text: "Na Mecânica", cls: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-    in_maintenance: { text: "Em Manutenção", cls: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
-    in_analysis: { text: "Em Análise", cls: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
-    ready: { text: "Pronta", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-  };
-  const statusInfo = statusLabels[job.status] || statusLabels.in_approval;
-
   return (
     <>
-      <div className="rounded-2xl bg-card border border-border overflow-hidden mb-3">
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border/50">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center shrink-0">
-              {hasBike ? <Bike size={16} className="text-blue-400" /> : <HelpCircle size={16} className="text-muted-foreground" />}
+      <div className="rounded-2xl bg-card border border-border/60 overflow-hidden mb-3 hover:border-primary/30 transition-all shadow-sm group">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-muted/10">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-background border border-border/50 flex items-center justify-center shrink-0 shadow-sm group-hover:border-primary/20 transition-all">
+              {hasBike ? <Bike size={16} className="text-primary" /> : <HelpCircle size={16} className="text-muted-foreground/60" />}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-black text-foreground truncate">{job.bike_name || "Bike não informada"}</p>
+              <p className="text-sm font-bold text-foreground truncate ">{job.bike_name || "Sem identificação"}</p>
+              <p className="text-[10px] text-muted-foreground/70 font-medium truncate uppercase tracking-wider -mt-0.5">{job.customer_name || "Cliente avulso"}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className={`text-[9px] font-black px-2 py-1 rounded-full border uppercase ${statusInfo.cls}`}>{statusInfo.text}</span>
-            <button className="p-1.5 text-muted-foreground/50 hover:text-primary transition-colors" onClick={() => onEdit(job)}>
+          <div className="flex items-center gap-1 shrink-0">
+            <button 
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all" 
+              onClick={() => onEdit(job)}
+              title="Editar"
+            >
               <Pencil size={14} />
             </button>
-            <button className="p-1.5 text-muted-foreground/50 hover:text-destructive transition-colors" onClick={() => setDeleteDialogOpen(true)} disabled={remove.isPending}>
+            <button 
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all" 
+              onClick={() => setDeleteDialogOpen(true)} 
+              disabled={remove.isPending}
+              title="Excluir"
+            >
               {remove.isPending ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
             </button>
           </div>
         </div>
 
-        <div className="px-4 py-3 space-y-3">
-          {(job.customer_name || job.customer_whatsapp) && (
-            <div className="flex items-center gap-4">
-              {job.customer_name && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <User size={12} className="text-muted-foreground/60" /> {job.customer_name}
-                </div>
-              )}
-              {job.customer_whatsapp && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Phone size={12} className="text-muted-foreground/60" /> {job.customer_whatsapp}
-                </div>
-              )}
+        <div className="px-4 py-4 space-y-4">
+          {job.customer_whatsapp && (
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold bg-muted/40 w-fit px-2.5 py-1 rounded-full border border-border/50 uppercase tracking-widest">
+              <Phone size={10} className="text-primary/60" /> {job.customer_whatsapp}
             </div>
           )}
-          <div className="bg-muted/50 rounded-xl px-3 py-2">
-            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-1 font-black">Problema relatado</p>
-            <p className="text-sm text-muted-foreground">{job.problem}</p>
+          
+          <div className="space-y-1">
+            <p className="text-sm text-foreground/80 leading-relaxed font-medium whitespace-pre-wrap">{job.problem}</p>
           </div>
+
           {job.additions && job.additions.length > 0 && (
-            <div>
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-2 font-black">Reparos extras</p>
-              <div className="space-y-1.5">
+            <div className="pt-3 border-t border-border/30">
+              <div className="flex items-center gap-2 mb-2.5">
+                <Settings size={12} className="text-muted-foreground/50" />
+                <span className="text-[9px] uppercase font-black text-muted-foreground/50 tracking-[0.2em]">Serviços Extras</span>
+              </div>
+              <div className="space-y-2">
                 {job.additions.map((a) => <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />)}
               </div>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between px-4 pb-4 pt-2">
-          <div>
-            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 font-black">Total</p>
-            <p className="text-base font-black text-foreground">{formatBRL(total)}</p>
+        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-2 px-4 py-3 bg-muted/10 border-t border-border/40">
+          <div className="flex flex-col min-w-fit shrink-0">
+            <span className="text-[9px] uppercase font-bold text-muted-foreground/42 tracking-widest truncate">Valor OS</span>
+            <span className="text-base font-black text-foreground leading-none truncate">{formatBRL(total)}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => onAddRepair(job)} className="w-9 h-9 rounded-xl border border-border bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all">
+          <div className="flex items-center gap-1.5 ml-auto shrink-0">
+            <button 
+              onClick={() => onAddRepair(job)} 
+              className="w-9 h-9 rounded-xl bg-background border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 hover:shadow-sm transition-all shadow-inner"
+              title="Adicionar Reparo"
+            >
               <Plus size={16} />
             </button>
-            {showRetreat && onRetreat && (
-              <button onClick={() => onRetreat(job)} className="h-9 px-4 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 border border-amber-500/20 uppercase">
-                <ChevronLeft size={14} /> Voltar
-              </button>
-            )}
-            {!isLast && (
-              <button onClick={handleAdvance} disabled={advanceMutation.isPending} className="h-9 px-4 rounded-xl bg-primary hover:bg-primary/80 text-white text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 uppercase">
-                {advanceMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <>Avançar <ChevronRight size={14} /></>}
-              </button>
-            )}
-            <button onClick={() => setDeleteDialogOpen(true)} disabled={remove.isPending} className="h-9 px-4 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 border border-red-500/20 uppercase">
-              {remove.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Trash2 size={14} /> Excluir</>}
-            </button>
             
+            {showRetreat && onRetreat && (
+              <button 
+                onClick={() => onRetreat(job)} 
+                className="h-9 px-2.5 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 text-[10px] font-black flex items-center gap-1 transition-all border border-amber-500/20 uppercase shadow-sm"
+              >
+                <ChevronLeft size={14} /> <span className="hidden lg:inline xl:hidden 2xl:inline">Voltar</span>
+              </button>
+            )}
+            
+            {!isLast && (
+              <button 
+                onClick={handleAdvance} 
+                disabled={advanceMutation.isPending} 
+                className="h-9 px-3 rounded-xl bg-primary shadow-lg shadow-primary/20 hover:bg-primary/90 text-white text-[10px] font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 uppercase tracking-wider"
+              >
+                {advanceMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <> <span className="hidden lg:inline xl:hidden 2xl:inline">Avançar</span> <ChevronRight size={14} /></>}
+              </button>
+            )}
           </div>
         </div>
       </div>
