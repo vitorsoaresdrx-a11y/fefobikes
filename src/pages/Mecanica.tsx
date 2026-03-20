@@ -647,24 +647,6 @@ export default function Mecanica() {
   const retreat = useRetreatMechanicJob();
   const updateDetails = useUpdateMechanicJobDetails();
 
-  const handleResetAll = async () => {
-    if (!confirm("⚠️ ATENÇÃO: Isso irá apagar TODOS os dados da oficina (cards, ordens de serviço pendentes e histórico finalizado). Esta ação NÃO pode ser desfeita. Deseja continuar?")) return;
-    
-    try {
-      const { error: err1 } = await supabase.from("mechanic_job_additions" as any).delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      const { error: err2 } = await supabase.from("mechanic_jobs" as any).delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      const { error: err3 } = await supabase.from("service_orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      const { error: err4 } = await supabase.from("bike_service_history").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      
-      if (err1 || err2 || err3 || err4) throw new Error("Erro em uma das operações");
-      
-      toast.success("Dados zerados com sucesso!");
-    } catch (e) {
-      console.error(e);
-      toast.error("Ocorreu um erro ao zerar os dados.");
-    }
-  };
-
   const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
     playNotifySound();
     toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega!`, { description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined, duration: 8000 });
@@ -812,12 +794,6 @@ export default function Mecanica() {
             <p className="text-muted-foreground font-medium text-sm">Gerencie os serviços de manutenção</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button 
-              onClick={handleResetAll} 
-              className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10 text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0"
-            >
-              <Trash2 size={14} className="shrink-0" /> <span className="truncate">Zerar Oficina</span>
-            </button>
             <button onClick={() => navigate('/mecanicos/historico')} className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0">
               <History size={14} className="shrink-0" /> <span className="truncate">Histórico de O.S</span>
             </button>
