@@ -21,6 +21,7 @@ import {
   type MechanicJobAddition,
   type AdditionPart,
 } from "@/hooks/useMechanicJobs";
+import { useSendMessage } from "@/hooks/useWhatsApp";
 import {
   Wrench,
   Settings,
@@ -279,8 +280,10 @@ function JobCard({
   onEdit: (job: MechanicJob) => void;
   onRetreat?: (job: MechanicJob) => void;
   onAdvance?: (job: MechanicJob) => void;
+  onSuccessAdvance?: (job: MechanicJob) => void;
 }) {
   const advanceMutation = useAdvanceMechanicJob();
+  const sendMessage = useSendMessage();
   const remove = useDeleteMechanicJob();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -288,7 +291,18 @@ function JobCard({
     if (onAdvance) {
       onAdvance(job);
     } else {
-      advanceMutation.mutate({ id: job.id, status: job.status }, { onError: () => toast.error("Erro ao mover card") });
+      advanceMutation.mutate({ id: job.id, status: job.status }, { 
+        onSuccess: () => {
+          if (job.status === "in_analysis" && job.customer_whatsapp) {
+            sendMessage.mutate({
+              phone: job.customer_whatsapp,
+              message: `Sua bicicleta (${job.bike_name || "sua bike"}) está pronta! Pode vir retirar.`
+            });
+          }
+          if (onSuccessAdvance) onSuccessAdvance(job);
+        },
+        onError: () => toast.error("Erro ao mover card") 
+      });
     }
   };
 
@@ -646,6 +660,7 @@ export default function Mecanica() {
   const advance = useAdvanceMechanicJob();
   const retreat = useRetreatMechanicJob();
   const updateDetails = useUpdateMechanicJobDetails();
+  const sendMessage = useSendMessage();
 
   const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
     playNotifySound();
@@ -723,6 +738,14 @@ export default function Mecanica() {
             problem: form.problem,
           });
         }
+        
+        if (form.customer_whatsapp) {
+          sendMessage.mutate({
+            phone: form.customer_whatsapp,
+            message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`
+          });
+        }
+
         toast.success("Manutenção criada!");
         setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval" });
         setOpen(false);

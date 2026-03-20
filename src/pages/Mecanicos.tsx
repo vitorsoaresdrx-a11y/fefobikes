@@ -24,6 +24,7 @@ import {
 } from "@/hooks/useServiceOrders";
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { useCreateBikeServiceRecord } from "@/hooks/useBikeServiceHistory";
+import { useSendMessage } from "@/hooks/useWhatsApp";
 import { playDoneSound, playNewOrderSound } from "@/lib/sounds";
 import { FrameNumberInput } from "@/components/mechanics/FrameNumberInput";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ export default function Mecanicos() {
   const finishOrder = useFinishServiceOrder();
   const { data: mechanics = [] } = useActiveMechanics();
   const createHistory = useCreateBikeServiceRecord();
+  const sendMessage = useSendMessage();
 
   const handleNewOrder = useCallback((order: ServiceOrder) => {
     playNewOrderSound();
@@ -79,6 +81,12 @@ export default function Mecanicos() {
       { id: selectedOrder.id, mechanic_id: mechanicId, mechanic_name: mechanicName },
       {
         onSuccess: () => {
+          if (selectedOrder.customer_whatsapp) {
+            sendMessage.mutate({
+              phone: selectedOrder.customer_whatsapp,
+              message: `Novidades! Um mecânico começou a mexer na sua bicicleta (${selectedOrder.bike_name || "sua bike"}). Logo, logo fica pronto e eu te dou um toque por aqui!`
+            });
+          }
           toast.success("OS aceita!");
           setAcceptOpen(false);
           setSelectedOrder(null);

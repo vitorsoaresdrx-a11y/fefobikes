@@ -29,6 +29,7 @@ import { useQuotes, useCreateQuote, useDeleteQuote, type Quote } from "@/hooks/u
 import { useParts, type Part } from "@/hooks/useParts";
 import { useCreateMechanicJob } from "@/hooks/useMechanicJobs";
 import { useCreateServiceOrder } from "@/hooks/useServiceOrders";
+import { useSendMessage } from "@/hooks/useWhatsApp";
 import { formatBRL } from "@/lib/format";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
@@ -231,6 +232,7 @@ export default function Orcamentos() {
   const deleteQuote = useDeleteQuote();
   const createMechanicJob = useCreateMechanicJob();
   const createServiceOrder = useCreateServiceOrder();
+  const sendMessage = useSendMessage();
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -310,6 +312,14 @@ export default function Orcamentos() {
               createServiceOrder.mutate({ ...orderData, bike_name: form.customer_name || undefined });
             },
           });
+
+          if (form.customer_whatsapp) {
+            sendMessage.mutate({
+              phone: form.customer_whatsapp,
+              message: `Olá, ${form.customer_name || "cliente"}! Seu orçamento já está na oficina. Quando um mecânico começar o serviço, te avisaremos!`
+            });
+          }
+
           toast.success("Orçamento criado e enviado para mecânica!");
           resetForm();
           setOpen(false);
