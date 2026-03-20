@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingCart, Wrench, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useMyPermissions, NAV_MODULE_MAP, type AppModule } from "@/hooks/usePermissions";
 
 const tabs = [
   { label: "Início", path: "/", icon: LayoutDashboard },
@@ -14,6 +15,21 @@ export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const { data: permsData } = useMyPermissions();
+
+  const isOwner = permsData?.isOwner ?? true;
+  const permissions = permsData?.permissions ?? [];
+
+  const canAccessTab = (path: string): boolean => {
+    if (isOwner) return true;
+    const moduleKey = NAV_MODULE_MAP[path] as AppModule | undefined;
+    if (!moduleKey) return true;
+    const perm = permissions.find((p) => p.module === moduleKey);
+    return perm?.can_access ?? false;
+  };
+
+  const visibleTabs = tabs.filter((tab) => canAccessTab(tab.path));
+
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
@@ -27,12 +43,10 @@ export function BottomNav() {
       root.style.setProperty("--bottom-nav-height", `${h}px`);
     };
     apply();
-
     if (!el) return;
     const ro = new ResizeObserver(() => apply());
     ro.observe(el);
     window.addEventListener("resize", apply);
-
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", apply);
@@ -46,7 +60,7 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div ref={contentRef} className="flex items-center justify-around px-2 h-16">
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const active = isActive(tab.path);
           return (
             <button
