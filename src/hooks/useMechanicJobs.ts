@@ -41,6 +41,18 @@ export interface MechanicJob {
   } | null;
 }
 
+export interface FinalizePayload {
+  jobId: string;
+  totalValue: number;
+  paymentMethod: string; // 'dinheiro' | 'pix' | 'cartao_credito' | 'cartao_debito'
+  customerName?: string | null;
+  customerWhatsapp?: string | null;
+  customerCpf?: string | null;
+  customerId?: string | null;
+  bikeName?: string | null;
+  problem?: string;
+}
+
 const KEY = ["mechanic_jobs"];
 
 export function useMechanicJobs() {
@@ -210,9 +222,7 @@ export function useAdvanceMechanicJob() {
           ? "in_analysis"
           : status === "in_analysis"
           ? "ready"
-          : status === "ready"
-          ? "delivered"
-          : null;
+          : null; // "ready" -> must use useFinalizeJob instead
       if (!nextStatus) throw new Error("Already at final status");
       const { error } = await supabase
         .from("mechanic_jobs" as any)
@@ -221,6 +231,96 @@ export function useAdvanceMechanicJob() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useFinalizeJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: FinalizePayload) => {
+      const { jobId, totalValue, paymentMethod, customerName, customerWhatsapp, customerCpf, customerId, bikeName, problem } = payload;
+
+      // 1. Mark OS as delivered
+      const { error: jobErr } = await supabase
+        .from("mechanic_jobs" as any)
+        .update({ status: "delivered" })
+        .eq("id", jobId);
+      if (jobErr) throw jobErr;
+
+      // 2. Upsert payment record in os_pagamentos (full payment at finalization)
+      const { data: existingPay } = await supabase
+        .from("os_pagamentos" as any)
+        .select("id")
+        .eq("os_id", jobId)
+        .maybeSingle();
+
+      if (existingPay) {
+        await supabase.from("os_pagamentos" as any)
+          .update({ tipo: 'integral', valor_total: totalValue, valor_pago: totalValue, valor_restante: 0 })
+          .eq("os_id", jobId);
+      } else {
+        await supabase.from("os_pagamentos" as any)
+          .insert({ os_id: jobId, tipo: 'integral', valor_total: totalValue, valor_pago: totalValue, valor_restante: 0 });
+      }
+
+      // 3. Upsert customer if we have name + whatsapp
+      let resolvedCustomerId = customerId || null;
+      if (!resolvedCustomerId && (customerName || customerWhatsapp)) {
+        const phone = (customerWhatsapp || "").replace(/\D/g, "");
+        // Try find by phone first
+        if (phone.length >= 10) {
+          const { data: existCust } = await supabase
+            .from("customers" as any)
+            .select("id")
+            .ilike("whatsapp", `%${phone.slice(-10)}%`)
+            .maybeSingle();
+          if (existCust) {
+            resolvedCustomerId = (existCust as any).id;
+          }
+        }
+        // If still not found, create
+        if (!resolvedCustomerId && customerName) {
+          const { data: newCust } = await supabase
+            .from("customers" as any)
+            .insert({ name: customerName, whatsapp: customerWhatsapp || null, cpf: customerCpf || null })
+            .select("id")
+            .single();
+          resolvedCustomerId = (newCust as any)?.id || null;
+        }
+      }
+
+      // 4. Create a sale record for DRE + Histórico
+      const { data: sale, error: saleErr } = await supabase
+        .from("sales" as any)
+        .insert({
+          customer_id: resolvedCustomerId,
+          total: totalValue,
+          payment_method: paymentMethod,
+          notes: `OS Oficina${bikeName ? ` — ${bikeName}` : ""}${problem ? `: ${problem.slice(0, 80)}` : ""}`,
+          card_fee: 0,
+          card_tax_percent: 0,
+          responsible_name: null,
+          origin: 'oficina',
+          mechanic_job_id: jobId,
+        })
+        .select("id")
+        .single();
+      if (saleErr) console.warn("Could not create sale for OS:", saleErr);
+
+      // 5. Also update customer_id on the mechanic_job itself
+      if (resolvedCustomerId && !customerId) {
+        await supabase.from("mechanic_jobs" as any)
+          .update({ customer_id: resolvedCustomerId })
+          .eq("id", jobId);
+      }
+
+      return { success: true, saleId: (sale as any)?.id };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+    },
   });
 }
 

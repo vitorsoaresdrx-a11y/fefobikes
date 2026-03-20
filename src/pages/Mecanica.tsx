@@ -17,6 +17,7 @@ import {
   useUpdateMechanicJobDetails,
   useUpdateAddition,
   useDeleteAddition,
+  useFinalizeJob,
   type MechanicJob,
   type MechanicJobAddition,
   type AdditionPart,
@@ -203,7 +204,7 @@ function AdditionBadge({ addition, showActions }: { addition: MechanicJobAdditio
   );
 }
 
-function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void }) {
+function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance, onFinalize }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void; onFinalize?: (j: MechanicJob) => void }) {
   const remove = useDeleteMechanicJob();
   const advanceMutation = useAdvanceMechanicJob();
   const total = getTotalPrice(job);
@@ -213,6 +214,11 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
   const showRetreat = columnKey === "ready";
 
   const handleAdvance = () => {
+    // If isLast (ready column) and onFinalize provided, open payment modal
+    if (isLast && onFinalize) {
+      onFinalize(job);
+      return;
+    }
     if (onAdvance) {
       onAdvance(job);
       return;
@@ -586,6 +592,7 @@ export default function Mecanica() {
   const createAddition = useCreateAddition();
   const deleteAddition = useDeleteAddition();
   const updateAddition = useUpdateAddition();
+  const finalize = useFinalizeJob();
   const createServiceOrder = useCreateServiceOrder();
   const sendMessage = useSendMessage();
 
@@ -637,6 +644,11 @@ export default function Mecanica() {
     paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
     paymentAmount: 0,
   });
+
+  // Modal de finalização com pagamento
+  const [finalizeOpen, setFinalizeOpen] = useState(false);
+  const [finalizeJob, setFinalizeJob] = useState<MechanicJob | null>(null);
+  const [finalizePaymentMethod, setFinalizePaymentMethod] = useState("pix");
 
   const grouped = useMemo(() => {
     const map: Record<string, MechanicJob[]> = { in_approval: [], in_repair: [], in_maintenance: [], in_analysis: [], ready: [] };
@@ -702,6 +714,36 @@ export default function Mecanica() {
         toast.success("Enviado para a mecânica!");
       },
       onError: () => toast.error("Erro ao mover card"),
+    });
+  };
+
+  // Opens the finalize+payment modal instead of directly advancing
+  const handleOpenFinalize = (job: MechanicJob) => {
+    setFinalizeJob(job);
+    setFinalizePaymentMethod("pix");
+    setFinalizeOpen(true);
+  };
+
+  const handleConfirmFinalize = () => {
+    if (!finalizeJob) return;
+    const totalValue = getTotalPrice(finalizeJob);
+    finalize.mutate({
+      jobId: finalizeJob.id,
+      totalValue,
+      paymentMethod: finalizePaymentMethod,
+      customerName: finalizeJob.customer_name,
+      customerWhatsapp: finalizeJob.customer_whatsapp,
+      customerCpf: finalizeJob.customer_cpf,
+      customerId: finalizeJob.customer_id,
+      bikeName: finalizeJob.bike_name,
+      problem: finalizeJob.problem,
+    }, {
+      onSuccess: () => {
+        toast.success(`✅ OS finalizada e registrada no DRE!`);
+        setFinalizeOpen(false);
+        setFinalizeJob(null);
+      },
+      onError: () => toast.error("Erro ao finalizar OS"),
     });
   };
 
@@ -815,7 +857,7 @@ export default function Mecanica() {
               <div className="space-y-4">
                 {(grouped[mobileTab]?.length || 0) > 0 ? (
                   grouped[mobileTab]?.map((job) => (
-                    <JobCard key={job.id} job={job} isLast={mobileTab === "ready"} columnKey={mobileTab} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={mobileTab === "in_approval" ? handleAdvanceFromApproval : undefined} />
+                    <JobCard key={job.id} job={job} isLast={mobileTab === "ready"} columnKey={mobileTab} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={mobileTab === "in_approval" ? handleAdvanceFromApproval : undefined} onFinalize={mobileTab === "ready" ? handleOpenFinalize : undefined} />
                   ))
                 ) : (
                   <div className="py-20 text-center space-y-3 opacity-20">
@@ -842,7 +884,7 @@ export default function Mecanica() {
                   <div className="px-1.5 space-y-3 pb-6 flex-1">
                     {grouped[col.key].length > 0 ? (
                       grouped[col.key].map((job) => (
-                        <JobCard key={job.id} job={job} isLast={col.key === "ready"} columnKey={col.key} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={col.key === "in_approval" ? handleAdvanceFromApproval : undefined} />
+                        <JobCard key={job.id} job={job} isLast={col.key === "ready"} columnKey={col.key} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={col.key === "in_approval" ? handleAdvanceFromApproval : undefined} onFinalize={col.key === "ready" ? handleOpenFinalize : undefined} />
                       ))
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20">
@@ -857,6 +899,61 @@ export default function Mecanica() {
           </>
         )}
       </div>
+
+      {/* ── Modal de Finalização com Pagamento ───────────────────────────────── */}
+      <Dialog open={finalizeOpen} onOpenChange={setFinalizeOpen}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl w-full">
+          <div className="p-6 md:p-10 space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">Finalizar OS</DialogTitle>
+            </DialogHeader>
+            {finalizeJob && (
+              <>
+                <div className="p-4 bg-background rounded-2xl border border-border">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Serviço</p>
+                  <p className="font-black text-foreground">{finalizeJob.bike_name || "Bike"}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{finalizeJob.problem}</p>
+                  <p className="text-xl font-black text-primary mt-2">{formatBRL(getTotalPrice(finalizeJob))}</p>
+                </div>
+                <InputGroup label="Forma de Pagamento *">
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { key: "pix", label: "PIX" },
+                      { key: "dinheiro", label: "Dinheiro" },
+                      { key: "cartao_debito", label: "Débito" },
+                      { key: "cartao_credito", label: "Crédito" },
+                    ].map((pm) => (
+                      <button
+                        key={pm.key}
+                        type="button"
+                        onClick={() => setFinalizePaymentMethod(pm.key)}
+                        className={`h-12 rounded-xl border text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                          finalizePaymentMethod === pm.key
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-card text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {finalizePaymentMethod === pm.key && <Check size={12} />}
+                        {pm.label}
+                      </button>
+                    ))}
+                  </div>
+                </InputGroup>
+              </>
+            )}
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setFinalizeOpen(false)} className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all">Cancelar</button>
+              <button
+                onClick={handleConfirmFinalize}
+                disabled={finalize.isPending}
+                className="flex-[2] h-12 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-600 text-sm font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {finalize.isPending ? <Loader2 size={16} className="animate-spin" /> : <><CheckCircle2 size={16} /> Confirmar e Finalizar</>}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">

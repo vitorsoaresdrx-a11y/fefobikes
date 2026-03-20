@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban, Pencil } from "lucide-react";
+import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban, Pencil, Wrench } from "lucide-react";
 import { useSales, useCancelSale } from "@/hooks/useSales";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { SaleEditModal } from "@/components/pdv/SaleEditModal";
@@ -117,6 +117,11 @@ function SaleRow({
           >
             {paymentLabel[method] || method}
           </span>
+          {sale.origin === 'oficina' && (
+            <span className="inline-flex items-center gap-1 ml-1 mt-1 text-[9px] font-black px-2 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+              <Wrench size={8} /> Manutenção
+            </span>
+          )}
           {isCancelled && (
             <Badge variant="destructive" className="ml-1 mt-1 text-[9px] px-2 py-0.5">
               Cancelada
