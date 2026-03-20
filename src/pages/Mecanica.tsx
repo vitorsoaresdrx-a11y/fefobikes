@@ -761,7 +761,7 @@ export default function Mecanica() {
 
   return (
     <div className="min-h-full bg-background text-foreground selection:bg-primary/30 pb-24 lg:pb-0">
-      <div className="w-full mx-auto p-4 md:p-6 space-y-6 md:space-y-10 overflow-x-hidden">
+      <div className="w-full min-w-0 p-4 md:p-6 space-y-6 md:space-y-10 overflow-x-hidden">
 
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-2 min-w-0">
