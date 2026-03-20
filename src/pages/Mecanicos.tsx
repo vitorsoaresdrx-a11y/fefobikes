@@ -83,7 +83,7 @@ export default function Mecanicos() {
         onSuccess: () => {
           if (selectedOrder.customer_whatsapp) {
             sendMessage.mutate({
-              phone: selectedOrder.customer_whatsapp,
+              phone: selectedOrder.customer_whatsapp.replace(/\D/g, ""),
               message: `Novidades! Um mecânico começou a mexer na sua bicicleta (${selectedOrder.bike_name || "sua bike"}). Logo, logo fica pronto e eu te dou um toque por aqui!`
             });
           }

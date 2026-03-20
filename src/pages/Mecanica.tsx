@@ -295,7 +295,7 @@ function JobCard({
         onSuccess: () => {
           if (job.status === "in_analysis" && job.customer_whatsapp) {
             sendMessage.mutate({
-              phone: job.customer_whatsapp,
+              phone: job.customer_whatsapp.replace(/\D/g, ""),
               message: `Sua bicicleta (${job.bike_name || "sua bike"}) está pronta! Pode vir retirar.`
             });
           }
@@ -741,7 +741,7 @@ export default function Mecanica() {
         
         if (form.customer_whatsapp) {
           sendMessage.mutate({
-            phone: form.customer_whatsapp,
+            phone: form.customer_whatsapp.replace(/\D/g, ""),
             message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`
           });
         }

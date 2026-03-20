@@ -315,7 +315,7 @@ export default function Orcamentos() {
 
           if (form.customer_whatsapp) {
             sendMessage.mutate({
-              phone: form.customer_whatsapp,
+              phone: form.customer_whatsapp.replace(/\D/g, ""),
               message: `Olá, ${form.customer_name || "cliente"}! Seu orçamento já está na oficina. Quando um mecânico começar o serviço, te avisaremos!`
             });
           }
