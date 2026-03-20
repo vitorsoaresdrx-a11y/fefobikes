@@ -133,21 +133,32 @@ export function GlobalAlerts() {
             <p className="text-white font-bold leading-relaxed">{currentAlert.contexto}</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full pt-4">
+          <div className="flex flex-col gap-3 w-full pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <button
+                onClick={() => handleMarkAsSeen(currentAlert.id)}
+                className="flex-1 h-14 rounded-2xl border border-destructive/30 text-white hover:bg-destructive/10 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95"
+              >
+                <Check size={16} className="text-destructive" /> Marcar como visto
+              </button>
+              <a
+                href={zapLink}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 h-14 rounded-2xl bg-destructive text-white hover:bg-destructive/90 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-destructive/20"
+              >
+                Falar com Cliente <ExternalLink size={16} />
+              </a>
+            </div>
             <button
-              onClick={() => handleMarkAsSeen(currentAlert.id)}
-              className="flex-1 h-14 rounded-2xl border border-destructive/30 text-white hover:bg-destructive/10 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95"
+              onClick={async () => {
+                setAlerts((prev) => prev.filter((a) => a.id !== currentAlert.id));
+                await supabase.from("os_alertas").update({ visto: true, descartado: true }).eq("id", currentAlert.id);
+              }}
+              className="w-full h-12 rounded-2xl bg-black/40 text-muted-foreground hover:text-white text-xs font-bold uppercase tracking-widest transition-all"
             >
-              <Check size={18} className="text-destructive" /> Marcar como visto
+              Descartar definitivamente
             </button>
-            <a
-              href={zapLink}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 h-14 rounded-2xl bg-destructive text-white hover:bg-destructive/90 text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-destructive/20"
-            >
-              Falar com Cliente <ExternalLink size={16} />
-            </a>
           </div>
         </div>
       </div>

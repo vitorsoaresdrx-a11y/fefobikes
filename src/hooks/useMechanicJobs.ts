@@ -225,12 +225,17 @@ export function useUpdateMechanicJobDetails() {
         const valor_restante = valor_total - payment.valor_pago;
         
         if (existing) {
-          await supabase.from("os_pagamentos" as any).update({
-            tipo: payment.tipo,
-            valor_total,
-            valor_pago: payment.valor_pago,
-            valor_restante
-          }).eq("os_id", id);
+          if (payment.tipo === 'nenhum') {
+            // Se mudou para nenhum, deleta o pagamento adiantado do banco para refletir corretamente as badges
+            await supabase.from("os_pagamentos" as any).delete().eq("os_id", id);
+          } else {
+            await supabase.from("os_pagamentos" as any).update({
+              tipo: payment.tipo,
+              valor_total,
+              valor_pago: payment.valor_pago,
+              valor_restante
+            }).eq("os_id", id);
+          }
         } else if (payment.tipo !== 'nenhum') {
           await supabase.from("os_pagamentos" as any).insert({
             os_id: id,
