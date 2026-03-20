@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AdditionPart {
@@ -66,6 +67,34 @@ export function useMechanicJobs() {
   });
 }
 
+export function useMechanicJobsRealtime() {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("mechanic_jobs_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "mechanic_jobs" },
+        () => {
+          qc.invalidateQueries({ queryKey: KEY });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "mechanic_job_additions" },
+        () => {
+          qc.invalidateQueries({ queryKey: KEY });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+}
+
 export function useCreateMechanicJob() {
   const qc = useQueryClient();
   return useMutation({
@@ -99,12 +128,12 @@ export function useAdvanceMechanicJob() {
         status === "in_approval"
           ? "in_repair"
           : status === "in_repair"
-            ? "in_maintenance"
-            : status === "in_maintenance"
-              ? "in_analysis"
-              : status === "in_analysis"
-                ? "ready"
-                : null;
+          ? "in_maintenance"
+          : status === "in_maintenance"
+          ? "in_analysis"
+          : status === "in_analysis"
+          ? "ready"
+          : null;
       if (!nextStatus) throw new Error("Already at final status");
       const { error } = await supabase
         .from("mechanic_jobs" as any)
