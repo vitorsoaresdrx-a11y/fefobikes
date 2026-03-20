@@ -165,7 +165,9 @@ export function useCanAccess(module: AppModule): { canAccess: boolean; hideSensi
   if (data.isOwner) return { canAccess: true, hideSensitive: false, loading: false };
 
   const perm = data.permissions.find((p) => p.module === module);
-  if (!perm) return { canAccess: false, hideSensitive: false, loading: false };
+  // If no permission row exists, default to allowing access (fail-open)
+  // This prevents modules from disappearing when permissions haven't been configured yet
+  if (!perm) return { canAccess: true, hideSensitive: false, loading: false };
 
   return { canAccess: perm.can_access, hideSensitive: perm.hide_sensitive, loading: false };
 }

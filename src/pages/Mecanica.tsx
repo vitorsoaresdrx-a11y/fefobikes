@@ -297,21 +297,6 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
               {job.payment?.tipo === 'parcial' && job.payment.valor_restante > 0 && (
                 <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">Falta {formatBRL(job.payment.valor_restante)}</span>
               )}
-
-            {/* Badge compacto de status do reparo adicional — ao lado do valor */}
-            {job.additions && job.additions.some(a => (a as any).is_v2) && (
-              (() => {
-                const v2Additions = job.additions.filter(a => (a as any).is_v2);
-                const hasPending = v2Additions.some(a => a.approval === "pending");
-                const hasRefused = v2Additions.some(a => a.approval === "refused");
-                const allAccepted = v2Additions.every(a => a.approval === "accepted");
-                
-                if (hasPending) return <span className="shrink-0 bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20 animate-pulse whitespace-nowrap">Adic. Pendente</span>;
-                if (hasRefused) return <span className="shrink-0 bg-destructive/10 text-destructive text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-destructive/20 whitespace-nowrap">Adic. Negado</span>;
-                if (allAccepted) return <span className="shrink-0 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-500/20 whitespace-nowrap">Adic. Aprovado</span>;
-                return null;
-              })()
-            )}
             </div>
           </div>
           <div className="flex items-center gap-1.5 ml-auto shrink-0">

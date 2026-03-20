@@ -187,23 +187,29 @@ Deno.serve(async (req) => {
     let pendingOsId = null;
     let pendingAdditionValue = 0;
     
-    // We try to match phone loosely if it has country code
+    // Step 1: Find in_approval jobs for this phone (loose match on last 10 digits)
     const phoneSuffix = phone.length > 10 ? phone.slice(-10) : phone;
     const { data: jobs } = await supabase
       .from('mechanic_jobs')
-      .select('id, os_adicionais ( id, status, valor_total )')
+      .select('id')
       .eq('status', 'in_approval')
       .filter('customer_whatsapp', 'ilike', `%${phoneSuffix}%`);
 
-    if (jobs) {
-      for (const j of jobs) {
-        const pendings = j.os_adicionais?.filter((a: any) => a.status === 'enviado' || a.status === 'pendente') || [];
-        if (pendings.length > 0) {
-          pendingAdditionId = pendings[0].id;
-          pendingOsId = j.id;
-          pendingAdditionValue = Number(pendings[0].valor_total || 0);
-          break;
-        }
+    if (jobs && jobs.length > 0) {
+      const jobIds = jobs.map((j: any) => j.id);
+      
+      // Step 2: Find pending os_adicionais for those jobs (no FK join needed)
+      const { data: adicionais } = await supabase
+        .from('os_adicionais')
+        .select('id, os_id, status, valor_total')
+        .in('os_id', jobIds)
+        .in('status', ['enviado', 'pendente']);
+
+      if (adicionais && adicionais.length > 0) {
+        const first = adicionais[0];
+        pendingAdditionId = first.id;
+        pendingOsId = first.os_id;
+        pendingAdditionValue = Number(first.valor_total || 0);
       }
     }
 
