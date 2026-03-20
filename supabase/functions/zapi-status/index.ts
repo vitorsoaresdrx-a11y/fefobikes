@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check
+    // Auth check — just verify they have a bearer token (any valid Supabase user)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -30,13 +30,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Use service role client to verify the JWT (handles station users too)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
