@@ -231,11 +231,12 @@ Deno.serve(async (req) => {
 
     if (classificationRes.ok) {
       const classData = await classificationRes.json();
-      const intent = classData.choices?.[0]?.message?.content?.trim()?.toUpperCase().replace(/[^A-Z]/g, '');
+      const rawIntent = classData.choices?.[0]?.message?.content?.trim() || "";
+      const intent = rawIntent.toUpperCase();
       
       console.log(`Intent classification: ${intent}`);
 
-      if (intent === "CONFIRMACAO") {
+      if (intent.includes("CONFIRMACAO")) {
         console.log("Intent classified as CONFIRMACAO. Skipping main flow.");
         const responseText = "😊";
         const instName = tenantId ? instanceName(tenantId) : "fefo-default";
@@ -261,7 +262,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (intent === "APROVACAO" && pendingAdditionId) {
+      if (intent.includes("APROVACAO") && pendingAdditionId) {
         console.log("Intent: APROVACAO. Approving extra repair.");
         
         await supabase.from('os_adicionais').update({ status: 'aprovado' }).eq('id', pendingAdditionId);
@@ -274,7 +275,7 @@ Deno.serve(async (req) => {
           }).eq('id', pgData.id);
         }
 
-        const responseText = "Perfeito! Já aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
+        const responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
         const instName = tenantId ? instanceName(tenantId) : "fefo-default";
         
         await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
@@ -291,15 +292,15 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ ok: true, processed: "approval" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      if ((intent === "NEGACAO" || intent === "DUVIDA") && pendingAdditionId) {
-        console.log(`Intent: ${intent}. Flagging for human agent.`);
+      if ((intent.includes("NEGACAO") || intent.includes("DUVIDA")) && pendingAdditionId) {
+        console.log(`Intent contains NEGACAO or DUVIDA. Flagging for human agent.`);
         
-        if (intent === "NEGACAO") {
+        if (intent.includes("NEGACAO")) {
           await supabase.from('os_adicionais').update({ status: 'negado' }).eq('id', pendingAdditionId);
         }
 
         // Create the global alert for the front-end
-        const contextText = intent === "NEGACAO" 
+        const contextText = intent.includes("NEGACAO") 
           ? "Cliente negou o orçamento adicional e precisa de atenção." 
           : "Cliente tem dúvida sobre o orçamento adicional e requer intervenção humana.";
         
@@ -313,9 +314,7 @@ Deno.serve(async (req) => {
         // Flag conversation for human
         await supabase.from('whatsapp_conversations').update({ require_human: true }).eq('id', conversationId);
 
-        // Fallthrough: it's a DUVIDA or NEGACAO, we will let the AI answer OR we just stop here if we want human.
-        // Actually, if it's NEGACAO/DUVIDA and needs a human, let's stop AI from answering and just notify.
-        const responseText = intent === "NEGACAO" 
+        const responseText = intent.includes("NEGACAO") 
           ? "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais, tudo bem?"
           : "Certo, entendi sua dúvida. Vou chamar um atendente humano para analisar seu caso e te responder melhor.";
         
@@ -331,7 +330,7 @@ Deno.serve(async (req) => {
         // Also turn off AI
         await supabase.from('whatsapp_conversations').update({ ai_enabled: false }).eq('id', conversationId);
 
-        return new Response(JSON.stringify({ ok: true, processed: intent.toLowerCase() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ ok: true, processed: "human_fallback" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 
