@@ -77,13 +77,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { phone, message, conversationId, sendAsAudio, instanceName: customInstance } = await req.json();
+    let { phone, message, conversationId, sendAsAudio, instanceName: customInstance } = await req.json();
 
     if (!phone || !message) {
       return new Response(
         JSON.stringify({ error: "phone and message are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Normalize phone number to digits only and add country code 55 if missing
+    phone = String(phone).replace(/\D/g, "");
+    if (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) {
+      phone = "55" + phone;
     }
 
     // Resolve tenant

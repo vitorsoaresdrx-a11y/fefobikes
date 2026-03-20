@@ -272,6 +272,7 @@ function JobCard({
   onEdit,
   onRetreat,
   onAdvance,
+  onSuccessAdvance,
 }: {
   job: MechanicJob;
   isLast: boolean;
@@ -294,8 +295,10 @@ function JobCard({
       advanceMutation.mutate({ id: job.id, status: job.status }, { 
         onSuccess: () => {
           if (job.status === "in_analysis" && job.customer_whatsapp) {
+            const phone = job.customer_whatsapp.replace(/\D/g, "");
+            const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
             sendMessage.mutate({
-              phone: job.customer_whatsapp.replace(/\D/g, ""),
+              phone: formattedPhone,
               message: `Sua bicicleta (${job.bike_name || "sua bike"}) está pronta! Pode vir retirar.`
             });
           }
@@ -740,8 +743,10 @@ export default function Mecanica() {
         }
         
         if (form.customer_whatsapp) {
+          const phone = form.customer_whatsapp.replace(/\D/g, "");
+          const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
           sendMessage.mutate({
-            phone: form.customer_whatsapp.replace(/\D/g, ""),
+            phone: formattedPhone,
             message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`
           });
         }

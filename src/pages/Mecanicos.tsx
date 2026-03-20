@@ -82,8 +82,10 @@ export default function Mecanicos() {
       {
         onSuccess: () => {
           if (selectedOrder.customer_whatsapp) {
+            const phone = selectedOrder.customer_whatsapp.replace(/\D/g, "");
+            const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
             sendMessage.mutate({
-              phone: selectedOrder.customer_whatsapp.replace(/\D/g, ""),
+              phone: formattedPhone,
               message: `Novidades! Um mecânico começou a mexer na sua bicicleta (${selectedOrder.bike_name || "sua bike"}). Logo, logo fica pronto e eu te dou um toque por aqui!`
             });
           }

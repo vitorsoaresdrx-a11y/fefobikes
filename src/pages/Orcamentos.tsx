@@ -314,8 +314,10 @@ export default function Orcamentos() {
           });
 
           if (form.customer_whatsapp) {
+            const phone = form.customer_whatsapp.replace(/\D/g, "");
+            const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
             sendMessage.mutate({
-              phone: form.customer_whatsapp.replace(/\D/g, ""),
+              phone: formattedPhone,
               message: `Olá, ${form.customer_name || "cliente"}! Seu orçamento já está na oficina. Quando um mecânico começar o serviço, te avisaremos!`
             });
           }
