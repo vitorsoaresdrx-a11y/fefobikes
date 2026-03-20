@@ -7,6 +7,8 @@ import {
   Send, 
   Bike, 
   Sparkles,
+  Bot,
+  Cpu,
   Loader2,
   ChevronDown
 } from "lucide-react";
@@ -25,14 +27,23 @@ export function StoreChat() {
 
   const mutation = useMutation({
     mutationFn: async ({ message, history }: { message: string, history: ChatMessage[] }) => {
+      console.log("Calling store-ai-chat...", { message, history });
       const { data, error } = await supabase.functions.invoke("store-ai-chat", {
-        body: { message, history }
+        body: { message, history: history.slice(-5) } // Send last 5 for context
       });
-      if (error) throw error;
+      if (error) {
+        console.error("AI Invoke Error:", error);
+        throw error;
+      }
       return data.response as string;
     },
     onSuccess: (response) => {
+      console.log("AI Response:", response);
       setHistory((prev) => [...prev, { role: "assistant", content: response }]);
+    },
+    onError: (err) => {
+      console.error("AI Mutation Error:", err);
+      import("sonner").then(({ toast }) => toast.error("A IA está descansando um pouco. Tente novamente em alguns segundos."));
     }
   });
 
@@ -150,13 +161,13 @@ export function StoreChat() {
       {/* Trigger Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="h-16 w-16 bg-white border border-border rounded-full shadow-2xl flex items-center justify-center text-primary active:scale-95 transition-all group relative overflow-hidden"
+        className="h-16 w-16 bg-white border-2 border-primary rounded-full shadow-2xl flex items-center justify-center text-black active:scale-95 transition-all group relative overflow-hidden"
       >
         <motion.div 
           animate={isOpen ? { rotate: 90, scale: 0 } : { rotate: 0, scale: 1 }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <Sparkles size={24} className="group-hover:text-primary active:text-primary transition-colors" />
+          <Bot size={28} className="text-black" />
         </motion.div>
         
         <motion.div
