@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-// Module keys matching the DB enum
 export type AppModule =
   | "dashboard"
   | "dre"
+  | "metas"
   | "produtos"
   | "bikes"
   | "estoque"
@@ -13,31 +13,42 @@ export type AppModule =
   | "caixa"
   | "historico"
   | "mecanica"
+  | "orcamentos"
   | "gastos"
+  | "contas"
   | "clientes"
   | "whatsapp"
-  | "configuracoes";
+  | "configuracoes"
+  | "chamadas"
+  | "permissoes"
+  | "ponto";
 
 export const ALL_MODULES: { key: AppModule; label: string }[] = [
   { key: "dashboard", label: "Ações Rápidas" },
   { key: "dre", label: "Dashboard / DRE" },
+  { key: "metas", label: "Metas" },
   { key: "produtos", label: "Produtos" },
   { key: "bikes", label: "Bikes" },
   { key: "estoque", label: "Estoque" },
   { key: "pdv", label: "PDV" },
   { key: "caixa", label: "Caixa" },
   { key: "historico", label: "Histórico" },
-  { key: "mecanica", label: "Mecânica" },
+  { key: "mecanica", label: "Mecânica / Mecânicos / Histórico" },
+  { key: "orcamentos", label: "Orçamentos" },
   { key: "gastos", label: "Gastos" },
+  { key: "contas", label: "Contas" },
   { key: "clientes", label: "Clientes" },
   { key: "whatsapp", label: "WhatsApp" },
+  { key: "ponto", label: "Ponto" },
+  { key: "chamadas", label: "Chamadas" },
+  { key: "permissoes", label: "Permissões" },
   { key: "configuracoes", label: "Configurações" },
 ];
 
-// Map route paths to module keys
 export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
   "/": "dashboard",
   "/dre": "dre",
+  "/metas": "metas",
   "/produtos": "produtos",
   "/bikes": "bikes",
   "/bikes/nova": "bikes",
@@ -48,34 +59,45 @@ export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
   "/mecanica": "mecanica",
   "/mecanicos": "mecanica",
   "/mecanicos/historico": "mecanica",
-  "/orcamentos": "mecanica",
+  "/orcamentos": "orcamentos",
   "/gastos": "gastos",
+  "/contas": "contas",
   "/clientes": "clientes",
   "/whatsapp": "whatsapp",
   "/configuracoes": "configuracoes",
+  "/chamadas": "chamadas",
+  "/permissoes": "permissoes",
+  "/ponto/registro": "ponto",
+  "/ponto/relatorio": "ponto",
+  "/ponto/cadastro": "ponto",
 };
 
-// Map sidebar nav URLs to module keys
 export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/": "dashboard",
   "/dre": "dre",
+  "/metas": "metas",
   "/produtos": "produtos",
   "/bikes": "bikes",
   "/estoque": "estoque",
+  "/precos": "estoque",
   "/pdv": "pdv",
+  "/promocoes": "pdv",
   "/caixa": "caixa",
   "/historico": "historico",
   "/mecanica": "mecanica",
   "/mecanicos": "mecanica",
   "/mecanicos/historico": "mecanica",
-  "/orcamentos": "mecanica",
+  "/orcamentos": "orcamentos",
   "/gastos": "gastos",
+  "/contas": "contas",
   "/clientes": "clientes",
   "/whatsapp": "whatsapp",
+  "/ponto/registro": "ponto",
+  "/ponto/relatorio": "ponto",
+  "/ponto/cadastro": "ponto",
+  "/chamadas": "chamadas",
+  "/permissoes": "permissoes",
   "/configuracoes": "configuracoes",
-  "/ponto/cadastro": "configuracoes",
-  "/precos": "estoque",
-  "/promocoes": "pdv",
 };
 
 export interface TenantMember {
@@ -98,8 +120,6 @@ export interface ModulePermission {
 const PERMISSIONS_KEY = ["permissions"];
 const TENANT_KEY = ["tenant"];
 
-// ─── Current user's own permissions ─────────────────────────────────────────
-
 export function useMyPermissions() {
   const { session } = useAuth();
   const userId = session?.user?.id;
@@ -107,7 +127,6 @@ export function useMyPermissions() {
   return useQuery({
     queryKey: [...PERMISSIONS_KEY, "my", userId],
     queryFn: async () => {
-      // Get my tenant membership
       const { data: member } = await supabase
         .from("tenant_members")
         .select("*")
@@ -117,8 +136,6 @@ export function useMyPermissions() {
       if (!member) return { isOwner: false, permissions: [] as ModulePermission[], memberId: null };
 
       const isOwner = member.role === "owner";
-
-      // Owners have full access, no need to fetch permissions
       if (isOwner) return { isOwner: true, permissions: [] as ModulePermission[], memberId: member.id };
 
       const { data: permissions } = await supabase
@@ -137,24 +154,17 @@ export function useMyPermissions() {
   });
 }
 
-// Helper hook: can user access a specific module?
 export function useCanAccess(module: AppModule): { canAccess: boolean; hideSensitive: boolean; loading: boolean } {
   const { data, isLoading } = useMyPermissions();
 
   if (isLoading || !data) return { canAccess: true, hideSensitive: false, loading: true };
-
-  // Owners can access everything
   if (data.isOwner) return { canAccess: true, hideSensitive: false, loading: false };
 
   const perm = data.permissions.find((p) => p.module === module);
-
-  // If no permission record exists, deny by default for members
   if (!perm) return { canAccess: false, hideSensitive: false, loading: false };
 
   return { canAccess: perm.can_access, hideSensitive: perm.hide_sensitive, loading: false };
 }
-
-// ─── Owner: manage tenant members ───────────────────────────────────────────
 
 export function useTenantMembers() {
   const { session } = useAuth();
@@ -194,7 +204,6 @@ export function useInviteMember() {
 
   return useMutation({
     mutationFn: async ({ email }: { email: string }) => {
-      // First get the user's tenant
       const { data: myMember } = await supabase
         .from("tenant_members")
         .select("tenant_id")
@@ -203,18 +212,6 @@ export function useInviteMember() {
 
       if (!myMember) throw new Error("Tenant não encontrado");
 
-      // Create a Supabase user invite (they'll get an email)
-      // For now, we create the member record - the user needs to already have an account
-      // We look up the user by email via profiles or auth
-      const { data: invitedUser } = await supabase
-        .from("profiles")
-        .select("id")
-        .ilike("full_name", `%${email}%`)
-        .limit(1);
-
-      // Since we can't query auth.users, we'll use the invite flow:
-      // The owner provides the user_id or the user signs up and gets added
-      // For simplicity, we'll use Supabase admin invite via edge function
       throw new Error("Use o ID do usuário ou peça para o membro criar conta primeiro");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [...TENANT_KEY, "members"] }),
