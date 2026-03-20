@@ -13,6 +13,8 @@ export type AppModule =
   | "caixa"
   | "historico"
   | "mecanica"
+  | "mecanicos"
+  | "mecanicos_historico"
   | "orcamentos"
   | "gastos"
   | "contas"
@@ -33,7 +35,9 @@ export const ALL_MODULES: { key: AppModule; label: string }[] = [
   { key: "pdv", label: "PDV" },
   { key: "caixa", label: "Caixa" },
   { key: "historico", label: "Histórico" },
-  { key: "mecanica", label: "Mecânica / Mecânicos / Histórico" },
+  { key: "mecanica", label: "Mecânica" },
+  { key: "mecanicos", label: "Mecânicos" },
+  { key: "mecanicos_historico", label: "Histórico Mecânicos" },
   { key: "orcamentos", label: "Orçamentos" },
   { key: "gastos", label: "Gastos" },
   { key: "contas", label: "Contas" },
@@ -57,8 +61,8 @@ export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
   "/caixa": "caixa",
   "/historico": "historico",
   "/mecanica": "mecanica",
-  "/mecanicos": "mecanica",
-  "/mecanicos/historico": "mecanica",
+  "/mecanicos": "mecanicos",
+  "/mecanicos/historico": "mecanicos_historico",
   "/orcamentos": "orcamentos",
   "/gastos": "gastos",
   "/contas": "contas",
@@ -85,8 +89,8 @@ export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/caixa": "caixa",
   "/historico": "historico",
   "/mecanica": "mecanica",
-  "/mecanicos": "mecanica",
-  "/mecanicos/historico": "mecanica",
+  "/mecanicos": "mecanicos",
+  "/mecanicos/historico": "mecanicos_historico",
   "/orcamentos": "orcamentos",
   "/gastos": "gastos",
   "/contas": "contas",
