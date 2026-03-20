@@ -162,7 +162,7 @@ function AdditionBadge({ addition, showActions }: { addition: MechanicJobAdditio
   const total = getAdditionTotal(addition);
 
   const handleApproval = (status: "accepted" | "refused") => {
-    updateApproval.mutate({ id: addition.id, approval: status });
+    updateApproval.mutate({ id: addition.id, approval: status, is_v2: (addition as any).is_v2 });
   };
 
   return (
@@ -414,7 +414,7 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
   const updateAddition = useUpdateAddition();
   const [editingAddition, setEditingAddition] = useState<string | null>(null);
   const [additionEdits, setAdditionEdits] = useState<Record<string, { problem: string; labor_cost: number; parts: AdditionPart[] }>>({});
-  const [deleteAdditionDialog, setDeleteAdditionDialog] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: "", name: "" });
+  const [deleteAdditionDialog, setDeleteAdditionDialog] = useState<{ open: boolean; id: string; name: string; is_v2?: boolean }>({ open: false, id: "", name: "" });
 
   const startEditAddition = (a: MechanicJobAddition) => {
     setAdditionEdits((prev) => ({ ...prev, [a.id]: { problem: a.problem, labor_cost: a.labor_cost, parts: a.parts_used || [] } }));
@@ -425,14 +425,14 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
     const edits = additionEdits[a.id];
     if (!edits) return;
     const partsTotal = edits.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
-    updateAddition.mutate({ id: a.id, problem: edits.problem, price: edits.labor_cost + partsTotal, labor_cost: edits.labor_cost, parts_used: edits.parts }, {
+    updateAddition.mutate({ id: a.id, problem: edits.problem, price: edits.labor_cost + partsTotal, labor_cost: edits.labor_cost, parts_used: edits.parts, is_v2: (a as any).is_v2 }, {
       onSuccess: () => { toast.success("Reparo atualizado"); setEditingAddition(null); },
       onError: () => toast.error("Erro ao atualizar reparo"),
     });
   };
 
   const confirmDeleteAddition = () => {
-    deleteAddition.mutate(deleteAdditionDialog.id, {
+    deleteAddition.mutate({ id: deleteAdditionDialog.id, is_v2: deleteAdditionDialog.is_v2 }, {
       onSuccess: () => { toast.success("Reparo excluído"); setDeleteAdditionDialog({ open: false, id: "", name: "" }); },
       onError: () => toast.error("Erro ao excluir reparo"),
     });
@@ -538,7 +538,7 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                                 <button onClick={() => startEditAddition(a)} className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
                                   <Pencil size={12} />
                                 </button>
-                                <button onClick={() => setDeleteAdditionDialog({ open: true, id: a.id, name: a.problem })} className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
+                                <button onClick={() => setDeleteAdditionDialog({ open: true, id: a.id, name: a.problem, is_v2: (a as any).is_v2 })} className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
                                   <Trash2 size={12} />
                                 </button>
                               </div>

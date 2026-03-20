@@ -59,19 +59,47 @@ export function useMechanicJobs() {
         .order("created_at", { ascending: true });
       if (addErr) throw addErr;
 
-      const { data: payments, error: payErr } = await supabase
+      const { data: payData, error: payErr } = await supabase
         .from("os_pagamentos" as any)
         .select("*");
       if (payErr) console.warn("os_pagamentos table might not exist yet:", payErr);
 
+      const { data: osAdicionaisData, error: osAdErr } = await supabase
+        .from("os_adicionais" as any)
+        .select("*")
+        .neq("status", "rascunho");
+
       const addMap = new Map<string, MechanicJobAddition[]>();
+      
+      // Load V1 Additions
       (additions as unknown as MechanicJobAddition[]).forEach((a) => {
         if (!addMap.has(a.job_id)) addMap.set(a.job_id, []);
         addMap.get(a.job_id)!.push(a);
       });
 
+      // Load V2 Additions (os_adicionais)
+      (osAdicionaisData || []).forEach((a: any) => {
+        if (!addMap.has(a.os_id)) addMap.set(a.os_id, []);
+        
+        let approval: "pending" | "accepted" | "refused" = "pending";
+        if (a.status === "aprovado") approval = "accepted";
+        if (a.status === "negado") approval = "refused";
+
+        addMap.get(a.os_id)!.push({
+          id: a.id,
+          job_id: a.os_id,
+          problem: a.observacoes || "",
+          price: a.valor_total || 0,
+          labor_cost: 0, // Fallback for V2 since V2 groups this differently now
+          parts_used: a.pecas || [],
+          approval,
+          created_at: a.criado_em || new Date().toISOString(),
+          is_v2: true, // Flag to identify which table to update!
+        } as MechanicJobAddition & { is_v2: boolean });
+      });
+
       const payMap = new Map<string, any>();
-      (payments || []).forEach((p: any) => payMap.set(p.os_id, p));
+      (payData || []).forEach((p: any) => payMap.set(p.os_id, p));
 
       return (jobs as unknown as MechanicJob[])
         .filter((j) => j.status !== "delivered")
@@ -141,7 +169,7 @@ export function useCreateMechanicJob() {
         const valor_total = job.price;
         const valor_restante = valor_total - payment.valor_pago;
         await supabase.from("os_pagamentos" as any).insert({
-          os_id: data.id,
+          os_id: (data as any).id,
           tipo: payment.tipo,
           valor_total,
           valor_pago: payment.valor_pago,
@@ -293,12 +321,21 @@ export function useCreateAddition() {
 export function useUpdateAdditionApproval() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, approval }: { id: string; approval: "accepted" | "refused" }) => {
-      const { error } = await supabase
-        .from("mechanic_job_additions" as any)
-        .update({ approval })
-        .eq("id", id);
-      if (error) throw error;
+    mutationFn: async ({ id, approval, is_v2 }: { id: string; approval: "accepted" | "refused", is_v2?: boolean }) => {
+      if (is_v2) {
+        const status = approval === "accepted" ? "aprovado" : "negado";
+        const { error } = await supabase
+          .from("os_adicionais" as any)
+          .update({ status })
+          .eq("id", id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("mechanic_job_additions" as any)
+          .update({ approval })
+          .eq("id", id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
@@ -307,23 +344,36 @@ export function useUpdateAdditionApproval() {
 export function useUpdateAddition() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, problem, price, labor_cost, parts_used }: {
+    mutationFn: async ({ id, problem, price, labor_cost, parts_used, is_v2 }: {
       id: string;
       problem: string;
       price: number;
       labor_cost: number;
       parts_used: AdditionPart[];
+      is_v2?: boolean;
     }) => {
-      const { error } = await supabase
-        .from("mechanic_job_additions" as any)
-        .update({
-          problem,
-          price,
-          labor_cost,
-          parts_used: JSON.stringify(parts_used),
-        })
-        .eq("id", id);
-      if (error) throw error;
+      if (is_v2) {
+        const { error } = await supabase
+          .from("os_adicionais" as any)
+          .update({
+            observacoes: problem,
+            valor_total: price,
+            pecas: parts_used,
+          })
+          .eq("id", id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("mechanic_job_additions" as any)
+          .update({
+            problem,
+            price,
+            labor_cost,
+            parts_used: JSON.stringify(parts_used),
+          })
+          .eq("id", id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
@@ -332,12 +382,20 @@ export function useUpdateAddition() {
 export function useDeleteAddition() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("mechanic_job_additions" as any)
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
+    mutationFn: async ({ id, is_v2 }: { id: string, is_v2?: boolean }) => {
+      if (is_v2) {
+        const { error } = await supabase
+          .from("os_adicionais" as any)
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("mechanic_job_additions" as any)
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
