@@ -308,8 +308,12 @@ export default function Orcamentos() {
             price: grandTotal,
           };
           createMechanicJob.mutate(orderData, {
-            onSuccess: () => {
-              createServiceOrder.mutate({ ...orderData, bike_name: form.customer_name || undefined });
+            onSuccess: (newJob) => {
+              createServiceOrder.mutate({ 
+                ...orderData, 
+                id: newJob.id,
+                bike_name: form.customer_name || undefined 
+              });
             },
           });
 

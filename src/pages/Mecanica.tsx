@@ -665,19 +665,36 @@ export default function Mecanica() {
   const updateDetails = useUpdateMechanicJobDetails();
   const sendMessage = useSendMessage();
 
-  const handleServiceOrderDone = useCallback((order: ServiceOrder) => {
+  const handleServiceOrderDone = useCallback(async (order: ServiceOrder) => {
     playNotifySound();
-    toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega!`, { description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined, duration: 8000 });
-    const matchingJob = jobs.find((j) => j.problem === order.problem && j.status === "in_maintenance");
-    if (matchingJob) advance.mutate({ id: matchingJob.id, status: matchingJob.status });
-  }, [jobs, advance]);
+    
+    // Avança o card correspondente na oficina para "Em Análise"
+    const { error: updateError } = await supabase
+      .from("mechanic_jobs" as any)
+      .update({ status: "in_analysis" })
+      .eq("id", order.id);
 
-  const handleServiceOrderAccepted = useCallback((order: ServiceOrder) => {
+    if (updateError) {
+      console.error("Erro ao avançar card da oficina:", updateError);
+    } else {
+      toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega! (Em Análise)`, {
+        description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined,
+        duration: 8000
+      });
+    }
+  }, []);
+
+  const handleServiceOrderAccepted = useCallback(async (order: ServiceOrder) => {
     playAcceptSound();
+    
+    // Avança o card correspondente na oficina para "Em Manutenção"
+    await supabase
+      .from("mechanic_jobs" as any)
+      .update({ status: "in_maintenance" })
+      .eq("id", order.id);
+
     toast.info(`⚙️ ${order.bike_name || "OS"} aceita por ${order.mechanic_name || "mecânico"}`, { duration: 5000 });
-    const matchingJob = jobs.find((j) => j.problem === order.problem && j.status === "in_repair");
-    if (matchingJob) advance.mutate({ id: matchingJob.id, status: matchingJob.status });
-  }, [jobs]);
+  }, []);
 
   useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
@@ -730,9 +747,10 @@ export default function Mecanica() {
       status: form.initialStatus,
     };
     create.mutate(orderData, {
-      onSuccess: () => {
+      onSuccess: (newJob) => {
         if (form.initialStatus === "in_repair") {
           createServiceOrder.mutate({
+            id: newJob.id,
             customer_name: form.customer_name || undefined,
             customer_cpf: form.customer_cpf || undefined,
             customer_whatsapp: form.customer_whatsapp || undefined,

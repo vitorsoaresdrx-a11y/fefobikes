@@ -43,6 +43,7 @@ export function useCreateServiceOrder() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (order: {
+      id?: string;
       customer_name?: string;
       customer_cpf?: string;
       customer_whatsapp?: string;
