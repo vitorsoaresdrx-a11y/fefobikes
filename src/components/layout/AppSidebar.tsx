@@ -24,6 +24,7 @@ import {
   FileBarChart,
   TrendingUp,
   Target,
+  ShoppingBag,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
@@ -49,7 +50,7 @@ const navGroups = [
   {
     label: "Geral",
     items: [
-      { title: "Ações Rápidas", url: "/", icon: LayoutDashboard },
+      { title: "Ver Loja", url: "/loja", icon: ShoppingBag },
       { title: "Dashboard", url: "/dre", icon: BarChart3 },
       { title: "Metas", url: "/metas", icon: Target },
     ],

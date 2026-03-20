@@ -43,6 +43,7 @@ const Placeholder = lazyRetry(() => import("@/pages/Placeholder"));
 const NotFound = lazyRetry(() => import("@/pages/NotFound"));
 const Orcamentos = lazyRetry(() => import("@/pages/Orcamentos"));
 const ProdutoPublico = lazyRetry(() => import("@/pages/ProdutoPublico"));
+const Store = lazyRetry(() => import("@/pages/Store"));
 const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 const Jogar = lazyRetry(() => import("@/pages/Jogar"));
 const Chamadas = lazyRetry(() => import("@/pages/Chamadas"));
@@ -141,6 +142,11 @@ const App = () => (
         <BrowserRouter>
           <div className="dark">
             <Routes>
+              <Route path="/loja" element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <Store />
+                </Suspense>
+              } />
               <Route path="/produto/:sku" element={
                 <Suspense fallback={<PageSkeleton />}>
                   <ProdutoPublico />

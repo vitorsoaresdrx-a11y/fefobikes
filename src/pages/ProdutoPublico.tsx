@@ -80,7 +80,7 @@ function Footer() {
     <footer className="py-12 border-t border-border/50 bg-background flex flex-col items-center gap-4">
       <div className="flex items-center gap-2 opacity-30">
         <Bike size={20} />
-        <span className="text-[10px] font-black uppercase tracking-widest">Fefo Bikes © 2024</span>
+        <span className="text-[10px] font-black uppercase tracking-widest">Fefo Bikes © 2026</span>
       </div>
       <p className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-widest">
         Consultoria Premium de Performance
@@ -134,7 +134,14 @@ function PriceSection({ product }: { product: any }) {
             <ShieldCheck size={14} className="text-emerald-500" />
             Pagamento Seguro
           </div>
-          <Btn variant="primary" className="w-full mt-8 h-14 uppercase tracking-widest">
+          <Btn 
+            variant="primary" 
+            className="w-full mt-8 h-14 uppercase tracking-widest"
+            onClick={() => {
+              const whatsappUrl = `https://wa.me/5515996128054?text=${encodeURIComponent(`Olá, tenho interesse no produto ${product.name} (SKU: ${product.sku || ""})`)}`;
+              window.open(whatsappUrl, "_blank");
+            }}
+          >
             Tenho Interesse <ArrowRight className="ml-2 w-4 h-4" />
           </Btn>
         </div>
