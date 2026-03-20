@@ -747,7 +747,8 @@ export default function Mecanica() {
         body: {
           osId: addJob.id,
           pecas: addForm.parts,
-          observacoes: addForm.problem
+          observacoes: addForm.problem,
+          maoDeObra: addForm.labor_cost
         }
       });
       

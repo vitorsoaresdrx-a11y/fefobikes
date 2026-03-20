@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { osId, pecas, observacoes } = await req.json();
+    const { osId, pecas, observacoes, maoDeObra } = await req.json();
 
     if (!osId) throw new Error("osId is required");
 
@@ -43,7 +43,9 @@ Deno.serve(async (req) => {
     const phone = job.customer_whatsapp?.replace(/\D/g, "");
     if (!phone) throw new Error("Customer phone not found");
 
-    const totalAdicional = pecas.reduce((acc: number, p: any) => acc + ((p.valor || p.unit_price || 0) * (p.quantidade || p.quantity || 0)), 0);
+    const maoDeObraValor = Number(maoDeObra || 0);
+    const pecasAdicional = pecas.reduce((acc: number, p: any) => acc + ((p.valor || p.unit_price || 0) * (p.quantidade || p.quantity || 0)), 0);
+    const totalAdicional = pecasAdicional + maoDeObraValor;
 
     // 2. Format message with IA
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
@@ -64,7 +66,7 @@ Deno.serve(async (req) => {
           },
           { 
             role: "user", 
-            content: `Bike: ${job.bike_name}\nProblema/Obs: ${observacoes}\nPeças: ${JSON.stringify(pecas)}\nValor total: R$ ${totalAdicional.toFixed(2)}`
+            content: `Bike: ${job.bike_name}\nProblema/Obs: ${observacoes}\nPeças: ${JSON.stringify(pecas)}\nMão de Obra: R$ ${maoDeObraValor.toFixed(2)}\nValor total: R$ ${totalAdicional.toFixed(2)}`
           }
         ],
         temperature: 0.7,

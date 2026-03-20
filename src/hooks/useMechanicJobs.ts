@@ -85,12 +85,19 @@ export function useMechanicJobs() {
         if (a.status === "aprovado") approval = "accepted";
         if (a.status === "negado") approval = "refused";
 
+        const dbTotal = a.valor_total || 0;
+        const partsTotal = (a.pecas || []).reduce(
+          (sum: number, p: any) => sum + (p.quantidade || p.quantity || 0) * (p.valor || p.unit_price || 0),
+          0
+        );
+        const labor = Math.max(0, dbTotal - partsTotal);
+
         addMap.get(a.os_id)!.push({
           id: a.id,
           job_id: a.os_id,
           problem: a.observacoes || "",
-          price: a.valor_total || 0,
-          labor_cost: 0, // Fallback for V2 since V2 groups this differently now
+          price: dbTotal,
+          labor_cost: labor, // Calculate backward so the UI gets logic properly
           parts_used: a.pecas || [],
           approval,
           created_at: a.criado_em || new Date().toISOString(),
