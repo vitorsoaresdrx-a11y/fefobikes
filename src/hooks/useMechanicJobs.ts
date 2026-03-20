@@ -132,6 +132,13 @@ export function useMechanicJobsRealtime() {
           qc.invalidateQueries({ queryKey: KEY });
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "os_adicionais" },
+        () => {
+          qc.invalidateQueries({ queryKey: KEY });
+        }
+      )
       .subscribe();
 
     return () => {

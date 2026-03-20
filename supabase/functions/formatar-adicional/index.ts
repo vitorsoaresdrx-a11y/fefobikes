@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     await supabase.from("mechanic_jobs" as any).update({ status: "in_approval" }).eq("id", osId);
 
     // 5. Update OS Adicional status if exists
-    await supabase.from("os_adicionais" as any).update({ status: 'enviado' }).eq("os_id", osId).eq("status", "pendente");
+    await supabase.from("os_adicionais" as any).update({ status: 'enviado' }).eq("os_id", osId).eq("status", "rascunho");
 
     return new Response(JSON.stringify({ ok: true, message: formattedMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }

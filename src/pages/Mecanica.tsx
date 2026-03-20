@@ -293,6 +293,22 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
               {job.payment?.tipo === 'parcial' && job.payment.valor_restante > 0 && (
                 <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">Falta {formatBRL(job.payment.valor_restante)}</span>
               )}
+
+              {/* Badges do Orçamento Adicional */}
+              {job.additions && job.additions.length > 0 && (
+                (() => {
+                  const hasPending = job.additions.some(a => a.approval === "pending");
+                  const hasRefused = job.additions.some(a => a.approval === "refused");
+                  
+                  if (hasPending) {
+                    return <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20 italic animate-pulse">Adic. Pendente</span>;
+                  }
+                  if (hasRefused) {
+                    return <span className="bg-destructive/10 text-destructive text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-destructive/20">Adic. Negado</span>;
+                  }
+                  return <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-500/20">Adic. Aprovado</span>;
+                })()
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
