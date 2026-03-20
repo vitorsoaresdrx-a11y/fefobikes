@@ -7,22 +7,14 @@ import {
   Bike, 
   Package, 
   Tag, 
-  ChevronRight, 
-  Menu,
-  LayoutGrid,
-  MapPin,
-  Filter
+  LayoutGrid, 
+  MapPin, 
+  Filter,
+  Menu
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
-
-// ─── Design System ────────────────────────────────────────────────────────────
-
-const Badge = ({ children }: { children: React.ReactNode }) => (
-  <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
-    {children}
-  </span>
-);
+import { CartDrawer } from "@/components/shop/CartDrawer";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -36,6 +28,7 @@ interface PublicProduct {
   category: string | null;
   images: string[] | null;
   description: string | null;
+  created_at?: string;
   _type: 'part' | 'bike';
 }
 
@@ -63,7 +56,6 @@ function ProductCard({ p }: { p: PublicProduct }) {
           </div>
         )}
         
-        {/* Marketplace Style Price Overlay */}
         <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10">
           <span className="text-sm font-black text-white">{formatBRL(price)}</span>
         </div>
@@ -80,7 +72,7 @@ function ProductCard({ p }: { p: PublicProduct }) {
           </h3>
         </div>
         
-        <div className="flex items-center gap-1.5 text-muted-foreground/50 pt-2">
+        <div className="flex items-center gap-1.5 text-muted-foreground/50 pt-2 border-t border-border/20">
           <MapPin size={10} />
           <span className="text-[9px] font-bold uppercase tracking-wider">Fefo Bikes Store</span>
         </div>
@@ -98,7 +90,6 @@ export default function Store() {
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["store-products"],
     queryFn: async () => {
-      // Fetch parts
       const { data: parts } = await supabase
         .from("parts_public" as any)
         .select("*")
@@ -106,7 +97,6 @@ export default function Store() {
       
       const partsFormatted = (parts || []).map(p => ({ ...p, _type: 'part' as const }));
 
-      // Fetch bikes
       const { data: bikes } = await supabase
         .from("bike_models_public" as any)
         .select("*")
@@ -116,11 +106,12 @@ export default function Store() {
 
       return [...bikesFormatted, ...partsFormatted].sort((a, b) => 
         new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-      );
+      ) as PublicProduct[];
     }
   });
 
-  const categories = ["Tudo", "Bikes", "Peças", "Acessórios", "Rodas", "Transmissão"];
+  const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
+  const categoriesList = ["Tudo", "Bikes", ...uniqueCategories.filter(c => c !== "Bikes")];
   
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -134,7 +125,6 @@ export default function Store() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 pb-20">
       
-      {/* Search Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/50 px-4 md:px-8 h-16 md:h-20 flex items-center justify-between gap-4 md:gap-8">
         <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => window.location.reload()}>
           <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
@@ -158,17 +148,13 @@ export default function Store() {
           <button className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
             <Filter size={18} />
           </button>
-          <button className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-white transition-colors sm:hidden">
-            <Menu size={18} />
-          </button>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-8">
         
-        {/* Categories Bar */}
         <section className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-          {categories.map(cat => (
+          {categoriesList.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -183,7 +169,6 @@ export default function Store() {
           ))}
         </section>
 
-        {/* Results Grid */}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black text-white tracking-tight uppercase italic flex items-center gap-2">
@@ -220,7 +205,6 @@ export default function Store() {
 
       </main>
 
-      {/* Footer / Contact */}
       <footer className="mt-12 py-12 border-t border-border/50 flex flex-col items-center gap-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center">
@@ -233,6 +217,8 @@ export default function Store() {
           <a href="#" className="text-[10px] font-black text-muted-foreground uppercase tracking-widest hover:text-white transition-colors">Termos de Uso</a>
         </div>
       </footer>
+
+      <CartDrawer />
     </div>
   );
 }

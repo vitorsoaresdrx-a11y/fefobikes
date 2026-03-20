@@ -15,7 +15,10 @@ import {
   Settings,
   CreditCard,
   List,
+  ShoppingBag,
 } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
+import { CartDrawer } from "@/components/shop/CartDrawer";
 import {
   Carousel,
   CarouselContent,
@@ -134,16 +137,6 @@ function PriceSection({ product }: { product: any }) {
             <ShieldCheck size={14} className="text-emerald-500" />
             Pagamento Seguro
           </div>
-          <Btn 
-            variant="primary" 
-            className="w-full mt-8 h-14 uppercase tracking-widest"
-            onClick={() => {
-              const whatsappUrl = `https://wa.me/5515996128054?text=${encodeURIComponent(`Olá, tenho interesse no produto ${product.name} (SKU: ${product.sku || ""})`)}`;
-              window.open(whatsappUrl, "_blank");
-            }}
-          >
-            Tenho Interesse <ArrowRight className="ml-2 w-4 h-4" />
-          </Btn>
         </div>
       )}
 
@@ -456,9 +449,35 @@ export default function ProdutoPublico() {
             </span>
           </div>
         </section>
+
+        {/* Call to Action Final */}
+        <section className="pt-10 space-y-4">
+          <Btn 
+            variant="primary" 
+            className="w-full h-16 uppercase tracking-[0.2em] shadow-2xl flex gap-3"
+            onClick={() => {
+              const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
+              useCart.getState().addItem(product, price);
+              import("sonner").then(({ toast }) => toast.success("Adicionado ao carrinho!"));
+            }}
+          >
+            <ShoppingBag size={20} /> Adicionar ao Carrinho
+          </Btn>
+          
+          <button 
+            className="w-full h-14 rounded-2xl border border-border bg-transparent text-muted-foreground font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+            onClick={() => {
+              const whatsappUrl = `https://wa.me/5515996128054?text=${encodeURIComponent(`Olá, tenho interesse no produto ${product.name} (SKU: ${product.sku || ""})`)}`;
+              window.open(whatsappUrl, "_blank");
+            }}
+          >
+            Tenho Interesse <ArrowRight className="ml-2 w-4 h-4 inline" />
+          </button>
+        </section>
       </main>
 
       <Footer />
+      <CartDrawer />
     </div>
   );
 }
