@@ -33,11 +33,10 @@ import { toast } from "sonner";
 const mobileColumns = [
   { key: "pending" as const, label: "Pendentes", icon: Clock, color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20" },
   { key: "accepted" as const, label: "Em Andamento", icon: Wrench, color: "text-indigo-400", bg: "bg-indigo-400/5", border: "border-indigo-400/20" },
-  { key: "done" as const, label: "Concluídos", icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-400/5", border: "border-emerald-400/20" },
 ];
 
 export default function Mecanicos() {
-  const { data: orders = [], isLoading } = useServiceOrders(["pending", "accepted", "done"]);
+  const { data: orders = [], isLoading } = useServiceOrders(["pending", "accepted"]);
   const acceptOrder = useAcceptServiceOrder();
   const finishOrder = useFinishServiceOrder();
   const { data: mechanics = [] } = useActiveMechanics();
@@ -58,18 +57,7 @@ export default function Mecanicos() {
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
   const [detailOrder, setDetailOrder] = useState<ServiceOrder | null>(null);
   const [frameNumbers, setFrameNumbers] = useState<Record<string, string>>({});
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
-  const [mobileTab, setMobileTab] = useState<"pending" | "accepted" | "done">("pending");
-
-  useEffect(() => {
-    const doneOrders = orders.filter((o) => o.mechanic_status === "done" && !hiddenIds.has(o.id));
-    doneOrders.forEach((o) => {
-      const timer = setTimeout(() => {
-        setHiddenIds((prev) => new Set(prev).add(o.id));
-      }, 10000);
-      return () => clearTimeout(timer);
-    });
-  }, [orders, hiddenIds]);
+  const [mobileTab, setMobileTab] = useState<"pending" | "accepted">("pending");
 
   const handleAcceptClick = (order: ServiceOrder) => {
     setSelectedOrder(order);
@@ -134,12 +122,10 @@ export default function Mecanicos() {
     }
   };
 
-  const visibleOrders = orders.filter((o) => !hiddenIds.has(o.id));
-  const pending = visibleOrders.filter((o) => o.mechanic_status === "pending");
-  const accepted = visibleOrders.filter((o) => o.mechanic_status === "accepted");
-  const done = visibleOrders.filter((o) => o.mechanic_status === "done");
+  const pending = orders.filter((o) => o.mechanic_status === "pending");
+  const accepted = orders.filter((o) => o.mechanic_status === "accepted");
 
-  const grouped: Record<string, ServiceOrder[]> = { pending, accepted, done };
+  const grouped: Record<string, ServiceOrder[]> = { pending, accepted };
 
   // Observação discreta sempre visível no card
   const renderInlineObservation = (order: ServiceOrder) => {
@@ -253,8 +239,7 @@ export default function Mecanicos() {
       );
     }
     if (key === "pending") return list.map(renderPendingCard);
-    if (key === "accepted") return list.map(renderAcceptedCard);
-    return list.map(renderDoneCard);
+    return list.map(renderAcceptedCard);
   };
 
   return (
@@ -273,7 +258,7 @@ export default function Mecanicos() {
           <p className="text-muted-foreground font-medium text-sm">Ordens de serviço em tempo real</p>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="bg-card border border-amber-400/20 p-4 rounded-2xl">
             <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Pendentes</p>
             <p className="text-2xl font-black text-amber-400">{pending.length}</p>
@@ -281,10 +266,6 @@ export default function Mecanicos() {
           <div className="bg-card border border-indigo-400/20 p-4 rounded-2xl">
             <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Em Andamento</p>
             <p className="text-2xl font-black text-indigo-400">{accepted.length}</p>
-          </div>
-          <div className="bg-card border border-emerald-400/20 p-4 rounded-2xl">
-            <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Concluídos</p>
-            <p className="text-2xl font-black text-emerald-400">{done.length}</p>
           </div>
         </div>
 
@@ -347,17 +328,6 @@ export default function Mecanicos() {
               </section>
             </div>
 
-            {done.length > 0 && (
-              <div className="hidden md:block mt-6 space-y-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-400" />
-                  <h2 className="text-xs font-black text-emerald-400 uppercase tracking-widest">Concluídos Recentemente</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {done.map(renderDoneCard)}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
