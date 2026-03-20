@@ -289,6 +289,10 @@ function JobCard({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleAdvance = () => {
+    if (isLast) {
+      if (!confirm("Deseja finalizar esta manutenção? O card será removido da oficina e permanecerá no histórico.")) return;
+    }
+
     if (onAdvance) {
       onAdvance(job);
     } else {
@@ -301,6 +305,9 @@ function JobCard({
               phone: formattedPhone,
               message: `Sua bicicleta (${job.bike_name || "sua bike"}) está pronta! Pode vir retirar.`
             });
+          }
+          if (isLast) {
+            toast.success("Serviço finalizado e arquivado!");
           }
           if (onSuccessAdvance) onSuccessAdvance(job);
         },
@@ -417,15 +424,15 @@ function JobCard({
               </button>
             )}
             
-            {!isLast && (
-              <button 
-                onClick={handleAdvance} 
-                disabled={advanceMutation.isPending} 
-                className="h-9 px-3 rounded-xl bg-primary shadow-lg shadow-primary/20 hover:bg-primary/90 text-white text-[10px] font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 uppercase tracking-wider"
-              >
-                {advanceMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <> <span className="hidden lg:inline xl:hidden 2xl:inline">Avançar</span> <ChevronRight size={14} /></>}
-              </button>
-            )}
+            <button 
+              onClick={handleAdvance} 
+              disabled={advanceMutation.isPending} 
+              className={`h-9 px-3 rounded-xl shadow-lg text-white text-[10px] font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 uppercase tracking-wider ${isLast ? "bg-emerald-500 shadow-emerald-500/20 hover:bg-emerald-600" : "bg-primary shadow-primary/20 hover:bg-primary/90"}`}
+            >
+              {advanceMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : (
+                isLast ? <><span className="hidden lg:inline xl:hidden 2xl:inline">Finalizar</span> <Check size={14} /></> : <><span className="hidden lg:inline xl:hidden 2xl:inline">Avançar</span> <ChevronRight size={14} /></>
+              )}
+            </button>
           </div>
         </div>
       </div>

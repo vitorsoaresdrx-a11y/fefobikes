@@ -133,6 +133,8 @@ export function useAdvanceMechanicJob() {
           ? "in_analysis"
           : status === "in_analysis"
           ? "ready"
+          : status === "ready"
+          ? "delivered"
           : null;
       if (!nextStatus) throw new Error("Already at final status");
       const { error } = await supabase
