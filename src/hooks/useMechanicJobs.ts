@@ -29,7 +29,7 @@ export interface MechanicJob {
   bike_name: string | null;
   problem: string;
   price: number;
-  status: "in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready";
+  status: "in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready" | "delivered";
   created_at: string;
   updated_at: string;
   additions?: MechanicJobAddition[];
@@ -59,10 +59,12 @@ export function useMechanicJobs() {
         addMap.get(a.job_id)!.push(a);
       });
 
-      return (jobs as unknown as MechanicJob[]).map((j) => ({
-        ...j,
-        additions: addMap.get(j.id) || [],
-      }));
+      return (jobs as unknown as MechanicJob[])
+        .filter((j) => j.status !== "delivered")
+        .map((j) => ({
+          ...j,
+          additions: addMap.get(j.id) || [],
+        }));
     },
   });
 }
