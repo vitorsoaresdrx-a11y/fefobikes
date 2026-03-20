@@ -10,7 +10,8 @@ import {
   Bot,
   Cpu,
   Loader2,
-  ChevronDown
+  ChevronDown,
+  ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -29,7 +30,7 @@ export function StoreChat() {
     mutationFn: async ({ message, history }: { message: string, history: ChatMessage[] }) => {
       console.log("Calling store-ai-chat...", { message, history });
       const { data, error } = await supabase.functions.invoke("store-ai-chat", {
-        body: { message, history: history.slice(-5) } // Send last 5 for context
+        body: { message, history: history.slice(-5) }
       });
       if (error) {
         console.error("AI Invoke Error:", error);
@@ -38,12 +39,11 @@ export function StoreChat() {
       return data.response as string;
     },
     onSuccess: (response) => {
-      console.log("AI Response:", response);
       setHistory((prev) => [...prev, { role: "assistant", content: response }]);
     },
     onError: (err) => {
       console.error("AI Mutation Error:", err);
-      import("sonner").then(({ toast }) => toast.error("A IA está descansando um pouco. Tente novamente em alguns segundos."));
+      // import("sonner").then(({ toast }) => toast.error("Serviço temporariamente indisponível."));
     }
   });
 
@@ -61,6 +61,31 @@ export function StoreChat() {
     }
   }, [history]);
 
+  const formatMessage = (content: string) => {
+    // Regex para encontrar URLs comuns e bit.ly
+    const urlRegex = /((https?:\/\/[^\s]+)|(bit\.ly\/[^\s]+))/g;
+    const parts = content.split(urlRegex);
+    
+    return parts.map((part, i) => {
+      if (!part) return null;
+      if (part.match(urlRegex)) {
+        const href = part.startsWith("http") ? part : `https://${part}`;
+        return (
+          <a 
+            key={i} 
+            href={href} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-lg underline decoration-white/30 hover:decoration-white transition-all font-black"
+          >
+            {part} <ExternalLink size={10} />
+          </a>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
   return (
     <div className="fixed bottom-6 left-6 z-[60]">
       <AnimatePresence>
@@ -75,7 +100,7 @@ export function StoreChat() {
             <header className="bg-primary p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
-                  <Sparkles size={20} />
+                  <Bot size={24} />
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-white italic uppercase tracking-tight">Fefo AI</h3>
@@ -112,12 +137,12 @@ export function StoreChat() {
                   key={i} 
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm font-medium leading-relaxed ${
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm font-medium leading-relaxed whitespace-pre-wrap ${
                     msg.role === "user" 
-                      ? "bg-primary text-white rounded-br-none" 
+                      ? "bg-primary text-white rounded-br-none shadow-lg shadow-primary/20" 
                       : "bg-card border border-border/50 text-foreground rounded-bl-none"
                   }`}>
-                    {msg.content}
+                    {msg.role === "assistant" ? formatMessage(msg.content) : msg.content}
                   </div>
                 </div>
               ))}

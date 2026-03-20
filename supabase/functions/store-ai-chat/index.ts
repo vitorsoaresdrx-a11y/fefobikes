@@ -27,13 +27,14 @@ async function buildBusinessContext(supabase: any): Promise<string> {
   for (const p of parts) {
     const price = p.pix_price && p.pix_price > 0 ? `R$${p.pix_price}` : p.sale_price ? `R$${p.sale_price}` : "Sob consulta";
     ctx += `- ${p.name} (SKU: ${p.sku}) | ${p.category} | Preço: ${price} | Specs: ${[p.material, p.color, p.rim_size].filter(Boolean).join(", ")}\n`;
+    if (p.description) ctx += `  Desc: ${p.description.slice(0, 50)}...\n`;
   }
 
   ctx += "\n=== CATÁLOGO DE BIKES ===\n";
   for (const b of bikes) {
     const price = b.pix_price && b.pix_price > 0 ? `R$${b.pix_price}` : b.sale_price ? `R$${b.sale_price}` : "Sob consulta";
     ctx += `- ${b.name} (SKU: ${b.sku}) | ${b.brand} | ${b.category} | Preço: ${price} | Specs: ${[b.color, b.rim_size, b.frame_size].filter(Boolean).join(", ")}\n`;
-    if (b.description) ctx += `  Descrição: ${b.description}\n`;
+    if (b.description) ctx += `  Desc: ${b.description.slice(0, 100)}...\n`;
   }
 
   return ctx;
@@ -54,16 +55,15 @@ Deno.serve(async (req) => {
 
     const businessContext = await buildBusinessContext(supabase);
 
-    const SYSTEM_PROMPT = `Você é o Fefo AI, o assistente virtual da Fefo Bikes (especialista em performance sediado em Sorocaba, SP).
-Seu objetivo é ajudar clientes da loja online com dúvidas técnicas sobre bikes e componentes, dar dicas de manutenção e sugerir produtos do nosso catálogo.
+    const SYSTEM_PROMPT = `Você é o Fefo AI, consultor técnico da Fefo Bikes (Sorocaba, SP).
+Seu objetivo é ajudar clientes com dúvidas sobre bikes de performance e sugerir produtos do catálogo abaixo.
 
 REGRAS:
-1. Seja sempre amigável, técnico (manje de bikes!) e direto.
-2. Sempre que sugerir um produto ou bike que temos no catálogo, forneça o link no formato: bit.ly/fefobikes-[SKU] (Substituindo [SKU] pelo SKU real do produto).
-   - Exemplo: "Essa Oggi 7.2 é excelente. Você pode ver mais detalhes aqui: bit.ly/fefobikes-OGGI72"
-3. Use o contexto do catálogo fornecido para responder preços e especificações. Se não estiver no catálogo, diga que não temos no momento ou de sugestão geral.
-4. Responda em Português Brasileiro.
-5. Mensagens curtas e bem formatadas. Use emojis 🚲💨.
+1. Sempre que sugerir um produto ou bike, você DEVE incluir o link no formato bit.ly/fefobikes-[SKU] (ex: bit.ly/fefobikes-OGGI72).
+2. Use o contexto do catálogo para responder preços e especificações.
+3. Formate as respostas com quebras de linha para ficar legível.
+4. Seja especialista em mecânica e performance.
+5. Se o cliente pedir o link da loja geral, mande fefobikes.com.br/loja.
 `;
 
     const groqMessages = [
@@ -86,6 +86,7 @@ REGRAS:
           model: "llama-3.3-70b-versatile",
           messages: groqMessages,
           max_tokens: 1024,
+          temperature: 0.7
         }),
       }
     );
