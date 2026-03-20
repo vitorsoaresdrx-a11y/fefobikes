@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const phone = job.customer_whatsapp?.replace(/\D/g, "");
     if (!phone) throw new Error("Customer phone not found");
 
-    const totalAdicional = pecas.reduce((acc: number, p: any) => acc + (p.valor * p.quantidade), 0);
+    const totalAdicional = pecas.reduce((acc: number, p: any) => acc + ((p.valor || p.unit_price || 0) * (p.quantidade || p.quantity || 0)), 0);
 
     // 2. Format message with IA
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
     const formattedMessage = aiData.choices?.[0]?.message?.content?.trim();
 
     // 3. Send WhatsApp via Evolution API
-    const instName = "fefo-default"; // Fallback to default
+    const instName = job.tenant_id ? instanceName(job.tenant_id) : "fefo-default";
     const formattedPhone = (phone.length >= 10 && phone.length <= 11) ? `55${phone}` : phone;
 
     const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
     if (!evoRes.ok) {
       const err = await evoRes.text();
       console.error("Evolution API error:", err);
-      throw new Error(`Falha no envio do WhatsApp: ${err}`);
+      throw new Error(`Falha no envio do WhatsApp (Evolution API): ${err}`);
     }
 
     // 4. Move card to 'in_approval'
@@ -101,9 +101,10 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("formatar-adicional error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: corsHeaders
+    // Return 200 with error property so frontend client doesn't hide behind 'non-2xx' error wrapper!
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
+      status: 200, 
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }
 });
