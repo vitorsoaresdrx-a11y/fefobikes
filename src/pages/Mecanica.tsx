@@ -1,9 +1,19 @@
-import { useState, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
-import type { Customer } from "@/hooks/useCustomers";
-import { maskPhone, maskCpfCnpj } from "@/lib/masks";
+import {
+  useMechanicJobs,
+  useMechanicJobsRealtime,
+  useCreateMechanicJob,
+  useAdvanceMechanicJob,
+  useDeleteMechanicJob,
+  useCreateAddition,
+  useUpdateAdditionApproval,
+  useRetreatMechanicJob,
+  useUpdateMechanicJobDetails,
+  useUpdateAddition,
+  useDeleteAddition,
+  type MechanicJob,
+  type MechanicJobAddition,
+  type AdditionPart,
+} from "@/hooks/useMechanicJobs";
 import {
   Wrench,
   Settings,
@@ -620,6 +630,7 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
 export default function Mecanica() {
   const navigate = useNavigate();
   const { data: jobs = [], isLoading } = useMechanicJobs();
+  useMechanicJobsRealtime();
   const create = useCreateMechanicJob();
   const createServiceOrder = useCreateServiceOrder();
   const createAddition = useCreateAddition();
