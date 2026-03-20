@@ -1841,6 +1841,7 @@ export type Database = {
           contact_photo: string | null
           created_at: string
           id: string
+          instance_name: string | null
           last_message: string | null
           last_message_at: string | null
           status: string
@@ -1855,6 +1856,7 @@ export type Database = {
           contact_photo?: string | null
           created_at?: string
           id?: string
+          instance_name?: string | null
           last_message?: string | null
           last_message_at?: string | null
           status?: string
@@ -1869,6 +1871,7 @@ export type Database = {
           contact_photo?: string | null
           created_at?: string
           id?: string
+          instance_name?: string | null
           last_message?: string | null
           last_message_at?: string | null
           status?: string
@@ -1884,6 +1887,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      whatsapp_instance_settings: {
+        Row: {
+          ai_enabled: boolean
+          instance_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean
+          instance_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean
+          instance_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       whatsapp_messages: {
         Row: {
@@ -2188,6 +2209,9 @@ export type Database = {
         | "clientes"
         | "whatsapp"
         | "configuracoes"
+        | "orcamentos"
+        | "mecanicos"
+        | "mecanicos_historico"
       tenant_role: "owner" | "member"
     }
     CompositeTypes: {
@@ -2330,6 +2354,9 @@ export const Constants = {
         "clientes",
         "whatsapp",
         "configuracoes",
+        "orcamentos",
+        "mecanicos",
+        "mecanicos_historico",
       ],
       tenant_role: ["owner", "member"],
     },
