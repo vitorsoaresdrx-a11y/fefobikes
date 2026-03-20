@@ -1,11 +1,14 @@
 import { useCart } from "@/hooks/useCart";
 import { Drawer } from "vaul";
-import { ShoppingBag, X, Plus, Minus, Send, Bike } from "lucide-react";
+import { ShoppingBag, X, Plus, Minus, Send, Bike, ChevronRight } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
 
 export function CartDrawer() {
-  const { items, removeItem, updateQuantity, total, clearCart } = useCart();
+  const { items, removeItem, updateQuantity } = useCart();
+  
+  const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
+  const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
 
   const handleCheckout = () => {
     const itemsList = items.map(i => `- ${i.quantity}x ${i.name} (${formatBRL(i.price)})`).join('\n');
@@ -14,17 +17,28 @@ export function CartDrawer() {
     window.open(url, "_blank");
   };
 
+  if (items.length === 0) return null;
+
   return (
     <Drawer.Root>
       <Drawer.Trigger asChild>
-        <button className="fixed bottom-6 right-6 z-[60] h-16 w-16 bg-primary rounded-full shadow-2xl flex items-center justify-center text-white active:scale-95 transition-all group border-4 border-background">
-          <ShoppingBag size={24} className="group-hover:rotate-12 transition-transform" />
-          {items.length > 0 && (
-            <span className="absolute -top-1 -right-1 h-6 w-6 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-background">
-              {items.length}
-            </span>
-          )}
-        </button>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-sm px-4">
+          <button className="w-full h-14 bg-emerald-500 rounded-2xl shadow-2xl flex items-center justify-between px-6 text-white active:scale-95 transition-all group border-2 border-background animate-in fade-in slide-in-from-bottom-5">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <ShoppingBag size={20} className="group-hover:rotate-12 transition-transform" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-white text-emerald-600 rounded-full flex items-center justify-center text-[8px] font-black">
+                  {totalItems}
+                </span>
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest italic">Ver Carrinho</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black">{formatBRL(total)}</span>
+              <ChevronRight size={16} className="opacity-50" />
+            </div>
+          </button>
+        </div>
       </Drawer.Trigger>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]" />
@@ -41,51 +55,43 @@ export function CartDrawer() {
               </Drawer.Close>
             </div>
 
-            {items.length === 0 ? (
-              <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 opacity-30">
-                <ShoppingBag size={64} strokeWidth={1} />
-                <p className="text-sm font-black uppercase tracking-widest">Carrinho vazio</p>
-                <p className="text-xs font-medium">Adicione itens da loja para continuar.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.id} className="bg-card border border-border/50 rounded-3xl p-4 flex gap-4 items-center group">
-                    <div className="h-20 w-20 rounded-2xl overflow-hidden bg-muted/20 shrink-0">
-                      {item.image ? (
-                        <img src={getOptimizedImageUrl(item.image, 200) || item.image} alt={item.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                          <Bike size={24} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <h3 className="text-sm font-bold text-white line-clamp-1">{item.name}</h3>
-                      <p className="text-primary font-black text-sm">{formatBRL(item.price)}</p>
-                      
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center gap-3 bg-background/50 rounded-xl p-1 border border-border/50">
-                          <button onClick={() => updateQuantity(item.id, -1)} className="h-6 w-6 rounded-lg bg-secondary flex items-center justify-center text-white"><Minus size={12} /></button>
-                          <span className="text-[10px] font-black text-white w-4 text-center">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.id, 1)} className="h-6 w-6 rounded-lg bg-secondary flex items-center justify-center text-white"><Plus size={12} /></button>
-                        </div>
-                        <button onClick={() => removeItem(item.id)} className="text-[10px] font-black text-destructive/50 uppercase tracking-widest hover:text-destructive">Remover</button>
+            <div className="space-y-4">
+              {items.map((item) => (
+                <div key={item.id} className="bg-card border border-border/50 rounded-3xl p-4 flex gap-4 items-center group">
+                  <div className="h-20 w-20 rounded-2xl overflow-hidden bg-muted/20 shrink-0">
+                    {item.image ? (
+                      <img src={getOptimizedImageUrl(item.image, 200) || item.image} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                        <Bike size={24} />
                       </div>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <h3 className="text-sm font-bold text-white line-clamp-1">{item.name}</h3>
+                    <p className="text-primary font-black text-sm">{formatBRL(item.price)}</p>
+                    
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-3 bg-background/50 rounded-xl p-1 border border-border/50">
+                        <button onClick={() => updateQuantity(item.id, -1)} className="h-6 w-6 rounded-lg bg-secondary flex items-center justify-center text-white"><Minus size={12} /></button>
+                        <span className="text-[10px] font-black text-white w-4 text-center">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.id, 1)} className="h-6 w-6 rounded-lg bg-secondary flex items-center justify-center text-white"><Plus size={12} /></button>
+                      </div>
+                      <button onClick={() => removeItem(item.id)} className="text-[10px] font-black text-destructive/50 uppercase tracking-widest hover:text-destructive">Remover</button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="p-6 md:p-8 bg-secondary/50 border-t border-border space-y-4">
-            <div className="flex items-center justify-between text-muted-foreground">
-              <span className="text-xs font-bold uppercase tracking-widest">Subtotal</span>
-              <span className="font-bold">{formatBRL(total)}</span>
+            <div className="flex items-center justify-between text-muted-foreground border-b border-border/10 pb-4">
+              <span className="text-xs font-bold uppercase tracking-widest">Resumo do Pedido</span>
+              <span className="text-xs font-black text-white">{totalItems} itens</span>
             </div>
-            <div className="flex items-center justify-between text-white border-t border-border pt-4">
-              <span className="text-sm font-black uppercase tracking-[0.2em]">Total</span>
+            <div className="flex items-center justify-between text-white pt-2">
+              <span className="text-sm font-black uppercase tracking-[0.2em] italic">Total</span>
               <span className="text-2xl font-black text-primary">{formatBRL(total)}</span>
             </div>
             

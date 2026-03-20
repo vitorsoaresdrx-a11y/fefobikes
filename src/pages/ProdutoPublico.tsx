@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { CartDrawer } from "@/components/shop/CartDrawer";
+import { StoreChat } from "@/components/shop/StoreChat";
 import {
   Carousel,
   CarouselContent,
@@ -478,6 +479,7 @@ export default function ProdutoPublico() {
 
       <Footer />
       <CartDrawer />
+      <StoreChat />
     </div>
   );
 }

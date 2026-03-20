@@ -16,7 +16,6 @@ interface CartStore {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   clearCart: () => void;
-  total: number;
 }
 
 export const useCart = create<CartStore>()(
@@ -44,9 +43,6 @@ export const useCart = create<CartStore>()(
         items: get().items.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i)
       }),
       clearCart: () => set({ items: [] }),
-      get total() {
-        return get().items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
-      }
     }),
     { name: "fefo-cart" }
   )

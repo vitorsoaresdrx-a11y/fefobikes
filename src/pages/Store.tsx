@@ -15,6 +15,7 @@ import {
 import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
 import { CartDrawer } from "@/components/shop/CartDrawer";
+import { StoreChat } from "@/components/shop/StoreChat";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -219,6 +220,7 @@ export default function Store() {
       </footer>
 
       <CartDrawer />
+      <StoreChat />
     </div>
   );
 }
