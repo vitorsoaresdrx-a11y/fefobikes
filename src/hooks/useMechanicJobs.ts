@@ -92,7 +92,7 @@ export function useMechanicJobsRealtime() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, []);
 }
 
 export function useCreateMechanicJob() {
