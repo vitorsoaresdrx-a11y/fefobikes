@@ -68,24 +68,24 @@ function isBusinessHours(): { open: boolean; message: string } {
   return { open: false, message: "Nosso horário é de segunda a sexta das 9h às 18h e sábados das 9h às 14h." };
 }
 
-const SYSTEM_PROMPT = `Você é a assistente virtual da Fefo Bikes, uma loja especializada em bikes de alta performance em Sorocaba, SP.
+const SYSTEM_PROMPT = `Você é um atendente da Fefo Bikes. Responda de forma direta e natural, como um humano faria.
 
-Seu papel é atender clientes pelo WhatsApp com simpatia, objetividade e conhecimento técnico sobre ciclismo.
+Regras:
+- Responda apenas o que foi perguntado.
+- Não sugira produtos sem o cliente demonstrar interesse explícito.
+- Sem apresentações longas ou listas de opções não solicitadas.
+- Tom casual, sem exageros de entusiasmo.
+- Seja breve.
+- O resultado esperado para a abertura (ou se a pessoa só der um oi) é apenas: "Olá! Como posso ajudar?"
 
 Você tem acesso ao catálogo completo de bikes e peças da loja (fornecido no contexto), pode calcular frete via transportadora Rodonaves e consultar ordens de serviço da oficina.
 
-Regras:
-- Sempre que um cliente perguntar sobre frete ou envio, ANTES de calcular, pergunte o CEP de destino, se ele quer a bike completa montada ou somente o quadro, e o valor do produto
-- Só chame a tool calcular_frete após ter os três dados confirmados: CEP, tipo de carga e valor do produto
-- Quando o cliente perguntar sobre o status da bike dele na oficina, use a tool consultar_ordem_servico
-- Responda sempre em português brasileiro, de forma direta e amigável
-- Para dúvidas técnicas sobre bikes, use seu conhecimento geral de ciclismo
-- Se não souber responder algo, diga que vai verificar e que um atendente entrará em contato
-- Nunca invente preços ou disponibilidade — use apenas o contexto fornecido
-- Se houver promoções ativas relevantes ao que o cliente pergunta, mencione-as proativamente
-- Mensagens curtas e diretas, sem excessos
-- Use emojis com moderação para um tom amigável 🚴
-- IMPORTANTE: quando a resposta for enviada como áudio, mantenha o texto AINDA MAIS curto e conversacional, como se estivesse falando normalmente. Evite listas e formatação markdown.`;
+Lembre-se:
+- Sempre peça o CEP, tipo de carga e valor do produto antes de calcular frete.
+- Use a tool consultar_ordem_servico para status de oficina.
+- Se não souber algo, diga que vai verificar.
+- Use emojis com moderação 🚴.
+- Respostas em áudio devem ser AINDA mais concisas e conversacionais.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -181,6 +181,58 @@ Deno.serve(async (req) => {
     ];
 
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
+
+    // INITIAL CLASSIFICATION STEP
+    const classificationRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          { role: "system", content: 'Classifique a mensagem abaixo em uma categoria:\n- CONFIRMACAO: agradecimentos, "ok", "entendi", "obrigado", "👍", confirmações simples\n- DUVIDA: perguntas, solicitações, reclamações, qualquer coisa que exige resposta\n\nResponda apenas: CONFIRMACAO ou DUVIDA' },
+          { role: "user", content: `Mensagem: "${message}"` }
+        ],
+        max_tokens: 10,
+        temperature: 0,
+      }),
+    });
+
+    if (classificationRes.ok) {
+      const classData = await classificationRes.json();
+      const intent = classData.choices?.[0]?.message?.content?.trim()?.toUpperCase();
+      
+      if (intent === "CONFIRMACAO") {
+        console.log("Intent classified as CONFIRMACAO. Skipping main flow.");
+        const responseText = "😊";
+        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+        
+        // Simple text response for confirmations
+        const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+          method: "POST",
+          headers: evoHeaders(),
+          body: JSON.stringify({ number: phone, text: responseText }),
+        });
+        const evoData = await evoRes.json();
+
+        // Save to DB
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationId,
+          message_id: evoData?.key?.id || null,
+          from_me: true,
+          type: "text",
+          content: responseText,
+          status: "sent",
+          tenant_id: tenantId,
+        });
+
+        return new Response(JSON.stringify({ ok: true, skipped: "confirmation_intent" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+      }
+    }
 
     // Call Groq with tool calling
     let groqResponse = await fetch(
