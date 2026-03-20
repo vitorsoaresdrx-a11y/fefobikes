@@ -157,7 +157,6 @@ function StatusBadge({ status, color, bg, border, icon: Icon }: any) {
 }
 
 function AdditionBadge({ addition, showActions }: { addition: MechanicJobAddition; showActions: boolean }) {
-  const qc = supabase;
   const updateApproval = useUpdateAdditionApproval();
   const total = getAdditionTotal(addition);
 
@@ -165,20 +164,25 @@ function AdditionBadge({ addition, showActions }: { addition: MechanicJobAdditio
     updateApproval.mutate({ id: addition.id, approval: status, is_v2: (addition as any).is_v2 });
   };
 
+  const approvalColor =
+    addition.approval === "accepted" ? "border-emerald-500/30 bg-emerald-500/5"
+    : addition.approval === "refused" ? "border-destructive/30 bg-destructive/5"
+    : "border-amber-500/30 bg-amber-500/5";
+
   return (
-    <div className="p-3 bg-muted/30 rounded-2xl border border-border/40 space-y-2">
+    <div className={`p-3 rounded-2xl border space-y-2 ${approvalColor}`}>
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-foreground/90 truncate">{addition.problem}</p>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="text-[10px] font-black text-primary">{formatBRL(total)}</span>
-            {addition.approval === "accepted" && <span className="text-[8px] font-black text-emerald-500 uppercase">Aprovado</span>}
-            {addition.approval === "refused" && <span className="text-[8px] font-black text-destructive uppercase">Recusado</span>}
-            {addition.approval === "pending" && <span className="text-[8px] font-black text-amber-500 uppercase italic animate-pulse">Aprovação Pendente</span>}
+            {addition.approval === "accepted" && <span className="text-[8px] font-black text-emerald-500 uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded-full">✓ Aprovado</span>}
+            {addition.approval === "refused" && <span className="text-[8px] font-black text-destructive uppercase bg-destructive/10 px-1.5 py-0.5 rounded-full">✗ Recusado</span>}
+            {addition.approval === "pending" && <span className="text-[8px] font-black text-amber-500 uppercase bg-amber-500/10 px-1.5 py-0.5 rounded-full animate-pulse">⏳ Pendente</span>}
           </div>
         </div>
         {showActions && addition.approval === "pending" && (
-          <div className="flex gap-1.5 ml-3">
+          <div className="flex gap-1.5 ml-3 shrink-0">
             <button onClick={() => handleApproval("refused")} className="w-8 h-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-all" title="Recusar">
               <X size={14} />
             </button>
@@ -294,21 +298,20 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
                 <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">Falta {formatBRL(job.payment.valor_restante)}</span>
               )}
 
-              {/* Badges do Orçamento Adicional */}
-              {job.additions && job.additions.length > 0 && (
-                (() => {
-                  const hasPending = job.additions.some(a => a.approval === "pending");
-                  const hasRefused = job.additions.some(a => a.approval === "refused");
-                  
-                  if (hasPending) {
-                    return <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20 italic animate-pulse">Adic. Pendente</span>;
-                  }
-                  if (hasRefused) {
-                    return <span className="bg-destructive/10 text-destructive text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-destructive/20">Adic. Negado</span>;
-                  }
-                  return <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-500/20">Adic. Aprovado</span>;
-                })()
-              )}
+            {/* Badge compacto de status do reparo adicional — ao lado do valor */}
+            {job.additions && job.additions.some(a => (a as any).is_v2) && (
+              (() => {
+                const v2Additions = job.additions.filter(a => (a as any).is_v2);
+                const hasPending = v2Additions.some(a => a.approval === "pending");
+                const hasRefused = v2Additions.some(a => a.approval === "refused");
+                const allAccepted = v2Additions.every(a => a.approval === "accepted");
+                
+                if (hasPending) return <span className="shrink-0 bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20 animate-pulse whitespace-nowrap">Adic. Pendente</span>;
+                if (hasRefused) return <span className="shrink-0 bg-destructive/10 text-destructive text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-destructive/20 whitespace-nowrap">Adic. Negado</span>;
+                if (allAccepted) return <span className="shrink-0 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-500/20 whitespace-nowrap">Adic. Aprovado</span>;
+                return null;
+              })()
+            )}
             </div>
           </div>
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
