@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { maskPhone, maskCpfCnpj } from "@/lib/masks";
 import { addToQueue, getQueueCount } from "@/lib/offline-queue";
 import {
   Search,
@@ -1123,15 +1124,15 @@ export default function PDV() {
                         placeholder="WhatsApp (11) 99999-9999"
                         className="h-12 px-4"
                         value={custWhatsapp}
-                        onChange={(e) => setCustWhatsapp(e.target.value)}
-                        maxLength={20}
+                        onChange={(e) => setCustWhatsapp(maskPhone(e.target.value))}
+                        maxLength={15}
                       />
                       <InputEl
                         placeholder="CPF 000.000.000-00"
                         className="h-12 px-4"
                         value={custCpf}
-                        onChange={(e) => setCustCpf(e.target.value)}
-                        maxLength={14}
+                        onChange={(e) => setCustCpf(maskCpfCnpj(e.target.value))}
+                        maxLength={18}
                       />
                       <InputEl
                         placeholder="CEP 00000-000"
