@@ -1,3 +1,9 @@
+import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
+import type { Customer } from "@/hooks/useCustomers";
+import { maskPhone, maskCpfCnpj } from "@/lib/masks";
 import {
   useMechanicJobs,
   useMechanicJobsRealtime,
@@ -51,28 +57,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  useMechanicJobs,
-  useCreateMechanicJob,
-  useAdvanceMechanicJob,
-  useDeleteMechanicJob,
-  useCreateAddition,
-  useUpdateAdditionApproval,
-  useRetreatMechanicJob,
-  useUpdateMechanicJobDetails,
-  useUpdateAddition,
-  useDeleteAddition,
-  type MechanicJob,
-  type MechanicJobAddition,
-  type AdditionPart,
-} from "@/hooks/useMechanicJobs";
 import { useParts } from "@/hooks/useParts";
 import { useServiceOrdersRealtime, useCreateServiceOrder, type ServiceOrder } from "@/hooks/useServiceOrders";
 import { playNotifySound, playAcceptSound } from "@/lib/sounds";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
-
 import { formatBRL } from "@/lib/format";
 
 function getAdditionTotal(a: MechanicJobAddition) {
@@ -866,7 +855,6 @@ export default function Mecanica() {
         )}
       </div>
 
-      {/* Nova Manutenção Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
@@ -921,7 +909,6 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
 
-      {/* Add Repair Modal */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
@@ -969,7 +956,6 @@ export default function Mecanica() {
 
       <EditJobModal open={editOpen} onOpenChange={setEditOpen} editJob={editJob} editForm={editForm} setEditForm={setEditForm} onSave={handleSaveEdit} isSaving={updateDetails.isPending} />
 
-      {/* Na Mecânica Modal */}
       <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[85vh]">
           <div className="overflow-y-auto max-h-[85vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
