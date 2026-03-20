@@ -33,6 +33,12 @@ export interface MechanicJob {
   created_at: string;
   updated_at: string;
   additions?: MechanicJobAddition[];
+  payment?: {
+    tipo: 'integral' | 'parcial' | 'nenhum';
+    valor_pago: number;
+    valor_restante: number;
+    valor_total: number;
+  } | null;
 }
 
 const KEY = ["mechanic_jobs"];
@@ -53,17 +59,26 @@ export function useMechanicJobs() {
         .order("created_at", { ascending: true });
       if (addErr) throw addErr;
 
+      const { data: payments, error: payErr } = await supabase
+        .from("os_pagamentos" as any)
+        .select("*");
+      if (payErr) console.warn("os_pagamentos table might not exist yet:", payErr);
+
       const addMap = new Map<string, MechanicJobAddition[]>();
       (additions as unknown as MechanicJobAddition[]).forEach((a) => {
         if (!addMap.has(a.job_id)) addMap.set(a.job_id, []);
         addMap.get(a.job_id)!.push(a);
       });
 
+      const payMap = new Map<string, any>();
+      (payments || []).forEach((p: any) => payMap.set(p.os_id, p));
+
       return (jobs as unknown as MechanicJob[])
         .filter((j) => j.status !== "delivered")
         .map((j) => ({
           ...j,
           additions: addMap.get(j.id) || [],
+          payment: payMap.get(j.id) || null,
         }));
     },
   });
@@ -109,13 +124,31 @@ export function useCreateMechanicJob() {
       problem: string;
       price: number;
       status?: string;
+      payment?: {
+        tipo: 'integral' | 'parcial' | 'nenhum';
+        valor_pago: number;
+      }
     }) => {
+      const { payment, ...jobData } = job;
       const { data, error } = await supabase
         .from("mechanic_jobs" as any)
-        .insert(job)
+        .insert(jobData)
         .select()
         .single();
       if (error) throw error;
+      
+      if (payment && payment.tipo !== 'nenhum') {
+        const valor_total = job.price;
+        const valor_restante = valor_total - payment.valor_pago;
+        await supabase.from("os_pagamentos" as any).insert({
+          os_id: data.id,
+          tipo: payment.tipo,
+          valor_total,
+          valor_pago: payment.valor_pago,
+          valor_restante
+        });
+      }
+
       return data as unknown as MechanicJob;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
@@ -166,7 +199,7 @@ export function useRetreatMechanicJob() {
 export function useUpdateMechanicJobDetails() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: {
+    mutationFn: async ({ id, payment, ...updates }: {
       id: string;
       customer_name?: string | null;
       customer_cpf?: string | null;
@@ -175,12 +208,39 @@ export function useUpdateMechanicJobDetails() {
       bike_name?: string | null;
       problem?: string;
       price?: number;
+      payment?: {
+        tipo: 'integral' | 'parcial' | 'nenhum';
+        valor_pago: number;
+      }
     }) => {
       const { error } = await supabase
         .from("mechanic_jobs" as any)
         .update(updates)
         .eq("id", id);
       if (error) throw error;
+
+      if (payment) {
+        const { data: existing } = await supabase.from("os_pagamentos" as any).select("*").eq("os_id", id).maybeSingle();
+        const valor_total = updates.price || 0;
+        const valor_restante = valor_total - payment.valor_pago;
+        
+        if (existing) {
+          await supabase.from("os_pagamentos" as any).update({
+            tipo: payment.tipo,
+            valor_total,
+            valor_pago: payment.valor_pago,
+            valor_restante
+          }).eq("os_id", id);
+        } else if (payment.tipo !== 'nenhum') {
+          await supabase.from("os_pagamentos" as any).insert({
+            os_id: id,
+            tipo: payment.tipo,
+            valor_total,
+            valor_pago: payment.valor_pago,
+            valor_restante
+          });
+        }
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });

@@ -50,6 +50,7 @@ import {
   Bike,
   HelpCircle,
   CheckCircle,
+  LayoutGrid,
 } from "lucide-react";
 import {
   Dialog,
@@ -102,248 +103,128 @@ const columns = [
   {
     key: "in_analysis" as const,
     label: "Em Análise",
-    icon: Search,
-    color: "text-orange-400",
-    bg: "bg-orange-400/5",
-    border: "border-orange-400/20",
-  },
-  {
-    key: "ready" as const,
-    label: "Pronta pra Retirada",
-    icon: CheckCircle2,
+    icon: Activity,
     color: "text-emerald-400",
     bg: "bg-emerald-400/5",
     border: "border-emerald-400/20",
   },
+  {
+    key: "ready" as const,
+    label: "Pronto",
+    icon: CheckCircle2,
+    color: "text-primary",
+    bg: "bg-primary/5",
+    border: "border-primary/20",
+  },
 ];
 
-const SummaryStat = ({
-  title,
-  value,
-  icon,
-  color = "text-white",
-}: {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color?: string;
-}) => (
-  <div className="bg-card border border-border p-4 md:p-6 rounded-2xl md:rounded-[32px] flex items-center gap-3 md:gap-4 hover:border-border/80 transition-all overflow-hidden">
-    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-background flex items-center justify-center text-muted-foreground shrink-0">
-      {icon}
+// ─── Sub-Components ──────────────────────────────────────────────────────────
+
+function InputGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">{label}</label>
+      {children}
     </div>
-    <div className="min-w-0">
-      <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest truncate">{title}</p>
-      <p className={`text-base md:text-xl font-black ${color} truncate`}>{value}</p>
+  );
+}
+
+function PremiumInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className="w-full h-12 bg-background border border-border/60 rounded-2xl px-4 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+    />
+  );
+}
+
+function PremiumTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      {...props}
+      className="w-full bg-background border border-border/60 rounded-[32px] p-5 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full"
+    />
+  );
+}
+
+function StatusBadge({ status, color, bg, border, icon: Icon }: any) {
+  return (
+    <div className={`${bg} ${color} ${border} border px-2.5 py-1 rounded-full flex items-center gap-1.5 w-fit`}>
+      <Icon size={10} />
+      <span className="text-[9px] font-black uppercase tracking-widest">{status}</span>
     </div>
-  </div>
-);
+  );
+}
 
-const ColumnHeader = ({
-  label,
-  icon: Icon,
-  count,
-  color,
-  bg,
-  border,
-}: {
-  label: string;
-  icon: React.ElementType;
-  count: number;
-  color: string;
-  bg: string;
-  border: string;
-}) => (
-  <div className={`flex items-center gap-2 p-3 rounded-2xl border ${border} ${bg} mb-4`}>
-    <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center ${color} bg-white/5 shadow-inner shrink-0`}>
-      <Icon size={16} className="stroke-[2.5]" />
-    </div>
-    <div className="min-w-0">
-      <h3 className="text-[10px] lg:text-xs font-black text-white uppercase tracking-wider truncate">{label}</h3>
-      <p className="text-[9px] lg:text-[10px] font-bold text-muted-foreground uppercase">{count} ativos</p>
-    </div>
-  </div>
-);
-
-const InputGroup = ({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <div className="space-y-2">
-    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
-      {label}
-    </label>
-    {children}
-  </div>
-);
-
-const PremiumInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-  <input
-    className="w-full h-14 bg-card border border-border rounded-2xl px-5 text-sm font-semibold text-foreground outline-none focus:border-primary focus:shadow-[0_0_0_1px_rgba(41,82,255,0.1)] transition-all placeholder:text-muted-foreground/70"
-    {...props}
-  />
-);
-
-const PremiumTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-  <textarea
-    className="w-full bg-card border border-border rounded-[20px] p-5 text-sm text-foreground outline-none focus:border-primary transition-all resize-none placeholder:text-muted-foreground/70 leading-relaxed"
-    {...props}
-  />
-);
-
-function AdditionBadge({
-  addition,
-  showActions,
-}: {
-  addition: MechanicJobAddition;
-  showActions: boolean;
-}) {
+function AdditionBadge({ addition, showActions }: { addition: MechanicJobAddition; showActions: boolean }) {
+  const qc = supabase;
   const updateApproval = useUpdateAdditionApproval();
+  const total = getAdditionTotal(addition);
 
-  const styles = {
-    accepted: "bg-emerald-500/5 border-emerald-500/20 text-emerald-400",
-    refused: "bg-red-500/5 border-red-500/20 text-red-400 opacity-60",
-    pending: "bg-amber-500/5 border-amber-500/20 text-amber-400",
+  const handleApproval = (status: "accepted" | "refused") => {
+    updateApproval.mutate({ id: addition.id, approval: status });
   };
-
-  const icons = {
-    accepted: <Check size={12} />,
-    refused: <X size={12} />,
-    pending: <Clock size={12} />,
-  };
-
-  const addTotal = getAdditionTotal(addition);
 
   return (
-    <div className={`p-3 rounded-xl border ${styles[addition.approval]} transition-all ${addition.approval === "pending" ? "animate-pulse" : ""}`}>
+    <div className="p-3 bg-muted/30 rounded-2xl border border-border/40 space-y-2">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 overflow-hidden min-w-0">
-          {icons[addition.approval]}
-          <span className={`text-[10px] font-bold truncate ${addition.approval === "refused" ? "line-through" : ""}`}>
-            {addition.problem}
-          </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-foreground/90 truncate">{addition.problem}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[10px] font-black text-primary">{formatBRL(total)}</span>
+            {addition.approval === "accepted" && <span className="text-[8px] font-black text-emerald-500 uppercase">Aprovado</span>}
+            {addition.approval === "refused" && <span className="text-[8px] font-black text-destructive uppercase">Recusado</span>}
+            {addition.approval === "pending" && <span className="text-[8px] font-black text-amber-500 uppercase italic animate-pulse">Aprovação Pendente</span>}
+          </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0 ml-2">
-          <span className="text-[10px] font-black">{formatBRL(addTotal)}</span>
-          {showActions && addition.approval === "pending" && (
-            <div className="flex gap-1">
-              <button
-                className="w-5 h-5 rounded-md bg-red-500/20 flex items-center justify-center hover:bg-red-500 transition-colors"
-                onClick={() => updateApproval.mutate({ id: addition.id, approval: "refused" }, { onError: () => toast.error("Erro") })}
-                disabled={updateApproval.isPending}
-              >
-                <X size={10} className="text-white" />
-              </button>
-              <button
-                className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center hover:bg-emerald-500 transition-colors"
-                onClick={() => updateApproval.mutate({ id: addition.id, approval: "accepted" }, { onError: () => toast.error("Erro") })}
-                disabled={updateApproval.isPending}
-              >
-                <Check size={10} className="text-white" />
-              </button>
-            </div>
-          )}
-        </div>
+        {showActions && addition.approval === "pending" && (
+          <div className="flex gap-1.5 ml-3">
+            <button onClick={() => handleApproval("refused")} className="w-8 h-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-all" title="Recusar">
+              <X size={14} />
+            </button>
+            <button onClick={() => handleApproval("accepted")} className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all" title="Aprovar">
+              <Check size={14} />
+            </button>
+          </div>
+        )}
       </div>
-      {((addition.parts_used || []).length > 0 || Number(addition.labor_cost) > 0) && (
-        <div className="mt-1.5 pl-5 space-y-0.5">
-          {(addition.parts_used || []).map((p, i) => (
-            <p key={i} className="text-[9px] text-muted-foreground">
-              {p.quantity}x {p.part_name} — {formatBRL(p.quantity * p.unit_price)}
-            </p>
+      {(addition.parts_used || []).length > 0 && (
+        <div className="pl-1 space-y-0.5 opacity-60">
+          {addition.parts_used.map((p, i) => (
+            <p key={i} className="text-[9px] font-medium leading-none">• {p.quantity}x {p.part_name}</p>
           ))}
-          {Number(addition.labor_cost) > 0 && (
-            <p className="text-[9px] text-muted-foreground">Mão de obra — {formatBRL(Number(addition.labor_cost))}</p>
-          )}
         </div>
       )}
     </div>
   );
 }
 
-function JobCard({
-  job,
-  isLast,
-  columnKey,
-  onAddRepair,
-  onEdit,
-  onRetreat,
-  onAdvance,
-  onSuccessAdvance,
-}: {
-  job: MechanicJob;
-  isLast: boolean;
-  columnKey: string;
-  onAddRepair: (job: MechanicJob) => void;
-  onEdit: (job: MechanicJob) => void;
-  onRetreat?: (job: MechanicJob) => void;
-  onAdvance?: (job: MechanicJob) => void;
-  onSuccessAdvance?: (job: MechanicJob) => void;
-}) {
-  const advanceMutation = useAdvanceMechanicJob();
-  const sendMessage = useSendMessage();
+function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void }) {
   const remove = useDeleteMechanicJob();
+  const advanceMutation = useAdvanceMechanicJob();
+  const total = getTotalPrice(job);
+  const hasBike = !!job.bike_name;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const showApprovalActions = columnKey === "in_approval";
+  const showRetreat = columnKey === "ready";
 
   const handleAdvance = () => {
-    if (isLast) {
-      if (!confirm("Deseja finalizar esta manutenção? O card será removido da oficina e permanecerá no histórico.")) return;
-    }
-
     if (onAdvance) {
       onAdvance(job);
-    } else {
-      advanceMutation.mutate({ id: job.id, status: job.status }, { 
-        onSuccess: () => {
-          if (job.status === "in_analysis" && job.customer_whatsapp) {
-            const phone = job.customer_whatsapp.replace(/\D/g, "");
-            const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
-            sendMessage.mutate({
-              phone: formattedPhone,
-              message: `Sua bicicleta (${job.bike_name || "sua bike"}) está pronta! Pode vir retirar.`
-            });
-          }
-          if (isLast) {
-            toast.success("Serviço finalizado e arquivado!");
-          }
-          if (onSuccessAdvance) onSuccessAdvance(job);
-        },
-        onError: () => toast.error("Erro ao mover card") 
-      });
+      return;
     }
-  };
-
-  const handleConfirmDelete = async () => {
-    // Tenta apagar a OS vinculada se existir
-    if (job.status !== "in_approval" && job.status !== "ready") {
-      try {
-        await supabase
-          .from("service_orders")
-          .delete()
-          .eq("problem", job.problem)
-          .eq("bike_name", job.bike_name || "")
-          .in("mechanic_status", ["pending", "accepted", "done"]);
-      } catch (err) {
-        console.error("Erro ao remover OS vinculada:", err);
-      }
-    }
-
-    remove.mutate(job.id, {
-      onError: () => toast.error("Erro ao remover"),
-      onSuccess: () => {
-        toast.success("Serviço removido com sucesso");
-        setDeleteDialogOpen(false);
-      },
+    advanceMutation.mutate({ id: job.id, status: job.status }, {
+      onSuccess: () => toast.success("Card avançado!"),
+      onError: () => toast.error("Erro ao avançar")
     });
   };
 
-  const total = getTotalPrice(job);
-  const showApprovalActions = columnKey === "in_maintenance";
-  const showRetreat = columnKey === "in_analysis";
-  const hasBike = !!job.bike_name;
+  const handleConfirmDelete = () => {
+    remove.mutate(job.id, {
+      onSuccess: () => { toast.success("Serviço excluído"); setDeleteDialogOpen(false); },
+      onError: () => toast.error("Erro ao excluir"),
+    });
+  };
 
   return (
     <>
@@ -404,7 +285,15 @@ function JobCard({
         <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-2 px-4 py-3 bg-muted/10 border-t border-border/40">
           <div className="flex flex-col min-w-fit shrink-0">
             <span className="text-[9px] uppercase font-bold text-muted-foreground/42 tracking-widest truncate">Valor OS</span>
-            <span className="text-base font-black text-foreground leading-none truncate">{formatBRL(total)}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-base font-black text-foreground leading-none truncate">{formatBRL(total)}</span>
+              {job.payment?.tipo === 'integral' && (
+                <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-500/20">Quitado</span>
+              )}
+              {job.payment?.tipo === 'parcial' && job.payment.valor_restante > 0 && (
+                <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">Falta {formatBRL(job.payment.valor_restante)}</span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
             <button 
@@ -448,97 +337,103 @@ function JobCard({
 }
 
 function AddRepairPartSelector({ selectedParts, onChange }: { selectedParts: AdditionPart[]; onChange: (parts: AdditionPart[]) => void }) {
-  const { data: allParts = [] } = useParts();
+  const { data: parts = [] } = useParts();
   const [search, setSearch] = useState("");
 
-  const filtered = allParts.filter(
-    (p) => p.name.toLowerCase().includes(search.toLowerCase()) && !selectedParts.some((sp) => sp.part_id === p.id)
-  );
+  const filtered = search.length >= 2 
+    ? (parts as any[]).filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase()))
+    : [];
 
-  const addPart = (part: { id: string; name: string; sale_price: number | null }) => {
-    onChange([...selectedParts, { part_id: part.id, part_name: part.name, quantity: 1, unit_price: Number(part.sale_price || 0) }]);
+  const addPart = (p: any) => {
+    if (selectedParts.some(sp => sp.part_id === p.id)) return;
+    onChange([...selectedParts, { part_id: p.id, part_name: p.name, quantity: 1, unit_price: p.sale_price || 0 }]);
     setSearch("");
   };
 
-  const removePart = (index: number) => onChange(selectedParts.filter((_, i) => i !== index));
-  const updatePart = (index: number, updates: Partial<AdditionPart>) =>
-    onChange(selectedParts.map((p, i) => (i === index ? { ...p, ...updates } : p)));
-
   return (
     <div className="space-y-3">
-      {selectedParts.map((part, i) => (
-        <div key={i} className="flex items-center gap-2 p-3 bg-background rounded-xl border border-border">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-foreground truncate">{part.part_name}</p>
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className="flex items-center gap-1">
-                <label className="text-[9px] text-muted-foreground font-bold uppercase">Qtd</label>
-                <input type="number" min={1} value={part.quantity} onChange={(e) => updatePart(i, { quantity: Math.max(1, Number(e.target.value)) })} className="w-12 h-7 text-center text-xs font-bold bg-card border border-border rounded-lg outline-none focus:border-primary" />
-              </div>
-              <div className="flex items-center gap-1 flex-1">
-                <label className="text-[9px] text-muted-foreground font-bold uppercase">Preço</label>
-                <CurrencyInput value={part.unit_price} onChange={(val) => updatePart(i, { unit_price: val })} />
-              </div>
-            </div>
-          </div>
-          <button onClick={() => removePart(i)} className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-colors shrink-0">
-            <X size={10} />
-          </button>
-        </div>
-      ))}
       <div className="relative">
-        <div className="flex items-center gap-2">
-          <Search size={14} className="text-muted-foreground shrink-0" />
-          <input type="text" placeholder="Buscar peça pelo nome..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full h-10 bg-card border border-border rounded-xl px-3 text-sm text-foreground outline-none focus:border-primary transition-all placeholder:text-muted-foreground/70" />
-        </div>
-        {search.length > 1 && filtered.length > 0 && (
-          <div className="absolute z-50 top-12 left-0 right-0 bg-card border border-border rounded-xl shadow-lg max-h-40 overflow-y-auto">
-            {filtered.slice(0, 8).map((p) => (
-              <button key={p.id} onClick={() => addPart(p)} className="w-full text-left px-4 py-2.5 hover:bg-muted transition-colors flex items-center justify-between">
-                <span className="text-xs font-semibold text-foreground truncate">{p.name}</span>
-                <span className="text-[10px] font-bold text-muted-foreground shrink-0 ml-2">{formatBRL(Number(p.sale_price || 0))}</span>
+        <PremiumInput placeholder="Buscar peça por nome ou SKU..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        {filtered.length > 0 && (
+          <div className="absolute top-full left-0 right-0 z-50 bg-background border border-border rounded-xl mt-2 shadow-xl max-h-48 overflow-y-auto">
+            {filtered.map(p => (
+              <button key={p.id} onClick={() => addPart(p)} className="w-full px-4 py-2.5 text-left text-xs font-bold hover:bg-muted border-b border-border/40 last:border-0 truncate">
+                {p.name} — <span className="text-primary">{formatBRL(p.sale_price || 0)}</span>
               </button>
             ))}
           </div>
         )}
       </div>
+      {selectedParts.length > 0 && (
+        <div className="space-y-2">
+          {selectedParts.map((p, i) => (
+            <div key={i} className="flex items-center gap-2 bg-muted/20 p-2 rounded-xl border border-border/40">
+              <span className="text-[10px] font-bold flex-1 truncate">{p.part_name}</span>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="number" 
+                  value={p.quantity} 
+                  onChange={(e) => {
+                    const next = [...selectedParts];
+                    next[i].quantity = Number(e.target.value);
+                    onChange(next);
+                  }}
+                  className="w-10 h-7 bg-background border border-border rounded-lg text-center text-[10px] font-bold"
+                />
+                <button 
+                  onClick={() => onChange(selectedParts.filter((_, idx) => idx !== i))}
+                  className="w-7 h-7 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSave, isSaving }: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  editJob: MechanicJob | null;
-  editForm: { customer_name: string; bike_name: string; customer_cpf: string; customer_whatsapp: string; customer_id: string | null; problem: string; price: number };
-  setEditForm: React.Dispatch<React.SetStateAction<typeof editForm>>;
-  onSave: () => void;
-  isSaving: boolean;
-}) {
-  const updateAddition = useUpdateAddition();
+function ColumnHeader({ label, icon: Icon, color, bg, border, count }: any) {
+  return (
+    <div className="flex items-center justify-between px-3 py-4">
+      <div className="flex items-center gap-2.5">
+        <div className={`w-8 h-8 rounded-xl ${bg} ${border} border flex items-center justify-center`}>
+          <Icon size={14} className={color} />
+        </div>
+        <h3 className="text-sm font-black text-foreground uppercase tracking-tight">{label}</h3>
+      </div>
+      <span className="text-[10px] font-black text-muted-foreground/40 bg-muted/20 px-2 py-0.5 rounded-full">{count}</span>
+    </div>
+  );
+}
+
+function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSave, isSaving }: any) {
   const deleteAddition = useDeleteAddition();
+  const updateAddition = useUpdateAddition();
   const [editingAddition, setEditingAddition] = useState<string | null>(null);
   const [additionEdits, setAdditionEdits] = useState<Record<string, { problem: string; labor_cost: number; parts: AdditionPart[] }>>({});
   const [deleteAdditionDialog, setDeleteAdditionDialog] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: "", name: "" });
 
   const startEditAddition = (a: MechanicJobAddition) => {
+    setAdditionEdits((prev) => ({ ...prev, [a.id]: { problem: a.problem, labor_cost: a.labor_cost, parts: a.parts_used || [] } }));
     setEditingAddition(a.id);
-    setAdditionEdits((prev) => ({ ...prev, [a.id]: { problem: a.problem, labor_cost: Number(a.labor_cost || 0), parts: (a.parts_used || []).map((p) => ({ ...p })) } }));
   };
 
   const saveAddition = (a: MechanicJobAddition) => {
     const edits = additionEdits[a.id];
-    if (!edits || !edits.problem.trim()) { toast.error("Descreva o problema"); return; }
+    if (!edits) return;
     const partsTotal = edits.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
-    updateAddition.mutate(
-      { id: a.id, problem: edits.problem, price: edits.labor_cost + partsTotal, labor_cost: edits.labor_cost, parts_used: edits.parts },
-      { onSuccess: () => { toast.success("Reparo atualizado!"); setEditingAddition(null); }, onError: () => toast.error("Erro ao atualizar reparo") }
-    );
+    updateAddition.mutate({ id: a.id, problem: edits.problem, price: edits.labor_cost + partsTotal, labor_cost: edits.labor_cost, parts_used: edits.parts }, {
+      onSuccess: () => { toast.success("Reparo atualizado"); setEditingAddition(null); },
+      onError: () => toast.error("Erro ao atualizar reparo"),
+    });
   };
 
   const confirmDeleteAddition = () => {
     deleteAddition.mutate(deleteAdditionDialog.id, {
-      onSuccess: () => { toast.success("Reparo excluído!"); setDeleteAdditionDialog({ open: false, id: "", name: "" }); },
+      onSuccess: () => { toast.success("Reparo excluído"); setDeleteAdditionDialog({ open: false, id: "", name: "" }); },
       onError: () => toast.error("Erro ao excluir reparo"),
     });
   };
@@ -553,36 +448,60 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
             </DialogHeader>
             <div className="space-y-6">
               <InputGroup label="Nome da Bike *">
-                <PremiumInput placeholder="Ex: Caloi Elite Carbon" value={editForm.bike_name} onChange={(e) => setEditForm((f) => ({ ...f, bike_name: e.target.value }))} />
+                <PremiumInput placeholder="Ex: Caloi Elite Carbon" value={editForm.bike_name} onChange={(e) => setEditForm((f: any) => ({ ...f, bike_name: e.target.value }))} />
               </InputGroup>
               <InputGroup label="Cliente">
                 <CustomerAutocomplete
                   customerName={editForm.customer_name}
                   customerWhatsapp={editForm.customer_whatsapp}
                   customerCpf={editForm.customer_cpf}
-                  onSelect={(c: Customer) => setEditForm((f) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }))}
+                  onSelect={(c: Customer) => setEditForm((f: any) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }))}
                   onChange={(field, value) => {
                     const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
-                    setEditForm((f) => ({ ...f, [key]: value }));
+                    setEditForm((f: any) => ({ ...f, [key]: value }));
                   }}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                  <PremiumInput placeholder="Nome completo" value={editForm.customer_name} onChange={(e) => setEditForm((f) => ({ ...f, customer_name: e.target.value }))} />
-                  <PremiumInput placeholder="(00) 00000-0000" value={editForm.customer_whatsapp} onChange={(e) => setEditForm((f) => ({ ...f, customer_whatsapp: maskPhone(e.target.value) }))} />
-                  <PremiumInput placeholder="CPF / CNPJ" value={editForm.customer_cpf} onChange={(e) => setEditForm((f) => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value) }))} />
+                  <PremiumInput placeholder="Nome completo" value={editForm.customer_name} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_name: e.target.value }))} />
+                  <PremiumInput placeholder="(00) 00000-0000" value={editForm.customer_whatsapp} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_whatsapp: maskPhone(e.target.value) }))} />
+                  <PremiumInput placeholder="CPF / CNPJ" value={editForm.customer_cpf} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value) }))} />
                 </div>
               </InputGroup>
               <InputGroup label="Diagnóstico *">
-                <PremiumTextarea rows={4} placeholder="Descreva o que precisa ser feito..." value={editForm.problem} onChange={(e) => setEditForm((f) => ({ ...f, problem: e.target.value }))} />
+                <PremiumTextarea rows={4} placeholder="Descreva o que precisa ser feito..." value={editForm.problem} onChange={(e) => setEditForm((f: any) => ({ ...f, problem: e.target.value }))} />
               </InputGroup>
               <InputGroup label="Valor do Serviço">
-                <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f) => ({ ...f, price: val }))} />
+                <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f: any) => ({ ...f, price: val }))} />
+              </InputGroup>
+
+              <InputGroup label="Pagamento Adiantado">
+                <div className="grid grid-cols-3 gap-3">
+                  {['nenhum', 'parcial', 'integral'].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setEditForm((f: any) => ({ ...f, paymentType: type as any }))}
+                      className={`h-12 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${editForm.paymentType === type ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}
+                    >
+                      {type === 'integral' && <CheckCircle size={12} />}
+                      {type === 'parcial' && <Clock size={12} />}
+                      {type === 'nenhum' && <X size={12} />}
+                      {type}
+                    </button>
+                  ))}
+                </div>
+                {editForm.paymentType === 'parcial' && (
+                  <div className="mt-3">
+                    <CurrencyInput value={editForm.paymentAmount} onChange={(val) => setEditForm((f: any) => ({ ...f, paymentAmount: val }))} />
+                    <p className="text-[10px] text-muted-foreground mt-1 ml-1 font-bold italic">Valor recebido hoje</p>
+                  </div>
+                )}
               </InputGroup>
 
               {editJob && editJob.additions && editJob.additions.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Reparos Extras ({editJob.additions.length})</p>
-                  {editJob.additions.map((a) => {
+                  {editJob.additions.map((a: MechanicJobAddition) => {
                     const isEditing = editingAddition === a.id;
                     const edits = additionEdits[a.id];
                     return (
@@ -639,67 +558,42 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                 </div>
               )}
             </div>
-
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-4 pt-6 md:pt-8 bg-secondary sticky bottom-0 border-t border-border">
               <button onClick={() => onOpenChange(false)} className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all">Cancelar</button>
               <button onClick={onSave} disabled={isSaving} className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50">
-                {isSaving ? <Loader2 size={16} className="animate-spin" /> : "Salvar Alterações"}
+                {isSaving ? <Loader2 size={16} className="animate-spin" /> : <><CheckCircle2 size={16} /> Salvar Alterações</>}
               </button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-      <ConfirmDeleteDialog
-        open={deleteAdditionDialog.open}
-        onOpenChange={(v) => setDeleteAdditionDialog((d) => ({ ...d, open: v }))}
-        onConfirm={confirmDeleteAddition}
-        title="Excluir reparo extra"
-        description={`Tem certeza que deseja excluir o reparo "${deleteAdditionDialog.name}"? Esta ação não pode ser desfeita.`}
-      />
+      <ConfirmDeleteDialog open={deleteAdditionDialog.open} onOpenChange={(o) => setDeleteAdditionDialog((prev) => ({ ...prev, open: o }))} onConfirm={confirmDeleteAddition} title="Excluir Reparo Adicional" description={`Deseja excluir o reparo "${deleteAdditionDialog.name}"?`} />
     </>
   );
 }
 
 export default function Mecanica() {
-  const navigate = useNavigate();
-  const { data: jobs = [], isLoading } = useMechanicJobs();
   useMechanicJobsRealtime();
+  const { data: jobs = [], isLoading } = useMechanicJobs();
   const create = useCreateMechanicJob();
-  const createServiceOrder = useCreateServiceOrder();
-  const createAddition = useCreateAddition();
   const advance = useAdvanceMechanicJob();
   const retreat = useRetreatMechanicJob();
   const updateDetails = useUpdateMechanicJobDetails();
+  const createAddition = useCreateAddition();
+  const deleteAddition = useDeleteAddition();
+  const updateAddition = useUpdateAddition();
+  const createServiceOrder = useCreateServiceOrder();
   const sendMessage = useSendMessage();
 
   const handleServiceOrderDone = useCallback(async (order: ServiceOrder) => {
     playNotifySound();
-    
-    // Avança o card correspondente na oficina para "Em Análise"
-    const { error: updateError } = await supabase
-      .from("mechanic_jobs" as any)
-      .update({ status: "in_analysis" })
-      .eq("id", order.id);
-
-    if (updateError) {
-      console.error("Erro ao avançar card da oficina:", updateError);
-    } else {
-      toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega! (Em Análise)`, {
-        description: order.mechanic_name ? `Mecânico: ${order.mechanic_name}` : undefined,
-        duration: 8000
-      });
-    }
+    await supabase.from("mechanic_jobs" as any).update({ status: "in_analysis" }).eq("id", order.id);
+    toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega! (Em Análise)`, { duration: 8000 });
   }, []);
 
   const handleServiceOrderAccepted = useCallback(async (order: ServiceOrder) => {
     playAcceptSound();
-    
-    // Avança o card correspondente na oficina para "Em Manutenção"
-    await supabase
-      .from("mechanic_jobs" as any)
-      .update({ status: "in_maintenance" })
-      .eq("id", order.id);
-
+    await supabase.from("mechanic_jobs" as any).update({ status: "in_maintenance" }).eq("id", order.id);
     toast.info(`⚙️ ${order.bike_name || "OS"} aceita por ${order.mechanic_name || "mecânico"}`, { duration: 5000 });
   }, []);
 
@@ -715,12 +609,15 @@ export default function Mecanica() {
     problem: "",
     price: 0,
     initialStatus: "in_approval" as "in_approval" | "in_repair",
+    paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
+    paymentAmount: 0,
   });
 
   const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
   const [addForm, setAddForm] = useState({ problem: "", labor_cost: 0, parts: [] as AdditionPart[] });
+  const [sendingAddition, setSendingAddition] = useState(false);
   const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");
 
   const [editOpen, setEditOpen] = useState(false);
@@ -733,6 +630,8 @@ export default function Mecanica() {
     customer_id: null as string | null,
     problem: "",
     price: 0,
+    paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
+    paymentAmount: 0,
   });
 
   const grouped = useMemo(() => {
@@ -752,32 +651,24 @@ export default function Mecanica() {
       problem: form.problem,
       price: form.price,
       status: form.initialStatus,
+      payment: form.paymentType !== 'nenhum' ? {
+        tipo: form.paymentType,
+        valor_pago: form.paymentType === 'integral' ? form.price : form.paymentAmount
+      } : undefined
     };
-    create.mutate(orderData, {
+
+    create.mutate(orderData as any, {
       onSuccess: (newJob) => {
         if (form.initialStatus === "in_repair") {
-          createServiceOrder.mutate({
-            id: newJob.id,
-            customer_name: form.customer_name || undefined,
-            customer_cpf: form.customer_cpf || undefined,
-            customer_whatsapp: form.customer_whatsapp || undefined,
-            customer_id: form.customer_id || undefined,
-            bike_name: form.bike_name || undefined,
-            problem: form.problem,
-          });
+          createServiceOrder.mutate({ id: newJob.id, customer_name: form.customer_name || undefined, customer_cpf: form.customer_cpf || undefined, customer_whatsapp: form.customer_whatsapp || undefined, customer_id: form.customer_id || undefined, bike_name: form.bike_name || undefined, problem: form.problem });
         }
-        
         if (form.customer_whatsapp) {
           const phone = form.customer_whatsapp.replace(/\D/g, "");
           const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
-          sendMessage.mutate({
-            phone: formattedPhone,
-            message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`
-          });
+          sendMessage.mutate({ phone: formattedPhone, message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` });
         }
-
         toast.success("Manutenção criada!");
-        setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval" });
+        setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", paymentAmount: 0 });
         setOpen(false);
       },
       onError: () => toast.error("Erro ao criar"),
@@ -787,39 +678,73 @@ export default function Mecanica() {
   const handleAddRepair = (job: MechanicJob) => { setAddJob(job); setAddForm({ problem: "", labor_cost: 0, parts: [] }); setAddOpen(true); };
   const handleEditJob = (job: MechanicJob) => {
     setEditJob(job);
-    setEditForm({ customer_name: job.customer_name || "", bike_name: job.bike_name || "", customer_cpf: job.customer_cpf || "", customer_whatsapp: job.customer_whatsapp || "", customer_id: job.customer_id || null, problem: job.problem, price: job.price });
+    setEditForm({ customer_name: job.customer_name || "", bike_name: job.bike_name || "", customer_cpf: job.customer_cpf || "", customer_whatsapp: job.customer_whatsapp || "", customer_id: job.customer_id || null, problem: job.problem, price: job.price, paymentType: job.payment?.tipo || "nenhum", paymentAmount: job.payment?.valor_pago || 0 });
     setEditOpen(true);
   };
 
   const handleSaveEdit = () => {
     if (!editJob || !editForm.problem.trim()) { toast.error("Descreva o problema"); return; }
     updateDetails.mutate(
-      { id: editJob.id, customer_name: editForm.customer_name || null, customer_cpf: editForm.customer_cpf || null, customer_whatsapp: editForm.customer_whatsapp || null, customer_id: editForm.customer_id || null, bike_name: editForm.bike_name || null, problem: editForm.problem, price: editForm.price },
+      { id: editJob.id, customer_name: editForm.customer_name || null, customer_cpf: editForm.customer_cpf || null, customer_whatsapp: editForm.customer_whatsapp || null, customer_id: editForm.customer_id || null, bike_name: editForm.bike_name || null, problem: editForm.problem, price: editForm.price, payment: { tipo: editForm.paymentType, valor_pago: editForm.paymentType === 'integral' ? editForm.price : editForm.paymentAmount } },
       { onSuccess: () => { toast.success("Serviço atualizado!"); setEditOpen(false); setEditJob(null); }, onError: () => toast.error("Erro ao atualizar") }
     );
   };
 
-  const handleRetreatJob = (job: MechanicJob) => {
-    retreat.mutate({ id: job.id }, { onSuccess: () => toast.success("Retornado para 'Em Manutenção'"), onError: () => toast.error("Erro ao retroceder") });
-  };
-
+  const handleRetreatJob = (job: MechanicJob) => { retreat.mutate({ id: job.id }, { onSuccess: () => toast.success("Retornado para 'Em Manutenção'"), onError: () => toast.error("Erro ao retroceder") }); };
   const handleAdvanceFromApproval = (job: MechanicJob) => {
     advance.mutate({ id: job.id, status: job.status }, {
       onSuccess: () => {
-        createServiceOrder.mutate({ customer_name: job.customer_name || undefined, customer_cpf: job.customer_cpf || undefined, customer_whatsapp: job.customer_whatsapp || undefined, customer_id: job.customer_id || undefined, bike_name: job.bike_name || undefined, problem: job.problem });
+        createServiceOrder.mutate({ id: job.id, customer_name: job.customer_name || undefined, customer_cpf: job.customer_cpf || undefined, customer_whatsapp: job.customer_whatsapp || undefined, customer_id: job.customer_id || undefined, bike_name: job.bike_name || undefined, problem: job.problem });
         toast.success("Enviado para a mecânica!");
       },
       onError: () => toast.error("Erro ao mover card"),
     });
   };
 
-  const handleSaveAddition = () => {
-    if (!addJob || !addForm.problem.trim()) { toast.error("Descreva o novo problema"); return; }
+  const handleSaveAddition = async () => {
+    if (!addJob || !addForm.problem.trim()) { toast.error("Descreva o novo problema / observações"); return; }
+    
+    setSendingAddition(true);
     const partsTotal = addForm.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
-    createAddition.mutate(
-      { job_id: addJob.id, problem: addForm.problem, price: addForm.labor_cost + partsTotal, labor_cost: addForm.labor_cost, parts_used: addForm.parts },
-      { onSuccess: () => { toast.success("Reparo adicional registrado!"); setAddOpen(false); setAddJob(null); }, onError: () => toast.error("Erro ao adicionar reparo") }
-    );
+    const total = addForm.labor_cost + partsTotal;
+
+    try {
+      // 1. Salva na tabela os_adicionais (fallback pro mechanic_job_additions caso dê erro de schema)
+      const { error: adErr } = await supabase.from("os_adicionais" as any).insert({
+        os_id: addJob.id,
+        pecas: addForm.parts,
+        observacoes: addForm.problem,
+        valor_total: total,
+        status: "pendente"
+      });
+      
+      if (adErr) {
+        // Fallback p/ tabela antiga
+        await createAddition.mutateAsync({ job_id: addJob.id, problem: addForm.problem, price: total, labor_cost: addForm.labor_cost, parts_used: addForm.parts });
+      }
+
+      // 2. Chama Edge Function que usa IA pra formatar e enviar via zap
+      const { data: edgeData, error: edgeErr } = await supabase.functions.invoke("formatar-adicional", {
+        body: {
+          osId: addJob.id,
+          pecas: addForm.parts,
+          observacoes: addForm.problem
+        }
+      });
+      if (edgeErr) throw edgeErr;
+
+      // 3. Move o card para aprovação
+      await advance.mutateAsync({ id: addJob.id, status: addJob.status }); // Retira do status atual
+      await supabase.from("mechanic_jobs" as any).update({ status: "in_approval" }).eq("id", addJob.id);
+
+      toast.success("Enviado para o cliente com sucesso!");
+      setAddOpen(false);
+      setAddJob(null);
+    } catch (err: any) {
+      toast.error("Erro ao enviar: " + err.message);
+    } finally {
+      setSendingAddition(false);
+    }
   };
 
   const pendingApprovals = jobs.filter((j) => j.additions?.some((a) => a.approval === "pending")).length;
@@ -834,50 +759,43 @@ export default function Mecanica() {
   return (
     <div className="min-h-full bg-background text-foreground selection:bg-primary/30 pb-24 lg:pb-0">
       <div className="w-full min-w-0 p-4 md:p-6 space-y-6 md:space-y-10 overflow-x-hidden">
-
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-2 min-w-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30 shrink-0">
                 <Wrench className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest text-primary">SERVICE CENTER</span>
+              <h1 className="text-3xl md:text-5xl font-black text-foreground uppercase tracking-tighter italic leading-none">Oficina</h1>
             </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight uppercase text-foreground">Oficina</h1>
-            <p className="text-muted-foreground font-medium text-sm">Gerencie os serviços de manutenção</p>
+            <p className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-[0.3em] ml-1">Gerenciamento de Manutenções</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button onClick={() => navigate('/mecanicos/historico')} className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-6 rounded-2xl border border-border bg-transparent text-foreground/80 hover:bg-muted text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap min-w-0">
-              <History size={14} className="shrink-0" /> <span className="truncate">Histórico de O.S</span>
-            </button>
-            <button onClick={() => setOpen(true)} className="flex-1 sm:flex-none h-10 md:h-12 px-3 md:px-8 rounded-2xl bg-primary text-white hover:bg-primary/80 shadow-primary/30 text-[11px] md:text-sm font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 whitespace-nowrap min-w-0">
-              <Plus size={14} className="stroke-[3] shrink-0" /> <span className="truncate">Nova Manutenção</span>
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <div className="hidden sm:flex items-center gap-2 bg-card border border-border/40 px-4 py-2.5 rounded-2xl">
+              <Activity size={14} className="text-primary" />
+              <div className="flex flex-col">
+                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest leading-none">Ticket Médio</span>
+                <span className="text-sm font-black text-foreground">{formatBRL(avgTicket)}</span>
+              </div>
+            </div>
+            <button onClick={() => setOpen(true)} className="h-12 md:h-14 px-6 md:px-8 bg-primary text-white rounded-[20px] md:rounded-[24px] text-xs font-black uppercase tracking-[0.2em] hover:bg-primary/90 transition-all flex items-center gap-3 shadow-xl shadow-primary/20 active:scale-95">
+              <Plus size={18} /> <span className="hidden sm:inline">Nova O.S</span><span className="sm:hidden">Nova</span>
             </button>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
-          <SummaryStat title="Total em Oficina" value={jobs.length} icon={<Activity size={16} />} />
-          <SummaryStat title="Em Aprovação" value={grouped.in_approval.length} icon={<FileCheck size={16} />} color="text-yellow-400" />
-          <SummaryStat title="Pendente Aprovação" value={pendingApprovals} icon={<AlertCircle size={16} />} color="text-indigo-400" />
-          <SummaryStat title="Ticket Médio" value={formatBRL(avgTicket)} icon={<TrendingUp size={16} />} color="text-emerald-400" />
-        </div>
-
         {isLoading ? (
-          <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" /></div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => <div key={i} className="h-96 rounded-3xl bg-muted/20 animate-pulse border border-border/20" />)}
+          </div>
         ) : (
           <>
-            <div className="flex md:hidden overflow-x-auto gap-3 pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
-              {allMobileTabs.map((col) => {
-                const active = mobileTab === col.key;
-                return (
-                  <button key={col.key} onClick={() => setMobileTab(col.key)} className={`snap-start shrink-0 flex items-center gap-2 px-4 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-wider transition-all ${active ? `${col.bg} ${col.border} ${col.color}` : "bg-card border-border text-muted-foreground"}`}>
-                    <col.icon size={14} />
-                    <span className="whitespace-nowrap">{col.label}</span>
-                    <span className={`ml-1 text-[10px] ${active ? "opacity-100" : "opacity-50"}`}>({grouped[col.key]?.length || 0})</span>
-                  </button>
-                );
-              })}
+            <div className="flex overflow-x-auto gap-2 pb-2 md:hidden scrollbar-hide -mx-4 px-4">
+              {allMobileTabs.map((tab) => (
+                <button key={tab.key} onClick={() => setMobileTab(tab.key as any)} className={`flex items-center gap-2 px-5 py-3 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${mobileTab === tab.key ? `${tab.bg} ${tab.color} ${tab.border} shadow-lg shadow-black/5` : "bg-card text-muted-foreground border-border/40"}`}>
+                  <tab.icon size={14} /> {tab.label}
+                  <span className="opacity-40 ml-1">{grouped[tab.key]?.length || 0}</span>
+                </button>
+              ))}
             </div>
 
             <div className="md:hidden">
@@ -942,10 +860,10 @@ export default function Mecanica() {
                   customerName={form.customer_name}
                   customerWhatsapp={form.customer_whatsapp}
                   customerCpf={form.customer_cpf}
-                  onSelect={(c: Customer) => setForm((f) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }))}
+                  onSelect={(c: Customer) => setForm((f: any) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }))}
                   onChange={(field, value) => {
                     const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
-                    setForm((f) => ({ ...f, [key]: value }));
+                    setForm((f: any) => ({ ...f, [key]: value }));
                   }}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
@@ -960,6 +878,26 @@ export default function Mecanica() {
               <InputGroup label="Valor do Serviço">
                 <CurrencyInput value={form.price} onChange={(val) => setForm((f) => ({ ...f, price: val }))} />
               </InputGroup>
+
+              <InputGroup label="Pagamento Adiantado">
+                <div className="grid grid-cols-3 gap-3">
+                  {['nenhum', 'parcial', 'integral'].map((type) => (
+                    <button key={type} type="button" onClick={() => setForm((f: any) => ({ ...f, paymentType: type as any }))} className={`h-12 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${form.paymentType === type ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+                      {type === 'integral' && <CheckCircle size={12} />}
+                      {type === 'parcial' && <Clock size={12} />}
+                      {type === 'nenhum' && <X size={12} />}
+                      {type}
+                    </button>
+                  ))}
+                </div>
+                {form.paymentType === 'parcial' && (
+                  <div className="mt-3">
+                    <CurrencyInput value={form.paymentAmount} onChange={(val) => setForm((f: any) => ({ ...f, paymentAmount: val }))} />
+                    <p className="text-[10px] text-muted-foreground mt-1 ml-1 font-bold italic">Valor recebido hoje</p>
+                  </div>
+                )}
+              </InputGroup>
+
               <InputGroup label="Qual a situação? *">
                 <div className="grid grid-cols-2 gap-3">
                   <button type="button" onClick={() => setForm((f) => ({ ...f, initialStatus: "in_approval" }))} className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${form.initialStatus === "in_approval" ? "border-yellow-400 bg-yellow-400/10 text-yellow-400" : "border-border bg-card text-muted-foreground hover:bg-muted"}`}>
@@ -985,7 +923,7 @@ export default function Mecanica() {
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
           <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">Adicionar Reparo Extra</DialogTitle>
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight italic">Registrar Reparo Extra</DialogTitle>
             </DialogHeader>
             {addJob && (
               <div className="space-y-6">
@@ -1018,8 +956,8 @@ export default function Mecanica() {
             )}
             <div className="flex gap-3 pt-2">
               <button onClick={() => setAddOpen(false)} className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all">Cancelar</button>
-              <button onClick={handleSaveAddition} disabled={createAddition.isPending} className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50">
-                {createAddition.isPending ? <Loader2 size={16} className="animate-spin" /> : "Registrar Pendência"}
+              <button onClick={handleSaveAddition} disabled={sendingAddition || createAddition.isPending} className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50">
+                {(sendingAddition || createAddition.isPending) ? <Loader2 size={16} className="animate-spin" /> : "Enviar para o Cliente"}
               </button>
             </div>
           </div>
