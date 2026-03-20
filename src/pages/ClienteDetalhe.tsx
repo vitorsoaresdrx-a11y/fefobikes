@@ -24,6 +24,7 @@ import {
 } from "@/hooks/useCustomers";
 import { formatBRL } from "@/lib/format";
 import { useToast } from "@/hooks/use-toast";
+import { maskPhone, maskCpfCnpj } from "@/lib/masks";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("pt-BR");
@@ -98,8 +99,12 @@ export default function ClienteDetalhe() {
     setEditing(true);
   };
 
-  const field = (key: keyof typeof editForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setEditForm((f) => ({ ...f, [key]: e.target.value }));
+  const field = (key: keyof typeof editForm) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    if (key === "whatsapp") value = maskPhone(value);
+    if (key === "cpf") value = maskCpfCnpj(value);
+    setEditForm((f) => ({ ...f, [key]: value }));
+  };
 
   const saveEdit = () => {
     updateCustomer.mutate(
@@ -127,8 +132,7 @@ export default function ClienteDetalhe() {
     );
   };
 
-  const hasAddress =
-    customer.address_street || customer.address_city || customer.cep;
+  const hasAddress = customer.address_street || customer.address_city || customer.cep;
 
   const fullAddress = [
     customer.address_street,
@@ -196,7 +200,6 @@ export default function ClienteDetalhe() {
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           {editing ? (
             <div className="space-y-4">
-              {/* Dados básicos */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Nome</label>
@@ -204,11 +207,21 @@ export default function ClienteDetalhe() {
                 </div>
                 <div>
                   <label className={labelClass}>WhatsApp</label>
-                  <input value={editForm.whatsapp} onChange={field("whatsapp")} className={fieldClass} />
+                  <input
+                    value={editForm.whatsapp}
+                    onChange={field("whatsapp")}
+                    placeholder="(00) 00000-0000"
+                    className={fieldClass}
+                  />
                 </div>
                 <div>
-                  <label className={labelClass}>CPF</label>
-                  <input value={editForm.cpf} onChange={field("cpf")} className={fieldClass} />
+                  <label className={labelClass}>CPF / CNPJ</label>
+                  <input
+                    value={editForm.cpf}
+                    onChange={field("cpf")}
+                    placeholder="000.000.000-00"
+                    className={fieldClass}
+                  />
                 </div>
                 <div>
                   <label className={labelClass}>Notas</label>
@@ -216,7 +229,6 @@ export default function ClienteDetalhe() {
                 </div>
               </div>
 
-              {/* Endereço */}
               <div className="pt-2 border-t border-border">
                 <p className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                   <MapPin size={10} /> Endereço
@@ -255,7 +267,6 @@ export default function ClienteDetalhe() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Dados básicos */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="flex items-center gap-2">
                   <User size={14} className="text-muted-foreground" />
@@ -269,7 +280,7 @@ export default function ClienteDetalhe() {
                   <div>
                     <p className={labelClass}>WhatsApp</p>
                     {customer.whatsapp ? (
-                      <a
+                      
                         href={`https://wa.me/${customer.whatsapp.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -285,7 +296,7 @@ export default function ClienteDetalhe() {
                 <div className="flex items-center gap-2">
                   <CreditCard size={14} className="text-muted-foreground" />
                   <div>
-                    <p className={labelClass}>CPF</p>
+                    <p className={labelClass}>CPF / CNPJ</p>
                     <p className="text-sm font-bold text-white">{customer.cpf || "—"}</p>
                   </div>
                 </div>
@@ -298,7 +309,6 @@ export default function ClienteDetalhe() {
                 </div>
               </div>
 
-              {/* Endereço */}
               <div className="pt-3 border-t border-border flex items-start gap-2">
                 <MapPin size={14} className="text-muted-foreground mt-0.5 shrink-0" />
                 <div>
