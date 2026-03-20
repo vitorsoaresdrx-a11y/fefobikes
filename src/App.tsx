@@ -44,6 +44,7 @@ const NotFound = lazyRetry(() => import("@/pages/NotFound"));
 const Orcamentos = lazyRetry(() => import("@/pages/Orcamentos"));
 const ProdutoPublico = lazyRetry(() => import("@/pages/ProdutoPublico"));
 const Store = lazyRetry(() => import("@/pages/Store"));
+const MinhaConta = lazyRetry(() => import("@/pages/MinhaConta"));
 const ClienteDetalhe = lazyRetry(() => import("@/pages/ClienteDetalhe"));
 const Jogar = lazyRetry(() => import("@/pages/Jogar"));
 const Chamadas = lazyRetry(() => import("@/pages/Chamadas"));
@@ -150,6 +151,16 @@ const App = () => (
               <Route path="/produto/:sku" element={
                 <Suspense fallback={<PageSkeleton />}>
                   <ProdutoPublico />
+                </Suspense>
+              } />
+              <Route path="/minha-garagem" element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <MinhaConta />
+                </Suspense>
+              } />
+              <Route path="/minha-conta" element={
+                <Suspense fallback={<PageSkeleton />}>
+                  <MinhaConta />
                 </Suspense>
               } />
               <Route path="/*" element={<AuthGate />} />

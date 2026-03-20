@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message, history = [] } = await req.json();
+    const { message, history = [], isSearch = false } = await req.json();
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
     const businessContext = await buildBusinessContext(supabase);
 
-    const SYSTEM_PROMPT = `Você é um atendente da Fefo Bikes. Responda de forma direta e natural, como um humano faria.
+    let systemPrompt = `Você é um atendente da Fefo Bikes. Responda de forma direta e natural, como um humano faria.
 
 REGRAS:
 - Responda apenas o que foi perguntado.
@@ -63,13 +63,19 @@ REGRAS:
 - Sem apresentações longas ou listas de opções não solicitadas.
 - Tom casual, sem exageros de entusiasmo.
 - Seja breve.
-- O resultado esperado para a abertura (ou se a pessoa só der um oi) é apenas: "Olá! Como posso ajudar?"
-`;
+- O resultado esperado para a abertura (ou se a pessoa só der um oi) é apenas: "Olá! Como posso ajudar?"`;
+
+    if (isSearch) {
+      systemPrompt = `Você é um buscador inteligente da Fefo Bikes. 
+Analise o catálogo abaixo e retorne APENAS um array JSON contendo os SKUs dos produtos que melhor correspondem à busca do usuário.
+Retorne o JSON no formato: {"skus": ["SKU1", "SKU2"]}.
+Sempre retorne APENAS o JSON, sem texto antes ou depois.`;
+    }
 
     const groqMessages = [
-      { role: "system", content: `${SYSTEM_PROMPT}\n\nCONTEXTO DO CATÁLOGO:\n${businessContext}` },
-      ...history,
-      { role: "user", content: message }
+      { role: "system", content: `${systemPrompt}\n\nCONTEXTO DO CATÁLOGO:\n${businessContext}` },
+      ...(isSearch ? [] : history),
+      { role: "user", content: isSearch ? `Busca do usuário: ${message}` : message }
     ];
 
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
@@ -83,10 +89,11 @@ REGRAS:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: isSearch ? "llama-3.1-8b-instant" : "llama-3.3-70b-versatile",
           messages: groqMessages,
-          max_tokens: 1024,
-          temperature: 0.7
+          max_tokens: isSearch ? 200 : 1024,
+          temperature: isSearch ? 0.1 : 0.7,
+          response_format: isSearch ? { type: "json_object" } : undefined
         }),
       }
     );
@@ -97,7 +104,21 @@ REGRAS:
     }
 
     const groqData = await groqResponse.json();
-    const responseText = groqData.choices?.[0]?.message?.content;
+    let responseText = groqData.choices?.[0]?.message?.content;
+
+    if (isSearch) {
+      try {
+        const parsed = JSON.parse(responseText.replace(/```json|```/g, "").trim());
+        const skus = Array.isArray(parsed) ? parsed : (parsed.skus || []);
+        return new Response(JSON.stringify({ skus }), {
+           headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ skus: [] }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     return new Response(JSON.stringify({ response: responseText }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

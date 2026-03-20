@@ -1,12 +1,47 @@
 import { useCart } from "@/hooks/useCart";
 import { Drawer } from "vaul";
-import { ShoppingBag, X, Plus, Minus, Send, Bike, ChevronRight } from "lucide-react";
+import { 
+  ShoppingBag, 
+  X, 
+  Plus, 
+  Minus, 
+  Send, 
+  Bike, 
+  ChevronRight,
+  ArrowRight,
+  TrendingUp,
+  Package,
+  PlusCircle,
+  Loader2
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
 
 export function CartDrawer() {
-  const { items, removeItem, updateQuantity } = useCart();
+  const { items, removeItem, updateQuantity, addItem } = useCart();
   
+  // Upsell Logic: Fetch products from complementary categories
+  const { data: suggestions } = useQuery({
+    queryKey: ["cart_upsell", items.map(i => i.id).join(',')],
+    enabled: items.length > 0,
+    queryFn: async () => {
+      // Simple logic: if has bike, suggest accessories. if has parts, suggest maintenance tools.
+      const categories = items.map(i => (i as any).category).filter(Boolean);
+      let suggestCats: string[] = ["Acessórios", "Ferramentas", "Vestuário"];
+      
+      const { data } = await supabase
+        .from("parts" as any)
+        .select("*")
+        .eq("visible_on_storefront", true)
+        .in("category", suggestCats)
+        .limit(4);
+      
+      return data || [];
+    }
+  });
+
   const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
   const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
 
@@ -83,6 +118,42 @@ export function CartDrawer() {
                 </div>
               ))}
             </div>
+
+            {/* UPSELL SECTION */}
+            {suggestions && suggestions.length > 0 && (
+              <div className="space-y-4 pt-6 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={16} className="text-primary" />
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest italic">Complete seu Kit</span>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
+                  {suggestions.map((s: any) => (
+                    <div key={s.id} className="min-w-[140px] bg-card/30 border border-border/30 rounded-2xl p-3 space-y-2 shrink-0 group">
+                      <div className="h-24 rounded-xl overflow-hidden bg-muted/20 relative">
+                         {s.images?.[0] ? (
+                            <img src={getOptimizedImageUrl(s.images[0], 200) || s.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-all" />
+                         ) : (
+                            <div className="w-full h-full flex items-center justify-center opacity-20"><Package size={20} /></div>
+                         )}
+                         <button 
+                           onClick={() => {
+                             addItem(s, s.pix_price || s.sale_price || 0);
+                             // import("sonner").then(({ toast }) => toast.success(`${s.name} adicionado!`));
+                           }}
+                           className="absolute bottom-2 right-2 w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-lg active:scale-95 transition-all opacity-0 group-hover:opacity-100"
+                         >
+                           <PlusCircle size={18} />
+                         </button>
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-bold text-white line-clamp-1">{s.name}</p>
+                        <p className="text-[10px] font-black text-primary">{formatBRL(s.pix_price || s.sale_price || 0)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="p-6 md:p-8 bg-secondary/50 border-t border-border space-y-4">

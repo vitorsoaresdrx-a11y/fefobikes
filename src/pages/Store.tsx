@@ -2,6 +2,11 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { formatBRL } from "@/lib/format";
+import { getOptimizedImageUrl } from "@/lib/image";
+import { CartDrawer } from "@/components/shop/CartDrawer";
+import { StoreChat } from "@/components/shop/StoreChat";
+import { PromoBanner } from "@/components/shop/PromoBanner";
 import { 
   Search, 
   Bike, 
@@ -10,12 +15,12 @@ import {
   LayoutGrid, 
   MapPin, 
   Filter,
-  Menu
+  Menu,
+  User,
+  Zap,
+  TrendingUp,
+  Loader2
 } from "lucide-react";
-import { formatBRL } from "@/lib/format";
-import { getOptimizedImageUrl } from "@/lib/image";
-import { CartDrawer } from "@/components/shop/CartDrawer";
-import { StoreChat } from "@/components/shop/StoreChat";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,6 +62,19 @@ function ProductCard({ p }: { p: PublicProduct }) {
           </div>
         )}
         
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {p._type === 'bike' && (
+             <div className="bg-primary/90 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black text-white flex items-center gap-1 uppercase tracking-widest shadow-lg">
+               <Bike size={10} />
+             </div>
+          )}
+          {p.price_ecommerce && p.pix_price && p.pix_price < p.price_ecommerce && (
+             <div className="bg-yellow-400 px-2 py-1 rounded-lg text-[8px] font-black text-black flex items-center gap-1 uppercase tracking-widest shadow-lg animate-bounce">
+               <Zap size={10} fill="currentColor" /> {Math.round(((p.price_ecommerce - p.pix_price) / p.price_ecommerce) * 100)}% OFF
+             </div>
+          )}
+        </div>
+
         <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10">
           <span className="text-sm font-black text-white">{formatBRL(price)}</span>
         </div>
@@ -87,6 +105,8 @@ function ProductCard({ p }: { p: PublicProduct }) {
 export default function Store() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("Tudo");
+  const [isAiSearching, setIsAiSearching] = useState(false);
+  const [aiSkus, setAiSkus] = useState<string[]>([]);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["store-products"],
@@ -123,6 +143,26 @@ export default function Store() {
     return matchesSearch && matchesCategory;
   });
 
+  const handleAiSearch = async () => {
+    if (!search || search.length < 3) return;
+    setIsAiSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("store-ai-chat", {
+        body: { message: search, isSearch: true }
+      });
+      if (error) throw error;
+      setAiSkus(data.skus || []);
+      if (data.skus?.length > 0) setActiveCategory("Tudo");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAiSearching(false);
+    }
+  };
+
+  const aiProducts = products.filter(p => aiSkus.includes(p.sku));
+  const displayProducts = aiSkus.length > 0 ? aiProducts : filteredProducts;
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 pb-20">
       
@@ -134,25 +174,40 @@ export default function Store() {
           <span className="font-black text-sm text-white uppercase tracking-tighter hidden sm:block">Fefo Bikes</span>
         </div>
 
-        <div className="flex-1 max-w-2xl relative">
+        <div className="flex-1 max-w-2xl relative hidden md:block">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" size={18} />
           <input 
             type="text"
-            placeholder="Pesquisar em Fefo Bikes..."
+            placeholder="O que você procura hoje?"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 md:h-12 bg-secondary/50 border border-border/50 rounded-full pl-12 pr-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 focus:bg-secondary"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (aiSkus.length > 0) setAiSkus([]); // Reset AI search on type
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
+            className="w-full h-10 md:h-12 bg-secondary/50 border border-border/50 rounded-full pl-12 pr-32 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 focus:bg-secondary"
           />
+          <button 
+            onClick={handleAiSearch}
+            disabled={isAiSearching || search.length < 3}
+            className="absolute right-1.5 top-1.5 h-7 md:h-9 px-3 bg-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 disabled:opacity-30 transition-all flex items-center gap-2"
+          >
+            {isAiSearching ? <Loader2 size={12} className="animate-spin" /> : <><TrendingUp size={12} /> IA</>}
+          </button>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-white transition-colors">
-            <Filter size={18} />
+          <Link to="/minha-garagem" className="h-10 md:h-12 px-4 md:px-6 bg-card border border-border rounded-2xl text-[10px] md:text-xs font-black text-white hover:bg-muted transition-all flex items-center gap-2 uppercase tracking-widest active:scale-95 shadow-xl">
+            <User size={14} className="text-primary lg:w-4 lg:h-4" /> <span className="hidden sm:inline">Minha Garagem</span>
+          </Link>
+          <button className="md:hidden p-2 rounded-xl bg-card border border-border text-white">
+            <Menu size={20} />
           </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-10 md:space-y-16">
+        <PromoBanner />
         
         <section className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
           {categoriesList.map(cat => (
@@ -173,12 +228,19 @@ export default function Store() {
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black text-white tracking-tight uppercase italic flex items-center gap-2">
-              <LayoutGrid size={20} className="text-primary" />
-              Resultados de hoje
+              {aiSkus.length > 0 ? <TrendingUp size={20} className="text-primary" /> : <LayoutGrid size={20} className="text-primary" />}
+              {aiSkus.length > 0 ? "Sugestões da IA" : "Resultados de hoje"}
             </h2>
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-              {filteredProducts.length} itens encontrados
-            </span>
+            <div className="flex items-center gap-4">
+              {aiSkus.length > 0 && (
+                <button onClick={() => setAiSkus([])} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">
+                  Limpar Filtro IA
+                </button>
+              )}
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                {displayProducts.length} itens encontrados
+              </span>
+            </div>
           </div>
 
           {isLoading ? (
@@ -187,9 +249,9 @@ export default function Store() {
                 <div key={i} className="aspect-[3/4] rounded-3xl bg-card/50 animate-pulse border border-border/20" />
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
+          ) : displayProducts.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
-              {filteredProducts.map(p => (
+              {displayProducts.map(p => (
                 <ProductCard key={`${p._type}-${p.id}`} p={p} />
               ))}
             </div>
