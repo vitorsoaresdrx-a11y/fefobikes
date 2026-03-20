@@ -12,6 +12,7 @@ import PageSkeleton from "@/components/PageSkeleton";
 import Login from "@/pages/Login";
 import { Loader2 } from "lucide-react";
 import { useSyncOfflineQueue } from "@/hooks/useSyncOfflineQueue";
+import { GlobalAlerts } from "@/components/GlobalAlerts";
 
 function lazyRetry(factory: () => Promise<{ default: React.ComponentType<any> }>) {
   return lazy(() =>
@@ -97,6 +98,7 @@ function AuthGate() {
   return (
     <>
       <OfflineSync />
+      <GlobalAlerts />
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<GuardedRoute module="dashboard"><PageTransition><Dashboard /></PageTransition></GuardedRoute>} />

@@ -298,6 +298,18 @@ Deno.serve(async (req) => {
           await supabase.from('os_adicionais').update({ status: 'negado' }).eq('id', pendingAdditionId);
         }
 
+        // Create the global alert for the front-end
+        const contextText = intent === "NEGACAO" 
+          ? "Cliente negou o orçamento adicional e precisa de atenção." 
+          : "Cliente tem dúvida sobre o orçamento adicional e requer intervenção humana.";
+        
+        await supabase.from('os_alertas').insert({
+          os_id: pendingOsId,
+          numero_cliente: phone,
+          contexto: contextText,
+          visto: false
+        });
+
         // Flag conversation for human
         await supabase.from('whatsapp_conversations').update({ require_human: true }).eq('id', conversationId);
 
