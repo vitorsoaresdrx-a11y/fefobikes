@@ -4,12 +4,11 @@ import {
   CheckCircle2,
   Clock,
   User,
-  Phone,
-  CreditCard,
   Loader2,
   Check,
-  Hash,
   Bell,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   Dialog,
@@ -58,6 +57,15 @@ export default function Mecanicos() {
   const [frameNumbers, setFrameNumbers] = useState<Record<string, string>>({});
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [mobileTab, setMobileTab] = useState<"pending" | "accepted" | "done">("pending");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   useEffect(() => {
     const doneOrders = orders.filter((o) => o.mechanic_status === "done" && !hiddenIds.has(o.id));
@@ -124,80 +132,117 @@ export default function Mecanicos() {
 
   const grouped: Record<string, ServiceOrder[]> = { pending, accepted, done };
 
-  // ── Render helpers ──
-  const renderPendingCard = (order: ServiceOrder) => (
-    <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
-      <div className="space-y-1">
-        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-        {order.customer_name && (
-          <div className="flex items-center gap-2 text-muted-foreground text-xs">
-            <User size={12} /> {order.customer_name}
-          </div>
-        )}
-      </div>
+  const renderExpandedDetails = (order: ServiceOrder) => (
+    <div className="pt-2 border-t border-border/50">
       <div className="p-3 bg-background rounded-xl border border-border/50">
-        <p className="text-xs text-muted-foreground">{order.problem}</p>
+        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">O que fazer</p>
+        <p className="text-xs text-muted-foreground">{order.problem || "Nenhuma observação."}</p>
       </div>
-      <button
-        onClick={() => handleAcceptClick(order)}
-        className="w-full h-10 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-amber-500/20"
-      >
-        Aceitar
-      </button>
     </div>
   );
 
-  const renderAcceptedCard = (order: ServiceOrder) => (
-    <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
-      <div className="space-y-1">
-        {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-        {order.customer_name && (
-          <div className="flex items-center gap-2 text-muted-foreground text-xs">
-            <User size={12} /> {order.customer_name}
+  const renderPendingCard = (order: ServiceOrder) => {
+    const expanded = expandedIds.has(order.id);
+    return (
+      <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
+        <button onClick={() => toggleExpand(order.id)} className="w-full text-left">
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-1 flex-1 min-w-0">
+              {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+              {order.customer_name && (
+                <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                  <User size={12} /> {order.customer_name}
+                </div>
+              )}
+            </div>
+            <div className="shrink-0 text-muted-foreground mt-0.5">
+              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
           </div>
-        )}
-        {order.mechanic_name && (
-          <div className="flex items-center gap-2 text-indigo-400 text-xs">
-            <Wrench size={12} /> {order.mechanic_name}
-          </div>
-        )}
-      </div>
-      <div className="p-3 bg-background rounded-xl border border-border/50">
-        <p className="text-xs text-muted-foreground">{order.problem}</p>
-      </div>
-      <div className="space-y-2">
-        <FrameNumberInput
-          value={frameNumbers[order.id] || ""}
-          onChange={(val) => setFrameNumbers((prev) => ({ ...prev, [order.id]: val }))}
-        />
+        </button>
+
+        {expanded && renderExpandedDetails(order)}
+
         <button
-          onClick={() => handleFinish(order)}
-          disabled={finishOrder.isPending || createHistory.isPending}
-          className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
+          onClick={() => handleAcceptClick(order)}
+          className="w-full h-10 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-amber-500/20"
         >
-          {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
+          Aceitar
         </button>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderDoneCard = (order: ServiceOrder) => (
-    <div key={order.id} className="bg-card border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-          {order.mechanic_name && (
-            <div className="flex items-center gap-2 text-muted-foreground text-xs">
-              <Wrench size={12} /> {order.mechanic_name}
+  const renderAcceptedCard = (order: ServiceOrder) => {
+    const expanded = expandedIds.has(order.id);
+    return (
+      <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
+        <button onClick={() => toggleExpand(order.id)} className="w-full text-left">
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-1 flex-1 min-w-0">
+              {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+              {order.customer_name && (
+                <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                  <User size={12} /> {order.customer_name}
+                </div>
+              )}
+              {order.mechanic_name && (
+                <div className="flex items-center gap-2 text-indigo-400 text-xs">
+                  <Wrench size={12} /> {order.mechanic_name}
+                </div>
+              )}
             </div>
-          )}
+            <div className="shrink-0 text-muted-foreground mt-0.5">
+              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+          </div>
+        </button>
+
+        {expanded && renderExpandedDetails(order)}
+
+        <div className="space-y-2">
+          <FrameNumberInput
+            value={frameNumbers[order.id] || ""}
+            onChange={(val) => setFrameNumbers((prev) => ({ ...prev, [order.id]: val }))}
+          />
+          <button
+            onClick={() => handleFinish(order)}
+            disabled={finishOrder.isPending || createHistory.isPending}
+            className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
+          >
+            {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
+          </button>
         </div>
-        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
-          Concluído
-        </span>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const renderDoneCard = (order: ServiceOrder) => {
+    const expanded = expandedIds.has(order.id);
+    return (
+      <div key={order.id} className="bg-card border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
+        <button onClick={() => toggleExpand(order.id)} className="w-full text-left">
+          <div className="flex items-center justify-between gap-2">
+            <div className="space-y-1 flex-1 min-w-0">
+              {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+              {order.mechanic_name && (
+                <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                  <Wrench size={12} /> {order.mechanic_name}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
+                Concluído
+              </span>
+              {expanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
+            </div>
+          </div>
+        </button>
+        {expanded && renderExpandedDetails(order)}
+      </div>
+    );
+  };
 
   const renderCards = (key: string) => {
     const list = grouped[key] || [];
@@ -219,7 +264,6 @@ export default function Mecanicos() {
   return (
     <div className="min-h-full bg-background text-foreground pb-24 lg:pb-0">
       <div className="w-full max-w-[1400px] mx-auto p-4 sm:p-6 md:p-8 lg:p-12 space-y-6 md:space-y-8">
-        {/* Header */}
         <header className="space-y-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
@@ -233,7 +277,6 @@ export default function Mecanicos() {
           <p className="text-muted-foreground font-medium text-sm">Ordens de serviço em tempo real</p>
         </header>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-card border border-amber-400/20 p-4 rounded-2xl">
             <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">Pendentes</p>
@@ -255,7 +298,6 @@ export default function Mecanicos() {
           </div>
         ) : (
           <>
-            {/* Mobile: horizontal scrollable tabs */}
             <div className="flex md:hidden overflow-x-auto gap-3 pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
               {mobileColumns.map((col) => {
                 const active = mobileTab === col.key;
@@ -279,14 +321,11 @@ export default function Mecanicos() {
               })}
             </div>
 
-            {/* Mobile: single column */}
             <div className="md:hidden space-y-4">
               {renderCards(mobileTab)}
             </div>
 
-            {/* Desktop: two columns + done below */}
             <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
-              {/* Pending */}
               <section className="bg-card/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
                 <div className="flex items-center gap-3 p-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 mb-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 bg-white/5">
@@ -300,7 +339,6 @@ export default function Mecanicos() {
                 <div className="space-y-4 px-1">{renderCards("pending")}</div>
               </section>
 
-              {/* In Progress */}
               <section className="bg-card/50 rounded-3xl p-4 border border-indigo-400/10 min-h-[400px]">
                 <div className="flex items-center gap-3 p-4 rounded-2xl border border-indigo-400/20 bg-indigo-400/5 mb-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400 bg-white/5">
@@ -315,7 +353,6 @@ export default function Mecanicos() {
               </section>
             </div>
 
-            {/* Done - desktop only (mobile shows via tab) */}
             {done.length > 0 && (
               <div className="hidden md:block mt-6 space-y-3">
                 <div className="flex items-center gap-2">
@@ -331,7 +368,6 @@ export default function Mecanicos() {
         )}
       </div>
 
-      {/* Mechanic selection modal */}
       <Dialog open={acceptOpen} onOpenChange={setAcceptOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6 md:p-8 space-y-6">
