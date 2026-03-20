@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { User, Phone, CreditCard, Check } from "lucide-react";
 import { useCustomers, type Customer } from "@/hooks/useCustomers";
+import { maskPhone, maskCpfCnpj } from "@/lib/masks";
 
 interface CustomerAutocompleteProps {
   customerName: string;
@@ -9,7 +10,6 @@ interface CustomerAutocompleteProps {
   onSelect: (customer: Customer) => void;
   onChange: (field: "name" | "whatsapp" | "cpf", value: string) => void;
   inputClassName?: string;
-  /** Which field is currently being typed into */
   triggerFields?: ("name" | "whatsapp" | "cpf")[];
 }
 
@@ -48,7 +48,6 @@ export function CustomerAutocomplete({
     setShowSuggestions(suggestions.length > 0);
   }, [suggestions]);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -73,10 +72,14 @@ export function CustomerAutocomplete({
   };
 
   const handleChange = (field: "name" | "whatsapp" | "cpf", value: string) => {
-    if (selectedId) {
-      setSelectedId(null);
+    if (selectedId) setSelectedId(null);
+    if (field === "whatsapp") {
+      onChange(field, maskPhone(value));
+    } else if (field === "cpf") {
+      onChange(field, maskCpfCnpj(value));
+    } else {
+      onChange(field, value);
     }
-    onChange(field, value);
   };
 
   if (selectedId) {
@@ -109,7 +112,6 @@ export function CustomerAutocomplete({
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Suggestions dropdown */}
       {showSuggestions && (
         <div className="absolute left-0 right-0 bottom-full mb-1 z-50 bg-secondary border border-border/80 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
           <div className="px-3 py-2 border-b border-border">
