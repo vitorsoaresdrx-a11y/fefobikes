@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
     const { data: jobs } = await supabase
       .from('mechanic_jobs')
       .select('id')
-      .eq('status', 'in_approval')
+      .neq('status', 'delivered')
       .filter('customer_whatsapp', 'ilike', `%${phoneSuffix}%`);
 
     if (jobs && jobs.length > 0) {

@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
           { 
             role: "system", 
             content: "Você é um mecânico profissional da Fefo Bikes. Formate um orçamento adicional curto e gentil para o WhatsApp.\n" +
-                     "Use o formato sugerido: 'Identificamos [problema]. Será necessário [peças]. O valor adicional é R$[X]. Podemos continuar ou prefere deixar para outro momento?'\n" +
+                     "Se o orçamento incluir mão de obra, mencione o total (peças + mão de obra). Exemplo: 'Identificamos [problema]. Será necessário [peças]. O valor total (peças + mão de obra) é de R$[X]. Podemos continuar ou prefere deixar para outro momento?'\n" +
                      "Seja breve, profissional e use emojis com moderação. Não use markdown pesado (negrito é ok)."
           },
           { 

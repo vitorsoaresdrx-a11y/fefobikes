@@ -736,16 +736,40 @@ export default function Mecanica() {
     );
   };
 
-  const handleRetreatJob = (job: MechanicJob) => { retreat.mutate({ id: job.id }, { onSuccess: () => toast.success("Retornado para 'Em Manutenção'"), onError: () => toast.error("Erro ao retroceder") }); };
-  const handleAdvanceFromApproval = (job: MechanicJob) => {
+  const handleAdvanceJob = (job: MechanicJob) => {
+    const phone = job.customer_whatsapp?.replace(/\D/g, "");
+    const formattedPhone = phone ? ((phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone) : null;
+
     advance.mutate({ id: job.id, status: job.status }, {
       onSuccess: () => {
-        createServiceOrder.mutate({ id: job.id, customer_name: job.customer_name || undefined, customer_cpf: job.customer_cpf || undefined, customer_whatsapp: job.customer_whatsapp || undefined, customer_id: job.customer_id || undefined, bike_name: job.bike_name || undefined, problem: job.problem });
-        toast.success("Enviado para a mecânica!");
+        toast.success("Card avançado!");
+        
+        // Transitions logic
+        if (job.status === "in_approval") {
+          createServiceOrder.mutate({ id: job.id, customer_name: job.customer_name || undefined, customer_cpf: job.customer_cpf || undefined, customer_whatsapp: job.customer_whatsapp || undefined, customer_id: job.customer_id || undefined, bike_name: job.bike_name || undefined, problem: job.problem });
+        }
+
+        // WhatsApp notifications
+        if (formattedPhone) {
+          let message = "";
+          if (job.status === "in_approval") {
+            message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
+          } else if (job.status === "in_repair") {
+            message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
+          } else if (job.status === "in_analysis") {
+            message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
+          }
+
+          if (message) {
+            sendMessage.mutate({ phone: formattedPhone, message });
+          }
+        }
       },
       onError: () => toast.error("Erro ao mover card"),
     });
   };
+
+  const handleRetreatJob = (job: MechanicJob) => { retreat.mutate({ id: job.id }, { onSuccess: () => toast.success("Retornado para 'Em Manutenção'"), onError: () => toast.error("Erro ao retroceder") }); };
 
   // Opens the finalize+payment modal instead of directly advancing
   const handleOpenFinalize = (job: MechanicJob) => {
@@ -887,7 +911,7 @@ export default function Mecanica() {
               <div className="space-y-4">
                 {(grouped[mobileTab]?.length || 0) > 0 ? (
                   grouped[mobileTab]?.map((job) => (
-                    <JobCard key={job.id} job={job} isLast={mobileTab === "ready"} columnKey={mobileTab} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={mobileTab === "in_approval" ? handleAdvanceFromApproval : undefined} onFinalize={mobileTab === "ready" ? handleOpenFinalize : undefined} />
+                    <JobCard key={job.id} job={job} isLast={mobileTab === "ready"} columnKey={mobileTab} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={mobileTab !== "ready" ? handleAdvanceJob : undefined} onFinalize={mobileTab === "ready" ? handleOpenFinalize : undefined} />
                   ))
                 ) : (
                   <div className="py-20 text-center space-y-3 opacity-20">
@@ -914,7 +938,7 @@ export default function Mecanica() {
                   <div className="px-1.5 space-y-3 pb-6 flex-1">
                     {grouped[col.key].length > 0 ? (
                       grouped[col.key].map((job) => (
-                        <JobCard key={job.id} job={job} isLast={col.key === "ready"} columnKey={col.key} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={col.key === "in_approval" ? handleAdvanceFromApproval : undefined} onFinalize={col.key === "ready" ? handleOpenFinalize : undefined} />
+                        <JobCard key={job.id} job={job} isLast={col.key === "ready"} columnKey={col.key} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={col.key !== "ready" ? handleAdvanceJob : undefined} onFinalize={col.key === "ready" ? handleOpenFinalize : undefined} />
                       ))
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20">
@@ -1153,7 +1177,7 @@ export default function Mecanica() {
             <div className="space-y-3">
               {grouped.in_repair.length > 0 ? (
                 grouped.in_repair.map((job) => (
-                  <JobCard key={job.id} job={job} isLast={false} columnKey="in_repair" onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} />
+                  <JobCard key={job.id} job={job} isLast={false} columnKey="in_repair" onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={handleAdvanceJob} />
                 ))
               ) : (
                 <div className="py-10 text-center space-y-2 opacity-30">
