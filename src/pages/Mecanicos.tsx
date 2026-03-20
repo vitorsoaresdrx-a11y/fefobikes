@@ -7,8 +7,7 @@ import {
   Loader2,
   Check,
   Bell,
-  ChevronDown,
-  ChevronUp,
+  FileText,
 } from "lucide-react";
 import {
   Dialog,
@@ -54,18 +53,10 @@ export default function Mecanicos() {
 
   const [acceptOpen, setAcceptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
+  const [detailOrder, setDetailOrder] = useState<ServiceOrder | null>(null);
   const [frameNumbers, setFrameNumbers] = useState<Record<string, string>>({});
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [mobileTab, setMobileTab] = useState<"pending" | "accepted" | "done">("pending");
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-
-  const toggleExpand = (id: string) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
 
   useEffect(() => {
     const doneOrders = orders.filter((o) => o.mechanic_status === "done" && !hiddenIds.has(o.id));
@@ -132,117 +123,104 @@ export default function Mecanicos() {
 
   const grouped: Record<string, ServiceOrder[]> = { pending, accepted, done };
 
-  const renderExpandedDetails = (order: ServiceOrder) => (
-    <div className="pt-2 border-t border-border/50">
-      <div className="p-3 bg-background rounded-xl border border-border/50">
-        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">O que fazer</p>
-        <p className="text-xs text-muted-foreground">{order.problem || "Nenhuma observação."}</p>
+  // Observação discreta sempre visível no card
+  const renderInlineObservation = (order: ServiceOrder) => {
+    if (!order.problem) return null;
+    return (
+      <p className="text-[11px] text-muted-foreground/60 line-clamp-2 leading-relaxed">
+        {order.problem}
+      </p>
+    );
+  };
+
+  const renderPendingCard = (order: ServiceOrder) => (
+    <div
+      key={order.id}
+      className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all"
+    >
+      {/* Clica no topo para abrir modal de observações */}
+      <button onClick={() => setDetailOrder(order)} className="w-full text-left space-y-2">
+        <div className="space-y-1">
+          {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+          {order.customer_name && (
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+              <User size={12} /> {order.customer_name}
+            </div>
+          )}
+        </div>
+        {renderInlineObservation(order)}
+      </button>
+
+      <button
+        onClick={() => handleAcceptClick(order)}
+        className="w-full h-10 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-amber-500/20"
+      >
+        Aceitar
+      </button>
+    </div>
+  );
+
+  const renderAcceptedCard = (order: ServiceOrder) => (
+    <div
+      key={order.id}
+      className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all"
+    >
+      <button onClick={() => setDetailOrder(order)} className="w-full text-left space-y-2">
+        <div className="space-y-1">
+          {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+          {order.customer_name && (
+            <div className="flex items-center gap-2 text-muted-foreground text-xs">
+              <User size={12} /> {order.customer_name}
+            </div>
+          )}
+          {order.mechanic_name && (
+            <div className="flex items-center gap-2 text-indigo-400 text-xs">
+              <Wrench size={12} /> {order.mechanic_name}
+            </div>
+          )}
+        </div>
+        {renderInlineObservation(order)}
+      </button>
+
+      <div className="space-y-2">
+        <FrameNumberInput
+          value={frameNumbers[order.id] || ""}
+          onChange={(val) => setFrameNumbers((prev) => ({ ...prev, [order.id]: val }))}
+        />
+        <button
+          onClick={() => handleFinish(order)}
+          disabled={finishOrder.isPending || createHistory.isPending}
+          className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
+        >
+          {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
+        </button>
       </div>
     </div>
   );
 
-  const renderPendingCard = (order: ServiceOrder) => {
-    const expanded = expandedIds.has(order.id);
-    return (
-      <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-amber-400/30 transition-all">
-        <button onClick={() => toggleExpand(order.id)} className="w-full text-left">
-          <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1 flex-1 min-w-0">
-              {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-              {order.customer_name && (
-                <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                  <User size={12} /> {order.customer_name}
-                </div>
-              )}
-            </div>
-            <div className="shrink-0 text-muted-foreground mt-0.5">
-              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </div>
+  const renderDoneCard = (order: ServiceOrder) => (
+    <div
+      key={order.id}
+      className="bg-card border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60"
+    >
+      <button onClick={() => setDetailOrder(order)} className="w-full text-left space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="space-y-1 flex-1 min-w-0">
+            {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
+            {order.mechanic_name && (
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                <Wrench size={12} /> {order.mechanic_name}
+              </div>
+            )}
           </div>
-        </button>
-
-        {expanded && renderExpandedDetails(order)}
-
-        <button
-          onClick={() => handleAcceptClick(order)}
-          className="w-full h-10 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-amber-500/20"
-        >
-          Aceitar
-        </button>
-      </div>
-    );
-  };
-
-  const renderAcceptedCard = (order: ServiceOrder) => {
-    const expanded = expandedIds.has(order.id);
-    return (
-      <div key={order.id} className="bg-card border border-border rounded-2xl p-5 space-y-4 hover:border-indigo-400/30 transition-all">
-        <button onClick={() => toggleExpand(order.id)} className="w-full text-left">
-          <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1 flex-1 min-w-0">
-              {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-              {order.customer_name && (
-                <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                  <User size={12} /> {order.customer_name}
-                </div>
-              )}
-              {order.mechanic_name && (
-                <div className="flex items-center gap-2 text-indigo-400 text-xs">
-                  <Wrench size={12} /> {order.mechanic_name}
-                </div>
-              )}
-            </div>
-            <div className="shrink-0 text-muted-foreground mt-0.5">
-              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </div>
-          </div>
-        </button>
-
-        {expanded && renderExpandedDetails(order)}
-
-        <div className="space-y-2">
-          <FrameNumberInput
-            value={frameNumbers[order.id] || ""}
-            onChange={(val) => setFrameNumbers((prev) => ({ ...prev, [order.id]: val }))}
-          />
-          <button
-            onClick={() => handleFinish(order)}
-            disabled={finishOrder.isPending || createHistory.isPending}
-            className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
-          >
-            {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
-          </button>
+          <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20 shrink-0">
+            Concluído
+          </span>
         </div>
-      </div>
-    );
-  };
-
-  const renderDoneCard = (order: ServiceOrder) => {
-    const expanded = expandedIds.has(order.id);
-    return (
-      <div key={order.id} className="bg-card border border-emerald-500/20 rounded-2xl p-5 space-y-3 opacity-60">
-        <button onClick={() => toggleExpand(order.id)} className="w-full text-left">
-          <div className="flex items-center justify-between gap-2">
-            <div className="space-y-1 flex-1 min-w-0">
-              {order.bike_name && <p className="text-sm font-black text-white uppercase">{order.bike_name}</p>}
-              {order.mechanic_name && (
-                <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                  <Wrench size={12} /> {order.mechanic_name}
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase border border-emerald-500/20">
-                Concluído
-              </span>
-              {expanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
-            </div>
-          </div>
-        </button>
-        {expanded && renderExpandedDetails(order)}
-      </div>
-    );
-  };
+        {renderInlineObservation(order)}
+      </button>
+    </div>
+  );
 
   const renderCards = (key: string) => {
     const list = grouped[key] || [];
@@ -321,9 +299,7 @@ export default function Mecanicos() {
               })}
             </div>
 
-            <div className="md:hidden space-y-4">
-              {renderCards(mobileTab)}
-            </div>
+            <div className="md:hidden space-y-4">{renderCards(mobileTab)}</div>
 
             <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
               <section className="bg-card/50 rounded-3xl p-4 border border-amber-400/10 min-h-[400px]">
@@ -368,6 +344,38 @@ export default function Mecanicos() {
         )}
       </div>
 
+      {/* Modal de observações */}
+      <Dialog open={!!detailOrder} onOpenChange={(v) => { if (!v) setDetailOrder(null); }}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-3xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
+          <div className="p-6 md:p-8 space-y-4">
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <FileText size={16} className="text-primary" />
+                </div>
+                <div>
+                  {detailOrder?.bike_name && (
+                    <DialogTitle className="text-base font-black text-white uppercase tracking-tight">
+                      {detailOrder.bike_name}
+                    </DialogTitle>
+                  )}
+                  {detailOrder?.customer_name && (
+                    <p className="text-[11px] text-muted-foreground">{detailOrder.customer_name}</p>
+                  )}
+                </div>
+              </div>
+            </DialogHeader>
+            <div className="p-4 bg-background rounded-2xl border border-border/50 min-h-[120px]">
+              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2">O que fazer</p>
+              <p className="text-sm text-foreground leading-relaxed">
+                {detailOrder?.problem || "Nenhuma observação registrada."}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de seleção de mecânico */}
       <Dialog open={acceptOpen} onOpenChange={setAcceptOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-md shadow-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-6 md:p-8 space-y-6">
