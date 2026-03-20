@@ -75,7 +75,7 @@ const navGroups = [
   {
     label: "Serviços",
     items: [
-      { title: "Mecânica", url: "/mecanica", icon: Wrench },
+      { title: "Oficina", url: "/mecanica", icon: Wrench },
       { title: "Mecânicos", url: "/mecanicos", icon: HardHat },
       { title: "Histórico Mecânicos", url: "/mecanicos/historico", icon: History },
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },

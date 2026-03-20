@@ -46,7 +46,7 @@ const STATIONS: Station[] = [
   },
   {
     id: "mecanica",
-    label: "Mecânica",
+    label: "Oficina",
     desc: "Serviços e manutenção",
     icon: Wrench,
     accent: "text-amber-500",
