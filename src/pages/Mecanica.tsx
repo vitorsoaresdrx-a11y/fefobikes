@@ -70,6 +70,7 @@ import { useParts } from "@/hooks/useParts";
 import { useServiceOrdersRealtime, useCreateServiceOrder, type ServiceOrder } from "@/hooks/useServiceOrders";
 import { playNotifySound, playAcceptSound } from "@/lib/sounds";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 import { formatBRL } from "@/lib/format";
