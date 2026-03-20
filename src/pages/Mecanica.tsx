@@ -389,7 +389,7 @@ function JobCard({
             <button onClick={() => setDeleteDialogOpen(true)} disabled={remove.isPending} className="h-9 px-4 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-black flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50 border border-red-500/20 uppercase">
               {remove.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Trash2 size={14} /> Excluir</>}
             </button>
-            )}
+            
           </div>
         </div>
       </div>
