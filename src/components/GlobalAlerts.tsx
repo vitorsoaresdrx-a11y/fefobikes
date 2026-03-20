@@ -17,10 +17,10 @@ interface Alerta {
 
 export function GlobalAlerts() {
   const [alerts, setAlerts] = useState<Alerta[]>([]);
-  const { role } = usePermissions();
+  const { canSeeAlerts } = usePermissions();
 
   // Apenas Salão e Administrador vêem os alertas
-  const isTargetProfile = role === "admin" || role === "station";
+  const isTargetProfile = canSeeAlerts;
 
   useEffect(() => {
     if (!isTargetProfile) return;

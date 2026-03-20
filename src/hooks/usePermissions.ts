@@ -294,3 +294,17 @@ export function useUpsertPermission() {
     },
   });
 }
+
+export function usePermissions() {
+  const { session } = useAuth();
+  const user = session?.user;
+  const role = user?.user_metadata?.role ?? user?.role ?? "";
+  
+  return {
+    isSalao: role === "salao",
+    isAdmin: role === "administrador" || role === "admin",
+    isOficina: role === "oficina",
+    isMecanica: role === "mecanica",
+    canSeeAlerts: role === "salao" || role === "administrador" || role === "admin",
+  };
+}
