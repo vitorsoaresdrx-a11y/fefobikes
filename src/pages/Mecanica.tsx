@@ -81,7 +81,8 @@ import { formatBRL } from "@/lib/format";
 
 function getAdditionTotal(a: MechanicJobAddition) {
   if (!a) return 0;
-  const partsTotal = (a.parts_used || []).reduce(
+  const parts = Array.isArray(a.parts_used) ? a.parts_used : [];
+  const partsTotal = parts.reduce(
     (sum, p) => sum + (Number(p?.quantity) || 0) * (Number(p?.unit_price) || 0),
     0
   );
@@ -92,7 +93,7 @@ function getTotalPrice(job: MechanicJob | null) {
   if (!job) return 0;
   if (job.sem_custo) return 0;
   const base = Number(job.price || 0);
-  const accepted = (job.additions || [])
+  const accepted = (Array.isArray(job.additions) ? job.additions : [])
     .filter((a) => {
       const status = (a?.approval as string);
       return status === "accepted" || status === "aprovado";
@@ -175,7 +176,7 @@ const PaymentBadge = ({ job }: { job: MechanicJob }) => {
   }
   const total = getTotalPrice(job);
   const paid = Number(job.payment?.valor_pago || 0);
-  const discount = Number((job.payment_history || []).reduce((s, h) => s + (Number(h?.desconto_valor) || 0), 0));
+  const discount = Number((Array.isArray(job.payment_history) ? job.payment_history : []).reduce((s, h) => s + (Number(h?.desconto_valor) || 0), 0));
   const remaining = total - (paid + discount);
 
   if (remaining <= 0) {
@@ -681,8 +682,8 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                   </div>
                   <div className="p-3 bg-muted/20 rounded-md border flex justify-between items-center text-xs font-bold">
                     <span className="text-muted-foreground uppercase text-[10px]">Restante</span>
-                    <span className={getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0)) <= 0 ? "text-emerald-600" : "text-amber-600"}>
-                      {formatBRL(Math.max(0, getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0))))}
+                    <span className={getTotalPrice(editJob) - ((Array.isArray(editJob?.payment_history) ? editJob.payment_history : []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0)) <= 0 ? "text-emerald-600" : "text-amber-600"}>
+                      {formatBRL(Math.max(0, getTotalPrice(editJob) - ((Array.isArray(editJob?.payment_history) ? editJob.payment_history : []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0))))}
                     </span>
                   </div>
                 </div>
@@ -695,7 +696,7 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
               <div className="space-y-3 pt-6 border-t pb-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Reparos Extras</h4>
                 <div className="space-y-3">
-                  {(editJob?.additions || []).length === 0 ? (
+                  {(!Array.isArray(editJob?.additions) || editJob.additions.length === 0) ? (
                     <div className="py-8 text-center bg-muted/10 border border-dashed rounded-md opacity-40">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sem reparos extras</p>
                     </div>
@@ -985,7 +986,7 @@ export default function Mecanica() {
 
     // Enforce discount rule: only allowed if it clears the total
     const total = getTotalPrice(editJob);
-    const alreadyCleared = (editJob.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0);
+    const alreadyCleared = (Array.isArray(editJob.payment_history) ? editJob.payment_history : []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0);
     const newAmount = payForm.tipo === 'desconto' ? payForm.desconto_valor : payForm.valor;
 
     if (payForm.tipo === 'desconto' && (alreadyCleared + newAmount < total - 0.01)) { // 0.01 for float safety
@@ -2252,8 +2253,8 @@ export default function Mecanica() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                {(grouped.in_repair || []).length > 0 ? (
-                  (grouped.in_repair || []).map((job) => {
+                {(Array.isArray(grouped.in_repair) && grouped.in_repair.length > 0) ? (
+                  grouped.in_repair.map((job) => {
                     if (!job) return null;
                     return (
                       <JobCard 
@@ -2391,7 +2392,7 @@ export default function Mecanica() {
                   <div className="h-px bg-border/40 my-1" />
                   <div className="flex justify-between text-foreground">
                     <span>Saldo Restante</span>
-                    <span>{formatBRL(Math.max(0, getTotalPrice(receiptData.job) - (receiptData.job.payment_history || []).filter(h => new Date(h.criado_em) <= new Date(receiptData.history.criado_em)).reduce((s, h) => s + Number(h.valor) + Number(h.desconto_valor), 0)))}</span>
+                    <span>{formatBRL(Math.max(0, getTotalPrice(receiptData.job) - (Array.isArray(receiptData.job.payment_history) ? receiptData.job.payment_history : []).filter(h => new Date(h.criado_em) <= new Date(receiptData.history.criado_em)).reduce((s, h) => s + Number(h.valor) + Number(h.desconto_valor), 0)))}</span>
                   </div>
                 </div>
               </div>
