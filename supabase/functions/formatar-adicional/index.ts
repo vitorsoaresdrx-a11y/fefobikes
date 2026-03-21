@@ -19,8 +19,10 @@ function evoHeaders() {
   };
 }
 
-function instanceName(tenantId: string): string {
-  return `fefo-${tenantId.replace(/-/g, "").slice(0, 12)}`;
+function instanceName(tenantId: any): string {
+  const tid = typeof tenantId === 'string' ? tenantId : String(tenantId || "");
+  if (!tid) return "fefo-default";
+  return `fefo-${tid.replace(/-/g, "").slice(0, 12)}`;
 }
 
 Deno.serve(async (req) => {

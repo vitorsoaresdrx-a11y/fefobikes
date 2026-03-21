@@ -1370,6 +1370,8 @@ export default function Mecanica() {
           maoDeObra: addForm.labor_cost
         }
       });
+      
+      console.log("Edge Function Response:", { edgeData, edgeErr });
       if (edgeErr || edgeData?.error) throw new Error(edgeErr?.message || edgeData?.error || "Insucesso na Edge Function");
 
       // 3. Send media if there are "problema" photos
