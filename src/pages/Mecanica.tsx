@@ -927,7 +927,7 @@ export default function Mecanica() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [supabase]);
+  }, []);
 
   const [sendingAddition, setSendingAddition] = useState(false);
   const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");

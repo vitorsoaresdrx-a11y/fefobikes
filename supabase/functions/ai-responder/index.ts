@@ -184,20 +184,27 @@ Deno.serve(async (req) => {
         const classData = await classificationRes.json();
         const intent = (classData.choices?.[0]?.message?.content?.trim() || "").toUpperCase();
         
-        if (intent.includes("APROVACAO")) {
+        if (intent.includes("APROVACAO") || intent.includes("CONFIRMACAO")) {
           // Process Approval
+          console.log(`Intent classification: ${intent}. APROVANDO orçamento na DB...`);
+          
           await supabase.from('os_adicionais').update({ status: 'aprovado' }).eq('id', pendingAdditionId);
+          console.log(`OS adicional ${pendingAdditionId} -> aprovado.`);
+
           const { data: pgData } = await supabase.from('os_pagamentos').select('*').eq('os_id', pendingOsId).maybeSingle();
           if (pgData) {
             await supabase.from('os_pagamentos').update({
               valor_total: Number(pgData.valor_total) + pendingAdditionValue,
               valor_restante: Number(pgData.valor_restante) + pendingAdditionValue
             }).eq('id', pgData.id);
+            console.log(`OS pagamentos ${pgData.id} atualizado com novo valor: +${pendingAdditionValue}.`);
           }
+
           await supabase.from('os_alertas').insert({
             os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'sucesso',
             contexto: `✅ Cliente APROVOU o orçamento extra de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingAdditionValue)}.`
           });
+          console.log(`Alerta de aprovação inserido para OS ${pendingOsId}.`);
 
           const responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
           const instName = tenantId ? instanceName(tenantId) : "fefo-default";
