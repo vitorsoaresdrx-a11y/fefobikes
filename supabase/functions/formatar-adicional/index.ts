@@ -40,14 +40,35 @@ Deno.serve(async (req) => {
 
     if (jobErr || !job) throw new Error("OS not found");
 
+    // 1b. Fetch Payment Details
+    const { data: payment } = await supabase
+      .from("os_pagamentos" as any)
+      .select("valor_total, valor_pago, valor_restante")
+      .eq("os_id", osId)
+      .maybeSingle();
+
     const phone = job.customer_whatsapp?.replace(/\D/g, "");
     if (!phone) throw new Error("Customer phone not found");
 
     const maoDeObraValor = Number(maoDeObra || 0);
-    const pecasAdicional = pecas.reduce((acc: number, p: any) => acc + ((p.valor || p.unit_price || 0) * (p.quantidade || p.quantity || 0)), 0);
+    
+    // Normalize pecas structure
+    const normalizedParts = pecas.map((p: any) => ({
+      name: p.peca || p.part_name || p.name || "Peça",
+      quantity: Number(p.quantidade || p.quantity || 1),
+      price: Number(p.valor || p.unit_price || 0)
+    }));
+
+    const pecasAdicional = normalizedParts.reduce((acc: number, p: any) => acc + (p.price * p.quantity), 0);
     const totalAdicional = pecasAdicional + maoDeObraValor;
 
     // 2. Format message with IA
+    const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+    const paymentContext = payment ? 
+      `Total original: ${formatCurrency(payment.valor_total)}\nJá pago: ${formatCurrency(payment.valor_pago)}\nRestante original: ${formatCurrency(payment.valor_restante)}` :
+      `Total original: ${formatCurrency(job.price)}\nStatus: Sem registro de pagamento prévio.`;
+
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
     const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -60,16 +81,29 @@ Deno.serve(async (req) => {
         messages: [
           { 
             role: "system", 
-            content: "Você é um mecânico profissional da Fefo Bikes. Formate um orçamento adicional curto e gentil para o WhatsApp.\n" +
-                     "Se o orçamento incluir mão de obra, mencione o total (peças + mão de obra). Exemplo: 'Identificamos [problema]. Será necessário [peças]. O valor total (peças + mão de obra) é de R$[X]. Podemos continuar ou prefere deixar para outro momento?'\n" +
-                     "Seja breve, profissional e use emojis com moderação. Não use markdown pesado (negrito é ok)."
+            content: "Você é um mecânico profissional da Fefo Bikes. Formate um orçamento adicional transparente para o WhatsApp.\n" +
+                     "Regras de formato:\n" +
+                     "1. Liste os itens (Nome: R$ Valor unitário x Qtd)\n" +
+                     "2. Mostre Mão de Obra separada se > 0\n" +
+                     "3. Mostre o TOTAL deste adicional\n" +
+                     "4. Explique o impacto no saldo total do cliente baseado no contexto de pagamento fornecido:\n" +
+                     "   - Se ja pagou tudo: diga o valor do novo boleto/pagamento\n" +
+                     "   - Se pagou parcial: mostre quanto ele ainda devia e quanto ficará o novo total em aberto\n" +
+                     "   - Se não pagou nada: mostre o novo total somado (Original + Adicional)\n" +
+                     "5. Termine com a pergunta padrão sobre prosseguir.\n" +
+                     "Seja executivo, gentil e use emojis moderados. Não use blocos de código ou markdown pesado."
           },
           { 
             role: "user", 
-            content: `Bike: ${job.bike_name}\nProblema/Obs: ${observacoes}\nPeças: ${JSON.stringify(pecas)}\nMão de Obra: R$ ${maoDeObraValor.toFixed(2)}\nValor total: R$ ${totalAdicional.toFixed(2)}`
+            content: `Bike: ${job.bike_name}\n` +
+                     `Problema: ${observacoes}\n` +
+                     `Peças Adicionais: ${JSON.stringify(normalizedParts)}\n` +
+                     `Mão de Obra Extra: ${formatCurrency(maoDeObraValor)}\n` +
+                     `Total Adicional: ${formatCurrency(totalAdicional)}\n\n` +
+                     `Contexto de Pagamento Atual:\n${paymentContext}`
           }
         ],
-        temperature: 0.7,
+        temperature: 0.5,
       }),
     });
 
