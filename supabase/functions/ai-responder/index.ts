@@ -281,6 +281,15 @@ Deno.serve(async (req) => {
           }).eq('id', pgData.id);
         }
 
+        // Insert alert for Salon (Aprovado)
+        await supabase.from('os_alertas').insert({
+          os_id: pendingOsId,
+          numero_cliente: phone,
+          contexto: `✅ Cliente APROVOU o orçamento extra de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingAdditionValue)}.`,
+          visto: false,
+          tipo: 'sucesso' // We'll add this column if needed, or just use the context
+        });
+
         const responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
         const instName = tenantId ? instanceName(tenantId) : "fefo-default";
         
@@ -314,7 +323,8 @@ Deno.serve(async (req) => {
           os_id: pendingOsId,
           numero_cliente: phone,
           contexto: contextText,
-          visto: false
+          visto: false,
+          tipo: intent.includes("NEGACAO") ? 'erro' : 'info'
         });
 
         // Flag conversation for human

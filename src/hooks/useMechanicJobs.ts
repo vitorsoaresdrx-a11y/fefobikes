@@ -140,23 +140,22 @@ export function useMechanicJobsRealtime() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "mechanic_jobs" },
-        () => {
-          qc.invalidateQueries({ queryKey: KEY });
-        }
+        () => qc.invalidateQueries({ queryKey: KEY })
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "mechanic_job_additions" },
-        () => {
-          qc.invalidateQueries({ queryKey: KEY });
-        }
+        () => qc.invalidateQueries({ queryKey: KEY })
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "os_adicionais" },
-        () => {
-          qc.invalidateQueries({ queryKey: KEY });
-        }
+        () => qc.invalidateQueries({ queryKey: KEY })
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "os_pagamentos" },
+        () => qc.invalidateQueries({ queryKey: KEY })
       )
       .subscribe();
 
