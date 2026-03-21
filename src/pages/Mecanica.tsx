@@ -1385,8 +1385,6 @@ export default function Mecanica() {
             mediatype: 'image'
           });
         }
-        // 4. Send formatted message
-        await sendMessage.mutateAsync({ phone: formattedPhone, message: edgeData.message });
       }
 
 
