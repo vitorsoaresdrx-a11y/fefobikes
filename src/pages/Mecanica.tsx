@@ -2224,11 +2224,14 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
-        <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[85vh] flex flex-col">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Ordens na Mecânica</DialogTitle>
-          </DialogHeader>
+      <>
+        {mechanicCardOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/60" onClick={() => setMechanicCardOpen(false)} />
+            <div className="relative bg-secondary border border-border rounded-2xl p-0 overflow-hidden w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl mx-4">
+              <div style={{display:'none'}}>
+                <DialogTitle>Ordens na Mecânica</DialogTitle>
+              </div>
           
           <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-secondary/50 backdrop-blur-sm sticky top-0 z-10">
             <div className="flex items-center gap-3">
@@ -2273,9 +2276,11 @@ export default function Mecanica() {
               </div>
             )}
           </div>
-        </DialogContent>
-      </Dialog>
-      {/* ── Modal de Registro de Pagamento ─────────────────────────────────── */}
+        </div>
+      </div>
+    )}
+  </>
+  {/* ── Modal de Registro de Pagamento ─────────────────────────────────── */}
       <Dialog open={registerPayOpen} onOpenChange={setRegisterPayOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
           <div className="p-6 md:p-10 space-y-6">
@@ -2457,6 +2462,7 @@ export default function Mecanica() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
