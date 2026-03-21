@@ -188,7 +188,7 @@ Deno.serve(async (req) => {
           // Process Approval
           console.log(`Intent classification: ${intent}. APROVANDO orçamento na DB...`);
           
-          await supabase.from('os_adicionais').update({ status: 'aprovado' }).eq('id', pendingAdditionId);
+          await supabase.from('os_adicionais').update({ status: 'aprovado', approval: 'aprovado' }).eq('id', pendingAdditionId);
           console.log(`OS adicional ${pendingAdditionId} -> aprovado.`);
 
           const { data: pgData } = await supabase.from('os_pagamentos').select('*').eq('os_id', pendingOsId).maybeSingle();
@@ -218,7 +218,7 @@ Deno.serve(async (req) => {
         }
 
         if (intent.includes("NEGACAO") || intent.includes("DUVIDA")) {
-          if (intent.includes("NEGACAO")) await supabase.from('os_adicionais').update({ status: 'negado' }).eq('id', pendingAdditionId);
+          if (intent.includes("NEGACAO")) await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
           const ctxText = intent.includes("NEGACAO") ? "Cliente negou o orçamento adicional." : "Cliente tem dúvida sobre o orçamento adicional.";
           await supabase.from('os_alertas').insert({
             os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: intent.includes("NEGACAO") ? 'erro' : 'info', contexto: ctxText
