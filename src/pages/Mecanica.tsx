@@ -1996,6 +1996,5 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
     </div>
-  </div>
   );
 }
