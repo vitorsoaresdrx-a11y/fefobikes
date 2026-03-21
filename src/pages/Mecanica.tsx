@@ -59,8 +59,8 @@ import {
   LayoutGrid,
   Camera,
   Image as ImageIcon,
-  History,
   Eye,
+  FileText,
 } from "lucide-react";
 import {
   Dialog,
@@ -327,7 +327,7 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
                 <span className="text-[9px] uppercase font-black text-muted-foreground/50 tracking-[0.2em]">Serviços Extras</span>
               </div>
               <div className="space-y-2">
-                {job.additions.map((a) => <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />)}
+                {job.additions?.map((a) => <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />)}
               </div>
             </div>
           )}
@@ -779,7 +779,7 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                   </div>
                 )}
 
-                <OSPhotosSection osId={editJob!.id} />
+                <OSPhotosSection osId={editJob?.id || ""} />
               </div>
 
               {/* Section 05: Reparos Adicionais */}
@@ -1996,6 +1996,6 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
     </div>
-
+  </div>
   );
 }
