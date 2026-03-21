@@ -5,8 +5,7 @@ import { toolDefinitions, executeCalcularFrete } from "./tools.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const EVOLUTION_BASE = "https://evolution.fefobikes.com.br";
@@ -115,7 +114,112 @@ Deno.serve(async (req) => {
       .single();
     const tenantId = tenantRow?.id ?? null;
 
-    // Check if AI is enabled or human has taken over
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
+
+    // --- PRIORITY 1: Check for pending repair additions (Works even if AI/Chat is OFF) ---
+    let pendingAdditionId = null;
+    let pendingOsId = null;
+    let pendingAdditionValue = 0;
+    
+    const phoneSuffix = phone.length > 10 ? phone.slice(-10) : phone;
+    const { data: jobs } = await supabase
+      .from('mechanic_jobs')
+      .select('id')
+      .neq('status', 'delivered')
+      .filter('customer_whatsapp', 'ilike', `%${phoneSuffix}%`);
+
+    if (jobs && jobs.length > 0) {
+      const jobIds = jobs.map((j: any) => j.id);
+      const { data: adicionais } = await supabase
+        .from('os_adicionais')
+        .select('id, os_id, status, valor_total')
+        .in('os_id', jobIds)
+        .in('status', ['enviado', 'pendente']);
+
+      if (adicionais && adicionais.length > 0) {
+        const first = adicionais[0];
+        pendingAdditionId = first.id;
+        pendingOsId = first.os_id;
+        pendingAdditionValue = Number(first.valor_total || 0);
+      }
+    }
+
+    if (pendingAdditionId) {
+      const sysClassifyContent = 'O cliente tem um orçamento extra PENDENTE. Classifique a mensagem dele:\n' +
+                                 '- APROVACAO: aceitou, concordou, "ok", "pode fazer", "sim", "faz aí", "beleza", "👍".\n' +
+                                 '- NEGACAO: não quer, "não precisa", "deixa pra lá", "não".\n' +
+                                 '- DUVIDA: perguntas, pechincha ou incertezas.\n\n' +
+                                 'Responda APENAS: APROVACAO, NEGACAO ou DUVIDA.';
+
+      const classificationRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            { role: "system", content: sysClassifyContent },
+            { role: "user", content: `Mensagem: "${message}"` }
+          ],
+          max_tokens: 10,
+          temperature: 0,
+        }),
+      });
+
+      if (classificationRes.ok) {
+        const classData = await classificationRes.json();
+        const intent = (classData.choices?.[0]?.message?.content?.trim() || "").toUpperCase();
+        
+        if (intent.includes("APROVACAO")) {
+          // Process Approval
+          await supabase.from('os_adicionais').update({ status: 'aprovado' }).eq('id', pendingAdditionId);
+          const { data: pgData } = await supabase.from('os_pagamentos').select('*').eq('os_id', pendingOsId).maybeSingle();
+          if (pgData) {
+            await supabase.from('os_pagamentos').update({
+              valor_total: Number(pgData.valor_total) + pendingAdditionValue,
+              valor_restante: Number(pgData.valor_restante) + pendingAdditionValue
+            }).eq('id', pgData.id);
+          }
+          await supabase.from('os_alertas').insert({
+            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'sucesso',
+            contexto: `✅ Cliente APROVOU o orçamento extra de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingAdditionValue)}.`
+          });
+
+          const responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
+          const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+            method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
+          });
+          await supabase.from("whatsapp_messages").insert({
+            conversation_id: conversationId, from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
+          });
+          return new Response(JSON.stringify({ ok: true, processed: "approval" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        if (intent.includes("NEGACAO") || intent.includes("DUVIDA")) {
+          if (intent.includes("NEGACAO")) await supabase.from('os_adicionais').update({ status: 'negado' }).eq('id', pendingAdditionId);
+          const ctxText = intent.includes("NEGACAO") ? "Cliente negou o orçamento adicional." : "Cliente tem dúvida sobre o orçamento adicional.";
+          await supabase.from('os_alertas').insert({
+            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: intent.includes("NEGACAO") ? 'erro' : 'info', contexto: ctxText
+          });
+          await supabase.from('whatsapp_conversations').update({ require_human: true, ai_enabled: false }).eq('id', conversationId);
+          
+          const responseText = intent.includes("NEGACAO") 
+            ? "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais, tudo bem?"
+            : "Certo, entendi sua dúvida. Vou chamar um atendente humano para analisar seu caso e te responder melhor.";
+          
+          const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+            method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
+          });
+          await supabase.from("whatsapp_messages").insert({
+            conversation_id: conversationId, from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
+          });
+          return new Response(JSON.stringify({ ok: true, processed: "human_fallback" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+    }
+
+    // --- PRIORITY 2: Check global settings for generic AI chat ---
     const { data: conv } = await supabase
       .from("whatsapp_conversations")
       .select("ai_enabled, human_takeover")
@@ -129,7 +233,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch last 10 messages for history
+    // --- STANDARD CHAT FLOW ---
     const { data: recentMessages } = await supabase
       .from("whatsapp_messages")
       .select("content, from_me, type")
@@ -145,7 +249,6 @@ Deno.serve(async (req) => {
         content: m.content!.replace(/^🎤 /, "").replace(/^🔊 /, ""),
       }));
 
-    // Build contexts in parallel
     const [businessContext, customerContext, aiInstructionsRow] = await Promise.all([
       buildBusinessContext(),
       getCustomerContext(phone),
@@ -154,390 +257,96 @@ Deno.serve(async (req) => {
         .select("value")
         .eq("key", "ai_instructions")
         .maybeSingle()
-        .then(({ data }: { data: { value: unknown } | null }) => (data?.value as any)?.prompt as string | undefined),
+        .then(({ data }: any) => data?.value?.prompt),
     ]);
 
     const bh = isBusinessHours();
-    const hoursNote = bh.open
-      ? "A loja está ABERTA agora."
-      : `A loja está FECHADA agora. ${bh.message} Se o cliente precisar de algo urgente, informe que um atendente retornará no próximo horário de funcionamento.`;
-
-    const audioNote = respondWithAudio
-      ? "\n\nIMPORTANTE: Esta resposta será convertida em ÁUDIO. Seja conciso, conversacional, evite formatação markdown, listas e caracteres especiais."
-      : "";
+    const hoursNote = bh.open ? "A loja está ABERTA." : `FECHADA. ${bh.message}`;
+    const audioNote = respondWithAudio ? "\n\nResponda apenas com texto curto (será áudio)." : "";
 
     const systemContent = [
       SYSTEM_PROMPT,
       audioNote,
       `\n--- HORÁRIO ---\n${hoursNote}`,
-      `\n--- CONTEXTO DO CATÁLOGO ---\n${businessContext}`,
-      customerContext ? `\n${customerContext}` : "",
-      aiInstructionsRow ? `\n--- INSTRUÇÕES ADICIONAIS ---\n${aiInstructionsRow}` : "",
+      `\n--- CONTEXTO ---\n${businessContext}`,
+      customerContext ? `\n--- CLIENTE ---\n${customerContext}` : "",
+      aiInstructionsRow ? `\n--- INSTRUÇÕES ---\n${aiInstructionsRow}` : "",
     ].join("");
 
-    const groqMessages: any[] = [
-      { role: "system", content: systemContent },
-      ...history,
-    ];
+    let groqMessages: any[] = [{ role: "system", content: systemContent }, ...history];
 
-    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
-
-    // Check for pending additions
-    let pendingAdditionId = null;
-    let pendingOsId = null;
-    let pendingAdditionValue = 0;
-    
-    // Step 1: Find in_approval jobs for this phone (loose match on last 10 digits)
-    const phoneSuffix = phone.length > 10 ? phone.slice(-10) : phone;
-    const { data: jobs } = await supabase
-      .from('mechanic_jobs')
-      .select('id')
-      .neq('status', 'delivered')
-      .filter('customer_whatsapp', 'ilike', `%${phoneSuffix}%`);
-
-    if (jobs && jobs.length > 0) {
-      const jobIds = jobs.map((j: any) => j.id);
-      
-      // Step 2: Find pending os_adicionais for those jobs (no FK join needed)
-      const { data: adicionais } = await supabase
-        .from('os_adicionais')
-        .select('id, os_id, status, valor_total')
-        .in('os_id', jobIds)
-        .in('status', ['enviado', 'pendente']);
-
-      if (adicionais && adicionais.length > 0) {
-        const first = adicionais[0];
-        pendingAdditionId = first.id;
-        pendingOsId = first.os_id;
-        pendingAdditionValue = Number(first.valor_total || 0);
-      }
-    }
-
-    const sysClassifyContent = pendingAdditionId
-      ? 'O cliente tem um orçamento extra PENDENTE de aprovação. Classifique a mensagem do cliente:\n- APROVACAO: o cliente aceitou o orçamento, concordou em fazer o serviço ou deu sinal verde (ex: "ok", "pode fazer", "sim", "faz aí", "beleza", "👍").\n- NEGACAO: o cliente não quer o reparo adicional (ex: "não precisa", "deixa pra lá", "não", "agora não").\n- DUVIDA: perguntas, pedidos de desconto ou quando o cliente não sabe se quer.\n\nResponda APENAS: APROVACAO, NEGACAO ou DUVIDA.'
-      : 'Classifique a mensagem abaixo em uma categoria:\n- CONFIRMACAO: agradecimentos, "ok", "entendi", "obrigado", "👍", confirmações simples\n- DUVIDA: perguntas, solicitações, reclamações, qualquer coisa que exige resposta\n\nResponda apenas: CONFIRMACAO ou DUVIDA';
-
-    // INITIAL CLASSIFICATION STEP
-    const classificationRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    let groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          { role: "system", content: sysClassifyContent },
-          { role: "user", content: `Mensagem: "${message}"` }
-        ],
-        max_tokens: 10,
-        temperature: 0,
+        model: "llama-3.3-70b-versatile",
+        messages: groqMessages,
+        tools: toolDefinitions,
+        tool_choice: "auto",
+        max_tokens: 1024,
       }),
     });
 
-    if (classificationRes.ok) {
-      const classData = await classificationRes.json();
-      const rawIntent = classData.choices?.[0]?.message?.content?.trim() || "";
-      const intent = rawIntent.toUpperCase();
-      
-      console.log(`Intent classification: ${intent}`);
-
-      if (intent.includes("CONFIRMACAO")) {
-        console.log("Intent classified as CONFIRMACAO. Skipping main flow.");
-        const responseText = "😊";
-        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-        
-        await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-          method: "POST",
-          headers: evoHeaders(),
-          body: JSON.stringify({ number: phone, text: responseText }),
-        });
-
-        // Save to DB
-        await supabase.from("whatsapp_messages").insert({
-          conversation_id: conversationId,
-          from_me: true,
-          type: "text",
-          content: responseText,
-          status: "sent",
-          tenant_id: tenantId,
-        });
-
-        return new Response(JSON.stringify({ ok: true, skipped: "confirmation_intent" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
-      }
-
-      if (intent.includes("APROVACAO") && pendingAdditionId) {
-        console.log("Intent: APROVACAO. Approving extra repair.");
-        
-        await supabase.from('os_adicionais').update({ status: 'aprovado' }).eq('id', pendingAdditionId);
-        
-        const { data: pgData } = await supabase.from('os_pagamentos').select('*').eq('os_id', pendingOsId).maybeSingle();
-        if (pgData) {
-          await supabase.from('os_pagamentos').update({
-            valor_total: Number(pgData.valor_total) + pendingAdditionValue,
-            valor_restante: Number(pgData.valor_restante) + pendingAdditionValue
-          }).eq('id', pgData.id);
-        }
-
-        // Insert alert for Salon (Aprovado)
-        await supabase.from('os_alertas').insert({
-          os_id: pendingOsId,
-          numero_cliente: phone,
-          contexto: `✅ Cliente APROVOU o orçamento extra de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingAdditionValue)}.`,
-          visto: false,
-          tipo: 'sucesso' // We'll add this column if needed, or just use the context
-        });
-
-        const responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
-        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-        
-        await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-          method: "POST",
-          headers: evoHeaders(),
-          body: JSON.stringify({ number: phone, text: responseText }),
-        });
-
-        await supabase.from("whatsapp_messages").insert({
-          conversation_id: conversationId,
-          from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
-        });
-
-        return new Response(JSON.stringify({ ok: true, processed: "approval" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      if ((intent.includes("NEGACAO") || intent.includes("DUVIDA")) && pendingAdditionId) {
-        console.log(`Intent contains NEGACAO or DUVIDA. Flagging for human agent.`);
-        
-        if (intent.includes("NEGACAO")) {
-          await supabase.from('os_adicionais').update({ status: 'negado' }).eq('id', pendingAdditionId);
-        }
-
-        // Create the global alert for the front-end
-        const contextText = intent.includes("NEGACAO") 
-          ? "Cliente negou o orçamento adicional e precisa de atenção." 
-          : "Cliente tem dúvida sobre o orçamento adicional e requer intervenção humana.";
-        
-        await supabase.from('os_alertas').insert({
-          os_id: pendingOsId,
-          numero_cliente: phone,
-          contexto: contextText,
-          visto: false,
-          tipo: intent.includes("NEGACAO") ? 'erro' : 'info'
-        });
-
-        // Flag conversation for human
-        await supabase.from('whatsapp_conversations').update({ require_human: true }).eq('id', conversationId);
-
-        const responseText = intent.includes("NEGACAO") 
-          ? "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais, tudo bem?"
-          : "Certo, entendi sua dúvida. Vou chamar um atendente humano para analisar seu caso e te responder melhor.";
-        
-        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-        await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-          method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
-        });
-
-        await supabase.from("whatsapp_messages").insert({
-          conversation_id: conversationId, from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
-        });
-        
-        // Also turn off AI
-        await supabase.from('whatsapp_conversations').update({ ai_enabled: false }).eq('id', conversationId);
-
-        return new Response(JSON.stringify({ ok: true, processed: "human_fallback" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-    }
-
-    // Call Groq with tool calling
-    let groqResponse = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: groqMessages,
-          tools: toolDefinitions,
-          tool_choice: "auto",
-          max_tokens: 1024,
-        }),
-      }
-    );
-
-    if (!groqResponse.ok) {
-      const errText = await groqResponse.text();
-      console.error("Groq API error:", groqResponse.status, errText);
-      return new Response(
-        JSON.stringify({ ok: false, error: "groq_error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!groqResponse.ok) throw new Error("Groq API error");
 
     let groqData = await groqResponse.json();
     let assistantMessage = groqData.choices?.[0]?.message;
 
-    // Handle tool calls (supports multiple rounds)
     let toolRounds = 0;
-    while (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0 && toolRounds < 3) {
+    while (assistantMessage?.tool_calls && toolRounds < 3) {
       toolRounds++;
       groqMessages.push(assistantMessage);
-
       for (const toolCall of assistantMessage.tool_calls) {
         const fnName = toolCall.function.name;
-        try {
-          const args = JSON.parse(toolCall.function.arguments);
-          let result: unknown;
-
-          if (fnName === "calcular_frete") {
-            result = await executeCalcularFrete(args);
-          } else if (fnName === "consultar_ordem_servico") {
-            result = await getServiceOrdersByPhone(args.telefone || phone);
-          } else {
-            result = { error: `Ferramenta desconhecida: ${fnName}` };
-          }
-
-          groqMessages.push({
-            role: "tool",
-            content: typeof result === "string" ? result : JSON.stringify(result),
-            tool_call_id: toolCall.id,
-          });
-        } catch (err) {
-          groqMessages.push({
-            role: "tool",
-            content: JSON.stringify({
-              error: err instanceof Error ? err.message : "Erro ao executar ferramenta",
-            }),
-            tool_call_id: toolCall.id,
-          });
-        }
+        const args = JSON.parse(toolCall.function.arguments);
+        let result = fnName === "calcular_frete" ? await executeCalcularFrete(args) : 
+                     fnName === "consultar_ordem_servico" ? await getServiceOrdersByPhone(args.telefone || phone) : 
+                     { error: "Tool not found" };
+        groqMessages.push({ role: "tool", content: JSON.stringify(result), tool_call_id: toolCall.id });
       }
-
-      groqResponse = await fetch(
-        "https://api.groq.com/openai/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: groqMessages,
-            tools: toolDefinitions,
-            tool_choice: "auto",
-            max_tokens: 1024,
-          }),
-        }
-      );
-
-      if (!groqResponse.ok) {
-        const errText = await groqResponse.text();
-        console.error("Groq API error (tool follow-up):", groqResponse.status, errText);
-        return new Response(
-          JSON.stringify({ ok: false, error: "groq_tool_error" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
+      groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
+      });
       groqData = await groqResponse.json();
       assistantMessage = groqData.choices?.[0]?.message;
     }
 
     const responseText = assistantMessage?.content?.trim();
-
-    if (!responseText) {
-      console.error("No response from Groq");
-      return new Response(
-        JSON.stringify({ ok: false, error: "empty_response" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!responseText) throw new Error("Empty response from AI");
 
     const instName = tenantId ? instanceName(tenantId) : "fefo-default";
     let evoData: any;
     let sentAsAudio = false;
 
-    // If respondWithAudio, convert to speech and send as audio
     if (respondWithAudio) {
       try {
-        console.log("Converting AI response to audio via ElevenLabs...");
         const audioBase64 = await textToSpeechBase64(responseText);
-
-        const evoRes = await fetch(
-          `${EVOLUTION_BASE}/message/sendMedia/${instName}`,
-          {
-            method: "POST",
-            headers: evoHeaders(),
-            body: JSON.stringify({
-              number: phone,
-              mediatype: "audio",
-              media: `data:audio/mpeg;base64,${audioBase64}`,
-              mimetype: "audio/mpeg",
-              fileName: "audio.mp3",
-            }),
-          }
-        );
-
+        const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendMedia/${instName}`, {
+          method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, mediatype: "audio", media: `data:audio/mpeg;base64,${audioBase64}`, mimetype: "audio/mpeg", fileName: "audio.mp3" }),
+        });
         evoData = await evoRes.json();
-        console.log(`Evolution sendMedia (audio) status=${evoRes.status}`);
-
-        if (evoRes.ok) {
-          sentAsAudio = true;
-        } else {
-          console.error("Evolution sendMedia failed, falling back to text:", JSON.stringify(evoData));
-        }
-      } catch (ttsErr) {
-        console.error("ElevenLabs TTS failed, falling back to text:", ttsErr);
-      }
+        if (evoRes.ok) sentAsAudio = true;
+      } catch (e) { console.error("TTS failed", e); }
     }
 
-    // Fallback to text or if not audio mode
     if (!sentAsAudio) {
-      const evoRes = await fetch(
-        `${EVOLUTION_BASE}/message/sendText/${instName}`,
-        {
-          method: "POST",
-          headers: evoHeaders(),
-          body: JSON.stringify({ number: phone, text: responseText }),
-        }
-      );
+      const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+        method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
+      });
       evoData = await evoRes.json();
     }
 
-    // Save AI message to DB
     await supabase.from("whatsapp_messages").insert({
-      conversation_id: conversationId,
-      message_id: evoData?.key?.id || null,
-      from_me: true,
-      type: sentAsAudio ? "audio" : "text",
-      content: sentAsAudio ? `🔊 ${responseText}` : responseText,
-      status: "sent",
-      tenant_id: tenantId,
+      conversation_id: conversationId, from_me: true, type: sentAsAudio ? "audio" : "text", content: sentAsAudio ? `🔊 ${responseText}` : responseText, status: "sent", tenant_id: tenantId,
     });
 
-    // Update conversation
-    await supabase
-      .from("whatsapp_conversations")
-      .update({
-        last_message: sentAsAudio ? "🔊 Áudio enviado" : responseText,
-        last_message_at: new Date().toISOString(),
-      })
-      .eq("id", conversationId);
+    await supabase.from("whatsapp_conversations").update({ last_message: sentAsAudio ? "🔊 Áudio" : responseText, last_message_at: new Date().toISOString() }).eq("id", conversationId);
 
-    return new Response(
-      JSON.stringify({ ok: true, response: responseText, sentAsAudio }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ ok: true, response: responseText, sentAsAudio }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("AI Responder error:", err);
-    return new Response(
-      JSON.stringify({ error: String(err) }),
-      { status: 500, headers: corsHeaders }
-    );
+    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: corsHeaders });
   }
 });

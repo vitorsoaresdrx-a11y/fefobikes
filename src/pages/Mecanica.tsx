@@ -93,7 +93,10 @@ function getTotalPrice(job: MechanicJob | null) {
   if (job.sem_custo) return 0;
   const base = Number(job.price || 0);
   const accepted = (job.additions || [])
-    .filter((a) => a?.approval === "accepted")
+    .filter((a) => {
+      const status = (a?.approval as string);
+      return status === "accepted" || status === "aprovado";
+    })
     .reduce((sum, a) => sum + getAdditionTotal(a), 0);
   return base + accepted;
 }
@@ -208,13 +211,13 @@ function AdditionBadge({ addition, showActions, isMechanicView }: { addition: Me
     updateApproval.mutate({ id: addition.id, approval: finalStatus as any, is_v2: isV2 });
   };
 
-  const isAccepted = (addition.approval as any) === "accepted" || (addition.approval as any) === "aprovado";
-  const isRefused = (addition.approval as any) === "refused" || (addition.approval as any) === "recusado";
+  const isAccepted = (addition.approval as string) === "accepted" || (addition.approval as string) === "aprovado";
+  const isRefused = (addition.approval as string) === "refused" || (addition.approval as string) === "recusado" || (addition.approval as string) === "negado";
 
   const approvalColor =
-    isAccepted ? "border-emerald-500/30 bg-emerald-500/5"
-    : isRefused ? "border-destructive/30 bg-destructive/5"
-    : "border-amber-500/30 bg-amber-500/5";
+    isAccepted ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
+    : isRefused ? "border-destructive/30 bg-destructive/5 text-destructive"
+    : "border-amber-500/30 bg-amber-500/5 text-amber-500";
 
   // In mechanic view, hide client-facing 'problem' if mechanic_notes exists
   const displayText = (isMechanicView && (addition as any).mechanic_notes) 
@@ -294,20 +297,37 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
           </div>
 
           <p className="text-sm text-muted-foreground line-clamp-2">{job.problem}</p>
-          {isMechanicView && job.additions && job.additions.some(a => (a as any).mechanic_notes) && (
-            <div className="space-y-1">
-              {job.additions.map(a => (a as any).mechanic_notes && ((a.approval as any) === 'accepted' || (a.approval as any) === 'aprovado') && (
-                <div key={a.id} className="pt-1">
-                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none mb-1">Instrução adicional</p>
-                  <p className="text-sm text-muted-foreground">{(a as any).mechanic_notes}</p>
-                </div>
-              ))}
+          
+          {isMechanicView && job.additions && job.additions.length > 0 && (
+            <div className="space-y-2 mt-2">
+              {job.additions.map(a => {
+                const notes = (a as any).mechanic_notes;
+                const status = (a.approval as string);
+                const approved = status === 'accepted' || status === 'aprovado';
+                
+                if (notes && approved) {
+                  return (
+                    <div key={a.id} className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                      <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none mb-2">Instrução Adicional</p>
+                      <p className="text-xs font-medium text-foreground leading-relaxed">{notes}</p>
+                    </div>
+                  );
+                }
+                return null;
+              })}
             </div>
           )}
 
           {job.additions && job.additions.length > 0 && (
             <div className="space-y-2 pt-2 border-t">
-              {job.additions?.map((a) => <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} isMechanicView={isMechanicView} />)}
+              {job.additions.map((a) => (
+                <AdditionBadge 
+                  key={a.id} 
+                  addition={a} 
+                  showActions={showApprovalActions} 
+                  isMechanicView={isMechanicView} 
+                />
+              ))}
             </div>
           )}
         </div>
@@ -831,10 +851,10 @@ export default function Mecanica() {
 
   // Sync compositionTotal to form.price when it changes ONLY IF we are in Step 2 or it was just calculated
   useEffect(() => {
-    if (step === 2) {
+    if (step === 2 && form.price !== compositionTotal) {
       setForm(f => ({ ...f, price: compositionTotal }));
     }
-  }, [compositionTotal, step]);
+  }, [compositionTotal, step, form.price]);
 
   const filteredCustomers = useMemo(() => {
     const query = suggestionField === 'name' ? form.customer_name : 
