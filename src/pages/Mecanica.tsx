@@ -882,10 +882,15 @@ export default function Mecanica() {
   useEffect(() => {
     const channel = supabase
       .channel('os_adicionais_status_changes')
-      .on('postgres_changes', 
+      .on('postgres_changes' as any, 
         { event: 'UPDATE', schema: 'public', table: 'os_adicionais' },
         async (payload: any) => {
-          if (payload.old.status === 'pending' && (payload.new.status === 'accepted' || payload.new.status === 'refused')) {
+          const isV2Approval = (payload.new.status === 'aprovado' || payload.new.status === 'recusado' || payload.new.status === 'negado') && 
+                               (payload.old.status === 'pendente' || payload.old.status === 'enviado');
+          const isV1Approval = (payload.new.status === 'accepted' || payload.new.status === 'refused') && 
+                               (payload.old.status === 'pending');
+
+          if (isV2Approval || isV1Approval) {
             // Fetch job info
             const { data: job } = await supabase.from('mechanic_jobs').select('*').eq('id', payload.new.os_id).single();
             if (job) {
@@ -901,7 +906,7 @@ export default function Mecanica() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [supabase]);
 
   const [sendingAddition, setSendingAddition] = useState(false);
   const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");
@@ -1363,7 +1368,6 @@ export default function Mecanica() {
         await sendMessage.mutateAsync({ phone: formattedPhone, message: edgeData.message });
       }
 
-      await advance.mutateAsync({ id: addJob.id, status: addJob.status });
 
       toast.success("Enviado para o cliente com sucesso!");
       setAddOpen(false);

@@ -81,17 +81,15 @@ Deno.serve(async (req) => {
         messages: [
           { 
             role: "system", 
-            content: "Você é um mecânico profissional da Fefo Bikes. Formate um orçamento adicional transparente para o WhatsApp.\n" +
-                     "Regras de formato:\n" +
-                     "1. Liste os itens (Nome: R$ Valor unitário x Qtd)\n" +
-                     "2. Mostre Mão de Obra separada se > 0\n" +
-                     "3. Mostre o TOTAL deste adicional\n" +
-                     "4. Explique o impacto no saldo total do cliente baseado no contexto de pagamento fornecido:\n" +
-                     "   - Se ja pagou tudo: diga o valor do novo boleto/pagamento\n" +
-                     "   - Se pagou parcial: mostre quanto ele ainda devia e quanto ficará o novo total em aberto\n" +
-                     "   - Se não pagou nada: mostre o novo total somado (Original + Adicional)\n" +
-                     "5. Termine com a pergunta padrão sobre prosseguir.\n" +
-                     "Seja executivo, gentil e use emojis moderados. Não use blocos de código ou markdown pesado."
+            content: "Você é um mecânico parceiro da Fefo Bikes. Formate um orçamento adicional curto, humano e direto para o WhatsApp.\n" +
+                     "Diretrizes:\n" +
+                     "- Não explique cálculos matemáticos (ex: 'X + Y = Z'). Apenas informe os valores de forma clara.\n" +
+                     "- Mostre os itens adicionais com seus valores.\n" +
+                     "- Se houver mão de obra extra, mencione o valor.\n" +
+                     "- Informe o NOVO VALOR TOTAL do serviço (Original + Adicional) de forma simples.\n" +
+                     "- Evite termos técnicos desnecessários ou frases como 'Impacto no saldo'.\n" +
+                     "- Termine com a pergunta: 'Podemos seguir com esse serviço extra?'\n" +
+                     "Seja executivo, gentil e use emojis moderados."
           },
           { 
             role: "user", 
@@ -130,7 +128,7 @@ Deno.serve(async (req) => {
     await supabase.from("mechanic_jobs" as any).update({ status: "in_approval" }).eq("id", osId);
 
     // 5. Update OS Adicional status if exists
-    await supabase.from("os_adicionais" as any).update({ status: 'enviado' }).eq("os_id", osId).eq("status", "rascunho");
+    await supabase.from("os_adicionais" as any).update({ status: 'enviado' }).eq("os_id", osId).eq("status", "pendente");
 
     return new Response(JSON.stringify({ ok: true, message: formattedMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }

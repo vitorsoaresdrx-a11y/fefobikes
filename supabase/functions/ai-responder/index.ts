@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
     }
 
     const sysClassifyContent = pendingAdditionId
-      ? 'O cliente tem um orçamento extra PENDENTE de aprovação na oficina. Classifique a mensagem abaixo em UMA destas opções:\n- APROVACAO: cliente concorda em fazer o reparo extra (ex: "pode fazer", "ok pode seguir", "sim").\n- NEGACAO: cliente não quer o reparo (ex: "não precisa", "deixa pra lá", "não").\n- CONFIRMACAO: apenas agradecimentos sem relação com aprovar algo (ex: "ok", "obrigado", "👍").\n- DUVIDA: perguntas, pechincha, incertezas.\n\nResponda APENAS: APROVACAO, NEGACAO, CONFIRMACAO ou DUVIDA.'
+      ? 'O cliente tem um orçamento extra PENDENTE de aprovação. Classifique a mensagem do cliente:\n- APROVACAO: o cliente aceitou o orçamento, concordou em fazer o serviço ou deu sinal verde (ex: "ok", "pode fazer", "sim", "faz aí", "beleza", "👍").\n- NEGACAO: o cliente não quer o reparo adicional (ex: "não precisa", "deixa pra lá", "não", "agora não").\n- DUVIDA: perguntas, pedidos de desconto ou quando o cliente não sabe se quer.\n\nResponda APENAS: APROVACAO, NEGACAO ou DUVIDA.'
       : 'Classifique a mensagem abaixo em uma categoria:\n- CONFIRMACAO: agradecimentos, "ok", "entendi", "obrigado", "👍", confirmações simples\n- DUVIDA: perguntas, solicitações, reclamações, qualquer coisa que exige resposta\n\nResponda apenas: CONFIRMACAO ou DUVIDA';
 
     // INITIAL CLASSIFICATION STEP
