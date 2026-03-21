@@ -369,6 +369,7 @@ export function useUpdateMechanicJobDetails() {
       bike_name?: string | null;
       problem?: string;
       price?: number;
+      status?: string;
       payment?: {
         tipo: 'integral' | 'parcial' | 'nenhum';
         valor_pago: number;
@@ -377,7 +378,7 @@ export function useUpdateMechanicJobDetails() {
     }) => {
       const { error } = await supabase
         .from("mechanic_jobs" as any)
-        .update(updates)
+        .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
 

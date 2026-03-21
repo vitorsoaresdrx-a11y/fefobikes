@@ -40,6 +40,7 @@ import {
   BotOff,
   Radio,
   Server,
+  User,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -537,7 +538,12 @@ export default function WhatsApp() {
                   </p>
                   <div className="pt-1 flex items-center gap-2">
                     <ConversationBadge status={conv.status} />
-                    {conv.ai_enabled === false && (
+                    {conv.human_takeover === true && (
+                      <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-blue-500/10 text-blue-400 border-blue-500/20 flex items-center gap-1">
+                        <User size={8} /> Humano
+                      </span>
+                    )}
+                    {conv.ai_enabled === false && conv.human_takeover !== true && (
                       <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
                         IA pausada
                       </span>
@@ -602,12 +608,17 @@ export default function WhatsApp() {
                        <Hash size={10} className="text-primary" />
                        {getDisplayContactPhone(selectedConv.contact_phone)}
                      </p>
-                     {selectedConv.ai_enabled === false && (
-                       <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
-                         IA pausada
-                       </span>
-                     )}
-                   </div>
+                      {selectedConv.human_takeover === true && (
+                        <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-blue-500/10 text-blue-400 border-blue-500/20 flex items-center gap-1">
+                          <User size={8} /> Atendimento humano ativo
+                        </span>
+                      )}
+                      {selectedConv.ai_enabled === false && selectedConv.human_takeover !== true && (
+                        <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
+                          IA pausada
+                        </span>
+                      )}
+                    </div>
                  </div>
               </div>
 
@@ -651,22 +662,32 @@ export default function WhatsApp() {
                       { id: selectedConv.id, ai_enabled: newVal },
                       {
                         onSuccess: () =>
-                          setSelectedConv({ ...selectedConv, ai_enabled: newVal }),
+                          setSelectedConv({ ...selectedConv, ai_enabled: newVal, human_takeover: !newVal }),
                       }
                     );
                   }}
-                  title={selectedConv.ai_enabled !== false ? "Pausar IA" : "Ativar IA"}
-                  className={`h-9 px-3 md:px-4 rounded-xl border text-xs font-bold flex items-center gap-1.5 md:gap-2 transition-all hidden sm:flex ${
-                    selectedConv.ai_enabled !== false
-                      ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
-                      : "border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+                  className={`h-9 px-3 md:px-4 rounded-xl border font-bold text-xs flex items-center gap-2 transition-all ${
+                    selectedConv.human_takeover
+                      ? "bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+                      : selectedConv.ai_enabled !== false
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                      : "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
                   }`}
                 >
-                  {selectedConv.ai_enabled !== false ? (
-                    <><Bot size={14} /> IA Ativa</>
+                  {selectedConv.human_takeover ? (
+                    <User size={14} />
+                  ) : selectedConv.ai_enabled !== false ? (
+                    <Bot size={14} />
                   ) : (
-                    <><BotOff size={14} /> IA Pausada</>
+                    <BotOff size={14} />
                   )}
+                  <span className="hidden lg:inline">
+                    {selectedConv.human_takeover
+                      ? "Atendimento Humano"
+                      : selectedConv.ai_enabled !== false
+                      ? "IA Ativa"
+                      : "IA Pausada"}
+                  </span>
                 </button>
                 <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl border border-border text-muted-foreground hover:text-white hover:bg-muted transition-all hidden sm:flex">
                   <MoreVertical size={18} />

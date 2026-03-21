@@ -12,6 +12,7 @@ export interface Conversation {
   unread_count: number;
   status: string;
   ai_enabled: boolean;
+  human_takeover: boolean;
   instance_name: string | null;
   created_at: string;
 }
@@ -53,7 +54,7 @@ export function useConversations(statusFilter?: string, instanceName?: string | 
     queryFn: async () => {
       let query = supabase
         .from("whatsapp_conversations")
-        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, instance_name, created_at")
+        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, human_takeover, instance_name, created_at")
         .order("last_message_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "all") {
@@ -201,7 +202,7 @@ export function useToggleAi() {
     mutationFn: async ({ id, ai_enabled }: { id: string; ai_enabled: boolean }) => {
       const { error } = await supabase
         .from("whatsapp_conversations")
-        .update({ ai_enabled })
+        .update({ ai_enabled, human_takeover: !ai_enabled })
         .eq("id", id);
       if (error) throw error;
 

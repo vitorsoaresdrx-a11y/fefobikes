@@ -115,16 +115,16 @@ Deno.serve(async (req) => {
       .single();
     const tenantId = tenantRow?.id ?? null;
 
-    // Check if AI is enabled
+    // Check if AI is enabled or human has taken over
     const { data: conv } = await supabase
       .from("whatsapp_conversations")
-      .select("ai_enabled")
+      .select("ai_enabled, human_takeover")
       .eq("id", conversationId)
       .maybeSingle();
 
-    if (!conv || conv.ai_enabled === false) {
+    if (!conv || conv.ai_enabled === false || conv.human_takeover === true) {
       return new Response(
-        JSON.stringify({ ok: true, skipped: "ai_disabled" }),
+        JSON.stringify({ ok: true, skipped: conv?.human_takeover ? "human_takeover" : "ai_disabled" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

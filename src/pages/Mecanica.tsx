@@ -45,6 +45,7 @@ import {
   History,
   TrendingUp,
   Search,
+  AlertTriangle,
   Pencil,
   FileCheck,
   ChevronDown,
@@ -422,6 +423,7 @@ function ColumnHeader({ label, icon: Icon, color, bg, border, count }: any) {
 function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSave, isSaving }: any) {
   const deleteAddition = useDeleteAddition();
   const updateAddition = useUpdateAddition();
+  const updateApproval = useUpdateAdditionApproval();
   const [editingAddition, setEditingAddition] = useState<string | null>(null);
   const [additionEdits, setAdditionEdits] = useState<Record<string, { problem: string; labor_cost: number; parts: AdditionPart[] }>>({});
   const [deleteAdditionDialog, setDeleteAdditionDialog] = useState<{ open: boolean; id: string; name: string; is_v2?: boolean }>({ open: false, id: "", name: "" });
@@ -480,6 +482,31 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
               <InputGroup label="Diagnóstico *">
                 <PremiumTextarea rows={4} placeholder="Descreva o que precisa ser feito..." value={editForm.problem} onChange={(e) => setEditForm((f: any) => ({ ...f, problem: e.target.value }))} />
               </InputGroup>
+              <InputGroup label="Mover para coluna">
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { key: "in_approval", label: "Em Aprovação" },
+                    { key: "in_repair", label: "Na Mecânica" }, // user asked for "Em Manutenção" in instructions but current column label is "Na Mecânica"
+                    { key: "in_analysis", label: "Em Análise" },
+                    { key: "ready", label: "Pronto" },
+                  ].map((col) => (
+                    <button
+                      key={col.key}
+                      type="button"
+                      onClick={() => setEditForm((f: any) => ({ ...f, status: col.key }))}
+                      className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                        editForm.status === col.key
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-card text-muted-foreground"
+                      }`}
+                    >
+                      {editForm.status === col.key && <Check size={10} />}
+                      {col.label}
+                    </button>
+                  ))}
+                </div>
+              </InputGroup>
+
               <InputGroup label="Valor do Serviço">
                 <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f: any) => ({ ...f, price: val }))} />
               </InputGroup>
@@ -580,6 +607,27 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                                 </button>
                               </div>
                             </div>
+                            
+                            <div className="flex gap-2 mt-2">
+                              {['pending', 'accepted', 'refused'].map((status) => (
+                                <button
+                                  key={status}
+                                  onClick={() => {
+                                    const approval = status as any;
+                                    updateApproval.mutate({ id: a.id, approval, is_v2: (a as any).is_v2 });
+                                  }}
+                                  className={`flex-1 h-7 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${
+                                    a.approval === (status === 'accepted' ? 'accepted' : status === 'refused' ? 'refused' : 'pending')
+                                      ? status === 'accepted' ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" 
+                                        : status === 'refused' ? "border-destructive bg-destructive/10 text-destructive"
+                                        : "border-amber-500 bg-amber-500/10 text-amber-500"
+                                      : "border-border bg-card text-muted-foreground opacity-50"
+                                  }`}
+                                >
+                                  {status === 'pending' ? 'Pendente' : status === 'accepted' ? 'Aprovado' : 'Negado'}
+                                </button>
+                              ))}
+                            </div>
                             {(a.parts_used || []).length > 0 && (
                               <div className="pl-2 space-y-0.5">
                                 {a.parts_used.map((p, i) => (
@@ -650,6 +698,7 @@ export default function Mecanica() {
     paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
     paymentAmount: 0,
     paymentMethod: "pix",
+    status: "in_approval" as MechanicJob["status"],
   });
 
   const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
@@ -660,6 +709,8 @@ export default function Mecanica() {
   const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");
 
   const [editOpen, setEditOpen] = useState(false);
+  const [moveConfirmOpen, setMoveConfirmOpen] = useState(false);
+  const [pendingMoveStatus, setPendingMoveStatus] = useState<MechanicJob["status"] | null>(null);
   const [editJob, setEditJob] = useState<MechanicJob | null>(null);
   const [editForm, setEditForm] = useState({
     customer_name: "",
@@ -724,16 +775,77 @@ export default function Mecanica() {
   const handleAddRepair = (job: MechanicJob) => { setAddJob(job); setAddForm({ problem: "", labor_cost: 0, parts: [] }); setAddOpen(true); };
   const handleEditJob = (job: MechanicJob) => {
     setEditJob(job);
-    setEditForm({ customer_name: job.customer_name || "", bike_name: job.bike_name || "", customer_cpf: job.customer_cpf || "", customer_whatsapp: job.customer_whatsapp || "", customer_id: job.customer_id || null, problem: job.problem, price: job.price, paymentType: job.payment?.tipo || "nenhum", paymentAmount: job.payment?.valor_pago || 0, paymentMethod: "pix" });
+    setEditForm({ 
+      customer_name: job.customer_name || "", 
+      bike_name: job.bike_name || "", 
+      customer_cpf: job.customer_cpf || "", 
+      customer_whatsapp: job.customer_whatsapp || "", 
+      customer_id: job.customer_id || null, 
+      problem: job.problem, 
+      price: job.price, 
+      paymentType: job.payment?.tipo || "nenhum", 
+      paymentAmount: job.payment?.valor_pago || 0, 
+      paymentMethod: "pix",
+      status: job.status
+    });
     setEditOpen(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = (confirmedMove = false) => {
     if (!editJob || !editForm.problem.trim()) { toast.error("Descreva o problema"); return; }
-    updateDetails.mutate(
-      { id: editJob.id, customer_name: editForm.customer_name || null, customer_cpf: editForm.customer_cpf || null, customer_whatsapp: editForm.customer_whatsapp || null, customer_id: editForm.customer_id || null, bike_name: editForm.bike_name || null, problem: editForm.problem, price: editForm.price, payment: { tipo: editForm.paymentType, valor_pago: editForm.paymentType === 'integral' ? editForm.price : editForm.paymentAmount, method: editForm.paymentMethod } },
-      { onSuccess: () => { toast.success("Serviço atualizado!"); setEditOpen(false); setEditJob(null); }, onError: () => toast.error("Erro ao atualizar") }
-    );
+    
+    // Check if status changed and not yet confirmed
+    if (editForm.status !== editJob.status && !confirmedMove) {
+      setPendingMoveStatus(editForm.status);
+      setMoveConfirmOpen(true);
+      return;
+    }
+
+    const doSave = async () => {
+      // 1. Update Mechanic Job
+      await updateDetails.mutateAsync({ 
+        id: editJob.id, 
+        customer_name: editForm.customer_name || null, 
+        customer_cpf: editForm.customer_cpf || null, 
+        customer_whatsapp: editForm.customer_whatsapp || null, 
+        customer_id: editForm.customer_id || null, 
+        bike_name: editForm.bike_name || null, 
+        problem: editForm.problem, 
+        price: editForm.price, 
+        status: editForm.status,
+        payment: { 
+          tipo: editForm.paymentType, 
+          valor_pago: editForm.paymentType === 'integral' ? editForm.price : editForm.paymentAmount, 
+          method: editForm.paymentMethod 
+        } 
+      });
+
+      // 2. If moved manually, update WhatsApp conversation
+      if (confirmedMove && editForm.customer_whatsapp) {
+        const phone = editForm.customer_whatsapp.replace(/\D/g, "");
+        const phoneSuffix = phone.length > 10 ? phone.slice(-10) : phone;
+        
+        const { data: convs } = await supabase
+          .from('whatsapp_conversations')
+          .select('id')
+          .ilike('wa_id', `%${phoneSuffix}%`);
+        
+        if (convs && convs.length > 0) {
+          await supabase
+            .from('whatsapp_conversations')
+            .update({ ai_enabled: false, human_takeover: true } as any)
+            .eq('id', convs[0].id);
+        }
+      }
+
+      toast.success("Serviço atualizado!");
+      setEditOpen(false);
+      setEditJob(null);
+      setMoveConfirmOpen(false);
+      setPendingMoveStatus(null);
+    };
+
+    doSave().catch(() => toast.error("Erro ao atualizar"));
   };
 
   const handleAdvanceJob = (job: MechanicJob) => {
@@ -1156,6 +1268,41 @@ export default function Mecanica() {
       </Dialog>
 
       <EditJobModal open={editOpen} onOpenChange={setEditOpen} editJob={editJob} editForm={editForm} setEditForm={setEditForm} onSave={handleSaveEdit} isSaving={updateDetails.isPending} />
+
+      <Dialog open={moveConfirmOpen} onOpenChange={setMoveConfirmOpen}>
+        <DialogContent className="bg-secondary border-border rounded-2xl p-6 md:p-10 max-w-md w-full">
+          <div className="space-y-6 text-center">
+            <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto border border-amber-500/30">
+              <AlertTriangle size={32} className="text-amber-500" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Confirmar Movimentação</h2>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Ao mover este card manualmente, a IA deixará de monitorar este atendimento automaticamente. 
+                O acompanhamento passará a ser feito pelo atendente humano. Os demais cards continuam funcionando normalmente. 
+                <br /><br />Deseja continuar?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => {
+                  setMoveConfirmOpen(false);
+                  setPendingMoveStatus(null);
+                }} 
+                className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted font-bold transition-all text-sm"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => handleSaveEdit(true)} 
+                className="flex-1 h-12 rounded-2xl bg-amber-500 text-white hover:bg-amber-400 font-black uppercase tracking-widest text-xs transition-all"
+              >
+                Confirmar alteração
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[85vh]">
