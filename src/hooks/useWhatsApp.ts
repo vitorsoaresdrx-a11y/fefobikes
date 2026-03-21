@@ -53,7 +53,7 @@ export function useConversations(statusFilter?: string, instanceName?: string | 
     queryKey: [...CONVERSATIONS_KEY, statusFilter, instanceName],
     queryFn: async () => {
       let query = supabase
-        .from("whatsapp_conversations")
+        .from("whatsapp_conversations" as any)
         .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, human_takeover, instance_name, created_at")
         .order("last_message_at", { ascending: false });
 
@@ -65,7 +65,7 @@ export function useConversations(statusFilter?: string, instanceName?: string | 
         query = query.eq("instance_name", instanceName);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query as any;
       if (error) throw error;
       return (data as Conversation[]).filter((conversation) => {
         const normalizedPhone = (conversation.contact_phone || "").replace(/\D/g, "");
@@ -143,16 +143,24 @@ export function useSendMessage() {
       conversationId,
       sendAsAudio,
       instanceName,
+      media,
+      mediatype,
+      fileName,
+      mimetype,
     }: {
       phone: string;
-      message: string;
+      message?: string;
       conversationId?: string;
       sendAsAudio?: boolean;
       instanceName?: string;
+      media?: string;
+      mediatype?: 'image' | 'video' | 'audio' | 'document';
+      fileName?: string;
+      mimetype?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke(
         "zapi-send-message",
-        { body: { phone, message, conversationId, sendAsAudio, instanceName } }
+        { body: { phone, message, conversationId, sendAsAudio, instanceName, media, mediatype, fileName, mimetype } }
       );
       if (error) throw error;
       return data;

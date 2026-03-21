@@ -30,6 +30,7 @@ export interface MechanicJob {
   problem: string;
   price: number;
   status: "in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready" | "delivered";
+  sem_custo: boolean;
   created_at: string;
   updated_at: string;
   additions?: MechanicJobAddition[];
@@ -147,12 +148,22 @@ export function useMechanicJobs() {
 
       return (jobs as unknown as MechanicJob[])
         .filter((j) => j.status !== "delivered")
-        .map((j) => ({
-          ...j,
-          additions: addMap.get(j.id) || [],
-          payment: payMap.get(j.id) || null,
-          payment_history: histMap.get(j.id) || [],
-        }));
+        .map((j) => {
+          const additions = addMap.get(j.id) || [];
+          const basePayment = payMap.get(j.id);
+          
+          return {
+            ...j,
+            additions,
+            payment: basePayment || {
+              tipo: 'nenhum',
+              valor_pago: 0,
+              valor_restante: Number(j.price || 0),
+              valor_total: Number(j.price || 0)
+            },
+            payment_history: histMap.get(j.id) || [],
+          };
+        });
     },
   });
 }
@@ -203,6 +214,7 @@ export function useCreateMechanicJob() {
       problem: string;
       price: number;
       status?: string;
+      sem_custo?: boolean;
       payment?: {
         tipo: 'integral' | 'parcial' | 'nenhum';
         valor_pago: number;
@@ -423,6 +435,7 @@ export function useUpdateMechanicJobDetails() {
       problem?: string;
       price?: number;
       status?: string;
+      sem_custo?: boolean;
       payment?: {
         tipo: 'integral' | 'parcial' | 'nenhum';
         valor_pago: number;

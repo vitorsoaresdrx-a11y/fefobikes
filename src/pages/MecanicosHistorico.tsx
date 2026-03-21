@@ -90,6 +90,9 @@ export default function MecanicosHistorico() {
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-black text-primary uppercase tracking-widest">
                     Atendimento #{selected.records.length - i}
+                    {record.sem_custo && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 text-[8px] font-black uppercase">Sem custo</span>
+                    )}
                   </span>
                   <span className="text-[10px] font-bold text-muted-foreground">
                     {formatDate(record.completed_at || record.created_at)}

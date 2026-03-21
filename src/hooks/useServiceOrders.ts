@@ -12,6 +12,7 @@ export interface ServiceOrder {
   problem: string;
   price: number;
   status: string;
+  sem_custo: boolean;
   mechanic_status: string;
   mechanic_name: string | null;
   mechanic_id: string | null;
@@ -34,7 +35,7 @@ export function useServiceOrders(statusFilter?: string[]) {
       }
       const { data, error } = await query;
       if (error) throw error;
-      return data as ServiceOrder[];
+      return data as any[];
     },
   });
 }
@@ -51,11 +52,12 @@ export function useCreateServiceOrder() {
       bike_name?: string;
       problem: string;
       price?: number;
+      sem_custo?: boolean;
       responsible_name?: string;
     }) => {
       const { data, error } = await supabase.from("service_orders").insert(order).select().single();
       if (error) throw error;
-      return data as ServiceOrder;
+      return data as any;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });

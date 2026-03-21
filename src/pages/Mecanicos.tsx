@@ -113,6 +113,7 @@ export default function Mecanicos() {
         mechanic_name: order.mechanic_name || undefined,
         service_order_id: order.id,
         status: "done",
+        sem_custo: order.sem_custo,
         completed_at: new Date().toISOString(),
       });
       playDoneSound();

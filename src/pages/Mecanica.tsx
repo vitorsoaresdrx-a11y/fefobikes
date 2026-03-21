@@ -24,6 +24,7 @@ import {
   type AdditionPart,
   type MechanicJobPaymentHistory,
 } from "@/hooks/useMechanicJobs";
+import { useOSPhotos, useUploadPhoto, useDeletePhoto, type OSPhoto } from "@/hooks/useOSPhotos";
 import { useSendMessage } from "@/hooks/useWhatsApp";
 import {
   Wrench,
@@ -73,17 +74,20 @@ import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { formatBRL } from "@/lib/format";
 
 function getAdditionTotal(a: MechanicJobAddition) {
+  if (!a) return 0;
   const partsTotal = (a.parts_used || []).reduce(
-    (sum, p) => sum + p.quantity * p.unit_price,
+    (sum, p) => sum + (Number(p?.quantity) || 0) * (Number(p?.unit_price) || 0),
     0
   );
   return Number(a.labor_cost || 0) + partsTotal;
 }
 
-function getTotalPrice(job: MechanicJob) {
-  const base = Number(job.price);
+function getTotalPrice(job: MechanicJob | null) {
+  if (!job) return 0;
+  if (job.sem_custo) return 0;
+  const base = Number(job.price || 0);
   const accepted = (job.additions || [])
-    .filter((a) => a.approval === "accepted")
+    .filter((a) => a?.approval === "accepted")
     .reduce((sum, a) => sum + getAdditionTotal(a), 0);
   return base + accepted;
 }
@@ -153,9 +157,16 @@ function PremiumTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
 }
 
 const PaymentBadge = ({ job }: { job: MechanicJob }) => {
+  if (job.sem_custo) {
+    return (
+      <div className="bg-slate-500/10 text-slate-400 border-slate-500/20 border px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1 shrink-0">
+        <Tag size={8} /> Sem custo
+      </div>
+    );
+  }
   const total = getTotalPrice(job);
-  const paid = job.payment?.valor_pago || 0;
-  const discount = (job.payment_history || []).reduce((s, h) => s + (h.desconto_valor || 0), 0);
+  const paid = Number(job.payment?.valor_pago || 0);
+  const discount = Number((job.payment_history || []).reduce((s, h) => s + (Number(h?.desconto_valor) || 0), 0));
   const remaining = total - (paid + discount);
 
   if (remaining <= 0) {
@@ -326,8 +337,8 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
               {job.payment?.tipo === 'integral' && (
                 <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-emerald-500/20">Quitado</span>
               )}
-              {job.payment?.tipo === 'parcial' && job.payment.valor_restante > 0 && (
-                <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">Falta {formatBRL(job.payment.valor_restante)}</span>
+              {job.payment?.tipo === 'parcial' && (Number(job.payment?.valor_restante) || 0) > 0 && (
+                <span className="bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">Falta {formatBRL(Number(job.payment?.valor_restante) || 0)}</span>
               )}
             </div>
           </div>
@@ -425,6 +436,84 @@ function AddRepairPartSelector({ selectedParts, onChange }: { selectedParts: Add
               </div>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OSPhotosSection({ osId }: { osId: string }) {
+  const { data: photos = [], isLoading } = useOSPhotos(osId);
+  const upload = useUploadPhoto();
+  const remove = useDeletePhoto();
+  const [activeTab, setActiveTab] = useState<OSPhoto["tipo"]>("chegada");
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>, tipo: OSPhoto["tipo"]) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      upload.mutate({ osId, file, tipo });
+    }
+  };
+
+  const filteredPhotos = photos.filter(p => p.tipo === activeTab);
+
+  const tabs: { key: OSPhoto["tipo"], label: string }[] = [
+    { key: "chegada", label: "Chegada" },
+    { key: "problema", label: "Problema" },
+    { key: "finalizacao", label: "Fim" }
+  ];
+
+  return (
+    <div className="space-y-4 border-t border-border/40 pt-6">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Documentação Fotográfica</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === t.key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 pb-2">
+        <label className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer">
+          <Camera size={20} className="text-muted-foreground" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Tirar Foto</span>
+          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFileChange(e, activeTab)} />
+        </label>
+        <label className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer">
+          <ImageIcon size={20} className="text-muted-foreground" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Galeria</span>
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => onFileChange(e, activeTab)} />
+        </label>
+      </div>
+
+      {isLoading ? (
+        <div className="h-20 rounded-2xl bg-muted/20 animate-pulse" />
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
+          {filteredPhotos.map((p) => (
+            <div key={p.id} className="relative group aspect-square rounded-xl overflow-hidden bg-muted border border-border">
+              <img src={p.url} alt="OS" className="w-full h-full object-cover" />
+              <button 
+                onClick={() => remove.mutate(p)}
+                className="absolute top-1 right-1 w-6 h-6 rounded-lg bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+          {filteredPhotos.length === 0 && (
+            <div className="col-span-3 py-6 text-center border border-dashed border-border/20 rounded-2xl opacity-30">
+              <p className="text-[8px] font-bold uppercase tracking-widest">Nenhuma foto em "{tabs.find(t => t.key === activeTab)?.label}"</p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -532,77 +621,97 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                 </div>
               </InputGroup>
 
-              <InputGroup label="Valor do Serviço">
-                <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f: any) => ({ ...f, price: val }))} />
-              </InputGroup>
-
-              <div className="space-y-4 border-t border-border/40 pt-6">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Histórico de Pagamentos</p>
-                  <button 
-                    onClick={() => onRegisterPayment(editJob)}
-                    className="h-8 px-3 rounded-xl bg-primary/10 text-primary border border-primary/20 text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center gap-1.5"
-                  >
-                    <Plus size={12} /> Registrar Pagamento
-                  </button>
+              <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-black uppercase tracking-tight text-foreground">Serviço sem custo</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Não haverá cobrança de peças ou mão de obra</p>
                 </div>
-
-                <div className="space-y-2">
-                  {(editJob?.payment_history || []).length > 0 ? (
-                    editJob.payment_history!.map((h) => (
-                      <div key={h.id} className="p-3 bg-background rounded-xl border border-border flex items-center justify-between group/pay">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${h.tipo === 'desconto' ? 'bg-purple-500/10 text-purple-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-                            {h.tipo === 'desconto' ? <Trash2 size={14} /> : <CreditCard size={14} />}
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-foreground">
-                              {h.tipo === 'desconto' ? `Desconto: ${formatBRL(h.desconto_valor)}` : formatBRL(h.valor)}
-                              <span className="text-[8px] uppercase tracking-widest ml-2 opacity-40 font-black">{h.payment_method || (h.tipo === 'desconto' ? 'CORTESIA' : 'N/A')}</span>
-                            </p>
-                            <p className="text-[10px] text-muted-foreground">{new Date(h.criado_em).toLocaleDateString()}</p>
-                            {h.desconto_motivo && <p className="text-[10px] text-purple-400 font-bold mt-0.5">Motivo: {h.desconto_motivo}</p>}
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => onShowReceipt(editJob, h)}
-                          className="w-8 h-8 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground flex items-center justify-center transition-all"
-                        >
-                          <Phone size={14} />
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-4 text-center border-2 border-dashed border-border/40 rounded-2xl opacity-30">
-                      <p className="text-[10px] font-bold uppercase tracking-widest">Nenhum pagamento registrado</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 bg-muted/20 rounded-2xl space-y-2 border border-border/20">
-                  <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
-                    <span>Total do Serviço</span>
-                    <span className="text-foreground">{formatBRL(getTotalPrice(editJob))}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
-                    <span>Total Pago</span>
-                    <span className="text-emerald-400 font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0), 0))}</span>
-                  </div>
-                  {(editJob?.payment_history || []).some(h => h.desconto_valor > 0) && (
-                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-purple-400">
-                      <span>Total Descontos</span>
-                      <span className="font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.desconto_valor) || 0), 0))}</span>
-                    </div>
-                  )}
-                  <div className="h-px bg-border/40 my-1" />
-                  <div className="flex justify-between items-center text-xs font-black uppercase">
-                    <span>Saldo Restante</span>
-                    <span className={getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0)) <= 0 ? "text-emerald-400" : "text-amber-500"}>
-                      {formatBRL(Math.max(0, getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0))))}
-                    </span>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditForm((f: any) => ({ ...f, sem_custo: !f.sem_custo }))}
+                  className={`w-12 h-6 rounded-full transition-all relative ${editForm.sem_custo ? "bg-primary" : "bg-muted"}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${editForm.sem_custo ? "left-7" : "left-1"}`} />
+                </button>
               </div>
+
+              {!editForm.sem_custo && (
+                <InputGroup label="Valor do Serviço">
+                  <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f: any) => ({ ...f, price: val }))} />
+                </InputGroup>
+              )}
+
+              {!editForm.sem_custo && (
+                <div className="space-y-4 border-t border-border/40 pt-6">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Histórico de Pagamentos</p>
+                    <button 
+                      onClick={() => onRegisterPayment(editJob)}
+                      className="h-8 px-3 rounded-xl bg-primary/10 text-primary border border-primary/20 text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center gap-1.5"
+                    >
+                      <Plus size={12} /> Registrar Pagamento
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {(editJob?.payment_history || []).length > 0 ? (
+                      editJob.payment_history!.map((h: any) => (
+                        <div key={h.id} className="p-3 bg-background rounded-xl border border-border flex items-center justify-between group/pay">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${h.tipo === 'desconto' ? 'bg-purple-500/10 text-purple-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                              {h.tipo === 'desconto' ? <Trash2 size={14} /> : <CreditCard size={14} />}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-foreground">
+                                {h.tipo === 'desconto' ? `Desconto: ${formatBRL(h.desconto_valor)}` : formatBRL(h.valor)}
+                                <span className="text-[8px] uppercase tracking-widest ml-2 opacity-40 font-black">{h.payment_method || (h.tipo === 'desconto' ? 'CORTESIA' : 'N/A')}</span>
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">{new Date(h.criado_em).toLocaleDateString()}</p>
+                              {h.desconto_motivo && <p className="text-[10px] text-purple-400 font-bold mt-0.5">Motivo: {h.desconto_motivo}</p>}
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => onShowReceipt(editJob!, h)}
+                            className="w-8 h-8 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground flex items-center justify-center transition-all"
+                          >
+                            <Phone size={14} />
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-4 text-center border-2 border-dashed border-border/40 rounded-2xl opacity-30">
+                        <p className="text-[10px] font-bold uppercase tracking-widest">Nenhum pagamento registrado</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-muted/20 rounded-2xl space-y-2 border border-border/20">
+                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
+                      <span>Total do Serviço</span>
+                      <span className="text-foreground">{formatBRL(getTotalPrice(editJob))}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
+                      <span>Total Pago</span>
+                      <span className="text-emerald-400 font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0), 0))}</span>
+                    </div>
+                    {(editJob?.payment_history || []).some(h => (Number(h?.desconto_valor) || 0) > 0) && (
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase text-purple-400">
+                        <span>Total Descontos</span>
+                        <span className="font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.desconto_valor) || 0), 0))}</span>
+                      </div>
+                    )}
+                    <div className="h-px bg-border/40 my-1" />
+                    <div className="flex justify-between items-center text-xs font-black uppercase">
+                      <span>Saldo Restante</span>
+                      <span className={getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0)) <= 0 ? "text-emerald-400" : "text-amber-500"}>
+                        {formatBRL(Math.max(0, getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0))))}
+                      </span>
+                    </div>
+                  </div>
+
+                  <OSPhotosSection osId={editJob!.id} />
+                </div>
+              )}
 
               {editJob && editJob.additions && editJob.additions.length > 0 && (
                 <div className="space-y-3">
@@ -741,6 +850,7 @@ export default function Mecanica() {
     paymentAmount: 0,
     paymentMethod: "pix",
     status: "in_approval" as MechanicJob["status"],
+    sem_custo: false,
   });
 
   const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
@@ -795,6 +905,7 @@ export default function Mecanica() {
     paymentAmount: 0,
     paymentMethod: "pix",
     status: "in_approval" as MechanicJob["status"],
+    sem_custo: false,
   });
 
   const [payHistoryOpen, setPayHistoryOpen] = useState(false);
@@ -884,11 +995,12 @@ export default function Mecanica() {
       customer_id: form.customer_id || undefined,
       bike_name: form.bike_name || undefined,
       problem: form.problem,
-      price: form.price,
+      price: form.sem_custo ? 0 : Number(form.price || 0),
       status: form.initialStatus,
-      payment: form.paymentType !== 'nenhum' ? {
+      sem_custo: form.sem_custo,
+      payment: (!form.sem_custo && form.paymentType !== 'nenhum') ? {
         tipo: form.paymentType,
-        valor_pago: form.paymentType === 'integral' ? form.price : form.paymentAmount,
+        valor_pago: form.paymentType === 'integral' ? Number(form.price || 0) : Number(form.paymentAmount || 0),
         method: form.paymentMethod
       } : undefined
     };
@@ -920,8 +1032,9 @@ export default function Mecanica() {
       customer_cpf: job.customer_cpf || "", 
       customer_whatsapp: job.customer_whatsapp || "", 
       customer_id: job.customer_id || null, 
-      problem: job.problem, 
-      price: job.price, 
+      problem: job.problem || "", 
+      price: Number(job.price || 0), 
+      sem_custo: job.sem_custo || false,
       paymentType: job.payment?.tipo || "nenhum", 
       paymentAmount: job.payment?.valor_pago || 0, 
       paymentMethod: "pix",
@@ -949,13 +1062,14 @@ export default function Mecanica() {
         customer_whatsapp: editForm.customer_whatsapp || null, 
         customer_id: editForm.customer_id || null, 
         bike_name: editForm.bike_name || null, 
-        problem: editForm.problem, 
-        price: editForm.price, 
+        problem: editForm.problem || "", 
+        price: editForm.sem_custo ? 0 : Number(editForm.price || 0), 
         status: editForm.status,
+        sem_custo: editForm.sem_custo,
         payment: { 
           tipo: editForm.paymentType, 
-          valor_pago: editForm.paymentType === 'integral' ? editForm.price : editForm.paymentAmount, 
-          method: editForm.paymentMethod 
+          valor_pago: editForm.paymentType === 'integral' ? Number(editForm.price || 0) : Number(editForm.paymentAmount || 0), 
+          method: editForm.paymentMethod || "pix"
         } 
       });
 
@@ -997,7 +1111,7 @@ export default function Mecanica() {
         
         // Transitions logic
         if (job.status === "in_approval") {
-          createServiceOrder.mutate({ id: job.id, customer_name: job.customer_name || undefined, customer_cpf: job.customer_cpf || undefined, customer_whatsapp: job.customer_whatsapp || undefined, customer_id: job.customer_id || undefined, bike_name: job.bike_name || undefined, problem: job.problem });
+          createServiceOrder.mutate({ id: job.id, customer_name: job.customer_name || undefined, customer_cpf: job.customer_cpf || undefined, customer_whatsapp: job.customer_whatsapp || undefined, customer_id: job.customer_id || undefined, bike_name: job.bike_name || undefined, problem: job.problem, sem_custo: job.sem_custo });
         }
 
         // WhatsApp notifications
@@ -1052,32 +1166,31 @@ export default function Mecanica() {
     });
   };
 
-  const handleSaveAddition = async () => {
-    if (!addJob || !addForm.problem.trim()) { toast.error("Descreva o novo problema / observações"); return; }
-    
-    setSendingAddition(true);
-    const partsTotal = addForm.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
-    const total = addForm.labor_cost + partsTotal;
+  const { data: jobPhotos = [] } = useOSPhotos(addJob?.id);
 
+  const handleSaveAddition = async () => {
+    if (!addJob || !addForm.problem.trim()) { toast.error("Descreva o reparo"); return; }
+    setSendingAddition(true);
     let savedRowId = null;
 
     try {
-      // 1. Salva na tabela com status "rascunho" para não impactar visualmente ainda
+      // 1. Save Addition
+      const partsTotal = addForm.parts.reduce((s, p) => s + p.quantity * p.unit_price, 0);
+      const totalCost = addForm.labor_cost + partsTotal;
+
       const { data: adData, error: adErr } = await supabase.from("os_adicionais" as any).insert({
         os_id: addJob.id,
-        pecas: addForm.parts,
-        observacoes: addForm.problem,
-        valor_total: total,
+        problem: addForm.problem,
+        price: totalCost,
+        labor_cost: addForm.labor_cost,
+        parts_used: addForm.parts,
         status: "rascunho"
       }).select().single();
       
-      if (adErr) {
-        throw new Error("Falha ao criar o registro adicional.");
-      }
-
+      if (adErr) throw new Error("Falha ao criar o registro adicional.");
       savedRowId = (adData as any).id;
 
-      // 2. Chama Edge Function que usa IA pra formatar e enviar via zap
+      // 2. Fetch formatted message
       const { data: edgeData, error: edgeErr } = await supabase.functions.invoke("formatar-adicional", {
         body: {
           osId: addJob.id,
@@ -1086,11 +1199,25 @@ export default function Mecanica() {
           maoDeObra: addForm.labor_cost
         }
       });
-      
       if (edgeErr || edgeData?.error) throw new Error(edgeErr?.message || edgeData?.error || "Insucesso na Edge Function");
 
-      // A Edge Function já move para "in_approval" e avança o status pra "enviado".
-      // Porém vamos forçar a atualização via UI Mutations para re-renderizar o board localmente (React Query).
+      // 3. Send media if there are "problema" photos
+      const problemPhotos = jobPhotos.filter(p => p.tipo === "problema");
+      const phone = addJob.customer_whatsapp?.replace(/\D/g, "");
+      const formattedPhone = phone ? ((phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone) : null;
+
+      if (formattedPhone) {
+        for (const photo of problemPhotos) {
+          await sendMessage.mutateAsync({
+            phone: formattedPhone,
+            media: photo.url,
+            mediatype: 'image'
+          });
+        }
+        // 4. Send formatted message
+        await sendMessage.mutateAsync({ phone: formattedPhone, message: edgeData.message });
+      }
+
       await advance.mutateAsync({ id: addJob.id, status: addJob.status });
 
       toast.success("Enviado para o cliente com sucesso!");
@@ -1098,10 +1225,9 @@ export default function Mecanica() {
       setAddJob(null);
     } catch (err: any) {
       if (savedRowId) {
-        // Rollback transacional! Fallback reverter ao não poder comunicar com cliente
         await supabase.from("os_adicionais" as any).delete().eq("id", savedRowId);
       }
-      toast.error("Erro no envio: " + err.message + ". O registro foi cancelado e desfeito.");
+      toast.error("Erro no envio: " + err.message);
     } finally {
       setSendingAddition(false);
     }
@@ -1290,28 +1416,47 @@ export default function Mecanica() {
               <InputGroup label="Diagnóstico Inicial *">
                 <PremiumTextarea rows={4} placeholder="Descreva o que precisa ser feito..." value={form.problem} onChange={(e) => setForm((f) => ({ ...f, problem: e.target.value }))} />
               </InputGroup>
-              <InputGroup label="Valor do Serviço">
-                <CurrencyInput value={form.price} onChange={(val) => setForm((f) => ({ ...f, price: val }))} />
-              </InputGroup>
 
-              <InputGroup label="Pagamento Adiantado">
-                <div className="grid grid-cols-3 gap-3">
-                  {['nenhum', 'parcial', 'integral'].map((type) => (
-                    <button key={type} type="button" onClick={() => setForm((f: any) => ({ ...f, paymentType: type as any }))} className={`h-12 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${form.paymentType === type ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
-                      {type === 'integral' && <CheckCircle size={12} />}
-                      {type === 'parcial' && <Clock size={12} />}
-                      {type === 'nenhum' && <X size={12} />}
-                      {type}
-                    </button>
-                  ))}
+              <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-black uppercase tracking-tight text-foreground">Serviço sem custo</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Não haverá cobrança de peças ou mão de obra</p>
                 </div>
-                {form.paymentType === 'parcial' && (
-                  <div className="mt-3">
-                    <CurrencyInput value={form.paymentAmount} onChange={(val) => setForm((f: any) => ({ ...f, paymentAmount: val }))} />
-                    <p className="text-[10px] text-muted-foreground mt-1 ml-1 font-bold italic">Valor recebido hoje</p>
-                  </div>
-                )}
-              </InputGroup>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, sem_custo: !f.sem_custo }))}
+                  className={`w-12 h-6 rounded-full transition-all relative ${form.sem_custo ? "bg-primary" : "bg-muted"}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${form.sem_custo ? "left-7" : "left-1"}`} />
+                </button>
+              </div>
+
+              {!form.sem_custo && (
+                <>
+                  <InputGroup label="Valor do Serviço">
+                    <CurrencyInput value={form.price} onChange={(val) => setForm((f) => ({ ...f, price: val }))} />
+                  </InputGroup>
+
+                  <InputGroup label="Pagamento Adiantado">
+                    <div className="grid grid-cols-3 gap-3">
+                      {['nenhum', 'parcial', 'integral'].map((type) => (
+                        <button key={type} type="button" onClick={() => setForm((f: any) => ({ ...f, paymentType: type as any }))} className={`h-12 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${form.paymentType === type ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+                          {type === 'integral' && <CheckCircle size={12} />}
+                          {type === 'parcial' && <Clock size={12} />}
+                          {type === 'nenhum' && <X size={12} />}
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                    {form.paymentType === 'parcial' && (
+                      <div className="mt-3">
+                        <CurrencyInput value={form.paymentAmount} onChange={(val) => setForm((f: any) => ({ ...f, paymentAmount: val }))} />
+                        <p className="text-[10px] text-muted-foreground mt-1 ml-1 font-bold italic">Valor recebido hoje</p>
+                      </div>
+                    )}
+                  </InputGroup>
+                </>
+              )}
 
               <InputGroup label="Qual a situação? *">
                 <div className="grid grid-cols-2 gap-3">

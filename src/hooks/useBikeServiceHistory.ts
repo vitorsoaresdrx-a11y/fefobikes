@@ -13,6 +13,7 @@ export interface BikeServiceRecord {
   mechanic_name: string | null;
   service_order_id: string | null;
   status: string;
+  sem_custo: boolean;
   created_at: string;
   completed_at: string | null;
 }
@@ -37,7 +38,7 @@ export function useBikeServiceHistory() {
 
       // Group by frame_number
       const map = new Map<string, GroupedBikeHistory>();
-      for (const record of data as BikeServiceRecord[]) {
+      for (const record of (data || []) as any[]) {
         const existing = map.get(record.frame_number);
         if (existing) {
           existing.records.push(record);
@@ -68,6 +69,7 @@ export function useCreateBikeServiceRecord() {
       mechanic_name?: string;
       service_order_id?: string;
       status?: string;
+      sem_custo?: boolean;
       completed_at?: string;
     }) => {
       const { error } = await supabase.from("bike_service_history").insert(record);
