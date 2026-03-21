@@ -2226,60 +2226,60 @@ export default function Mecanica() {
 
       <>
         {mechanicCardOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60" onClick={() => setMechanicCardOpen(false)} />
-            <div className="relative bg-secondary border border-border rounded-2xl p-0 overflow-hidden w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl mx-4">
+            <div className="relative bg-secondary border border-border rounded-2xl p-0 overflow-hidden w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
               <div style={{display:'none'}}>
                 <DialogTitle>Ordens na Mecânica</DialogTitle>
               </div>
-          
-          <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-secondary/50 backdrop-blur-sm sticky top-0 z-10">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                <Wrench size={18} className="text-amber-500" />
+
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-secondary/50 backdrop-blur-sm sticky top-0 z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                    <Wrench size={18} className="text-amber-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-foreground uppercase tracking-tight">Na Mecânica</h2>
+                    <p className="text-[10px] text-muted-foreground font-bold">{(grouped.in_repair || []).length} OS em andamento</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setMechanicCardOpen(false)} 
+                  className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X size={16} />
+                </button>
               </div>
-              <div>
-                <h2 className="text-base font-black text-foreground uppercase tracking-tight">Na Mecânica</h2>
-                <p className="text-[10px] text-muted-foreground font-bold">{(grouped.in_repair || []).length} OS em andamento</p>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {(grouped.in_repair || []).length > 0 ? (
+                  (grouped.in_repair || []).map((job) => {
+                    if (!job) return null;
+                    return (
+                      <JobCard 
+                        key={job.id} 
+                        job={job} 
+                        isLast={false} 
+                        columnKey="in_repair" 
+                        onAddRepair={handleAddRepair} 
+                        onEdit={handleEditJob} 
+                        onRetreat={handleRetreatJob} 
+                        onAdvance={handleAdvanceJob} 
+                        isMechanicView={true} 
+                      />
+                    );
+                  })
+                ) : (
+                  <div className="py-20 text-center space-y-3 opacity-20">
+                    <Wrench className="mx-auto" size={40} />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma bike na mecânica</p>
+                  </div>
+                )}
               </div>
             </div>
-            <button 
-              onClick={() => setMechanicCardOpen(false)} 
-              className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X size={16} />
-            </button>
           </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {(grouped.in_repair || []).length > 0 ? (
-              (grouped.in_repair || []).map((job) => {
-                if (!job) return null;
-                return (
-                  <JobCard 
-                    key={job.id} 
-                    job={job} 
-                    isLast={false} 
-                    columnKey="in_repair" 
-                    onAddRepair={handleAddRepair} 
-                    onEdit={handleEditJob} 
-                    onRetreat={handleRetreatJob} 
-                    onAdvance={handleAdvanceJob} 
-                    isMechanicView={true} 
-                  />
-                );
-              })
-            ) : (
-              <div className="py-20 text-center space-y-3 opacity-20">
-                <Wrench className="mx-auto" size={40} />
-                <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma bike na mecânica</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
-  </>
+        )}
+      </>
   {/* ── Modal de Registro de Pagamento ─────────────────────────────────── */}
       <Dialog open={registerPayOpen} onOpenChange={setRegisterPayOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
@@ -2461,8 +2461,7 @@ export default function Mecanica() {
             </div>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
     </div>
-  </div>
-);
+  );
 }
