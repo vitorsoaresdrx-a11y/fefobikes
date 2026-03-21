@@ -116,25 +116,30 @@ Deno.serve(async (req) => {
 
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
 
-    // --- PRIORITY 1: Check for pending repair additions (Works even if AI/Chat is OFF) ---
     let pendingAdditionId = null;
     let pendingOsId = null;
     let pendingAdditionValue = 0;
     
-    const phoneSuffix = phone.length >= 10 ? phone.slice(-10) : phone;
-    const phoneShort = phone.length >= 8 ? phone.slice(-8) : phone;
-    
-    console.log(`Searching for pending additions for phone: ${phone} (suffix: ${phoneSuffix})`);
+    const incomingDigits = phone.replace(/\D/g, "");
+    const incomingSuffix = incomingDigits.length >= 10 ? incomingDigits.slice(-10) : incomingDigits;
 
-    const { data: jobs } = await supabase
+    console.log(`Searching for pending additions for normalized phone: ${incomingDigits} (suffix: ${incomingSuffix})`);
+
+    // Fetch all active jobs to match phone in JS (bypassing DB formatting issues)
+    const { data: allActiveJobs } = await supabase
       .from('mechanic_jobs')
-      .select('id, customer_name')
-      .neq('status', 'delivered')
-      .or(`customer_whatsapp.ilike.%${phoneSuffix}%,customer_whatsapp.ilike.%${phoneShort}%`);
+      .select('id, customer_name, customer_whatsapp')
+      .neq('status', 'delivered');
 
-    if (jobs && jobs.length > 0) {
-      const jobIds = jobs.map((j: any) => j.id);
-      console.log(`Found ${jobs.length} candidate jobs for budget approval:`, jobIds);
+    const matchedJobs = (allActiveJobs || []).filter((j: any) => {
+      const dbDigits = (j.customer_whatsapp || "").replace(/\D/g, "");
+      const dbSuffix = dbDigits.length >= 10 ? dbDigits.slice(-10) : dbDigits;
+      return dbDigits === incomingDigits || (dbSuffix.length >= 8 && incomingSuffix.endsWith(dbSuffix)) || (incomingSuffix.length >= 8 && dbSuffix.endsWith(incomingSuffix));
+    });
+
+    if (matchedJobs.length > 0) {
+      const jobIds = matchedJobs.map((j: any) => j.id);
+      console.log(`Found ${matchedJobs.length} matching jobs:`, jobIds);
       
       const { data: adicionais } = await supabase
         .from('os_adicionais')
@@ -149,11 +154,9 @@ Deno.serve(async (req) => {
         pendingOsId = first.os_id;
         pendingAdditionValue = Number(first.valor_total || 0);
         console.log(`MATCHED pending addition ${pendingAdditionId} for OS ${pendingOsId}`);
-      } else {
-        console.log("No pending additions found with status 'enviado' or 'pendente' for these jobs.");
       }
     } else {
-      console.log("No matching mechanic jobs found for this phone number.");
+      console.log(`No active mechanic jobs found matching phone ${incomingDigits}`);
     }
 
     if (pendingAdditionId) {
