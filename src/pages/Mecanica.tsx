@@ -2224,11 +2224,14 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
-        <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[85vh] flex flex-col">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Ordens na Mecânica</DialogTitle>
-          </DialogHeader>
+<Dialog open={mechanicCardOpen} onOpenChange={setMechanicCardOpen}>
+  <DialogContent 
+    className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[85vh] flex flex-col"
+    style={{ zIndex: 9999 }}
+  >
+    <DialogHeader>
+      <DialogTitle className="sr-only">Ordens na Mecânica</DialogTitle>
+    </DialogHeader>
           
           <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-secondary/50 backdrop-blur-sm sticky top-0 z-10">
             <div className="flex items-center gap-3">
@@ -2410,7 +2413,7 @@ export default function Mecanica() {
       </Dialog>
 
       {/* ── Notificação Fullscreen de Aprovação ───────────────────────────── */}
-      <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
+      {notifOpen && <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
         <DialogContent className="border-none bg-background p-0 max-w-none w-screen h-screen m-0 rounded-none flex items-center justify-center animate-in fade-in zoom-in duration-500 outline-none">
           <div className="max-w-2xl w-full p-8 md:p-12 space-y-10 text-center relative">
             <div className={`w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center border-4 shadow-2xl animate-bounce ${notifData?.status === 'accepted' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-emerald-500/20' : 'bg-destructive/20 border-destructive text-destructive shadow-destructive/20'}`}>
@@ -2456,7 +2459,7 @@ export default function Mecanica() {
             </div>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
     </div>
   );
 }
