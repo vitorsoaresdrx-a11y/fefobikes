@@ -929,6 +929,22 @@ export default function Mecanica() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // DEBUG TEMPORÁRIO PARA REALTIME
+  useEffect(() => {
+    const channel = supabase
+      .channel('debug-adicionais')
+      .on('postgres_changes' as any,
+        { event: '*', schema: 'public', table: 'os_adicionais' },
+        (payload: any) => {
+          console.log('REALTIME RECEBIDO:', payload);
+          alert('REALTIME ADICIONAIS: ' + JSON.stringify(payload.new));
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const [sendingAddition, setSendingAddition] = useState(false);
   const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");
 
