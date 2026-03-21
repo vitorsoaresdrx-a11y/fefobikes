@@ -211,8 +211,11 @@ export function useCreateMechanicJob() {
           total: valor_pago,
           payment_method: payment.method || 'pix',
           origin: 'oficina',
-          notes: `OS Oficina (Adiantamento)${job.bike_name ? ` — ${job.bike_name}` : ""}${job.problem ? `: ${job.problem.slice(0, 40)}` : ""}`,
-          status: 'completed'
+          notes: `OS Oficina (${payment.tipo === 'integral' ? 'Pagamento' : 'Pagamento Parcial'})${job.bike_name ? ` — ${job.bike_name}` : ""}`,
+          status: 'completed',
+          customer_id: (data as any).customer_id || job.customer_id || null,
+          customer_name: (data as any).customer_name || job.customer_name || null,
+          customer_whatsapp: (data as any).customer_whatsapp || job.customer_whatsapp || null,
         });
       }
 
@@ -410,7 +413,10 @@ export function useUpdateMechanicJobDetails() {
                 payment_method: payment.method || 'pix',
                 origin: 'oficina',
                 notes: `OS Oficina (Ajuste Pagamento)${updates.bike_name ? ` — ${updates.bike_name}` : ""}`,
-                status: 'completed'
+                status: 'completed',
+                customer_id: updates.customer_id || null,
+                customer_name: updates.customer_name || null,
+                customer_whatsapp: updates.customer_whatsapp || null,
               });
             }
           }
@@ -429,8 +435,11 @@ export function useUpdateMechanicJobDetails() {
             total: valor_pago,
             payment_method: payment.method || 'pix',
             origin: 'oficina',
-            notes: `OS Oficina (Pagamento)${updates.bike_name ? ` — ${updates.bike_name}` : ""}`,
-            status: 'completed'
+            notes: `OS Oficina (${payment.tipo === 'integral' ? 'Pagamento' : 'Pagamento Parcial'})${updates.bike_name ? ` — ${updates.bike_name}` : ""}`,
+            status: 'completed',
+            customer_id: updates.customer_id || null,
+            customer_name: updates.customer_name || null,
+            customer_whatsapp: updates.customer_whatsapp || null,
           });
         }
       }
