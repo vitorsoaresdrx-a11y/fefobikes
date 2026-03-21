@@ -57,6 +57,10 @@ import {
   HelpCircle,
   CheckCircle,
   LayoutGrid,
+  Camera,
+  Image as ImageIcon,
+  History,
+  Eye,
 } from "lucide-react";
 import {
   Dialog,
@@ -539,6 +543,7 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
   const updateAddition = useUpdateAddition();
   const updateApproval = useUpdateAdditionApproval();
   const [editingAddition, setEditingAddition] = useState<string | null>(null);
+  const [showManualCustomer, setShowManualCustomer] = useState(false);
   const [additionEdits, setAdditionEdits] = useState<Record<string, { problem: string; labor_cost: number; parts: AdditionPart[] }>>({});
   const [deleteAdditionDialog, setDeleteAdditionDialog] = useState<{ open: boolean; id: string; name: string; is_v2?: boolean }>({ open: false, id: "", name: "" });
 
@@ -566,238 +571,312 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
-          <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">Editar Serviço</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              <InputGroup label="Nome da Bike *">
-                <PremiumInput placeholder="Ex: Caloi Elite Carbon" value={editForm.bike_name} onChange={(e) => setEditForm((f: any) => ({ ...f, bike_name: e.target.value }))} />
-              </InputGroup>
-              <InputGroup label="Cliente">
-                <CustomerAutocomplete
-                  customerName={editForm.customer_name}
-                  customerWhatsapp={editForm.customer_whatsapp}
-                  customerCpf={editForm.customer_cpf}
-                  onSelect={(c: Customer) => setEditForm((f: any) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }))}
-                  onChange={(field, value) => {
-                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
-                    setEditForm((f: any) => ({ ...f, [key]: value }));
-                  }}
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                  <PremiumInput placeholder="Nome completo" value={editForm.customer_name} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_name: e.target.value }))} />
-                  <PremiumInput placeholder="(00) 00000-0000" value={editForm.customer_whatsapp} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_whatsapp: maskPhone(e.target.value) }))} />
-                  <PremiumInput placeholder="CPF / CNPJ" value={editForm.customer_cpf} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value) }))} />
+      <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setShowManualCustomer(false); }}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-2xl shadow-2xl w-full max-h-[90vh]">
+          <div className="flex flex-col h-full max-h-[90vh]">
+            <div className="p-6 md:p-10 border-b border-border bg-card/50 shrink-0">
+              <DialogHeader>
+                <div className="flex items-center justify-between">
+                  <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center text-white shrink-0">
+                      <Pencil size={20} />
+                    </div>
+                    Editar Serviço
+                  </DialogTitle>
+                  <div className="px-3 py-1 rounded-full bg-muted border border-border text-[9px] font-black uppercase tracking-widest text-muted-foreground mr-6">
+                    OS #{editJob?.id?.slice(-4).toUpperCase()}
+                  </div>
                 </div>
-              </InputGroup>
-              <InputGroup label="Diagnóstico *">
-                <PremiumTextarea rows={4} placeholder="Descreva o que precisa ser feito..." value={editForm.problem} onChange={(e) => setEditForm((f: any) => ({ ...f, problem: e.target.value }))} />
-              </InputGroup>
-              <InputGroup label="Mover para coluna">
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { key: "in_approval", label: "Em Aprovação" },
-                    { key: "in_repair", label: "Na Mecânica" }, // user asked for "Em Manutenção" in instructions but current column label is "Na Mecânica"
-                    { key: "in_analysis", label: "Em Análise" },
-                    { key: "ready", label: "Pronto" },
-                  ].map((col) => (
-                    <button
-                      key={col.key}
-                      type="button"
-                      onClick={() => setEditForm((f: any) => ({ ...f, status: col.key }))}
-                      className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                        editForm.status === col.key
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-card text-muted-foreground"
-                      }`}
-                    >
-                      {editForm.status === col.key && <Check size={10} />}
-                      {col.label}
-                    </button>
-                  ))}
-                </div>
-              </InputGroup>
+              </DialogHeader>
+            </div>
 
-              <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40">
-                <div className="space-y-0.5">
-                  <p className="text-xs font-black uppercase tracking-tight text-foreground">Serviço sem custo</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Não haverá cobrança de peças ou mão de obra</p>
+            <div className="p-6 md:p-10 space-y-8 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+              {/* Section 01: Identificação */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">01. Identificação</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setEditForm((f: any) => ({ ...f, sem_custo: !f.sem_custo }))}
-                  className={`w-12 h-6 rounded-full transition-all relative ${editForm.sem_custo ? "bg-primary" : "bg-muted"}`}
-                >
-                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${editForm.sem_custo ? "left-7" : "left-1"}`} />
-                </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-card/40 p-5 rounded-[32px] border border-border/40">
+                  <InputGroup label="Qual a Bike?">
+                    <PremiumInput placeholder="Ex: Caloi Elite Carbon" value={editForm.bike_name} onChange={(e) => setEditForm((f: any) => ({ ...f, bike_name: e.target.value }))} />
+                  </InputGroup>
+                  <InputGroup label="Quem é o Cliente?">
+                    <CustomerAutocomplete
+                      customerName={editForm.customer_name}
+                      customerWhatsapp={editForm.customer_whatsapp}
+                      customerCpf={editForm.customer_cpf}
+                      onSelect={(c: Customer) => {
+                        setEditForm((f: any) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }));
+                        setShowManualCustomer(false);
+                      }}
+                      onChange={(field, value) => {
+                        const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
+                        setEditForm((f: any) => ({ ...f, [key]: value }));
+                      }}
+                    />
+                  </InputGroup>
+                </div>
+                
+                <div className="px-2">
+                  <button 
+                    type="button"
+                    onClick={() => setShowManualCustomer(!showManualCustomer)}
+                    className="text-[10px] font-bold text-muted-foreground hover:text-primary flex items-center gap-2 transition-colors uppercase tracking-widest outline-none"
+                  >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${showManualCustomer ? "bg-primary border-primary text-white" : "border-border"}`}>
+                      {showManualCustomer && <Check size={10} />}
+                    </div>
+                    Editar Dados do Cliente Manualmente
+                  </button>
+                </div>
+
+                {showManualCustomer && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-5 bg-primary/5 rounded-[32px] border border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <InputGroup label="Nome Completo">
+                      <PremiumInput placeholder="Nome" value={editForm.customer_name} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_name: e.target.value }))} />
+                    </InputGroup>
+                    <InputGroup label="WhatsApp">
+                      <PremiumInput placeholder="(00) 00000-0000" value={editForm.customer_whatsapp} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_whatsapp: maskPhone(e.target.value) }))} />
+                    </InputGroup>
+                    <InputGroup label="CPF">
+                      <PremiumInput placeholder="000.000.000-00" value={editForm.customer_cpf} onChange={(e) => setEditForm((f: any) => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value) }))} />
+                    </InputGroup>
+                  </div>
+                )}
               </div>
 
-              {!editForm.sem_custo && (
-                <InputGroup label="Valor do Serviço">
-                  <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f: any) => ({ ...f, price: val }))} />
-                </InputGroup>
-              )}
+              {/* Section 02: O que fazer */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">02. Diagnóstico</p>
+                </div>
+                <div className="space-y-4 bg-card/40 p-5 rounded-[32px] border border-border/40">
+                  <InputGroup label="O que precisa ser feito? *">
+                    <PremiumTextarea rows={4} placeholder="Ex: Barulho no central, trocar pastilhas..." value={editForm.problem} onChange={(e) => setEditForm((f: any) => ({ ...f, problem: e.target.value }))} />
+                  </InputGroup>
+                </div>
+              </div>
 
-              {!editForm.sem_custo && (
-                <div className="space-y-4 border-t border-border/40 pt-6">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Histórico de Pagamentos</p>
-                    <button 
-                      onClick={() => onRegisterPayment(editJob)}
-                      className="h-8 px-3 rounded-xl bg-primary/10 text-primary border border-primary/20 text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center gap-1.5"
-                    >
-                      <Plus size={12} /> Registrar Pagamento
-                    </button>
+              {/* Section 03: Pipeline */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">03. Pipeline</p>
+                </div>
+                <div className="bg-card/40 p-5 rounded-[32px] border border-border/40 space-y-4">
+                  <InputGroup label="Mover para coluna">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {[
+                        { key: "in_approval", label: "Aprovação", icon: FileCheck },
+                        { key: "in_maintenance", label: "Manutenção", icon: Wrench },
+                        { key: "in_analysis", label: "Análise", icon: Eye },
+                        { key: "ready", label: "Pronto", icon: CheckCircle2 },
+                      ].map((col) => (
+                        <button
+                          key={col.key}
+                          type="button"
+                          onClick={() => setEditForm((f: any) => ({ ...f, status: col.key }))}
+                          className={`h-12 rounded-xl border text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                            editForm.status === col.key
+                              ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/5"
+                              : "border-border bg-background text-muted-foreground hover:bg-muted"
+                          }`}
+                        >
+                          <col.icon size={12} />
+                          {col.label}
+                        </button>
+                      ))}
+                    </div>
+                  </InputGroup>
+                </div>
+              </div>
+
+              {/* Section 04: Financeiro */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">04. Financeiro</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Free Toggle */}
+                  <div className="p-5 bg-card/40 rounded-[32px] border border-border/40 flex flex-col justify-center">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-black uppercase tracking-tight text-foreground">Sem Custo</p>
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Garantia / Cortesia</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEditForm((f: any) => ({ ...f, sem_custo: !f.sem_custo }))}
+                        className={`w-12 h-6 rounded-full transition-all relative ${editForm.sem_custo ? "bg-primary" : "bg-muted"}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${editForm.sem_custo ? "left-7" : "left-1"}`} />
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    {(editJob?.payment_history || []).length > 0 ? (
-                      editJob.payment_history!.map((h: any) => (
-                        <div key={h.id} className="p-3 bg-background rounded-xl border border-border flex items-center justify-between group/pay">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${h.tipo === 'desconto' ? 'bg-purple-500/10 text-purple-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
-                              {h.tipo === 'desconto' ? <Trash2 size={14} /> : <CreditCard size={14} />}
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-foreground">
-                                {h.tipo === 'desconto' ? `Desconto: ${formatBRL(h.desconto_valor)}` : formatBRL(h.valor)}
-                                <span className="text-[8px] uppercase tracking-widest ml-2 opacity-40 font-black">{h.payment_method || (h.tipo === 'desconto' ? 'CORTESIA' : 'N/A')}</span>
-                              </p>
-                              <p className="text-[10px] text-muted-foreground">{new Date(h.criado_em).toLocaleDateString()}</p>
-                              {h.desconto_motivo && <p className="text-[10px] text-purple-400 font-bold mt-0.5">Motivo: {h.desconto_motivo}</p>}
-                            </div>
-                          </div>
+                  {!editForm.sem_custo && (
+                    <div className="p-5 bg-card/40 rounded-[32px] border border-border/40">
+                      <InputGroup label="Mão de Obra">
+                        <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f: any) => ({ ...f, price: val }))} />
+                      </InputGroup>
+                    </div>
+                  )}
+                </div>
+
+                {!editForm.sem_custo && (
+                  <div className="bg-card border border-border/60 rounded-[32px] overflow-hidden">
+                    <div className="p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Histórico de Pagamentos</p>
+                        <div className="flex items-center gap-2">
                           <button 
-                            onClick={() => onShowReceipt(editJob!, h)}
-                            className="w-8 h-8 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground flex items-center justify-center transition-all"
+                            onClick={() => onRegisterPayment(editJob)}
+                            className="h-8 px-3 rounded-xl bg-primary text-white text-[9px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-1.5 shadow-lg shadow-primary/20"
                           >
-                            <Phone size={14} />
+                            <Plus size={10} /> Novo Pagamento
                           </button>
                         </div>
-                      ))
-                    ) : (
-                      <div className="py-4 text-center border-2 border-dashed border-border/40 rounded-2xl opacity-30">
-                        <p className="text-[10px] font-bold uppercase tracking-widest">Nenhum pagamento registrado</p>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="p-4 bg-muted/20 rounded-2xl space-y-2 border border-border/20">
-                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
-                      <span>Total do Serviço</span>
-                      <span className="text-foreground">{formatBRL(getTotalPrice(editJob))}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
-                      <span>Total Pago</span>
-                      <span className="text-emerald-400 font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0), 0))}</span>
-                    </div>
-                    {(editJob?.payment_history || []).some(h => (Number(h?.desconto_valor) || 0) > 0) && (
-                      <div className="flex justify-between items-center text-[10px] font-bold uppercase text-purple-400">
-                        <span>Total Descontos</span>
-                        <span className="font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.desconto_valor) || 0), 0))}</span>
-                      </div>
-                    )}
-                    <div className="h-px bg-border/40 my-1" />
-                    <div className="flex justify-between items-center text-xs font-black uppercase">
-                      <span>Saldo Restante</span>
-                      <span className={getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0)) <= 0 ? "text-emerald-400" : "text-amber-500"}>
-                        {formatBRL(Math.max(0, getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0))))}
-                      </span>
-                    </div>
-                  </div>
-
-                  <OSPhotosSection osId={editJob!.id} />
-                </div>
-              )}
-
-              {editJob && editJob.additions && editJob.additions.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Reparos Extras ({editJob.additions.length})</p>
-                  {editJob.additions.map((a: MechanicJobAddition) => {
-                    const isEditing = editingAddition === a.id;
-                    const edits = additionEdits[a.id];
-                    return (
-                      <div key={a.id} className="p-3 bg-background rounded-xl border border-border space-y-2">
-                        {isEditing && edits ? (
-                          <>
-                            <PremiumInput placeholder="Descrição do reparo" value={edits.problem} onChange={(e) => setAdditionEdits((prev) => ({ ...prev, [a.id]: { ...prev[a.id], problem: e.target.value } }))} />
-                            <InputGroup label="Peças">
-                              <AddRepairPartSelector selectedParts={edits.parts} onChange={(parts) => setAdditionEdits((prev) => ({ ...prev, [a.id]: { ...prev[a.id], parts } }))} />
-                            </InputGroup>
-                            <InputGroup label="Mão de Obra">
-                              <CurrencyInput value={edits.labor_cost} onChange={(val) => setAdditionEdits((prev) => ({ ...prev, [a.id]: { ...prev[a.id], labor_cost: val } }))} />
-                            </InputGroup>
-                            <div className="flex gap-2 pt-1">
-                              <button onClick={() => setEditingAddition(null)} className="flex-1 h-8 rounded-xl border border-border text-muted-foreground hover:bg-muted text-xs font-bold transition-all">Cancelar</button>
-                              <button onClick={() => saveAddition(a)} disabled={updateAddition.isPending} className="flex-1 h-8 rounded-xl bg-primary text-white hover:bg-primary/80 text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-1">
-                                {updateAddition.isPending ? <Loader2 size={12} className="animate-spin" /> : <><Check size={12} /> Salvar</>}
+                      <div className="space-y-2">
+                        {(editJob?.payment_history || []).length > 0 ? (
+                          editJob.payment_history.map((h: any) => (
+                            <div key={h.id} className="flex items-center justify-between p-3 bg-background rounded-2xl border border-border/40 group hover:border-primary/20 transition-all">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground uppercase text-[10px] font-black">
+                                  {h.tipo === 'desconto' ? 'DS' : h.payment_method === 'pix' ? 'PX' : h.payment_method === 'dinheiro' ? 'DH' : h.payment_method === 'cartao_debito' ? 'DB' : 'CR'}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-white uppercase">{h.tipo === 'desconto' ? formatBRL(h.desconto_valor) : formatBRL(h.valor)}</p>
+                                  <p className="text-[9px] text-muted-foreground font-medium">{new Date(h.criado_em).toLocaleDateString()}</p>
+                                  {h.desconto_motivo && <p className="text-[9px] text-purple-400 font-bold mt-0.5 italic">{h.desconto_motivo}</p>}
+                                </div>
+                              </div>
+                              <button onClick={() => onShowReceipt(editJob!, h)} className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100">
+                                <FileText size={14} />
                               </button>
                             </div>
-                          </>
+                          ))
                         ) : (
-                          <>
-                            <div className="flex items-center justify-between">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-foreground truncate">{a.problem}</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {formatBRL(getAdditionTotal(a))}
-                                  {a.approval === "accepted" && " ✅"}
-                                  {a.approval === "refused" && " ❌"}
-                                  {a.approval === "pending" && " ⏳"}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button onClick={() => startEditAddition(a)} className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
-                                  <Pencil size={12} />
-                                </button>
-                                <button onClick={() => setDeleteAdditionDialog({ open: true, id: a.id, name: a.problem, is_v2: (a as any).is_v2 })} className="w-7 h-7 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-colors">
-                                  <Trash2 size={12} />
-                                </button>
-                              </div>
-                            </div>
-                            
-                            <div className="flex gap-2 mt-2">
-                              {['pending', 'accepted', 'refused'].map((status) => (
-                                <button
-                                  key={status}
-                                  onClick={() => {
-                                    const approval = status as any;
-                                    updateApproval.mutate({ id: a.id, approval, is_v2: (a as any).is_v2 });
-                                  }}
-                                  className={`flex-1 h-7 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${
-                                    a.approval === (status === 'accepted' ? 'accepted' : status === 'refused' ? 'refused' : 'pending')
-                                      ? status === 'accepted' ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" 
-                                        : status === 'refused' ? "border-destructive bg-destructive/10 text-destructive"
-                                        : "border-amber-500 bg-amber-500/10 text-amber-500"
-                                      : "border-border bg-card text-muted-foreground opacity-50"
-                                  }`}
-                                >
-                                  {status === 'pending' ? 'Pendente' : status === 'accepted' ? 'Aprovado' : 'Negado'}
-                                </button>
-                              ))}
-                            </div>
-                            {(a.parts_used || []).length > 0 && (
-                              <div className="pl-2 space-y-0.5">
-                                {a.parts_used.map((p, i) => (
-                                  <p key={i} className="text-[9px] text-muted-foreground">{p.quantity}x {p.part_name} — {formatBRL(p.quantity * p.unit_price)}</p>
-                                ))}
-                              </div>
-                            )}
-                          </>
+                          <div className="py-8 text-center border border-dashed border-border/20 rounded-2xl opacity-30">
+                            <p className="text-[9px] font-black uppercase tracking-widest">Nenhum pagamento registrado</p>
+                          </div>
                         )}
                       </div>
-                    );
-                  })}
+
+                      <div className="p-4 bg-muted/10 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center text-[9px] font-bold uppercase text-muted-foreground tracking-widest">
+                          <span>Saldo Restante</span>
+                          <span className={getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0)) <= 0 ? "text-emerald-400" : "text-amber-500 font-black"}>
+                            {formatBRL(Math.max(0, getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h?.valor) || 0) + (Number(h?.desconto_valor) || 0), 0))))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <OSPhotosSection osId={editJob!.id} />
+              </div>
+
+              {/* Section 05: Reparos Adicionais */}
+              <div className="space-y-4 pb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">05. Reparos Extras</p>
                 </div>
-              )}
+                
+                <div className="space-y-3">
+                  {(editJob?.additions || []).length === 0 ? (
+                    <div className="py-10 text-center bg-card/20 border border-dashed border-border/40 rounded-[32px] opacity-30">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nenhum reparo extra solicitado</p>
+                    </div>
+                  ) : (
+                    editJob.additions.map((a: any) => {
+                      const isEditing = editingAddition === a.id;
+                      const edits = additionEdits[a.id];
+                      return (
+                        <div key={a.id} className="bg-card border border-border rounded-[32px] p-5 space-y-4">
+                          {isEditing ? (
+                            <div className="space-y-4">
+                              <InputGroup label="Problema">
+                                <PremiumInput value={edits.problem} onChange={(e) => setAdditionEdits(p => ({ ...p, [a.id]: { ...edits, problem: e.target.value } }))} />
+                              </InputGroup>
+                              <div className="grid grid-cols-2 gap-4">
+                                <InputGroup label="Mão de Obra">
+                                  <CurrencyInput value={edits.labor_cost} onChange={(val) => setAdditionEdits(p => ({ ...p, [a.id]: { ...edits, labor_cost: val } }))} />
+                                </InputGroup>
+                                <div className="flex items-end">
+                                  <button onClick={() => saveAddition(a)} className="w-full h-12 rounded-xl bg-emerald-500 text-white font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">
+                                    <Check size={14} /> Salvar
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-start justify-between">
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{a.problem}</p>
+                                  <p className="text-xs font-bold text-white">
+                                    {formatBRL(getAdditionTotal(a))}
+                                    <span className="ml-2 text-[10px] text-muted-foreground uppercase font-black tracking-widest">{a.approval === 'accepted' ? '(Aprovado)' : a.approval === 'refused' ? '(Negado)' : '(Pendente)'}</span>
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button onClick={() => startEditAddition(a)} className="w-8 h-8 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all">
+                                    <Pencil size={12} />
+                                  </button>
+                                  <button onClick={() => setDeleteAdditionDialog({ open: true, id: a.id, name: a.problem, is_v2: (a as any).is_v2 })} className="w-8 h-8 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-destructive hover:border-destructive transition-all">
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                {['none', 'pending', 'accepted', 'refused'].map((status) => (
+                                  <button
+                                    key={status}
+                                    onClick={() => updateApproval.mutate({ id: a.id, approval: status as any, is_v2: (a as any).is_v2 })}
+                                    className={`flex-1 h-8 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+                                      (a.approval === status || (status === 'none' && !a.approval))
+                                        ? status === 'accepted' ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" 
+                                          : status === 'refused' ? "border-destructive bg-destructive/10 text-destructive"
+                                          : status === 'pending' ? "border-amber-500 bg-amber-500/10 text-amber-500"
+                                          : "border-primary bg-primary/10 text-primary"
+                                        : "border-border bg-background text-muted-foreground"
+                                    }`}
+                                  >
+                                    {status === 'none' ? '(Nenhum)' : status === 'pending' ? 'Pendente' : status === 'accepted' ? 'Aprovado' : 'Negado'}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-4 pt-6 md:pt-8 bg-secondary sticky bottom-0 border-t border-border">
-              <button onClick={() => onOpenChange(false)} className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all">Cancelar</button>
-              <button onClick={onSave} disabled={isSaving} className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50">
-                {isSaving ? <Loader2 size={16} className="animate-spin" /> : <><CheckCircle2 size={16} /> Salvar Alterações</>}
+
+            <div className="p-6 md:p-10 border-t border-border bg-card/50 flex gap-4 shrink-0 mt-auto">
+              <button 
+                onClick={() => onOpenChange(false)} 
+                className="flex-1 h-14 rounded-[20px] border border-border text-muted-foreground hover:bg-muted text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={onSave} 
+                disabled={isSaving} 
+                className="flex-[2] h-14 rounded-[20px] bg-primary text-white hover:bg-primary/90 text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 size={18} className="animate-spin" /> : <><CheckCircle2 size={18} /> Salvar Alterações</>}
               </button>
             </div>
           </div>
@@ -837,6 +916,8 @@ export default function Mecanica() {
   useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
   const [open, setOpen] = useState(false);
+  const [showManualCustomer, setShowManualCustomer] = useState(false);
+  const QUICK_DIAGNOSTICS = ["Revisão Geral", "Troca de Câmera", "Ajuste de Câmbio", "Limpeza", "Freio", "Transmissão"];
   const [form, setForm] = useState({
     customer_name: "",
     bike_name: "",
@@ -1018,6 +1099,7 @@ export default function Mecanica() {
         toast.success("Manutenção criada!");
         setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", paymentAmount: 0, paymentMethod: "pix", status: "in_approval" });
         setOpen(false);
+        setShowManualCustomer(false);
       },
       onError: () => toast.error("Erro ao criar"),
     });
@@ -1386,120 +1468,221 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-lg shadow-2xl w-full max-h-[90vh]">
-          <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto max-h-[90vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">Nova Ordem de Serviço</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              <InputGroup label="Nome da Bike *">
-                <PremiumInput placeholder="Ex: Caloi Elite Carbon" value={form.bike_name} onChange={(e) => setForm((f) => ({ ...f, bike_name: e.target.value }))} />
-              </InputGroup>
-              <InputGroup label="Cliente">
-                <CustomerAutocomplete
-                  customerName={form.customer_name}
-                  customerWhatsapp={form.customer_whatsapp}
-                  customerCpf={form.customer_cpf}
-                  onSelect={(c: Customer) => setForm((f: any) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }))}
-                  onChange={(field, value) => {
-                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
-                    setForm((f: any) => ({ ...f, [key]: value }));
-                  }}
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
-                  <PremiumInput placeholder="Nome completo" value={form.customer_name} onChange={(e) => setForm((f) => ({ ...f, customer_name: e.target.value }))} />
-                  <PremiumInput placeholder="(00) 00000-0000" value={form.customer_whatsapp} onChange={(e) => setForm((f) => ({ ...f, customer_whatsapp: maskPhone(e.target.value) }))} />
-                  <PremiumInput placeholder="CPF / CNPJ" value={form.customer_cpf} onChange={(e) => setForm((f) => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value) }))} />
-                </div>
-              </InputGroup>
-              <InputGroup label="Diagnóstico Inicial *">
-                <PremiumTextarea rows={4} placeholder="Descreva o que precisa ser feito..." value={form.problem} onChange={(e) => setForm((f) => ({ ...f, problem: e.target.value }))} />
-              </InputGroup>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setShowManualCustomer(false); }}>
+        <DialogContent className="bg-secondary border-border rounded-2xl md:rounded-[40px] p-0 overflow-hidden max-w-2xl shadow-2xl w-full max-h-[90vh]">
+          <div className="flex flex-col h-full max-h-[90vh]">
+            <div className="p-6 md:p-10 border-b border-border bg-card/50 shrink-0">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white shrink-0">
+                    <Plus size={20} />
+                  </div>
+                  Nova Ordem de Serviço
+                </DialogTitle>
+              </DialogHeader>
+            </div>
 
-              <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40">
-                <div className="space-y-0.5">
-                  <p className="text-xs font-black uppercase tracking-tight text-foreground">Serviço sem custo</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Não haverá cobrança de peças ou mão de obra</p>
+            <div className="p-6 md:p-10 space-y-8 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted/80 [&::-webkit-scrollbar-thumb]:rounded-full">
+              {/* Section 01: Identificação */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">01. Identificação</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, sem_custo: !f.sem_custo }))}
-                  className={`w-12 h-6 rounded-full transition-all relative ${form.sem_custo ? "bg-primary" : "bg-muted"}`}
-                >
-                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${form.sem_custo ? "left-7" : "left-1"}`} />
-                </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-card/40 p-5 rounded-[32px] border border-border/40">
+                  <InputGroup label="Qual a Bike?">
+                    <PremiumInput placeholder="Ex: Caloi Elite Carbon" value={form.bike_name} onChange={(e) => setForm((f) => ({ ...f, bike_name: e.target.value }))} />
+                  </InputGroup>
+                  <InputGroup label="Quem é o Cliente?">
+                    <CustomerAutocomplete
+                      customerName={form.customer_name}
+                      customerWhatsapp={form.customer_whatsapp}
+                      customerCpf={form.customer_cpf}
+                      onSelect={(c: Customer) => {
+                        setForm((f: any) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }));
+                        setShowManualCustomer(false);
+                      }}
+                      onChange={(field, value) => {
+                        const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
+                        setForm((f: any) => ({ ...f, [key]: value }));
+                      }}
+                    />
+                  </InputGroup>
+                </div>
+                
+                <div className="px-2">
+                  <button 
+                    type="button"
+                    onClick={() => setShowManualCustomer(!showManualCustomer)}
+                    className="text-[10px] font-bold text-muted-foreground hover:text-primary flex items-center gap-2 transition-colors uppercase tracking-widest outline-none"
+                  >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${showManualCustomer ? "bg-primary border-primary text-white" : "border-border"}`}>
+                      {showManualCustomer && <Check size={10} />}
+                    </div>
+                    Novo Cliente / Editar Manualmente
+                  </button>
+                </div>
+
+                {showManualCustomer && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-5 bg-primary/5 rounded-[32px] border border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <InputGroup label="Nome Completo">
+                      <PremiumInput placeholder="Nome" value={form.customer_name} onChange={(e) => setForm((f) => ({ ...f, customer_name: e.target.value }))} />
+                    </InputGroup>
+                    <InputGroup label="WhatsApp">
+                      <PremiumInput placeholder="(00) 00000-0000" value={form.customer_whatsapp} onChange={(e) => setForm((f) => ({ ...f, customer_whatsapp: maskPhone(e.target.value) }))} />
+                    </InputGroup>
+                    <InputGroup label="CPF">
+                      <PremiumInput placeholder="000.000.000-00" value={form.customer_cpf} onChange={(e) => setForm((f) => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value) }))} />
+                    </InputGroup>
+                  </div>
+                )}
               </div>
 
-              {!form.sem_custo && (
-                <>
-                  <InputGroup label="Valor do Serviço">
-                    <CurrencyInput value={form.price} onChange={(val) => setForm((f) => ({ ...f, price: val }))} />
-                  </InputGroup>
-
-                  <InputGroup label="Pagamento Adiantado">
-                    <div className="grid grid-cols-3 gap-3">
-                      {['nenhum', 'parcial', 'integral'].map((type) => (
-                        <button key={type} type="button" onClick={() => setForm((f: any) => ({ ...f, paymentType: type as any }))} className={`h-12 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${form.paymentType === type ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
-                          {type === 'integral' && <CheckCircle size={12} />}
-                          {type === 'parcial' && <Clock size={12} />}
-                          {type === 'nenhum' && <X size={12} />}
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                    {form.paymentType === 'parcial' && (
-                      <div className="mt-3">
-                        <CurrencyInput value={form.paymentAmount} onChange={(val) => setForm((f: any) => ({ ...f, paymentAmount: val }))} />
-                        <p className="text-[10px] text-muted-foreground mt-1 ml-1 font-bold italic">Valor recebido hoje</p>
-                      </div>
-                    )}
-                  </InputGroup>
-                </>
-              )}
-
-              <InputGroup label="Qual a situação? *">
-                <div className="grid grid-cols-2 gap-3">
-                  <button type="button" onClick={() => setForm((f) => ({ ...f, initialStatus: "in_approval" }))} className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${form.initialStatus === "in_approval" ? "border-yellow-400 bg-yellow-400/10 text-yellow-400" : "border-border bg-card text-muted-foreground hover:bg-muted"}`}>
-                    <FileCheck size={16} /> Em Aprovação
-                  </button>
-                  <button type="button" onClick={() => setForm((f) => ({ ...f, initialStatus: "in_repair" }))} className={`h-14 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 transition-all ${form.initialStatus === "in_repair" ? "border-amber-400 bg-amber-400/10 text-amber-400" : "border-border bg-card text-muted-foreground hover:bg-muted"}`}>
-                    <Wrench size={16} /> Na Mecânica
-                  </button>
+              {/* Section 02: O que fazer */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">02. Diagnóstico</p>
                 </div>
-              </InputGroup>
-              
-              {form.paymentType !== 'nenhum' && (
-                <InputGroup label="Forma de Pagamento *">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { key: "pix", label: "PIX" },
-                      { key: "dinheiro", label: "Dinheiro" },
-                      { key: "cartao_debito", label: "Débito" },
-                      { key: "cartao_credito", label: "Crédito" },
-                    ].map((pm) => (
+                <div className="space-y-4 bg-card/40 p-5 rounded-[32px] border border-border/40">
+                  <InputGroup label="O que precisa ser feito? *">
+                    <PremiumTextarea rows={4} placeholder="Ex: Barulho no central, trocar pastilhas..." value={form.problem} onChange={(e) => setForm((f) => ({ ...f, problem: e.target.value }))} />
+                  </InputGroup>
+                  <div className="flex flex-wrap gap-2">
+                    {QUICK_DIAGNOSTICS.map((tag) => (
                       <button
-                        key={pm.key}
+                        key={tag}
                         type="button"
-                        onClick={() => setForm((f: any) => ({ ...f, paymentMethod: pm.key }))}
-                        className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                          form.paymentMethod === pm.key
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-card text-muted-foreground hover:bg-muted"
-                        }`}
+                        onClick={() => {
+                          const current = form.problem.trim();
+                          const newVal = current ? `${current}, ${tag}` : tag;
+                          setForm(f => ({ ...f, problem: newVal }));
+                        }}
+                        className="px-3 py-1.5 rounded-full bg-background border border-border text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:border-primary hover:text-primary transition-all active:scale-95"
                       >
-                        {form.paymentMethod === pm.key && <Check size={10} />}
-                        {pm.label}
+                        + {tag}
                       </button>
                     ))}
                   </div>
-                </InputGroup>
-              )}
+                </div>
+              </div>
+
+              {/* Section 03: Status & Painel Financeiro */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-px bg-primary/40" />
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">03. Status & Financeiro</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Status Inicial */}
+                  <div className="p-5 bg-card/40 rounded-[32px] border border-border/40 space-y-4">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 text-center">Início do Fluxo</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        type="button" 
+                        onClick={() => setForm((f) => ({ ...f, initialStatus: "in_approval" }))} 
+                        className={`h-16 rounded-2xl border text-[10px] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1.5 transition-all ${form.initialStatus === "in_approval" ? "border-yellow-400 bg-yellow-400/10 text-yellow-400 shadow-lg shadow-yellow-400/10" : "border-border bg-background text-muted-foreground hover:bg-muted"}`}
+                      >
+                        <FileCheck size={16} />
+                        Orçamento
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setForm((f) => ({ ...f, initialStatus: "in_repair" }))} 
+                        className={`h-16 rounded-2xl border text-[10px] font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1.5 transition-all ${form.initialStatus === "in_repair" ? "border-amber-400 bg-amber-400/10 text-amber-400 shadow-lg shadow-amber-400/10" : "border-border bg-background text-muted-foreground hover:bg-muted"}`}
+                      >
+                        <Wrench size={16} />
+                        Oficina
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Free Toggle */}
+                  <div className="p-5 bg-card/40 rounded-[32px] border border-border/40 flex flex-col justify-center">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-black uppercase tracking-tight text-foreground">Serviço Gratuito?</p>
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Garantia ou Cortesia</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, sem_custo: !f.sem_custo }))}
+                        className={`w-14 h-7 rounded-full transition-all relative ${form.sem_custo ? "bg-primary shadow-lg shadow-primary/20" : "bg-muted"}`}
+                      >
+                        <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${form.sem_custo ? "left-8" : "left-1"}`} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {!form.sem_custo && (
+                  <div className="bg-card border border-border/60 rounded-[32px] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                    <div className="p-6 space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <InputGroup label="Valor Previsto">
+                          <CurrencyInput value={form.price} onChange={(val) => setForm((f) => ({ ...f, price: val }))} />
+                        </InputGroup>
+                        <InputGroup label="Pagamento hoje?">
+                          <div className="flex gap-2 p-1 bg-background rounded-2xl border border-border">
+                            {['nenhum', 'parcial', 'integral'].map((type) => (
+                              <button 
+                                key={type} 
+                                type="button" 
+                                onClick={() => setForm((f: any) => ({ ...f, paymentType: type as any }))} 
+                                className={`flex-1 h-10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${form.paymentType === type ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:text-foreground"}`}
+                              >
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        </InputGroup>
+                      </div>
+
+                      {form.paymentType !== 'nenhum' && (
+                        <div className="space-y-6 pt-4 border-t border-border/40">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            {form.paymentType === 'parcial' && (
+                              <InputGroup label="Quanto foi pago agora?">
+                                <CurrencyInput value={form.paymentAmount} onChange={(val) => setForm((f: any) => ({ ...f, paymentAmount: val }))} />
+                              </InputGroup>
+                            )}
+                            <InputGroup label="Meio de Pagamento">
+                              <div className="grid grid-cols-2 gap-2 w-full">
+                                {["pix", "dinheiro", "cartao_debito", "cartao_credito"].map(m => (
+                                  <button
+                                    key={m}
+                                    type="button"
+                                    onClick={() => setForm(f => ({ ...f, paymentMethod: m }))}
+                                    className={`h-10 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${form.paymentMethod === m ? "border-primary bg-primary/10 text-primary" : "border-border bg-background text-muted-foreground"}`}
+                                  >
+                                    {m === 'cartao_debito' ? 'Débito' : m === 'cartao_credito' ? 'Crédito' : m.toUpperCase()}
+                                  </button>
+                                ))}
+                              </div>
+                            </InputGroup>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setOpen(false)} className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all">Cancelar</button>
-              <button onClick={handleSave} disabled={create.isPending} className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50">
-                {create.isPending ? <Loader2 size={16} className="animate-spin" /> : "Abrir Serviço"}
+
+            <div className="p-6 md:p-10 border-t border-border bg-card/50 flex gap-4 shrink-0 mt-auto">
+              <button 
+                onClick={() => setOpen(false)} 
+                className="flex-1 h-14 rounded-[20px] border border-border text-muted-foreground hover:bg-muted text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSave} 
+                disabled={create.isPending} 
+                className="flex-[2] h-14 rounded-[20px] bg-primary text-white hover:bg-primary/90 text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50"
+              >
+                {create.isPending ? <Loader2 size={18} className="animate-spin" /> : <><CheckCircle2 size={18} /> Abrir Serviço</>}
               </button>
             </div>
           </div>
