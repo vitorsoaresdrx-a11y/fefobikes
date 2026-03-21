@@ -120,10 +120,14 @@ export function useServiceOrdersRealtime(callbacks?: RealtimeCallbacks) {
           }
           if (payload.eventType === "UPDATE") {
             const newOrder = payload.new as ServiceOrder;
-            if (newOrder.mechanic_status === "done" && cbRef.current?.onDone) {
+            const oldOrder = payload.old as ServiceOrder;
+            
+            // Only trigger onDone when transitioning to 'done'
+            if (newOrder.mechanic_status === "done" && oldOrder?.mechanic_status !== "done" && cbRef.current?.onDone) {
               cbRef.current.onDone(newOrder);
             }
-            if (newOrder.mechanic_status === "accepted" && cbRef.current?.onAccepted) {
+            // Only trigger onAccepted when transitioning to 'accepted'
+            if (newOrder.mechanic_status === "accepted" && oldOrder?.mechanic_status !== "accepted" && cbRef.current?.onAccepted) {
               cbRef.current.onAccepted(newOrder);
             }
           }

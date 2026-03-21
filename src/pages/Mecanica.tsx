@@ -197,26 +197,39 @@ const PaymentBadge = ({ job }: { job: MechanicJob }) => {
   );
 };
 
-function AdditionBadge({ addition, showActions }: { addition: MechanicJobAddition; showActions: boolean }) {
+function AdditionBadge({ addition, showActions, isMechanicView }: { addition: MechanicJobAddition; showActions: boolean; isMechanicView?: boolean }) {
   const updateApproval = useUpdateAdditionApproval();
   const total = getAdditionTotal(addition);
 
   const handleApproval = (status: "accepted" | "refused") => {
-    updateApproval.mutate({ id: addition.id, approval: status, is_v2: (addition as any).is_v2 });
+    // For V2 (aprovado/recusado/pendente) or V1 (accepted/refused/pending)
+    const isV2 = (addition as any).is_v2;
+    const finalStatus = isV2 ? (status === "accepted" ? "aprovado" : "recusado") : status;
+    updateApproval.mutate({ id: addition.id, approval: finalStatus as any, is_v2: isV2 });
   };
 
+  const isAccepted = (addition.approval as any) === "accepted" || (addition.approval as any) === "aprovado";
+  const isRefused = (addition.approval as any) === "refused" || (addition.approval as any) === "recusado";
+
   const approvalColor =
-    addition.approval === "accepted" ? "border-emerald-500/30 bg-emerald-500/5"
-    : addition.approval === "refused" ? "border-destructive/30 bg-destructive/5"
+    isAccepted ? "border-emerald-500/30 bg-emerald-500/5"
+    : isRefused ? "border-destructive/30 bg-destructive/5"
     : "border-amber-500/30 bg-amber-500/5";
+
+  // In mechanic view, hide client-facing 'problem' if mechanic_notes exists
+  const displayText = (isMechanicView && (addition as any).mechanic_notes) 
+    ? (addition as any).mechanic_notes 
+    : addition.problem;
+
+  if (isMechanicView && !isAccepted) return null; // Don't show unapproved additions for mechanics
 
   return (
     <div className={`p-3 rounded-lg border flex items-center justify-between gap-3 ${approvalColor}`}>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold truncate">{addition.problem}</p>
+        <p className="text-xs font-semibold truncate">{displayText}</p>
         <p className="text-[10px] font-bold">{formatBRL(total)}</p>
       </div>
-      {showActions && addition.approval === "pending" && (
+      {showActions && !isAccepted && !isRefused && (
         <div className="flex gap-1 shrink-0">
           <button onClick={() => handleApproval("refused")} className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive/60 hover:text-destructive transition-colors">
             <X size={14} />
@@ -230,7 +243,7 @@ function AdditionBadge({ addition, showActions }: { addition: MechanicJobAdditio
   );
 }
 
-function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance, onFinalize }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void; onFinalize?: (j: MechanicJob) => void }) {
+function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance, onFinalize, isMechanicView }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void; onFinalize?: (j: MechanicJob) => void; isMechanicView?: boolean }) {
   const remove = useDeleteMechanicJob();
   const advanceMutation = useAdvanceMechanicJob();
   const total = getTotalPrice(job);
@@ -281,10 +294,20 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
           </div>
 
           <p className="text-sm text-muted-foreground line-clamp-2">{job.problem}</p>
+          {isMechanicView && job.additions && job.additions.some(a => (a as any).mechanic_notes) && (
+            <div className="space-y-1">
+              {job.additions.map(a => (a as any).mechanic_notes && ((a.approval as any) === 'accepted' || (a.approval as any) === 'aprovado') && (
+                <div key={a.id} className="pt-1">
+                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none mb-1">Instrução adicional</p>
+                  <p className="text-sm text-muted-foreground">{(a as any).mechanic_notes}</p>
+                </div>
+              ))}
+            </div>
+          )}
 
           {job.additions && job.additions.length > 0 && (
             <div className="space-y-2 pt-2 border-t">
-              {job.additions?.map((a) => <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} />)}
+              {job.additions?.map((a) => <AdditionBadge key={a.id} addition={a} showActions={showApprovalActions} isMechanicView={isMechanicView} />)}
             </div>
           )}
         </div>
@@ -850,6 +873,7 @@ export default function Mecanica() {
   const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
+  const [addForm, setAddForm] = useState({ problem: "", mechanic_notes: "", labor_cost: 0, parts: [] as AdditionPart[] });
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifData, setNotifData] = useState<{ job: any, status: string, problem: string } | null>(null);
@@ -879,7 +903,6 @@ export default function Mecanica() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const [addForm, setAddForm] = useState({ problem: "", labor_cost: 0, parts: [] as AdditionPart[] });
   const [sendingAddition, setSendingAddition] = useState(false);
   const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");
 
@@ -1132,7 +1155,7 @@ export default function Mecanica() {
     }
   };
 
-  const handleAddRepair = (job: MechanicJob) => { setAddJob(job); setAddForm({ problem: "", labor_cost: 0, parts: [] }); setAddOpen(true); };
+  const handleAddRepair = (job: MechanicJob) => { setAddJob(job); setAddForm({ problem: "", mechanic_notes: "", labor_cost: 0, parts: [] }); setAddOpen(true); };
   const handleEditJob = (job: MechanicJob) => {
     setEditJob(job);
     setEditForm({ 
@@ -1290,10 +1313,12 @@ export default function Mecanica() {
       const { data: adData, error: adErr } = await supabase.from("os_adicionais" as any).insert({
         os_id: addJob.id,
         problem: addForm.problem,
+        mechanic_notes: addForm.mechanic_notes,
         price: totalCost,
+        valor_total: totalCost, // For consistency between old and new columns
         labor_cost: addForm.labor_cost,
         parts_used: addForm.parts,
-        status: "rascunho"
+        status: "pendente" // Initial status as per requirements for approval flow
       }).select().single();
       
       if (adErr) throw new Error("Falha ao criar o registro adicional.");
@@ -2085,9 +2110,14 @@ export default function Mecanica() {
                     <p className="text-xs font-bold text-muted-foreground mt-1">Valor atual: {formatBRL(getTotalPrice(addJob))}</p>
                   </div>
                 </div>
-                <InputGroup label="Problema / Descrição *">
-                  <PremiumTextarea rows={2} placeholder="Ex: Troca de corrente e ajuste de câmbio..." value={addForm.problem} onChange={(e) => setAddForm((f) => ({ ...f, problem: e.target.value }))} />
-                </InputGroup>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputGroup label="1. Para o cliente (Visível na aprovação)">
+                    <PremiumTextarea rows={3} placeholder="Descrição curta para o WhatsApp: problemas e peças..." value={addForm.problem} onChange={(e) => setAddForm((f) => ({ ...f, problem: e.target.value }))} />
+                  </InputGroup>
+                  <InputGroup label="2. Instruções para o mecânico (Interno)">
+                    <PremiumTextarea rows={3} placeholder="Instruções técnicas, detalhes internos ou segredos do serviço..." value={addForm.mechanic_notes} onChange={(e) => setAddForm((f) => ({ ...f, mechanic_notes: e.target.value }))} />
+                  </InputGroup>
+                </div>
                 <InputGroup label="Peças Utilizadas">
                   <AddRepairPartSelector selectedParts={addForm.parts} onChange={(parts) => setAddForm((f) => ({ ...f, parts }))} />
                 </InputGroup>
@@ -2179,7 +2209,7 @@ export default function Mecanica() {
             <div className="space-y-3">
               {grouped.in_repair.length > 0 ? (
                 grouped.in_repair.map((job) => (
-                  <JobCard key={job.id} job={job} isLast={false} columnKey="in_repair" onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={handleAdvanceJob} />
+                  <JobCard key={job.id} job={job} isLast={false} columnKey="in_repair" onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={handleAdvanceJob} isMechanicView={true} />
                 ))
               ) : (
                 <div className="py-10 text-center space-y-2 opacity-30">
