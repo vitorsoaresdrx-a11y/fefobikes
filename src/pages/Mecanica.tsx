@@ -1013,6 +1013,11 @@ export default function Mecanica() {
       toast.error("Nome, WhatsApp, CPF e Bike são obrigatórios!");
       return;
     }
+    const phoneDigits = form.customer_whatsapp.replace(/\D/g, "");
+    if (form.customer_whatsapp && phoneDigits.length < 10) {
+      toast.error("WhatsApp inválido — digite o número completo com DDD");
+      return;
+    }
 
     const orderData = {
       customer_name: form.customer_name || null,
@@ -1178,6 +1183,12 @@ export default function Mecanica() {
   const handleSaveEdit = (confirmedMove = false) => {
     if (!editJob || !editForm.problem.trim()) { toast.error("Descreva o problema"); return; }
     
+    const phoneDigits = editForm.customer_whatsapp.replace(/\D/g, "");
+    if (editForm.customer_whatsapp && phoneDigits.length < 10) {
+      toast.error("WhatsApp inválido — digite o número completo com DDD");
+      return;
+    }
+
     // Check if status changed and not yet confirmed
     if (editForm.status !== editJob.status && !confirmedMove) {
       setPendingMoveStatus(editForm.status);
