@@ -77,11 +77,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    let { phone, message, conversationId, sendAsAudio, instanceName: customInstance } = await req.json();
+    let { phone, message, conversationId, sendAsAudio, instanceName: customInstance, media, mediatype, fileName, mimetype } = await req.json();
 
-    if (!phone || !message) {
+    if (!phone || (!message && !media)) {
       return new Response(
-        JSON.stringify({ error: "phone and message are required" }),
+        JSON.stringify({ error: "phone and (message or media) are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -113,7 +113,27 @@ Deno.serve(async (req) => {
     let evoRes: Response;
     let evoData: any;
 
-    if (sendAsAudio) {
+    if (media) {
+      // Send as media (PDF, image, etc)
+      console.log(`Sending media ${mediatype} to ${phone} via instance ${instName}`);
+      evoRes = await fetch(
+        `${EVOLUTION_BASE}/message/sendMedia/${instName}`,
+        {
+          method: "POST",
+          headers: evoHeaders(),
+          body: JSON.stringify({
+            number: phone,
+            mediatype: mediatype || "document",
+            media: media, // should be base64 with data prefix or URL
+            mimetype: mimetype || "application/pdf",
+            fileName: fileName || "recibo.pdf",
+            caption: message || ""
+          }),
+        }
+      );
+      evoData = await evoRes.json();
+      console.log(`Evolution sendMedia status=${evoRes.status}`, JSON.stringify(evoData));
+    } else if (sendAsAudio) {
       // Convert text to speech via ElevenLabs, then send as audio
       console.log(`Converting text to speech and sending audio to ${phone} via instance ${instName}`);
       const audioBase64 = await textToSpeech(message);

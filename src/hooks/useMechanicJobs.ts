@@ -39,7 +39,20 @@ export interface MechanicJob {
     valor_restante: number;
     valor_total: number;
   } | null;
+  payment_history?: MechanicJobPaymentHistory[];
 }
+
+export interface MechanicJobPaymentHistory {
+  id: string;
+  os_id: string;
+  valor: number;
+  tipo: 'parcial' | 'integral' | 'desconto';
+  payment_method: string | null;
+  desconto_valor: number;
+  desconto_motivo: string | null;
+  criado_em: string;
+}
+
 
 export interface FinalizePayload {
   jobId: string;
@@ -81,6 +94,12 @@ export function useMechanicJobs() {
         .select("*")
         .neq("status", "rascunho");
 
+      const { data: histData, error: histErr } = await supabase
+        .from("os_pagamentos_historico" as any)
+        .select("*")
+        .order("criado_em", { ascending: true });
+      if (histErr) console.warn("os_pagamentos_historico table might not exist yet:", histErr);
+
       const addMap = new Map<string, MechanicJobAddition[]>();
       
       // Load V1 Additions
@@ -120,12 +139,19 @@ export function useMechanicJobs() {
       const payMap = new Map<string, any>();
       (payData || []).forEach((p: any) => payMap.set(p.os_id, p));
 
+      const histMap = new Map<string, any[]>();
+      (histData || []).forEach((h: any) => {
+        if (!histMap.has(h.os_id)) histMap.set(h.os_id, []);
+        histMap.get(h.os_id)!.push(h);
+      });
+
       return (jobs as unknown as MechanicJob[])
         .filter((j) => j.status !== "delivered")
         .map((j) => ({
           ...j,
           additions: addMap.get(j.id) || [],
           payment: payMap.get(j.id) || null,
+          payment_history: histMap.get(j.id) || [],
         }));
     },
   });
@@ -196,7 +222,18 @@ export function useCreateMechanicJob() {
         const valor_pago = payment.tipo === 'integral' ? valor_total : payment.valor_pago;
         const valor_restante = valor_total - valor_pago;
         
-        // 1. Record payment
+        // 1. Record payment in history
+        await supabase.from("os_pagamentos_historico" as any).insert({
+          os_id: (data as any).id,
+          valor: valor_pago,
+          tipo: payment.tipo === 'integral' ? 'integral' : 'parcial',
+          payment_method: payment.method || 'pix',
+          customer_id: job.customer_id || null,
+          customer_name: job.customer_name || null,
+          customer_whatsapp: job.customer_whatsapp || null
+        });
+
+        // 2. Initial summary entry
         await supabase.from("os_pagamentos" as any).insert({
           os_id: (data as any).id,
           tipo: payment.tipo,
@@ -273,7 +310,7 @@ export function useFinalizeJob() {
       const remainingAtFinalize = existingPay ? (existingPay as any).valor_restante : totalValue;
       const isAlreadyPaid = remainingAtFinalize <= 0;
 
-      // 3. Upsert payment record in os_pagamentos (always mark as full payment when finalizing)
+      // 3. Upsert summary record in os_pagamentos
       if (existingPay) {
         await supabase.from("os_pagamentos" as any)
           .update({ tipo: 'integral', valor_total: totalValue, valor_pago: totalValue, valor_restante: 0 })
@@ -281,6 +318,19 @@ export function useFinalizeJob() {
       } else {
         await supabase.from("os_pagamentos" as any)
           .insert({ os_id: jobId, tipo: 'integral', valor_total: totalValue, valor_pago: totalValue, valor_restante: 0 });
+      }
+
+      // 4. Record final payment in history if there was a balance
+      if (remainingAtFinalize > 0) {
+        await supabase.from("os_pagamentos_historico" as any).insert({
+          os_id: jobId,
+          valor: remainingAtFinalize,
+          tipo: 'integral',
+          payment_method: paymentMethod || 'pix',
+          customer_id: customerId || null,
+          customer_name: customerName || null,
+          customer_whatsapp: customerWhatsapp || null
+        });
       }
 
       // 3. Upsert customer if we have name + whatsapp
@@ -385,6 +435,7 @@ export function useUpdateMechanicJobDetails() {
         .eq("id", id);
       if (error) throw error;
 
+
       if (payment) {
         const { data: existing } = await supabase.from("os_pagamentos" as any).select("*").eq("os_id", id).maybeSingle();
         const valor_total = updates.price || 0;
@@ -450,6 +501,100 @@ export function useUpdateMechanicJobDetails() {
     },
   });
 }
+
+export function useRegisterPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      os_id: string;
+      valor: number;
+      tipo: 'parcial' | 'integral' | 'desconto';
+      payment_method: string | null;
+      desconto_valor?: number;
+      desconto_motivo?: string | null;
+      customer_id?: string | null;
+      customer_name?: string | null;
+      customer_whatsapp?: string | null;
+      bike_name?: string | null;
+    }) => {
+      // 1. Add to history
+      const { error: histErr } = await supabase
+        .from("os_pagamentos_historico" as any)
+        .insert({
+          os_id: payload.os_id,
+          valor: payload.valor,
+          tipo: payload.tipo,
+          payment_method: payload.payment_method,
+          desconto_valor: payload.desconto_valor || 0,
+          desconto_motivo: payload.desconto_motivo || null,
+          customer_id: payload.customer_id,
+          customer_name: payload.customer_name,
+          customer_whatsapp: payload.customer_whatsapp
+        });
+      if (histErr) throw histErr;
+
+      // 2. Update summary os_pagamentos
+      const { data: existing } = await supabase.from("os_pagamentos" as any).select("*").eq("os_id", payload.os_id).maybeSingle();
+      
+      // We need to know the current total price of the OS to calculate balance properly
+      const { data: job } = await supabase.from("mechanic_jobs" as any).select("price").eq("id", payload.os_id).single();
+      // Also get all approved additions
+      const { data: addsV1 } = await supabase.from("mechanic_job_additions" as any).select("price").eq("job_id", payload.os_id).eq("approval", "accepted");
+      const { data: addsV2 } = await supabase.from("os_adicionais" as any).select("valor_total").eq("os_id", payload.os_id).eq("status", "aprovado");
+      
+      const osBase = (job as any)?.price || 0;
+      const addsTotal = [...((addsV1 || []) as any[]), ...((addsV2 || []) as any[])].reduce((s, a) => s + (a.price || a.valor_total || 0), 0);
+      const valor_total = osBase + addsTotal;
+
+      // Now sum all payments
+      const { data: allHist } = await supabase.from("os_pagamentos_historico" as any).select("valor, desconto_valor").eq("os_id", payload.os_id);
+      const valor_pago = ((allHist || []) as any[]).reduce((s, h) => s + (Number(h.valor) || 0), 0);
+      const valor_desconto = ((allHist || []) as any[]).reduce((s, h) => s + (Number(h.desconto_valor) || 0), 0);
+      const valor_restante = valor_total - valor_pago - valor_desconto;
+      const isPaid = valor_restante <= 0;
+
+      if (existing) {
+        await supabase.from("os_pagamentos" as any).update({
+          tipo: isPaid ? 'integral' : 'parcial',
+          valor_total,
+          valor_pago: valor_pago + valor_desconto, // Sum discount in 'paid' for UI purposes or keep separate?
+          valor_restante
+        }).eq("os_id", payload.os_id);
+      } else {
+        await supabase.from("os_pagamentos" as any).insert({
+          os_id: payload.os_id,
+          tipo: isPaid ? 'integral' : 'parcial',
+          valor_total,
+          valor_pago: valor_pago + valor_desconto,
+          valor_restante
+        });
+      }
+
+      // 3. Create sale record if it was a real payment (not just a discount)
+      if (payload.valor > 0) {
+        await supabase.from("sales" as any).insert({
+          mechanic_job_id: payload.os_id,
+          total: payload.valor,
+          payment_method: payload.payment_method || 'pix',
+          origin: 'oficina',
+          notes: `Recibo OS (${payload.tipo === 'parcial' ? 'Parcial' : 'Integral'})${payload.bike_name ? ` — ${payload.bike_name}` : ""}`,
+          status: 'completed',
+          customer_id: payload.customer_id || null,
+          customer_name: payload.customer_name || null,
+          customer_whatsapp: payload.customer_whatsapp || null,
+        });
+      }
+
+      // 4. Update job updated_at
+      await supabase.from("mechanic_jobs" as any).update({ updated_at: new Date().toISOString() }).eq("id", payload.os_id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["sales"] });
+    },
+  });
+}
+
 
 export function useDeleteMechanicJob() {
   const qc = useQueryClient();

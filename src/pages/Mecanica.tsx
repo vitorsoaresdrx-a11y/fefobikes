@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
@@ -18,9 +18,11 @@ import {
   useUpdateAddition,
   useDeleteAddition,
   useFinalizeJob,
+  useRegisterPayment,
   type MechanicJob,
   type MechanicJobAddition,
   type AdditionPart,
+  type MechanicJobPaymentHistory,
 } from "@/hooks/useMechanicJobs";
 import { useSendMessage } from "@/hooks/useWhatsApp";
 import {
@@ -48,6 +50,7 @@ import {
   AlertTriangle,
   Pencil,
   FileCheck,
+  Tag,
   ChevronDown,
   Bike,
   HelpCircle,
@@ -149,14 +152,33 @@ function PremiumTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   );
 }
 
-function StatusBadge({ status, color, bg, border, icon: Icon }: any) {
+const PaymentBadge = ({ job }: { job: MechanicJob }) => {
+  const total = getTotalPrice(job);
+  const paid = job.payment?.valor_pago || 0;
+  const discount = (job.payment_history || []).reduce((s, h) => s + (h.desconto_valor || 0), 0);
+  const remaining = total - (paid + discount);
+
+  if (remaining <= 0) {
+    return (
+      <div className="flex gap-1 items-center shrink-0">
+        <div className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 border px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+          <CheckCircle size={8} /> Quitado
+        </div>
+        {discount > 0 && (
+          <div className="bg-purple-500/10 text-purple-400 border-purple-500/20 border px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+             <Tag size={8} /> Desconto {formatBRL(discount)}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className={`${bg} ${color} ${border} border px-2.5 py-1 rounded-full flex items-center gap-1.5 w-fit`}>
-      <Icon size={10} />
-      <span className="text-[9px] font-black uppercase tracking-widest">{status}</span>
+    <div className="bg-amber-500/10 text-amber-500 border-amber-500/20 border px-1.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1 shrink-0">
+      <Clock size={8} /> Falta {formatBRL(remaining)}
     </div>
   );
-}
+};
 
 function AdditionBadge({ addition, showActions }: { addition: MechanicJobAddition; showActions: boolean }) {
   const updateApproval = useUpdateAdditionApproval();
@@ -245,8 +267,11 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
             <div className="w-9 h-9 rounded-xl bg-background border border-border/50 flex items-center justify-center shrink-0 shadow-sm group-hover:border-primary/20 transition-all">
               {hasBike ? <Bike size={16} className="text-primary" /> : <HelpCircle size={16} className="text-muted-foreground/60" />}
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-foreground truncate ">{job.bike_name || "Sem identificação"}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold text-foreground truncate ">{job.bike_name || "Sem identificação"}</p>
+                <PaymentBadge job={job} />
+              </div>
               <p className="text-[10px] text-muted-foreground/70 font-medium truncate uppercase tracking-wider -mt-0.5">{job.customer_name || "Cliente avulso"}</p>
             </div>
           </div>
@@ -420,7 +445,7 @@ function ColumnHeader({ label, icon: Icon, color, bg, border, count }: any) {
   );
 }
 
-function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSave, isSaving }: any) {
+function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSave, isSaving, onRegisterPayment, onShowReceipt }: any) {
   const deleteAddition = useDeleteAddition();
   const updateAddition = useUpdateAddition();
   const updateApproval = useUpdateAdditionApproval();
@@ -511,56 +536,73 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                 <CurrencyInput value={editForm.price} onChange={(val) => setEditForm((f: any) => ({ ...f, price: val }))} />
               </InputGroup>
 
-              <InputGroup label="Pagamento Adiantado">
-                <div className="grid grid-cols-3 gap-3">
-                  {['nenhum', 'parcial', 'integral'].map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setEditForm((f: any) => ({ ...f, paymentType: type as any }))}
-                      className={`h-12 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${editForm.paymentType === type ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}
-                    >
-                      {type === 'integral' && <CheckCircle size={12} />}
-                      {type === 'parcial' && <Clock size={12} />}
-                      {type === 'nenhum' && <X size={12} />}
-                      {type}
-                    </button>
-                  ))}
+              <div className="space-y-4 border-t border-border/40 pt-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Histórico de Pagamentos</p>
+                  <button 
+                    onClick={() => onRegisterPayment(editJob)}
+                    className="h-8 px-3 rounded-xl bg-primary/10 text-primary border border-primary/20 text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center gap-1.5"
+                  >
+                    <Plus size={12} /> Registrar Pagamento
+                  </button>
                 </div>
-                {editForm.paymentType === 'parcial' && (
-                  <div className="mt-3">
-                    <CurrencyInput value={editForm.paymentAmount} onChange={(val) => setEditForm((f: any) => ({ ...f, paymentAmount: val }))} />
-                    <p className="text-[10px] text-muted-foreground mt-1 ml-1 font-bold italic">Valor recebido hoje</p>
-                  </div>
-                )}
-              </InputGroup>
 
-              {editForm.paymentType !== 'nenhum' && (
-                <InputGroup label="Forma de Pagamento *">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { key: "pix", label: "PIX" },
-                      { key: "dinheiro", label: "Dinheiro" },
-                      { key: "cartao_debito", label: "Débito" },
-                      { key: "cartao_credito", label: "Crédito" },
-                    ].map((pm) => (
-                      <button
-                        key={pm.key}
-                        type="button"
-                        onClick={() => setEditForm((f: any) => ({ ...f, paymentMethod: pm.key }))}
-                        className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                          editForm.paymentMethod === pm.key
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-card text-muted-foreground hover:bg-muted"
-                        }`}
-                      >
-                        {editForm.paymentMethod === pm.key && <Check size={10} />}
-                        {pm.label}
-                      </button>
-                    ))}
+                <div className="space-y-2">
+                  {(editJob?.payment_history || []).length > 0 ? (
+                    editJob.payment_history!.map((h) => (
+                      <div key={h.id} className="p-3 bg-background rounded-xl border border-border flex items-center justify-between group/pay">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${h.tipo === 'desconto' ? 'bg-purple-500/10 text-purple-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                            {h.tipo === 'desconto' ? <Trash2 size={14} /> : <CreditCard size={14} />}
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-foreground">
+                              {h.tipo === 'desconto' ? `Desconto: ${formatBRL(h.desconto_valor)}` : formatBRL(h.valor)}
+                              <span className="text-[8px] uppercase tracking-widest ml-2 opacity-40 font-black">{h.payment_method || (h.tipo === 'desconto' ? 'CORTESIA' : 'N/A')}</span>
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">{new Date(h.criado_em).toLocaleDateString()}</p>
+                            {h.desconto_motivo && <p className="text-[10px] text-purple-400 font-bold mt-0.5">Motivo: {h.desconto_motivo}</p>}
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => onShowReceipt(editJob, h)}
+                          className="w-8 h-8 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground flex items-center justify-center transition-all"
+                        >
+                          <Phone size={14} />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-4 text-center border-2 border-dashed border-border/40 rounded-2xl opacity-30">
+                      <p className="text-[10px] font-bold uppercase tracking-widest">Nenhum pagamento registrado</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 bg-muted/20 rounded-2xl space-y-2 border border-border/20">
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
+                    <span>Total do Serviço</span>
+                    <span className="text-foreground">{formatBRL(getTotalPrice(editJob))}</span>
                   </div>
-                </InputGroup>
-              )}
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
+                    <span>Total Pago</span>
+                    <span className="text-emerald-400 font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0), 0))}</span>
+                  </div>
+                  {(editJob?.payment_history || []).some(h => h.desconto_valor > 0) && (
+                    <div className="flex justify-between items-center text-[10px] font-bold uppercase text-purple-400">
+                      <span>Total Descontos</span>
+                      <span className="font-black">{formatBRL((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.desconto_valor) || 0), 0))}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-border/40 my-1" />
+                  <div className="flex justify-between items-center text-xs font-black uppercase">
+                    <span>Saldo Restante</span>
+                    <span className={getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0)) <= 0 ? "text-emerald-400" : "text-amber-500"}>
+                      {formatBRL(Math.max(0, getTotalPrice(editJob) - ((editJob?.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0))))}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
               {editJob && editJob.additions && editJob.additions.length > 0 && (
                 <div className="space-y-3">
@@ -704,6 +746,35 @@ export default function Mecanica() {
   const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addJob, setAddJob] = useState<MechanicJob | null>(null);
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifData, setNotifData] = useState<{ job: any, status: string, problem: string } | null>(null);
+
+  // Realtime listener for extra services
+  useEffect(() => {
+    const channel = supabase
+      .channel('os_adicionais_status_changes')
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'os_adicionais' },
+        async (payload: any) => {
+          if (payload.old.status === 'pending' && (payload.new.status === 'accepted' || payload.new.status === 'refused')) {
+            // Fetch job info
+            const { data: job } = await supabase.from('mechanic_jobs').select('*').eq('id', payload.new.os_id).single();
+            if (job) {
+              setNotifData({ job, status: payload.new.status, problem: payload.new.problem });
+              setNotifOpen(true);
+              // Play a sound if possible
+              const audio = new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3");
+              audio.play().catch(() => {});
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { channel.unsubscribe(); };
+  }, []);
+
   const [addForm, setAddForm] = useState({ problem: "", labor_cost: 0, parts: [] as AdditionPart[] });
   const [sendingAddition, setSendingAddition] = useState(false);
   const [mobileTab, setMobileTab] = useState<"in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready">("in_approval");
@@ -723,7 +794,75 @@ export default function Mecanica() {
     paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
     paymentAmount: 0,
     paymentMethod: "pix",
+    status: "in_approval" as MechanicJob["status"],
   });
+
+  const [payHistoryOpen, setPayHistoryOpen] = useState(false);
+  const [registerPayOpen, setRegisterPayOpen] = useState(false);
+  const [payForm, setPayForm] = useState({
+    valor: 0,
+    tipo: 'parcial' as 'parcial' | 'integral' | 'desconto',
+    method: 'pix',
+    desconto_valor: 0,
+    desconto_motivo: ''
+  });
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [receiptData, setReceiptData] = useState<{ job: MechanicJob, history: MechanicJobPaymentHistory } | null>(null);
+
+  const registerPaymentMutation = useRegisterPayment();
+
+  const handleRegisterPayment = (job: MechanicJob) => {
+    setEditJob(job);
+    const total = getTotalPrice(job);
+    const paid = (job.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0);
+    const remaining = Math.max(0, total - paid);
+    
+    setPayForm({
+      valor: remaining,
+      tipo: remaining > 0 ? 'parcial' : 'integral',
+      method: 'pix',
+      desconto_valor: 0,
+      desconto_motivo: ''
+    });
+    setRegisterPayOpen(true);
+  };
+
+  const submitPayment = () => {
+    if (!editJob) return;
+
+    // Enforce discount rule: only allowed if it clears the total
+    const total = getTotalPrice(editJob);
+    const alreadyCleared = (editJob.payment_history || []).reduce((s, h) => s + (Number(h.valor) || 0) + (Number(h.desconto_valor) || 0), 0);
+    const newAmount = payForm.tipo === 'desconto' ? payForm.desconto_valor : payForm.valor;
+
+    if (payForm.tipo === 'desconto' && (alreadyCleared + newAmount < total - 0.01)) { // 0.01 for float safety
+      toast.error("Desconto manual só é permitido no pagamento que quita a OS");
+      return;
+    }
+
+    registerPaymentMutation.mutate({
+      os_id: editJob.id,
+      valor: payForm.tipo === 'desconto' ? 0 : payForm.valor,
+      tipo: payForm.tipo,
+      payment_method: payForm.tipo === 'desconto' ? null : payForm.method,
+      desconto_valor: payForm.tipo === 'desconto' ? payForm.desconto_valor : 0,
+      desconto_motivo: payForm.tipo === 'desconto' ? payForm.desconto_motivo : null,
+      customer_id: editJob.customer_id,
+      customer_name: editJob.customer_name,
+      customer_whatsapp: editJob.customer_whatsapp,
+      bike_name: editJob.bike_name
+    }, {
+      onSuccess: () => {
+        toast.success("Pagamento registrado!");
+        setRegisterPayOpen(false);
+      }
+    });
+  };
+
+  const handleShowReceipt = (job: MechanicJob, history: MechanicJobPaymentHistory) => {
+    setReceiptData({ job, history });
+    setReceiptOpen(true);
+  };
 
   // Modal de finalização com pagamento
   const [finalizeOpen, setFinalizeOpen] = useState(false);
@@ -765,7 +904,7 @@ export default function Mecanica() {
           sendMessage.mutate({ phone: formattedPhone, message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` });
         }
         toast.success("Manutenção criada!");
-        setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", paymentAmount: 0, paymentMethod: "pix" });
+        setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", paymentAmount: 0, paymentMethod: "pix", status: "in_approval" });
         setOpen(false);
       },
       onError: () => toast.error("Erro ao criar"),
@@ -1267,7 +1406,17 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
 
-      <EditJobModal open={editOpen} onOpenChange={setEditOpen} editJob={editJob} editForm={editForm} setEditForm={setEditForm} onSave={handleSaveEdit} isSaving={updateDetails.isPending} />
+      <EditJobModal 
+        open={editOpen} 
+        onOpenChange={setEditOpen} 
+        editJob={editJob} 
+        editForm={editForm} 
+        setEditForm={setEditForm} 
+        onSave={handleSaveEdit} 
+        isSaving={updateDetails.isPending}
+        onRegisterPayment={handleRegisterPayment}
+        onShowReceipt={handleShowReceipt}
+      />
 
       <Dialog open={moveConfirmOpen} onOpenChange={setMoveConfirmOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-6 md:p-10 max-w-md w-full">
@@ -1336,6 +1485,189 @@ export default function Mecanica() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* ── Modal de Registro de Pagamento ─────────────────────────────────── */}
+      <Dialog open={registerPayOpen} onOpenChange={setRegisterPayOpen}>
+        <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
+          <div className="p-6 md:p-10 space-y-6">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-black text-foreground uppercase tracking-tight">Registrar Pagamento</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: 'parcial', label: 'Parcial' },
+                  { key: 'integral', label: 'Quitar' },
+                  { key: 'desconto', label: 'Desconto' },
+                ].map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setPayForm(f => ({ ...f, tipo: t.key as any }))}
+                    className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${payForm.tipo === t.key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {payForm.tipo === 'desconto' ? (
+                <>
+                  <InputGroup label="Valor do Desconto *">
+                    <CurrencyInput value={payForm.desconto_valor} onChange={(val) => setPayForm(f => ({ ...f, desconto_valor: val }))} />
+                  </InputGroup>
+                  <InputGroup label="Motivo do Desconto *">
+                    <PremiumInput placeholder="Ex: Cliente antigo, erro no prazo..." value={payForm.desconto_motivo} onChange={(e) => setPayForm(f => ({ ...f, desconto_motivo: e.target.value }))} />
+                  </InputGroup>
+                </>
+              ) : (
+                <>
+                  <InputGroup label="Valor do Pagamento *">
+                    <CurrencyInput value={payForm.valor} onChange={(val) => setPayForm(f => ({ ...f, valor: val }))} />
+                  </InputGroup>
+                  <InputGroup label="Forma de Pagamento *">
+                    <div className="grid grid-cols-2 gap-2">
+                      {["pix", "dinheiro", "cartao_debito", "cartao_credito"].map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setPayForm(f => ({ ...f, method: m }))}
+                          className={`h-10 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${payForm.method === m ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}
+                        >
+                          {m === 'pix' ? 'PIX' : m === 'dinheiro' ? 'Dinheiro' : m === 'cartao_debito' ? 'Débito' : 'Crédito'}
+                        </button>
+                      ))}
+                    </div>
+                  </InputGroup>
+                </>
+              )}
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setRegisterPayOpen(false)} className="flex-1 h-12 rounded-2xl border border-border text-muted-foreground hover:bg-muted text-sm font-bold transition-all">Cancelar</button>
+              <button onClick={submitPayment} disabled={registerPaymentMutation.isPending} className="flex-[2] h-12 rounded-2xl bg-primary text-white hover:bg-primary/80 text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all">
+                {registerPaymentMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : "Confirmar Recebimento"}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal de Recibo ─────────────────────────────────────────────────── */}
+      <Dialog open={receiptOpen} onOpenChange={setReceiptOpen}>
+        <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
+          <div className="p-8 space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
+                <FileCheck size={24} className="text-primary" />
+              </div>
+              <h2 className="text-xl font-black uppercase tracking-tight">Comprovante de Serviço</h2>
+            </div>
+            
+            {receiptData && (
+              <div className="space-y-4 text-xs font-bold uppercase tracking-wider">
+                <div className="p-4 bg-background rounded-2xl border border-border space-y-3">
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Cliente</span>
+                    <span className="text-foreground">{receiptData.job.customer_name}</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b border-border/40">
+                    <span className="text-muted-foreground">Bike</span>
+                    <span className="text-foreground">{receiptData.job.bike_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Data</span>
+                    <span className="text-foreground">{new Date(receiptData.history.criado_em).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-background rounded-2xl border border-border space-y-2">
+                  <p className="text-[8px] text-muted-foreground mb-2">Resumo Financeiro</p>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Valor Total</span>
+                    <span>{formatBRL(getTotalPrice(receiptData.job))}</span>
+                  </div>
+                  <div className="flex justify-between text-emerald-400">
+                    <span>Este Pagamento ({receiptData.history.payment_method || 'PIX'})</span>
+                    <span>{formatBRL(receiptData.history.valor)}</span>
+                  </div>
+                  {receiptData.history.desconto_valor > 0 && (
+                    <div className="flex justify-between text-purple-400">
+                      <span>Desconto Concedido</span>
+                      <span>{formatBRL(receiptData.history.desconto_valor)}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-border/40 my-1" />
+                  <div className="flex justify-between text-foreground">
+                    <span>Saldo Restante</span>
+                    <span>{formatBRL(Math.max(0, getTotalPrice(receiptData.job) - (receiptData.job.payment_history || []).filter(h => new Date(h.criado_em) <= new Date(receiptData.history.criado_em)).reduce((s, h) => s + Number(h.valor) + Number(h.desconto_valor), 0)))}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button 
+              onClick={() => {
+                if (!receiptData) return;
+                const msg = `📋 *Recibo de Serviço - Fefo Bikes*\n\n*Cliente:* ${receiptData.job.customer_name}\n*Bike:* ${receiptData.job.bike_name}\n*Data:* ${new Date(receiptData.history.criado_em).toLocaleDateString()}\n\n*Pagamento:* ${formatBRL(receiptData.history.valor)}\n*Forma:* ${receiptData.history.payment_method?.toUpperCase() || 'PIX'}\n*Total do Serviço:* ${formatBRL(getTotalPrice(receiptData.job))}\n\nObrigado pela preferência! 🚴✨`;
+                sendMessage.mutate({
+                  phone: receiptData.job.customer_whatsapp!,
+                  message: msg
+                }, { onSuccess: () => toast.success("Recibo enviado!") });
+              }}
+              className="w-full h-12 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-400 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2"
+            >
+              <Phone size={16} /> Enviar pelo WhatsApp
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Notificação Fullscreen de Aprovação ───────────────────────────── */}
+      <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
+        <DialogContent className="border-none bg-background/95 backdrop-blur-2xl p-0 max-w-none w-screen h-screen m-0 rounded-none flex items-center justify-center animate-in fade-in zoom-in duration-500 outline-none">
+          <div className="max-w-2xl w-full p-8 md:p-12 space-y-10 text-center relative">
+            <div className={`w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center border-4 shadow-2xl animate-bounce ${notifData?.status === 'accepted' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-emerald-500/20' : 'bg-destructive/20 border-destructive text-destructive shadow-destructive/20'}`}>
+              {notifData?.status === 'accepted' ? <CheckCircle size={56} className="stroke-[2.5]" /> : <X size={56} className="stroke-[2.5]" />}
+            </div>
+            
+            <div className="space-y-4">
+              <h2 className={`text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none ${notifData?.status === 'accepted' ? 'text-emerald-400' : 'text-destructive'}`}>
+                Serviço Extra {notifData?.status === 'accepted' ? 'Aprovado!' : 'Negado!'}
+              </h2>
+              <div className="space-y-2">
+                <p className="text-xl md:text-2xl font-bold text-foreground uppercase tracking-widest">{notifData?.job?.customer_name || 'Cliente'}</p>
+                <p className="text-lg text-muted-foreground font-medium italic">Bike: {notifData?.job?.bike_name || 'N/A'}</p>
+              </div>
+            </div>
+
+            <div className="p-8 bg-card/50 border border-border/50 rounded-[3rem] space-y-3 relative group overflow-hidden">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Activity size={80} />
+               </div>
+               <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Resumo do Adicional</p>
+               <p className="text-2xl font-bold text-foreground leading-tight italic">{notifData?.problem || 'Sem descrição'}</p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 pt-10">
+              <button 
+                onClick={() => setNotifOpen(false)}
+                className="flex-1 h-20 rounded-[2rem] bg-card border-2 border-border text-muted-foreground hover:bg-muted hover:text-foreground text-xl font-black uppercase tracking-widest transition-all active:scale-95"
+              >
+                Ignorar
+              </button>
+              <button 
+                onClick={() => {
+                  if (!notifData?.job?.customer_whatsapp) return;
+                  const phone = notifData.job.customer_whatsapp.replace(/\D/g, "");
+                  window.open(`https://wa.me/${phone.startsWith('55') ? phone : '55' + phone}`, '_blank');
+                  setNotifOpen(false);
+                }}
+                className="flex-[2] h-20 rounded-[2rem] bg-emerald-500 text-white hover:bg-emerald-400 text-xl font-black uppercase tracking-widest transition-all shadow-[0_0_50px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-4"
+              >
+                <Phone size={32} /> Ver no WhatsApp
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

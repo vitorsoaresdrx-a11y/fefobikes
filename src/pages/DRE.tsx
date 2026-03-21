@@ -249,6 +249,16 @@ export default function DRE() {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
 
+  const { data: osHist = [] } = useQuery({
+    queryKey: ["os_pagamentos_historico"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("os_pagamentos_historico" as any).select("*").eq("tipo", "desconto");
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+
   const monthlyFixedCost = useMemo(
     () => fixedExpenses.filter((e) => e.active).reduce((s, e) => s + Number(e.amount), 0),
     [fixedExpenses]
@@ -316,6 +326,13 @@ export default function DRE() {
       const discountAmt = Number(sale.discount_amount) || 0;
       if (sale.discount_type === "promotion") months[m].promotionDiscounts += discountAmt;
       else if (sale.discount_type === "manual") months[m].manualDiscounts += discountAmt;
+    });
+
+    osHist.forEach((h: any) => {
+      const date = new Date(h.criado_em);
+      if (date.getFullYear() !== selectedYear) return;
+      const m = date.getMonth();
+      months[m].manualDiscounts += Number(h.desconto_valor) || 0;
     });
 
     variableExpenses.forEach((exp: any) => {
