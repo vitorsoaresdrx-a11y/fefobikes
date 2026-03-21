@@ -121,27 +121,39 @@ Deno.serve(async (req) => {
     let pendingOsId = null;
     let pendingAdditionValue = 0;
     
-    const phoneSuffix = phone.length > 10 ? phone.slice(-10) : phone;
+    const phoneSuffix = phone.length >= 10 ? phone.slice(-10) : phone;
+    const phoneShort = phone.length >= 8 ? phone.slice(-8) : phone;
+    
+    console.log(`Searching for pending additions for phone: ${phone} (suffix: ${phoneSuffix})`);
+
     const { data: jobs } = await supabase
       .from('mechanic_jobs')
-      .select('id')
+      .select('id, customer_name')
       .neq('status', 'delivered')
-      .filter('customer_whatsapp', 'ilike', `%${phoneSuffix}%`);
+      .or(`customer_whatsapp.ilike.%${phoneSuffix}%,customer_whatsapp.ilike.%${phoneShort}%`);
 
     if (jobs && jobs.length > 0) {
       const jobIds = jobs.map((j: any) => j.id);
+      console.log(`Found ${jobs.length} candidate jobs for budget approval:`, jobIds);
+      
       const { data: adicionais } = await supabase
         .from('os_adicionais')
-        .select('id, os_id, status, valor_total')
+        .select('id, os_id, status, valor_total, problem')
         .in('os_id', jobIds)
-        .in('status', ['enviado', 'pendente']);
+        .in('status', ['enviado', 'pendente'])
+        .order('criado_em', { ascending: false });
 
       if (adicionais && adicionais.length > 0) {
         const first = adicionais[0];
         pendingAdditionId = first.id;
         pendingOsId = first.os_id;
         pendingAdditionValue = Number(first.valor_total || 0);
+        console.log(`MATCHED pending addition ${pendingAdditionId} for OS ${pendingOsId}`);
+      } else {
+        console.log("No pending additions found with status 'enviado' or 'pendente' for these jobs.");
       }
+    } else {
+      console.log("No matching mechanic jobs found for this phone number.");
     }
 
     if (pendingAdditionId) {

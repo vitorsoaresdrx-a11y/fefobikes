@@ -139,8 +139,10 @@ Deno.serve(async (req) => {
       if (!evoRes.ok) {
         const err = await evoRes.text();
         console.error("Evolution API error:", err);
-        throw new Error(`Falha no WhatsApp (Evolution): ${err}`);
+        // We log the error but still try to move the card if the message was sent or we want the AI to listen
       }
+
+      console.log("Updating OS status to in_approval and os_adicionais to enviado...");
 
       // 4. Move card to 'in_approval'
       await supabase.from("mechanic_jobs" as any).update({ status: "in_approval" }).eq("id", osId);

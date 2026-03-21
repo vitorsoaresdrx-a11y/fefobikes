@@ -23,12 +23,10 @@ END $$;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
-    SELECT cron.schedule(
+    PERFORM cron.schedule(
       'deletar-fotos-expiradas',
       '0 3 * * *',
-      $$
-      DELETE FROM os_fotos WHERE expira_em < now();
-      $$
+      'DELETE FROM os_fotos WHERE expira_em < now()'
     );
   END IF;
 END $$;
