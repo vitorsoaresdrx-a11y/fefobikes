@@ -2230,9 +2230,7 @@ export default function Mecanica() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60" onClick={() => setMechanicCardOpen(false)} />
             <div className="relative bg-secondary border border-border rounded-2xl p-0 overflow-hidden w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
-              <div style={{display:'none'}}>
-                <DialogTitle>Ordens na Mecânica</DialogTitle>
-              </div>
+              <div aria-hidden="true" className="sr-only">Ordens na Mecânica</div>
 
               <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-secondary/50 backdrop-blur-sm sticky top-0 z-10">
                 <div className="flex items-center gap-3">
