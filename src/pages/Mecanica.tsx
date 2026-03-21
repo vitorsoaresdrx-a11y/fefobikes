@@ -906,8 +906,7 @@ export default function Mecanica() {
       .on('postgres_changes' as any, 
         { event: 'UPDATE', schema: 'public', table: 'os_adicionais' },
         async (payload: any) => {
-          const isV2Approval = (payload.new.status === 'aprovado' || payload.new.status === 'recusado' || payload.new.status === 'negado') && 
-                               (payload.old.status === 'pendente' || payload.old.status === 'enviado');
+          const isV2Approval = payload.new.status === 'aprovado' || payload.new.status === 'negado' || payload.new.status === 'recusado';
           const isV1Approval = (payload.new.status === 'accepted' || payload.new.status === 'refused') && 
                                (payload.old.status === 'pending');
 
