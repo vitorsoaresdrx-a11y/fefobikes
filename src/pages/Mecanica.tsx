@@ -1,10 +1,12 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, Fragment, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
-import type { Customer } from "@/hooks/useCustomers";
 import { maskPhone, maskCpfCnpj } from "@/lib/masks";
+import { useCustomers, type Customer } from "@/hooks/useCustomers";
+import imageCompression from "browser-image-compression";
+import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
 import {
   useMechanicJobs,
   useMechanicJobsRealtime,
@@ -135,27 +137,27 @@ const columns = [
 
 function InputGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-2">
-      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">{label}</label>
+    <div className="space-y-1.5">
+      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">{label}</label>
       {children}
     </div>
   );
 }
 
-function PremiumInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+function PremiumInput({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className="w-full h-10 bg-background border border-input rounded-md px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all ${className}`}
     />
   );
 }
 
-function PremiumTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+function PremiumTextarea({ className, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       {...props}
-      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all resize-none"
+      className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all resize-none ${className}`}
     />
   );
 }
@@ -209,20 +211,6 @@ function AdditionBadge({ addition, showActions }: { addition: MechanicJobAdditio
     : "border-amber-500/30 bg-amber-500/5";
 
   return (
-function AdditionBadge({ addition, showActions }: { addition: MechanicJobAddition; showActions: boolean }) {
-  const updateApproval = useUpdateAdditionApproval();
-  const total = getAdditionTotal(addition);
-
-  const handleApproval = (status: "accepted" | "refused") => {
-    updateApproval.mutate({ id: addition.id, approval: status, is_v2: (addition as any).is_v2 });
-  };
-
-  const approvalColor =
-    addition.approval === "accepted" ? "border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-500/5 text-emerald-600"
-    : addition.approval === "refused" ? "border-destructive/30 bg-destructive/5 text-destructive"
-    : "border-amber-500/30 bg-amber-50/50 dark:bg-amber-500/5 text-amber-600";
-
-  return (
     <div className={`p-3 rounded-lg border flex items-center justify-between gap-3 ${approvalColor}`}>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold truncate">{addition.problem}</p>
@@ -239,8 +227,6 @@ function AdditionBadge({ addition, showActions }: { addition: MechanicJobAdditio
         </div>
       )}
     </div>
-  );
-}
   );
 }
 
@@ -760,21 +746,31 @@ export default function Mecanica() {
 
   const handleServiceOrderDone = useCallback(async (order: ServiceOrder) => {
     playNotifySound();
-    await supabase.from("mechanic_jobs" as any).update({ status: "in_analysis" }).eq("id", order.id);
-    toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega! (Em Análise)`, { duration: 8000 });
-  }, []);
+    // Only update if we have a matching job and it's not already correct
+    const job = jobs.find(j => j.id === order.id);
+    if (job && job.status !== "in_analysis") {
+      await updateDetails.mutateAsync({ id: order.id, status: "in_analysis" } as any);
+      toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega! (Em Análise)`, { duration: 8000 });
+    }
+  }, [jobs, updateDetails]);
 
   const handleServiceOrderAccepted = useCallback(async (order: ServiceOrder) => {
     playAcceptSound();
-    await supabase.from("mechanic_jobs" as any).update({ status: "in_maintenance" }).eq("id", order.id);
-    toast.info(`⚙️ ${order.bike_name || "OS"} aceita por ${order.mechanic_name || "mecânico"}`, { duration: 5000 });
-  }, []);
+    const job = jobs.find(j => j.id === order.id);
+    if (job && job.status !== "in_maintenance") {
+      await updateDetails.mutateAsync({ id: order.id, status: "in_maintenance" } as any);
+      toast.info(`⚙️ ${order.bike_name || "OS"} aceita por ${order.mechanic_name || "mecânico"}`, { duration: 5000 });
+    }
+  }, [jobs, updateDetails]);
 
   useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
+  const { data: customers = [] } = useCustomers();
   const [open, setOpen] = useState(false);
-  const [showManualCustomer, setShowManualCustomer] = useState(false);
-  const QUICK_DIAGNOSTICS = ["Revisão Geral", "Troca de Câmera", "Ajuste de Câmbio", "Limpeza", "Freio", "Transmissão"];
+  const [step, setStep] = useState(1);
+  const [showManualCustomer, setShowManualCustomer] = useState(true);
+  const [suggestionField, setSuggestionField] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     customer_name: "",
     bike_name: "",
@@ -783,13 +779,73 @@ export default function Mecanica() {
     customer_id: null as string | null,
     problem: "",
     price: 0,
-    initialStatus: "in_approval" as "in_approval" | "in_repair",
+    initialStatus: "in_approval" as MechanicJob["status"],
     paymentType: "nenhum" as "integral" | "parcial" | "nenhum",
     paymentAmount: 0,
     paymentMethod: "pix",
     status: "in_approval" as MechanicJob["status"],
     sem_custo: false,
+    // New fields
+    cep: "",
+    address: "",
+    number: "",
+    complement: "",
+    bairro: "",
+    city: "",
+    state: "",
+    arrivalPhoto: null as File | null,
+    arrivalPhotoPreview: "" as string,
+    // Service composition
+    parts: [] as AdditionPart[],
+    labor_cost: 0,
+    other_cost: 0,
   });
+
+  const compositionTotal = useMemo(() => {
+    const partsTotal = form.parts.reduce((s, p) => s + (p.quantity * p.unit_price), 0);
+    return partsTotal + Number(form.labor_cost || 0) + Number(form.other_cost || 0);
+  }, [form.parts, form.labor_cost, form.other_cost]);
+
+  // Sync compositionTotal to form.price when it changes ONLY IF we are in Step 2 or it was just calculated
+  useEffect(() => {
+    if (step === 2) {
+      setForm(f => ({ ...f, price: compositionTotal }));
+    }
+  }, [compositionTotal, step]);
+
+  const filteredCustomers = useMemo(() => {
+    const query = suggestionField === 'name' ? form.customer_name : 
+                  suggestionField === 'whatsapp' ? form.customer_whatsapp : 
+                  suggestionField === 'cpf' ? form.customer_cpf : "";
+    
+    if (!query || query.length < 2) return [];
+    const q = query.toLowerCase();
+    const qNum = query.replace(/\D/g, "");
+
+    return customers.filter(c => {
+      if (suggestionField === 'name') return c.name.toLowerCase().includes(q);
+      if (suggestionField === 'whatsapp') return c.whatsapp?.replace(/\D/g, "").includes(qNum);
+      if (suggestionField === 'cpf') return c.cpf?.replace(/\D/g, "").includes(qNum);
+      return false;
+    }).slice(0, 5);
+  }, [customers, form, suggestionField]);
+
+  const selectSuggestedCustomer = (c: Customer) => {
+    setForm(prev => ({
+      ...prev,
+      customer_name: c.name,
+      customer_whatsapp: maskPhone(c.whatsapp || ""),
+      customer_cpf: maskCpfCnpj(c.cpf || ""),
+      customer_id: c.id,
+      address: (c as any).address_street || "",
+      number: (c as any).address_number || "",
+      complement: (c as any).address_complement || "",
+      bairro: (c as any).address_neighborhood || "",
+      city: (c as any).address_city || "",
+      state: (c as any).address_state || "",
+    }));
+    setSuggestionField(null);
+  };
 
   const [mechanicCardOpen, setMechanicCardOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -820,7 +876,7 @@ export default function Mecanica() {
       )
       .subscribe();
 
-    return () => { channel.unsubscribe(); };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const [addForm, setAddForm] = useState({ problem: "", labor_cost: 0, parts: [] as AdditionPart[] });
@@ -924,42 +980,156 @@ export default function Mecanica() {
     return map;
   }, [jobs]);
 
+  const uploadPhoto = useUploadPhoto();
+
   const handleSave = () => {
     if (!form.problem.trim()) { toast.error("Descreva o problema"); return; }
+    
+    // Validate required fields for Step 1
+    if (!form.customer_name || !form.customer_whatsapp || !form.customer_cpf || !form.bike_name) {
+      toast.error("Nome, WhatsApp, CPF e Bike são obrigatórios!");
+      return;
+    }
+
     const orderData = {
-      customer_name: form.customer_name || undefined,
-      customer_cpf: form.customer_cpf || undefined,
-      customer_whatsapp: form.customer_whatsapp || undefined,
-      customer_id: form.customer_id || undefined,
-      bike_name: form.bike_name || undefined,
-      problem: form.problem,
-      price: form.sem_custo ? 0 : Number(form.price || 0),
-      status: form.initialStatus,
-      sem_custo: form.sem_custo,
-      payment: (!form.sem_custo && form.paymentType !== 'nenhum') ? {
-        tipo: form.paymentType,
-        valor_pago: form.paymentType === 'integral' ? Number(form.price || 0) : Number(form.paymentAmount || 0),
-        method: form.paymentMethod
-      } : undefined
+      customer_name: form.customer_name || null,
+      customer_cpf: form.customer_cpf || null,
+      customer_whatsapp: form.customer_whatsapp || null,
+      customer_id: form.customer_id || null,
+      bike_name: form.bike_name || null,
+      problem: form.problem || "",
+      price: form.sem_custo ? 0 : (Number(form.price) || 0),
+      status: form.initialStatus || "in_approval",
+      sem_custo: !!form.sem_custo,
     };
 
-    create.mutate(orderData as any, {
-      onSuccess: (newJob) => {
-        if (form.initialStatus === "in_repair") {
-          createServiceOrder.mutate({ id: newJob.id, customer_name: form.customer_name || undefined, customer_cpf: form.customer_cpf || undefined, customer_whatsapp: form.customer_whatsapp || undefined, customer_id: form.customer_id || undefined, bike_name: form.bike_name || undefined, problem: form.problem });
+    const paymentData = (!form.sem_custo && form.paymentType !== 'nenhum') ? {
+      tipo: form.paymentType,
+      valor_pago: form.paymentType === 'integral' ? (Number(form.price) || 0) : (Number(form.paymentAmount) || 0),
+      method: form.paymentMethod || 'pix'
+    } : undefined;
+
+    create.mutate({ ...orderData, payment: paymentData } as any, {
+      onSuccess: async (newJob) => {
+        const partsTotal = form.parts.reduce((s, p) => s + (Number(p.quantity || 0) * Number(p.unit_price || 0)), 0);
+        
+        // Save composition parts if any
+        if (form.parts && form.parts.length > 0) {
+          try {
+            await createAddition.mutateAsync({
+              job_id: newJob.id,
+              problem: "Peças iniciais da O.S.",
+              price: partsTotal,
+              labor_cost: 0, // Labor already went to base price as per user request
+              parts_used: form.parts,
+            } as any);
+            // After saving addition, we technically should subtract partsTotal from base price
+            // to keep the grand total consistent with (base + additions).
+            // But the user said labor and others go to price, and Total goes to price.
+            // So we'll update the OS price to be (Total - partsTotal) to avoid doubling.
+            await updateDetails.mutateAsync({ id: newJob.id, price: Number(form.price) - partsTotal } as any);
+          } catch (err) {
+             console.error("Erro ao salvar peças da composição:", err);
+          }
         }
+
+        // Handle Photo Upload if present
+        if (form.arrivalPhoto) {
+          try {
+            await uploadPhoto.mutateAsync({ 
+              osId: newJob.id, 
+              file: form.arrivalPhoto, 
+              tipo: "chegada" 
+            });
+          } catch (err) {
+            console.error("Erro ao subir foto de chegada:", err);
+          }
+        }
+
+
+        if (form.initialStatus === "in_repair") {
+          createServiceOrder.mutate({ 
+            id: newJob.id, 
+            customer_name: form.customer_name || undefined, 
+            customer_cpf: form.customer_cpf || undefined, 
+            customer_whatsapp: form.customer_whatsapp || undefined, 
+            customer_id: form.customer_id || undefined, 
+            bike_name: form.bike_name || undefined, 
+            problem: form.problem 
+          });
+        }
+
         if (form.customer_whatsapp) {
           const phone = form.customer_whatsapp.replace(/\D/g, "");
           const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
-          sendMessage.mutate({ phone: formattedPhone, message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` });
+          
+          console.log("WhatsApp no handleSave:", form.customer_whatsapp);
+          console.log("Formatted Phone result:", formattedPhone);
+
+          sendMessage.mutate({ 
+            phone: formattedPhone, 
+            message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` 
+          });
         }
+
         toast.success("Manutenção criada!");
-        setForm({ customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", paymentAmount: 0, paymentMethod: "pix", status: "in_approval" });
+        setForm({ 
+          customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, 
+          problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", 
+          paymentAmount: 0, paymentMethod: "pix", status: "in_approval", sem_custo: false,
+          cep: "", address: "", number: "", complement: "", bairro: "", city: "", state: "",
+          arrivalPhoto: null, arrivalPhotoPreview: "",
+          parts: [], labor_cost: 0, other_cost: 0
+        } as any);
         setOpen(false);
-        setShowManualCustomer(false);
+        setStep(1);
       },
-      onError: () => toast.error("Erro ao criar"),
+      onError: (err: any) => {
+        console.error("Erro ao criar OS:", err);
+        toast.error("Erro ao criar: " + (err.message || "Valor inválido enviado"));
+      },
     });
+  };
+
+  const handleSearchCEP = async (cep: string) => {
+    const rawCep = cep.replace(/\D/g, "");
+    if (rawCep.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${rawCep}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setForm(prev => ({
+            ...prev,
+            address: data.logradouro,
+            bairro: data.bairro,
+            city: data.localidade,
+            state: data.uf
+          }));
+        }
+      } catch (err) {
+        console.error("Erro ao buscar CEP:", err);
+      }
+    }
+  };
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const options = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+        initialQuality: 0.7
+      };
+      try {
+        const compressedFile = await imageCompression(file, options);
+        const preview = URL.createObjectURL(compressedFile);
+        setForm(prev => ({ ...prev, arrivalPhoto: compressedFile as File, arrivalPhotoPreview: preview }));
+      } catch (err) {
+        console.error("Erro ao comprimir imagem:", err);
+        toast.error("Erro ao processar imagem");
+      }
+    }
   };
 
   const handleAddRepair = (job: MechanicJob) => { setAddJob(job); setAddForm({ problem: "", labor_cost: 0, parts: [] }); setAddOpen(true); };
@@ -1320,109 +1490,580 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setShowManualCustomer(false); }}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
-          <DialogHeader className="mb-6">
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Plus className="w-5 h-5 text-primary" />
-              Nova Ordem de Serviço
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputGroup label="Bike">
-                <PremiumInput placeholder="Ex: Caloi Elite Carbon" value={form.bike_name} onChange={(e) => setForm((f) => ({ ...f, bike_name: e.target.value }))} />
-              </InputGroup>
-              <InputGroup label="Cliente">
-                <CustomerAutocomplete
-                  customerName={form.customer_name}
-                  customerWhatsapp={form.customer_whatsapp}
-                  customerCpf={form.customer_cpf}
-                  onSelect={(c: Customer) => {
-                    setForm((f: any) => ({ ...f, customer_name: c.name, customer_whatsapp: c.whatsapp || "", customer_cpf: c.cpf || "", customer_id: c.id }));
-                    setShowManualCustomer(false);
-                  }}
-                  onChange={(field, value) => {
-                    const key = field === "name" ? "customer_name" : field === "whatsapp" ? "customer_whatsapp" : "customer_cpf";
-                    setForm((f: any) => ({ ...f, [key]: value }));
-                  }}
-                />
-              </InputGroup>
-            </div>
-            
-            <div className="flex items-center gap-2 px-1">
-              <button 
-                type="button"
-                onClick={() => setShowManualCustomer(!showManualCustomer)}
-                className="text-xs font-medium text-muted-foreground hover:text-primary flex items-center gap-2"
-              >
-                <div className={`w-4 h-4 rounded border flex items-center justify-center ${showManualCustomer ? "bg-primary border-primary text-primary-foreground" : "border-input"}`}>
-                  {showManualCustomer && <Check size={10} />}
-                </div>
-                Novo Cliente / Editar manualmente
+      <Dialog open={open} onOpenChange={(v) => { 
+        setOpen(v); 
+        if (!v) {
+          setStep(1);
+          setShowManualCustomer(false);
+          setForm({ 
+            customer_name: "", bike_name: "", customer_cpf: "", customer_whatsapp: "", customer_id: null, 
+            problem: "", price: 0, initialStatus: "in_approval", paymentType: "nenhum", 
+            paymentAmount: 0, paymentMethod: "pix", status: "in_approval", sem_custo: false,
+            cep: "", address: "", number: "", complement: "", bairro: "", city: "", state: "",
+            arrivalPhoto: null, arrivalPhotoPreview: "",
+            parts: [], labor_cost: 0, other_cost: 0
+          } as any);
+        }
+      }}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden bg-background border-none shadow-2xl">
+          <div className="bg-primary/5 p-6 border-b border-primary/10">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-primary" />
+                  Nova Ordem de Serviço
+                </DialogTitle>
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">Criação de Atendimento</p>
+              </div>
+              <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all">
+                <X size={16} />
               </button>
             </div>
 
-            {showManualCustomer && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-muted/30 rounded-lg border">
-                <InputGroup label="Nome">
-                  <PremiumInput value={form.customer_name} onChange={(e) => setForm((f) => ({ ...f, customer_name: e.target.value }))} />
-                </InputGroup>
-                <InputGroup label="WhatsApp">
-                  <PremiumInput value={form.customer_whatsapp} onChange={(e) => setForm((f) => ({ ...f, customer_whatsapp: maskPhone(e.target.value) }))} />
-                </InputGroup>
-                <InputGroup label="CPF">
-                  <PremiumInput value={form.customer_cpf} onChange={(e) => setForm((f) => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value) }))} />
-                </InputGroup>
-              </div>
-            )}
-
-            <InputGroup label="Diagnóstico Inicial *">
-              <PremiumTextarea rows={3} placeholder="O que precisa ser feito?" value={form.problem} onChange={(e) => setForm((f) => ({ ...f, problem: e.target.value }))} />
-            </InputGroup>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputGroup label="Status de Início">
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => setForm((f) => ({ ...f, initialStatus: "in_approval" }))} className={`flex-1 h-9 rounded-md border text-xs font-bold transition-all ${form.initialStatus === "in_approval" ? "bg-primary/10 border-primary text-primary" : "bg-card text-muted-foreground"}`}>Orçamento</button>
-                  <button type="button" onClick={() => setForm((f) => ({ ...f, initialStatus: "in_repair" }))} className={`flex-1 h-9 rounded-md border text-xs font-bold transition-all ${form.initialStatus === "in_repair" ? "bg-primary/10 border-primary text-primary" : "bg-card text-muted-foreground"}`}>Oficina</button>
-                </div>
-              </InputGroup>
-              <div className="flex items-end">
-                <div className="flex-1 p-2 bg-muted/20 border rounded-md flex items-center justify-between h-9">
-                  <span className="text-xs font-bold">Reserva de Peças</span>
-                  <button type="button" onClick={() => setForm(f => ({ ...f, sem_custo: !f.sem_custo }))} className={`w-8 h-4 rounded-full relative transition-all ${form.sem_custo ? "bg-primary" : "bg-muted"}`}>
-                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${form.sem_custo ? "left-4.5" : "left-0.5"}`} />
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center justify-between px-2">
+              {[1, 2, 3, 4].map((s, idx) => (
+                <Fragment key={s}>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all duration-500 ${step >= s ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110" : "bg-muted text-muted-foreground"}`}>
+                      {s}
+                    </div>
+                  </div>
+                  {idx < 3 && (
+                    <div className={`flex-1 h-0.5 mx-2 rounded-full transition-all duration-700 ${step > s ? "bg-primary" : "bg-muted"}`} />
+                  )}
+                </Fragment>
+              ))}
             </div>
+          </div>
 
-            {!form.sem_custo && (
-              <div className="space-y-4 pt-4 border-t">
-                <div className="grid grid-cols-2 gap-4">
-                  <InputGroup label="Valor Previsto">
-                    <CurrencyInput value={form.price} onChange={(val) => setForm((f: any) => ({ ...f, price: val }))} />
+          <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="col-span-1 md:col-span-2">
+                      <InputGroup label="Nome Completo *">
+                        <div className="relative">
+                          <PremiumInput 
+                            value={form.customer_name} 
+                            onChange={(e) => {
+                              setForm(f => ({ ...f, customer_name: e.target.value, customer_id: null }));
+                              setSuggestionField('name');
+                            }} 
+                            onBlur={() => setTimeout(() => setSuggestionField(null), 200)}
+                            placeholder="Nome Completo" 
+                          />
+                          {suggestionField === 'name' && filteredCustomers.length > 0 && (
+                            <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                              {filteredCustomers.map(c => (
+                                <button key={c.id} onClick={() => selectSuggestedCustomer(c)} className="w-full px-4 py-2.5 text-left hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors">
+                                  <p className="text-xs font-bold text-white leading-none">{c.name}</p>
+                                  <p className="text-[9px] text-muted-foreground mt-1.5 uppercase tracking-widest">{c.whatsapp || "Sem whats"} · {c.cpf || "Sem CPF"}</p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </InputGroup>
+                    </div>
+
+                    <InputGroup label="WhatsApp *">
+                      <div className="relative">
+                        <PremiumInput 
+                          value={form.customer_whatsapp} 
+                          onChange={(e) => {
+                            setForm(f => ({ ...f, customer_whatsapp: maskPhone(e.target.value), customer_id: null }));
+                            setSuggestionField('whatsapp');
+                          }} 
+                          onBlur={() => setTimeout(() => setSuggestionField(null), 200)}
+                          placeholder="(00) 00000-0000" 
+                        />
+                        {suggestionField === 'whatsapp' && filteredCustomers.length > 0 && (
+                          <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                            {filteredCustomers.map(c => (
+                              <button key={c.id} onClick={() => selectSuggestedCustomer(c)} className="w-full px-4 py-2.5 text-left hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors">
+                                <p className="text-xs font-bold text-white font-black">{c.whatsapp}</p>
+                                <p className="text-[9px] text-muted-foreground mt-1.5 uppercase tracking-widest">{c.name}</p>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </InputGroup>
+
+                    <InputGroup label="CPF *">
+                      <div className="relative">
+                        <PremiumInput 
+                          value={form.customer_cpf} 
+                          onChange={(e) => {
+                            setForm(f => ({ ...f, customer_cpf: maskCpfCnpj(e.target.value), customer_id: null }));
+                            setSuggestionField('cpf');
+                          }} 
+                          onBlur={() => setTimeout(() => setSuggestionField(null), 200)}
+                          placeholder="000.000.000-00" 
+                        />
+                        {suggestionField === 'cpf' && filteredCustomers.length > 0 && (
+                          <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                            {filteredCustomers.map(c => (
+                              <button key={c.id} onClick={() => selectSuggestedCustomer(c)} className="w-full px-4 py-2.5 text-left hover:bg-muted/50 border-b border-border/50 last:border-0 transition-colors">
+                                <p className="text-xs font-bold text-white">{c.cpf}</p>
+                                <p className="text-[9px] text-muted-foreground mt-1.5 uppercase tracking-widest">{c.name}</p>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </InputGroup>
+
+                    <div className="col-span-1 md:col-span-2 grid grid-cols-4 gap-3 bg-muted/20 p-4 rounded-2xl border border-border/40">
+                      <div className="col-span-1">
+                        <InputGroup label="CEP">
+                          <PremiumInput 
+                            value={form.cep} 
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").slice(0, 8);
+                              setForm(f => ({ ...f, cep: val }));
+                              if (val.length === 8) handleSearchCEP(val);
+                            }} 
+                            placeholder="00000-000" 
+                          />
+                        </InputGroup>
+                      </div>
+                      <div className="col-span-3">
+                        <InputGroup label="Endereço">
+                          <PremiumInput value={form.address} onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))} placeholder="Rua / Avenida" />
+                        </InputGroup>
+                      </div>
+                      <div className="col-span-1">
+                        <InputGroup label="Nº">
+                          <PremiumInput value={form.number} onChange={(e) => setForm(f => ({ ...f, number: e.target.value }))} placeholder="Nº" />
+                        </InputGroup>
+                      </div>
+                      <div className="col-span-3">
+                        <InputGroup label="Bairro">
+                          <PremiumInput value={form.bairro} onChange={(e) => setForm(f => ({ ...f, bairro: e.target.value }))} placeholder="Bairro" />
+                        </InputGroup>
+                      </div>
+                      <div className="col-span-3">
+                        <InputGroup label="Cidade">
+                          <PremiumInput value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} placeholder="Cidade" />
+                        </InputGroup>
+                      </div>
+                      <div className="col-span-1">
+                        <InputGroup label="UF">
+                          <PremiumInput value={form.state} onChange={(e) => setForm(f => ({ ...f, state: e.target.value.toUpperCase() }))} maxLength={2} placeholder="UF" />
+                        </InputGroup>
+                      </div>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2">
+                       <InputGroup label="Bike / Marca / Modelo *">
+                        <div className="relative">
+                          <PremiumInput value={form.bike_name} onChange={(e) => setForm(f => ({ ...f, bike_name: e.target.value }))} placeholder="Ex: Specialized Epic, Caloi Carbon..." />
+                          <Bike className="absolute right-3 top-2.5 text-muted-foreground/30" size={18} />
+                        </div>
+                      </InputGroup>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2">
+                      <InputGroup label="Foto de Chegada (Opcional)">
+                        <div className="flex flex-col gap-3 mt-1">
+                          <div className="flex gap-2">
+                            <label className="flex-1 h-12 bg-muted/40 border border-border border-dashed rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/60 transition-all text-[10px] font-black uppercase tracking-widest text-muted-foreground group">
+                              <Camera size={14} className="group-hover:text-primary transition-colors" /> Tirar Foto
+                              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoSelect} />
+                            </label>
+                            <label className="flex-1 h-12 bg-muted/40 border border-border border-dashed rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/60 transition-all text-[10px] font-black uppercase tracking-widest text-muted-foreground group">
+                              <ImageIcon size={14} className="group-hover:text-primary transition-colors" /> Galeria
+                              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
+                            </label>
+                          </div>
+                          {form.arrivalPhotoPreview && (
+                            <div className="relative w-24 h-24 rounded-2xl border-2 border-primary/20 overflow-hidden group shadow-xl ring-4 ring-primary/5">
+                              <img src={form.arrivalPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
+                              <button onClick={() => setForm(f => ({ ...f, arrivalPhoto: null, arrivalPhotoPreview: "" }))} className="absolute inset-0 bg-destructive/80 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                <Trash2 size={24} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </InputGroup>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 2 && (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <InputGroup label="Diagnóstico / O que fazer? *">
+                    <PremiumTextarea 
+                      rows={4} 
+                      placeholder="Descreva detalhadamente o problema relatado pelo cliente ou os serviços que devem ser executados..." 
+                      value={form.problem} 
+                      onChange={(e) => setForm((f) => ({ ...f, problem: e.target.value }))} 
+                    />
                   </InputGroup>
-                  <InputGroup label="Adiantamento">
-                    <div className="flex gap-1">
-                      {['nenhum', 'parcial', 'integral'].map((type) => (
-                        <button key={type} type="button" onClick={() => setForm((f: any) => ({ ...f, paymentType: type as any }))} className={`flex-1 h-9 rounded-md text-[10px] font-bold uppercase transition-all ${form.paymentType === type ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{type}</button>
+
+                  {/* ── Composição do Serviço ────────────────────────────────── */}
+                  <div className="space-y-6 pt-4 border-t border-border/40">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-1 bg-primary rounded-full" />
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Composição do Serviço</h4>
+                    </div>
+
+                    <div className="space-y-4">
+                      <InputGroup label="1. Peças do Sistema (Opcional)">
+                        <AddRepairPartSelector 
+                          selectedParts={form.parts} 
+                          onChange={(parts) => setForm(f => ({ ...f, parts }))} 
+                        />
+                      </InputGroup>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <InputGroup label="2. Mão de obra">
+                          <CurrencyInput 
+                            value={form.labor_cost} 
+                            onChange={(val) => setForm(f => ({ ...f, labor_cost: val }))} 
+                            className="h-12"
+                          />
+                        </InputGroup>
+                        <InputGroup label="3. Outros / Materiais">
+                          <CurrencyInput 
+                            value={form.other_cost} 
+                            onChange={(val) => setForm(f => ({ ...f, other_cost: val }))} 
+                            className="h-12"
+                          />
+                        </InputGroup>
+                      </div>
+
+                      {/* ── Subtotal Card ─────────────────────────────────────── */}
+                      <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 space-y-3 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                           <TrendingUp size={64} />
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          <span>Peças</span>
+                          <span>{formatBRL(form.parts.reduce((s, p) => s + (Number(p.quantity || 0) * Number(p.unit_price || 0)), 0))}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border/40 pb-2">
+                          <span>Mão de obra / Outros</span>
+                          <span>{formatBRL(Number(form.labor_cost || 0) + Number(form.other_cost || 0))}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1">
+                          <span className="text-xs font-black uppercase tracking-[0.2em] text-primary">Total Estimado</span>
+                          <span className="text-xl font-black text-white">{formatBRL(compositionTotal)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <InputGroup label="Coluna Inicial no Kanban">
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { key: "in_approval", label: "Orçamento", icon: FileCheck },
+                        { key: "in_repair", label: "Na Mecânica", icon: Wrench },
+                        { key: "in_maintenance", label: "Em Manutenção", icon: Settings },
+                        { key: "in_analysis", label: "Em Análise", icon: Activity },
+                        { key: "ready", label: "Pronto", icon: CheckCircle2 }
+                      ].map((s, idx, arr) => (
+                        <button
+                          key={s.key}
+                          type="button"
+                          onClick={() => setForm(f => ({ ...f, initialStatus: s.key as any }))}
+                          className={`flex items-center gap-3 p-4 rounded-2xl border text-left transition-all ${
+                            form.initialStatus === s.key ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20" : "border-border hover:bg-muted/50"
+                          } ${idx === arr.length - 1 && arr.length % 2 !== 0 ? "col-span-2 justify-center max-w-[240px] mx-auto w-full" : ""}`}
+                        >
+                          <div className={`p-2.5 rounded-xl transition-colors ${form.initialStatus === s.key ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30" : "bg-muted text-muted-foreground"}`}>
+                            <s.icon size={18} />
+                          </div>
+                          <span className={`text-[11px] font-bold uppercase tracking-widest ${form.initialStatus === s.key ? "text-primary" : "text-muted-foreground"}`}>
+                            {s.label}
+                          </span>
+                        </button>
                       ))}
                     </div>
                   </InputGroup>
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="flex items-center justify-between p-5 bg-primary/5 border border-primary/10 rounded-3xl">
+                    <div>
+                      <p className="text-sm font-black uppercase tracking-widest text-primary leading-none">Tipo de Cobrança</p>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1.5 opacity-60">Garantia ou Cortesia da Loja?</p>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => setForm(f => ({ ...f, sem_custo: !f.sem_custo }))} 
+                      className={`w-14 h-7 rounded-full relative transition-all duration-500 shadow-inner ${form.sem_custo ? "bg-emerald-500" : "bg-muted-foreground/30"}`}
+                    >
+                      <motion.div 
+                        animate={{ x: form.sem_custo ? 30 : 4 }}
+                        className="absolute top-1 w-5 h-5 rounded-full bg-white shadow-md flex items-center justify-center"
+                      >
+                        {form.sem_custo && <Check size={10} className="text-emerald-600" />}
+                      </motion.div>
+                    </button>
+                  </div>
+
+                  {!form.sem_custo ? (
+                    <motion.div 
+                      key="valor-inputs"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-8"
+                    >
+                      <InputGroup label="Valor Previsto da Manutenção *">
+                        <div className="relative group">
+                          <CurrencyInput value={form.price} onChange={(val) => setForm((f: any) => ({ ...f, price: val }))} className="h-14 text-lg font-black" />
+                          <TrendingUp className="absolute right-4 top-4 text-primary/30 group-focus-within:text-primary transition-colors" size={20} />
+                        </div>
+                      </InputGroup>
+
+                      <div className="space-y-4">
+                        <InputGroup label="Adiantamento">
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { key: 'nenhum', label: 'Nenhum' },
+                              { key: 'parcial', label: 'Parcial' },
+                              { key: 'integral', label: 'Integral' }
+                            ].map((type) => (
+                              <button 
+                                key={type.key} 
+                                type="button" 
+                                onClick={() => setForm((f: any) => ({ ...f, paymentType: type.key as any }))} 
+                                className={`h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${form.paymentType === type.key ? "bg-primary border-primary text-primary-foreground shadow-xl shadow-primary/20 scale-105" : "bg-muted/30 border-border/60 text-muted-foreground hover:bg-muted/80"}`}
+                              >
+                                {type.label}
+                              </button>
+                            ))}
+                          </div>
+                        </InputGroup>
+
+                        {form.paymentType !== 'nenhum' && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, height: "auto", scale: 1 }}
+                            className="space-y-5 p-5 bg-muted/20 rounded-3xl border border-border/60 backdrop-blur-sm"
+                          >
+                            {form.paymentType === 'parcial' && (
+                              <InputGroup label="Quanto o cliente pagou?">
+                                <CurrencyInput value={form.paymentAmount} onChange={(val) => setForm((f: any) => ({ ...f, paymentAmount: val }))} />
+                              </InputGroup>
+                            )}
+                            <InputGroup label="Forma de Pagamento Utilizada">
+                              <div className="grid grid-cols-2 gap-2">
+                                {['PIX', 'Dinheiro', 'Débito', 'Crédito'].map((method) => (
+                                  <button
+                                    key={method}
+                                    type="button"
+                                    onClick={() => setForm(f => ({ ...f, paymentMethod: method.toLowerCase() }))}
+                                    className={`h-11 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${form.paymentMethod === method.toLowerCase() ? "border-primary bg-primary/15 text-primary shadow-sm" : "border-border/60 bg-background text-muted-foreground"}`}
+                                  >
+                                    {method}
+                                  </button>
+                                ))}
+                              </div>
+                            </InputGroup>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      key="sem-custo-msg"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="py-14 flex flex-col items-center justify-center bg-emerald-500/5 rounded-3xl border border-dashed border-emerald-500/30 text-emerald-600/60"
+                    >
+                      <Tag size={40} className="mb-4 text-emerald-500" />
+                      <p className="text-[11px] font-black uppercase tracking-[0.2em]">Cortesia / Garantia</p>
+                      <p className="text-[9px] font-medium uppercase mt-2 opacity-70">Nenhuma cobrança será gerada</p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+
+              {step === 4 && (
+                <motion.div
+                  key="step4"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-muted/10 border border-border/80 rounded-[32px] overflow-hidden shadow-2xl shadow-primary/5">
+                    <div className="bg-primary/5 px-8 py-5 border-b border-primary/10 flex justify-between items-center">
+                      <div>
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary leading-none">Resumo da O.S</h3>
+                        <p className="text-[9px] text-muted-foreground font-bold mt-1.5 uppercase tracking-widest opacity-60">Confirmação do Atendimento</p>
+                      </div>
+                      {form.sem_custo && (
+                        <div className="px-3 py-1 bg-emerald-500/10 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-sm">
+                          Sem Custo
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-8 space-y-6">
+                      <div className="flex gap-6">
+                        <div className="flex-1 space-y-5">
+                          <div className="space-y-1.5">
+                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.1em]">Proprietário</p>
+                            <p className="text-sm font-black text-white">{form.customer_name || "—"}</p>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                               <span className="text-[10px] font-bold text-muted-foreground/80 bg-muted/40 px-2 py-0.5 rounded-lg">{form.customer_whatsapp}</span>
+                               <span className="text-[10px] font-bold text-muted-foreground/80 bg-muted/40 px-2 py-0.5 rounded-lg">{form.customer_cpf}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1.5">
+                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.1em]">Equipamento</p>
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                                <Bike size={14} />
+                              </div>
+                              <p className="text-sm font-black text-white">{form.bike_name || "—"}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {form.arrivalPhotoPreview && (
+                          <div className="w-28 h-28 rounded-3xl border border-primary/10 p-1 bg-muted/20 shrink-0">
+                            <img src={form.arrivalPhotoPreview} className="w-full h-full object-cover rounded-2xl shadow-lg" alt="Arrival preview" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-5 bg-muted/30 rounded-3xl border border-border/40 backdrop-blur-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-3 opacity-10">
+                           <FileText size={40} />
+                        </div>
+                        <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-3">Diagnóstico Detalhado</p>
+                        <p className="text-[13px] text-white/90 font-medium leading-relaxed line-clamp-4 italic">"{form.problem || "—"}"</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-5 bg-primary/5 rounded-3xl border border-primary/10 group hover:border-primary/30 transition-colors">
+                          <p className="text-[9px] text-primary font-black uppercase tracking-widest mb-1.5">Localização Inicial</p>
+                          <div className="flex items-center gap-2">
+                             <Activity size={12} className="text-primary animate-pulse" />
+                             <p className="text-[11px] font-bold text-white uppercase tracking-tight">{columns.find(c => c.key === form.initialStatus)?.label}</p>
+                          </div>
+                        </div>
+                        <div className="p-5 bg-primary/5 rounded-3xl border border-primary/10 group hover:border-primary/30 transition-colors">
+                          <p className="text-[9px] text-primary font-black uppercase tracking-widest mb-1.5">Orçamento Previsto</p>
+                          <div className="flex items-center gap-2">
+                             <TrendingUp size={12} className="text-primary" />
+                             <p className="text-sm font-black text-white">{form.sem_custo ? "CORTESIA" : formatBRL(form.price)}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {!form.sem_custo && form.paymentType !== 'nenhum' && (
+                        <div className="p-5 bg-emerald-500/5 rounded-3xl border border-emerald-500/10 flex justify-between items-center shadow-emerald-500/5 shadow-inner">
+                          <div>
+                            <p className="text-[9px] text-emerald-600 font-black uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                               <CheckCircle size={10} /> Adiantamento ({form.paymentType})
+                            </p>
+                            <p className="text-lg font-black text-emerald-600 tracking-tight">{formatBRL(form.paymentType === 'integral' ? form.price : form.paymentAmount)}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1.5">Meio Usado</p>
+                            <p className="text-[10px] font-black text-white uppercase tracking-widest bg-emerald-500/20 px-3 py-1 rounded-xl border border-emerald-500/20">{form.paymentMethod}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 px-6 py-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center shrink-0">
+                      <AlertTriangle size={18} className="text-amber-600" />
+                    </div>
+                    <p className="text-[11px] font-medium text-amber-700/80 leading-relaxed">
+                      Ao abrir este atendimento, um aviso será enviado automaticamente para o WhatsApp do cliente. Certifique-se de que os dados estão corretos.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <div className="flex gap-3 pt-8">
-            <button onClick={() => setOpen(false)} className="flex-1 h-10 rounded-md border border-input text-muted-foreground hover:bg-muted text-sm font-bold">Cancelar</button>
-            <button onClick={handleSave} disabled={create.isPending} className="flex-[2] h-10 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2">
-              {create.isPending ? <Loader2 size={18} className="animate-spin" /> : "Abrir Serviço"}
-            </button>
-          </div>
+          <DialogFooter className="p-6 md:p-8 pt-0 border-t border-border/40 flex items-center justify-between gap-4">
+            {step > 1 ? (
+              <button 
+                onClick={() => setStep(step - 1)} 
+                className="h-12 px-6 rounded-2xl border border-border text-muted-foreground hover:bg-muted font-bold text-[11px] uppercase tracking-[0.1em] flex items-center gap-2 transition-all active:scale-95 shrink-0"
+              >
+                <ChevronLeft size={16} /> Voltar
+              </button>
+            ) : (
+              <button 
+                onClick={() => { setOpen(false); setStep(1); }} 
+                className="h-12 px-6 rounded-2xl text-muted-foreground hover:text-white font-bold text-[11px] uppercase tracking-[0.1em] transition-colors"
+              >
+                Cancelar
+              </button>
+            )}
+            
+            <div className="flex gap-3 ml-auto w-full md:w-auto">
+              {step < 4 ? (
+                <button 
+                  onClick={() => {
+                    if (step === 1 && (!form.customer_name || !form.customer_whatsapp || !form.customer_cpf || !form.bike_name)) {
+                      toast.error("Nome, WhatsApp, CPF e Bike são obrigatórios!");
+                      return;
+                    }
+                    if (step === 2 && !form.problem.trim()) {
+                      toast.error("Descreva o diagnóstico primeiro!");
+                      return;
+                    }
+                    if (step === 3 && !form.sem_custo && Number(form.price) <= 0) {
+                        toast.error("Especifique o valor previsto");
+                        return;
+                    }
+                    setStep(step + 1);
+                  }}
+                  className="w-full md:w-auto h-12 px-10 rounded-2xl bg-primary text-primary-foreground font-black text-xs uppercase tracking-[0.2em] hover:bg-primary/90 shadow-2xl shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-95 group"
+                >
+                  Continuar <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              ) : (
+                <button 
+                  onClick={handleSave}
+                  disabled={create.isPending}
+                  className="w-full md:w-auto h-12 px-12 rounded-2xl bg-emerald-500 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-600 shadow-2xl shadow-emerald-500/20 flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {create.isPending ? <Loader2 className="animate-spin" size={18} /> : (
+                    <>
+                      <FileCheck size={18} className="animate-bounce" /> Abrir Atendimento
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1686,7 +2327,7 @@ export default function Mecanica() {
 
       {/* ── Notificação Fullscreen de Aprovação ───────────────────────────── */}
       <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
-        <DialogContent className="border-none bg-background/95 backdrop-blur-2xl p-0 max-w-none w-screen h-screen m-0 rounded-none flex items-center justify-center animate-in fade-in zoom-in duration-500 outline-none">
+        <DialogContent className="border-none bg-background p-0 max-w-none w-screen h-screen m-0 rounded-none flex items-center justify-center animate-in fade-in zoom-in duration-500 outline-none">
           <div className="max-w-2xl w-full p-8 md:p-12 space-y-10 text-center relative">
             <div className={`w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center border-4 shadow-2xl animate-bounce ${notifData?.status === 'accepted' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-emerald-500/20' : 'bg-destructive/20 border-destructive text-destructive shadow-destructive/20'}`}>
               {notifData?.status === 'accepted' ? <CheckCircle size={56} className="stroke-[2.5]" /> : <X size={56} className="stroke-[2.5]" />}
