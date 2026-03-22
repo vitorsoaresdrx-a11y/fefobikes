@@ -253,6 +253,9 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
   const total = getTotalPrice(job);
   const hasBike = !!job.bike_name;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [cancelConfirmAction, setCancelConfirmAction] = useState<'retirar' | 'ok' | null>(null);
+  const updateDetails = useUpdateMechanicJobDetails();
+
   const showApprovalActions = columnKey === "in_approval";
   const showRetreat = columnKey === "ready";
 
@@ -281,7 +284,27 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
 
   return (
     <>
-      <div className="bg-card border rounded-lg shadow-sm overflow-hidden mb-3 hover:shadow-md transition-shadow">
+      <div className="bg-card border rounded-lg shadow-sm overflow-hidden mb-3 hover:shadow-md transition-shadow relative">
+        {(job as any).status === 'cancelado' && (
+          <div className="absolute inset-0 z-10 bg-destructive/80 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center gap-3 p-4">
+            <AlertTriangle className="text-white animate-pulse" size={40} />
+            <p className="text-white font-black text-xl uppercase tracking-widest text-center">OS Cancelada</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCancelConfirmAction('retirar')}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/30 transition-all"
+              >
+                Retirar Cancelamento
+              </button>
+              <button
+                onClick={() => setCancelConfirmAction('ok')}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/30 transition-all"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        )}
         <div className="p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -354,6 +377,39 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
         title="Confirmar exclusão"
         description={`Tem certeza que deseja excluir o serviço "${job.bike_name || "Bike não informada"}"? Esta ação não pode ser desfeita.`}
       />
+
+      <Dialog open={cancelConfirmAction !== null} onOpenChange={(v) => !v && setCancelConfirmAction(null)}>
+        <DialogContent className="max-w-xs p-6 bg-card border-border rounded-3xl text-center">
+          <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 ${cancelConfirmAction === 'retirar' ? 'bg-primary/20 text-primary' : 'bg-destructive/20 text-destructive'}`}>
+            {cancelConfirmAction === 'retirar' ? <RotateCcw size={32} /> : <Trash2 size={32} />}
+          </div>
+          <h3 className="text-lg font-black uppercase tracking-tight mb-2">
+            {cancelConfirmAction === 'retirar' ? 'Reverter Cancelamento?' : 'Confirmar Exclusão?'}
+          </h3>
+          <p className="text-xs text-muted-foreground mb-6 font-medium">
+            {cancelConfirmAction === 'retirar' 
+              ? 'O serviço voltará para o status de Aprovação.' 
+              : 'Esta bike será removida permanentemente do sistema.'}
+          </p>
+          <div className="flex flex-col gap-2">
+            <button 
+              onClick={async () => {
+                if (cancelConfirmAction === 'retirar') {
+                  await updateDetails.mutateAsync({ id: job.id, status: 'in_approval' });
+                  toast.success("Cancelamento revertido!");
+                } else if (cancelConfirmAction === 'ok') {
+                  handleConfirmDelete();
+                }
+                setCancelConfirmAction(null);
+              }}
+              className={`h-12 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${cancelConfirmAction === 'retirar' ? 'bg-primary' : 'bg-destructive'}`}
+            >
+              Confirmar
+            </button>
+            <button onClick={() => setCancelConfirmAction(null)} className="h-10 text-[10px] font-bold text-muted-foreground uppercase">Desistir</button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -952,6 +1008,34 @@ export default function Mecanica() {
       )
       .subscribe();
 
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // Realtime listener for total cancellations (alerts)
+  useEffect(() => {
+    const channel = supabase
+      .channel('os_alertas_cancellations')
+      .on('postgres_changes' as any,
+        { event: 'INSERT', schema: 'public', table: 'os_alertas' },
+        async (payload: any) => {
+          if (payload.new.contexto?.toLowerCase().includes('cancelou todo o serviço')) {
+            const { data: job } = await supabase.from('mechanic_jobs').select('*').eq('id', payload.new.os_id).single();
+            if (job) {
+              const payloadToSave = { 
+                job, 
+                status: 'cancelamento_total', 
+                problem: 'Cliente solicitou cancelamento total de todos os serviços da bike via WhatsApp.',
+                timestamp: Date.now()
+              };
+              localStorage.setItem('pendingAlert', JSON.stringify(payloadToSave));
+              setNotifData(payloadToSave);
+              setNotifOpen(true);
+              new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3").play().catch(() => {});
+            }
+          }
+        }
+      )
+      .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
@@ -2443,84 +2527,143 @@ export default function Mecanica() {
       {notifOpen && (
         <Dialog open={notifOpen} onOpenChange={setNotifOpen}>
           <DialogContent className="border-none bg-background p-0 max-w-none w-screen h-screen m-0 rounded-none flex items-center justify-center animate-in fade-in zoom-in duration-500 outline-none">
-            <div className="max-w-2xl w-full p-8 md:p-12 space-y-10 text-center relative">
-              {/* Dynamic Icon & Circle */}
-              <div 
-                className={`w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center border-4 shadow-2xl animate-bounce 
-                  ${(notifData?.status === 'aprovado' || notifData?.status === 'accepted')
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-emerald-500/20' 
-                    : 'bg-destructive/20 border-destructive text-destructive shadow-destructive/20'}`}
-              >
-                {(notifData?.status === 'aprovado' || notifData?.status === 'accepted')
-                  ? <CheckCircle size={56} className="stroke-[2.5]" /> 
-                  : <X size={56} className="stroke-[2.5]" />}
-              </div>
-              
-              <div className="space-y-4">
-                <h2 className={`text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none 
-                  ${(notifData?.status === 'aprovado' || notifData?.status === 'accepted') ? 'text-emerald-400' : 'text-destructive'}`}
-                >
-                  Serviço Extra {(notifData?.status === 'aprovado' || notifData?.status === 'accepted') ? 'Aprovado!' : 'Negado!'}
-                </h2>
-                <div className="space-y-2">
-                  <p className="text-xl md:text-2xl font-bold text-foreground uppercase tracking-widest">{notifData?.job?.customer_name || 'Cliente'}</p>
-                  <p className="text-lg text-muted-foreground font-medium italic">Bike: {notifData?.job?.bike_name || 'N/A'}</p>
+            {notifData?.status === 'cancelamento_total' ? (
+              /* ESCUDO DE CANCELAMENTO TOTAL */
+              <div className="max-w-2xl w-full p-8 md:p-12 space-y-10 text-center relative">
+                <div className="w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center border-4 border-destructive text-destructive bg-destructive/10 shadow-2xl shadow-destructive/20 animate-pulse">
+                  <AlertTriangle size={64} className="stroke-[2.5]" />
                 </div>
-              </div>
-
-              <div className="p-8 bg-card/50 border border-border/50 rounded-[3rem] space-y-3 relative group overflow-hidden">
-                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Activity size={80} />
-                 </div>
-                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Resumo do Adicional</p>
-                 <p className="text-2xl font-bold text-foreground leading-tight italic">{notifData?.problem || 'Sem descrição'}</p>
-              </div>
-
-              <div className="flex flex-col gap-4 pt-10">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <button 
-                    onClick={() => {
-                      localStorage.removeItem('pendingAlert');
-                      setNotifOpen(false);
-                      setTimeout(() => {
-                        if (notifData) {
-                          localStorage.setItem('pendingAlert', JSON.stringify({ ...notifData, timestamp: Date.now() }));
-                          setNotifOpen(true);
-                        }
-                      }, 15 * 60 * 1000);
-                      toast.info("Avisaremos você novamente em 15 minutos.");
-                    }}
-                    className="flex-1 h-20 rounded-[2rem] bg-card border-2 border-border text-muted-foreground hover:bg-muted hover:text-foreground text-xl font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    Me lembre em 15 min
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      localStorage.removeItem('pendingAlert');
-                      setNotifOpen(false);
-                      toast.success("Ótimo atendimento! Conversa assumida.");
-                    }}
-                    className="flex-1 h-20 rounded-[2rem] bg-emerald-600 text-white hover:bg-emerald-500 text-xl font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    Vou assumir o chat
-                  </button>
+                
+                <div className="space-y-4">
+                  <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none text-destructive">
+                    Serviço Cancelado!
+                  </h2>
+                  <div className="space-y-2">
+                    <p className="text-xl md:text-2xl font-bold text-foreground uppercase tracking-widest">{notifData?.job?.customer_name || 'Cliente'}</p>
+                    <p className="text-lg text-muted-foreground font-medium italic">Bike: {notifData?.job?.bike_name || 'N/A'}</p>
+                  </div>
                 </div>
 
-                <button 
-                  onClick={() => {
-                    if (!notifData?.job?.customer_whatsapp) return;
-                    const phone = notifData.job.customer_whatsapp.replace(/\D/g, "");
-                    window.open(`https://wa.me/${phone.startsWith('55') ? phone : '55' + phone}`, '_blank');
-                    localStorage.removeItem('pendingAlert');
-                    setNotifOpen(false);
-                  }}
-                  className="w-full h-20 rounded-[2rem] bg-emerald-500 text-white hover:bg-emerald-400 text-xl font-black uppercase tracking-widest transition-all shadow-[0_0_50px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-4"
-                >
-                  <Phone size={32} /> Ver no WhatsApp
-                </button>
+                <div className="p-8 bg-destructive/5 border border-destructive/20 rounded-[3rem] space-y-3">
+                   <p className="text-[10px] font-black text-destructive uppercase tracking-[0.4em]">Decisão do Cliente</p>
+                   <p className="text-2xl font-bold text-foreground leading-tight italic">O cliente optou por CANCELAR TODOS os serviços da bike pelo WhatsApp.</p>
+                </div>
+
+                <div className="flex flex-col gap-4 pt-10">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <button 
+                      onClick={() => {
+                        localStorage.removeItem('pendingAlert');
+                        setNotifOpen(false);
+                        setTimeout(() => {
+                          if (notifData) {
+                            localStorage.setItem('pendingAlert', JSON.stringify({ ...notifData, timestamp: Date.now() }));
+                            setNotifOpen(true);
+                          }
+                        }, 15 * 60 * 1000);
+                        toast.info("Avisaremos você novamente em 15 minutos.");
+                      }}
+                      className="flex-1 h-20 rounded-[2rem] bg-card border-2 border-border text-muted-foreground hover:bg-muted hover:text-foreground text-xl font-black uppercase tracking-widest transition-all active:scale-95"
+                    >
+                      Me lembre em 15 min
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        if (!notifData?.job?.customer_whatsapp) return;
+                        const phone = notifData.job.customer_whatsapp.replace(/\D/g, "");
+                        window.open(`https://wa.me/${phone.startsWith('55') ? phone : '55' + phone}`, '_blank');
+                        localStorage.removeItem('pendingAlert');
+                        setNotifOpen(false);
+                      }}
+                      className="flex-1 h-20 rounded-[2rem] bg-emerald-500 text-white hover:bg-emerald-400 text-xl font-black uppercase tracking-widest transition-all shadow-[0_0_50px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-4"
+                    >
+                      <Phone size={32} /> Entrar em Contato
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* MODAL PADRÃO DE APROVAÇÃO / NEGAÇÃO */
+              <div className="max-w-2xl w-full p-8 md:p-12 space-y-10 text-center relative">
+                {/* Dynamic Icon & Circle */}
+                <div 
+                  className={`w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center border-4 shadow-2xl animate-bounce 
+                    ${(notifData?.status === 'aprovado' || notifData?.status === 'accepted')
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-emerald-500/20' 
+                      : 'bg-destructive/20 border-destructive text-destructive shadow-destructive/20'}`}
+                >
+                  {(notifData?.status === 'aprovado' || notifData?.status === 'accepted')
+                    ? <CheckCircle size={56} className="stroke-[2.5]" /> 
+                    : <X size={56} className="stroke-[2.5]" />}
+                </div>
+                
+                <div className="space-y-4">
+                  <h2 className={`text-5xl md:text-7xl font-black uppercase tracking-tighter italic leading-none 
+                    ${(notifData?.status === 'aprovado' || notifData?.status === 'accepted') ? 'text-emerald-400' : 'text-destructive'}`}
+                  >
+                    Serviço Extra {(notifData?.status === 'aprovado' || notifData?.status === 'accepted') ? 'Aprovado!' : 'Negado!'}
+                  </h2>
+                  <div className="space-y-2">
+                    <p className="text-xl md:text-2xl font-bold text-foreground uppercase tracking-widest">{notifData?.job?.customer_name || 'Cliente'}</p>
+                    <p className="text-lg text-muted-foreground font-medium italic">Bike: {notifData?.job?.bike_name || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="p-8 bg-card/50 border border-border/50 rounded-[3rem] space-y-3 relative group overflow-hidden">
+                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Activity size={80} />
+                   </div>
+                   <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Resumo do Adicional</p>
+                   <p className="text-2xl font-bold text-foreground leading-tight italic">{notifData?.problem || 'Sem descrição'}</p>
+                </div>
+
+                <div className="flex flex-col gap-4 pt-10">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <button 
+                      onClick={() => {
+                        localStorage.removeItem('pendingAlert');
+                        setNotifOpen(false);
+                        setTimeout(() => {
+                          if (notifData) {
+                            localStorage.setItem('pendingAlert', JSON.stringify({ ...notifData, timestamp: Date.now() }));
+                            setNotifOpen(true);
+                          }
+                        }, 15 * 60 * 1000);
+                        toast.info("Avisaremos você novamente em 15 minutos.");
+                      }}
+                      className="flex-1 h-20 rounded-[2rem] bg-card border-2 border-border text-muted-foreground hover:bg-muted hover:text-foreground text-xl font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      Me lembre em 15 min
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        localStorage.removeItem('pendingAlert');
+                        setNotifOpen(false);
+                        toast.success("Ótimo atendimento! Conversa assumida.");
+                      }}
+                      className="flex-1 h-20 rounded-[2rem] bg-emerald-600 text-white hover:bg-emerald-500 text-xl font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      Vou assumir o chat
+                    </button>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      if (!notifData?.job?.customer_whatsapp) return;
+                      const phone = notifData.job.customer_whatsapp.replace(/\D/g, "");
+                      window.open(`https://wa.me/${phone.startsWith('55') ? phone : '55' + phone}`, '_blank');
+                      localStorage.removeItem('pendingAlert');
+                      setNotifOpen(false);
+                    }}
+                    className="w-full h-20 rounded-[2rem] bg-emerald-500 text-white hover:bg-emerald-400 text-xl font-black uppercase tracking-widest transition-all shadow-[0_0_50px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-4"
+                  >
+                    <Phone size={32} /> Ver no WhatsApp
+                  </button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       )}
