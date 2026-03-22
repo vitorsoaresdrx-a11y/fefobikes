@@ -12,11 +12,12 @@ import {
 } from "lucide-react";
 import { useBikeServiceHistory, type GroupedBikeHistory } from "@/hooks/useBikeServiceHistory";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { formatBRL } from "@/lib/format";
 
 const formatDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -52,79 +53,140 @@ export default function MecanicosHistorico() {
             <p className="text-xs font-black uppercase tracking-widest">Nenhum histórico encontrado</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {groups.map((group) => (
-              <button
-                key={group.frame_number}
-                onClick={() => setSelected(group)}
-                className="w-full bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:border-border/80 transition-all text-left"
-              >
-                <div className="space-y-1 min-w-0">
-                  <p className="text-sm font-black text-white uppercase truncate">{group.bike_name}</p>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    Quadro: {group.frame_number} • {group.records.length} atendimento(s)
-                  </p>
-                </div>
-                <ChevronRight size={16} className="text-muted-foreground/70 shrink-0" />
-              </button>
-            ))}
+          <div className="space-y-3 mt-4">
+            {groups.map((group) => {
+              const isCancelled = group.records[0]?.status === 'cancelado';
+              return (
+                <button
+                  key={group.frame_number}
+                  onClick={() => setSelected(group)}
+                  className={`w-full border rounded-2xl p-4 flex items-center justify-between transition-all text-left group ${
+                    isCancelled 
+                      ? 'bg-destructive/10 border-destructive/40 hover:border-destructive/60' 
+                      : 'bg-card border-border hover:border-border/80'
+                  }`}
+                >
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <p className={`text-sm font-black uppercase truncate ${isCancelled ? 'text-destructive' : 'text-white'}`}>
+                        {group.bike_name}
+                      </p>
+                      {isCancelled && (
+                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/20 text-destructive border border-destructive/30">
+                          Cancelada
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                       Quadro: <span className={isCancelled ? 'text-destructive/60' : 'text-primary/60'}>{group.frame_number}</span> 
+                       <span className="opacity-20">•</span> 
+                       {group.records.length} atendimento(s)
+                    </p>
+                  </div>
+                  <div className={`p-2 rounded-xl transition-all ${isCancelled ? 'bg-destructive/20 text-destructive' : 'bg-secondary text-muted-foreground group-hover:text-primary group-hover:bg-primary/10'}`}>
+                    <ChevronRight size={16} />
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Detail Sheet */}
-      <Sheet open={!!selected} onOpenChange={() => setSelected(null)}>
-        <SheetContent className="bg-secondary border-border w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="text-xl font-black text-white italic uppercase">
-              {selected?.bike_name}
-            </SheetTitle>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-              Quadro: {selected?.frame_number}
-            </p>
-          </SheetHeader>
+      {/* Detail Modal */}
+      <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
+        <DialogContent className="bg-secondary border-border w-full sm:max-w-lg overflow-y-auto max-h-[90vh] p-0 gap-0">
+          <div className="p-6 border-b border-border/50">
+            <DialogHeader>
+              <div className="flex items-center justify-between gap-4">
+                <DialogTitle className="text-xl font-black text-white italic uppercase truncate flex-1">
+                  {selected?.bike_name}
+                </DialogTitle>
+                <div className="px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[8px] font-black uppercase tracking-widest">
+                  Atendimentos
+                </div>
+              </div>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-2 ml-0.5">
+                Nº Quadro: <span className="text-white">{selected?.frame_number}</span>
+              </p>
+            </DialogHeader>
+          </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="p-6 space-y-6">
             {selected?.records.map((record, i) => (
-              <div key={record.id} className="bg-card border border-border rounded-2xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black text-primary uppercase tracking-widest">
-                    Atendimento #{selected.records.length - i}
-                    {record.status === 'cancelado' && (
-                      <span className="ml-2 px-1.5 py-0.5 rounded bg-destructive/20 text-destructive border border-destructive/30 text-[8px] font-black uppercase">Cancelado</span>
-                    )}
-                    {record.sem_custo && (
-                      <span className="ml-2 px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 text-[8px] font-black uppercase">Sem custo</span>
-                    )}
-                  </span>
-                  <span className="text-[10px] font-bold text-muted-foreground">
-                    {formatDate(record.completed_at || record.created_at)}
-                  </span>
+              <div key={record.id} className="bg-background/40 border border-border/40 rounded-3xl p-6 space-y-5 relative overflow-hidden group hover:border-border/60 transition-all">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
+                      Atendimento #{selected.records.length - i}
+                    </span>
+                    <div className="flex gap-2 flex-wrap">
+                      {record.status === 'cancelado' && (
+                        <span className="px-2 py-0.5 rounded-full bg-destructive/20 text-destructive border border-destructive/30 text-[8px] font-black uppercase tracking-wider">Cancelado</span>
+                      )}
+                      {record.sem_custo && (
+                        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50 text-[8px] font-black uppercase tracking-wider">Sem custo</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-background/80 px-3 py-1.5 rounded-xl border border-border/50 flex items-center gap-2">
+                    <Calendar size={10} className="text-primary/60" />
+                    <span className="text-[10px] font-bold text-muted-foreground tracking-tight">
+                      {formatDate(record.completed_at || record.created_at)}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="p-3 bg-background rounded-xl border border-border/50">
-                  <p className="text-xs text-muted-foreground">{record.problem}</p>
+                <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Cliente</p>
+                    <p className="text-xs font-bold text-white truncate">{record.customer_name || '—'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">WhatsApp</p>
+                    <p className="text-xs font-bold text-white truncate">{record.customer_phone || '—'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">CPF / CNPJ</p>
+                    <p className="text-xs font-bold text-white truncate">{record.customer_cpf || '—'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Bike</p>
+                    <p className="text-xs font-bold text-white truncate">{record.bike_name}</p>
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  {record.customer_name && (
-                    <span className="flex items-center gap-1"><User size={10} /> {record.customer_name}</span>
-                  )}
-                  {record.customer_phone && (
-                    <span className="flex items-center gap-1"><Phone size={10} /> {record.customer_phone}</span>
-                  )}
-                  {record.customer_cpf && (
-                    <span className="flex items-center gap-1"><CreditCard size={10} /> {record.customer_cpf}</span>
-                  )}
-                  {record.mechanic_name && (
-                    <span className="flex items-center gap-1"><Wrench size={10} /> {record.mechanic_name}</span>
-                  )}
+                <div className="p-4 bg-background/60 rounded-2xl border border-border/50">
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-2 opacity-50">Problema / Observações</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{record.problem}</p>
+                </div>
+
+                <div className="pt-4 border-t border-border/50 flex items-center justify-between gap-3 min-h-[40px]">
+                   {record.status === 'cancelado' ? (
+                     <div className="flex items-center gap-2 text-destructive bg-destructive/5 px-3 py-1.5 rounded-lg border border-destructive/20">
+                       <X size={12} className="opacity-60" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Sem mecânico responsável</span>
+                     </div>
+                   ) : (
+                     <div className="flex items-center gap-2 text-muted-foreground">
+                       <Wrench size={12} className="opacity-60" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">{record.mechanic_name || '—'}</span>
+                     </div>
+                   )}
+
+                   {/* Add record.price if available in the future. Condition: !record.status === 'cancelado' */}
+                   {record.status !== 'cancelado' && (record as any).price && (
+                      <div className="text-right">
+                        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Total</p>
+                        <p className="text-sm font-black text-white">{formatBRL((record as any).price)}</p>
+                      </div>
+                   )}
                 </div>
               </div>
             ))}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
