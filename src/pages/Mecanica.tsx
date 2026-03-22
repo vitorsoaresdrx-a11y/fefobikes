@@ -65,6 +65,9 @@ import {
   Image as ImageIcon,
   Eye,
   FileText,
+  Pause,
+  Play,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Dialog,
@@ -138,6 +141,200 @@ const columns = [
     border: "border-primary/20",
   },
 ];
+
+function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; onOpenChange: (v: boolean) => void; job: MechanicJob | null; onEdit: (j: MechanicJob) => void }) {
+  const sendMessage = useSendMessage();
+  const updateApproval = useUpdateAdditionApproval();
+  
+  const [convInfo, setConvInfo] = useState<{ id: string, ai_enabled: boolean, human_takeover: boolean } | null>(null);
+  const [loadingConv, setLoadingConv] = useState(false);
+
+  useEffect(() => {
+    if (open && job?.customer_whatsapp) {
+      const fetchConv = async () => {
+        setLoadingConv(true);
+        const phone = job.customer_whatsapp.replace(/\D/g, '');
+        const phoneSuffix = phone.slice(-10);
+        const { data: convs } = await supabase
+          .from('whatsapp_conversations' as any)
+          .select('id, ai_enabled, human_takeover')
+          .ilike('contact_phone', `%${phoneSuffix}%`)
+          .limit(1);
+        setConvInfo(convs?.[0] || null);
+        setLoadingConv(false);
+      };
+      fetchConv();
+    }
+  }, [open, job]);
+
+  if (!job) return null;
+
+  const handleSendStatus = async () => {
+     let message = "";
+     switch(job.status) {
+       case 'in_approval': message = "Sua bike está em análise de orçamento na oficina."; break;
+       case 'in_repair': message = "Sua bike está na fila para manutenção."; break;
+       case 'in_maintenance': message = "Sua bike está em manutenção com nossos mecânicos 🔧"; break;
+       case 'in_analysis': message = "Sua bike foi finalizada e está em análise final."; break;
+       case 'ready': message = "Sua bike está PRONTA para retirada! 🚲✨"; break;
+     }
+
+     if (message && job.customer_whatsapp) {
+       const phone = job.customer_whatsapp.replace(/\D/g, '');
+       const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+       await sendMessage.mutateAsync({ phone: formattedPhone, message });
+       toast.success("Status enviado!");
+     }
+  };
+
+  const handleApproveManually = async () => {
+    const pending = job.additions?.find(a => (a.approval as string) === 'pending' || (a.approval as string) === 'pendente');
+    if (pending) {
+      await updateApproval.mutateAsync({ id: pending.id, approval: 'accepted', is_v2: (pending as any).is_v2 });
+      if (job.customer_whatsapp) {
+        const phone = job.customer_whatsapp.replace(/\D/g, '');
+        const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+        await sendMessage.mutateAsync({ phone: formattedPhone, message: "Ótima notícia! O serviço adicional foi aprovado pela nossa equipe e já estamos dando continuidade. Qualquer dúvida é só chamar! 🔧" });
+      }
+      toast.success("Aprovado manualmente!");
+      onOpenChange(false);
+    }
+  };
+
+  const toggleAI = async (enable: boolean) => {
+    if (!convInfo) return;
+    const { error } = await supabase
+      .from('whatsapp_conversations')
+      .update({ ai_enabled: enable, human_takeover: !enable })
+      .eq('id', convInfo.id);
+    
+    if (!error) {
+      setConvInfo({ ...convInfo, ai_enabled: enable, human_takeover: !enable });
+      toast.success(enable ? "IA Ativada" : "IA Pausada");
+    } else {
+      toast.error("Erro ao atualizar conversa");
+    }
+  };
+
+  const returnToAI = async () => {
+    if (!convInfo) return;
+    const { error } = await supabase
+      .from('whatsapp_conversations')
+      .update({ ai_enabled: true, human_takeover: false })
+      .eq('id', convInfo.id);
+    
+    if (!error) {
+       setConvInfo({ ...convInfo, ai_enabled: true, human_takeover: false });
+       toast.success("Devolvido para IA");
+    } else {
+      toast.error("Erro ao atualizar conversa");
+    }
+  };
+
+  // Status badge config
+  const statusConfig: any = {
+    in_approval: { label: 'Em Aprovação', color: 'bg-yellow-400/20 text-yellow-600 border-yellow-400/30' },
+    in_repair: { label: 'Na Mecânica', color: 'bg-amber-400/20 text-amber-600 border-amber-400/30' },
+    in_maintenance: { label: 'Em Manutenção', color: 'bg-indigo-400/20 text-indigo-600 border-indigo-400/30' },
+    in_analysis: { label: 'Em Análise', color: 'bg-emerald-400/20 text-emerald-600 border-emerald-400/30' },
+    ready: { label: 'Pronto', color: 'bg-primary/20 text-primary border-primary/30' },
+    delivered: { label: 'Entregue', color: 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30' },
+    cancelado: { label: 'Cancelado', color: 'bg-destructive/20 text-destructive border-destructive/30' }
+  };
+  const currentStatus = statusConfig[job.status] || { label: job.status, color: 'bg-muted text-muted-foreground' };
+
+  const hasPending = job.additions?.some(a => (a.approval as string) === 'pending' || (a.approval as string) === 'pendente');
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md p-6 bg-secondary border-border rounded-[32px] overflow-hidden shadow-2xl">
+        <DialogHeader className="mb-6">
+          <div className="flex items-center justify-between gap-4">
+             <div className="min-w-0">
+               <DialogTitle className="text-xl font-black text-white italic truncate uppercase">{job.bike_name || 'Bike'}</DialogTitle>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{job.customer_name || 'Cliente'}</p>
+             </div>
+             <div className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${currentStatus.color}`}>
+               {currentStatus.label}
+             </div>
+          </div>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 gap-3">
+          <button 
+            onClick={handleSendStatus}
+            className="flex items-center gap-4 p-4 rounded-2xl bg-background/40 border border-border/50 hover:bg-background/60 hover:border-border transition-all text-left"
+          >
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Phone size={24} />
+            </div>
+            <div>
+              <p className="text-xs font-black text-white uppercase tracking-widest">Enviar status agora</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Notificar cliente via WhatsApp</p>
+            </div>
+          </button>
+
+          {hasPending && (
+            <button 
+              onClick={handleApproveManually}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 hover:bg-emerald-500/20 hover:border-border-emerald-500/60 transition-all text-left"
+            >
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <CheckCircle size={24} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-emerald-500 uppercase tracking-widest">Aprovar adicional manualmente</p>
+                <p className="text-[10px] text-emerald-500/60 mt-1">Pular fluxo de aprovação da IA</p>
+              </div>
+            </button>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => toggleAI(!convInfo?.ai_enabled)}
+              disabled={!convInfo}
+              className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-all ${
+                !convInfo ? 'opacity-50 cursor-not-allowed bg-muted border-border' :
+                convInfo.ai_enabled 
+                  ? 'bg-amber-500/10 border-amber-500/40 hover:bg-amber-500/20 text-amber-500' 
+                  : 'bg-emerald-500/10 border-emerald-500/40 hover:bg-emerald-500/20 text-emerald-500'
+              }`}
+            >
+              {convInfo?.ai_enabled ? <Pause size={20} /> : <Play size={20} />}
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {convInfo?.ai_enabled ? 'Pausar IA' : 'Retomar IA'}
+              </span>
+            </button>
+
+            <button 
+              onClick={returnToAI}
+              disabled={!convInfo || convInfo.ai_enabled}
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-primary/10 border border-primary/40 hover:bg-primary/20 text-primary transition-all disabled:opacity-50"
+            >
+              <RotateCcw size={20} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Devolver para IA</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-border/40 flex gap-4">
+           <button 
+             onClick={() => { onOpenChange(false); onEdit(job); }}
+             className="flex-1 h-12 rounded-2xl bg-secondary border border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground text-[10px] font-black uppercase tracking-widest transition-all"
+           >
+             Editar OS
+           </button>
+           <button 
+             onClick={() => onOpenChange(false)}
+             className="flex-1 h-12 rounded-2xl bg-background border border-border/40 text-muted-foreground text-[10px] font-black uppercase tracking-widest transition-all"
+           >
+             Fechar
+           </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
@@ -249,7 +446,7 @@ function AdditionBadge({ addition, showActions, isMechanicView }: { addition: Me
   );
 }
 
-function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance, onFinalize, isMechanicView }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void; onFinalize?: (j: MechanicJob) => void; isMechanicView?: boolean }) {
+function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance, onFinalize, onOpenControl, isMechanicView }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void; onFinalize?: (j: MechanicJob) => void; onOpenControl: (j: MechanicJob) => void; isMechanicView?: boolean }) {
   const remove = useDeleteMechanicJob();
   const archive = useCancelAndArchiveMechanicJob();
   const advanceMutation = useAdvanceMechanicJob();
@@ -294,9 +491,15 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
 
   return (
     <>
-      <div className="bg-card border rounded-lg shadow-sm overflow-hidden mb-3 hover:shadow-md transition-shadow relative">
+      <div 
+        onClick={() => onOpenControl(job)}
+        className="bg-card border rounded-lg shadow-sm overflow-hidden mb-3 hover:shadow-md transition-shadow relative cursor-pointer"
+      >
         {job.status === 'cancelado' && (
-          <div className="absolute inset-0 z-10 bg-destructive/90 rounded-lg flex flex-col items-center justify-center gap-4 p-6 backdrop-blur-sm">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute inset-0 z-10 bg-destructive/90 rounded-lg flex flex-col items-center justify-center gap-4 p-6 backdrop-blur-sm"
+          >
             <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
               <AlertTriangle size={28} className="text-white" />
             </div>
@@ -331,8 +534,8 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
               <p className="text-xs text-muted-foreground">{job.customer_name || "Cliente Avulso"}</p>
             </div>
             <div className="flex gap-1">
-              <button onClick={() => onEdit(job)} className="p-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors"><Pencil size={14} /></button>
-              <button onClick={() => setDeleteDialogOpen(true)} className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 size={14} /></button>
+              <button onClick={(e) => { e.stopPropagation(); onEdit(job); }} className="p-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors"><Pencil size={14} /></button>
+              <button onClick={(e) => { e.stopPropagation(); setDeleteDialogOpen(true); }} className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 size={14} /></button>
             </div>
           </div>
 
@@ -378,9 +581,9 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
             <p className="text-sm font-bold">{formatBRL(total)}</p>
           </div>
           <div className="flex items-center gap-1.5">
-            <button onClick={() => onAddRepair(job)} className="p-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors" title="Reparo Extra"><Plus size={16} /></button>
-            {showRetreat && onRetreat && <button onClick={() => onRetreat(job)} className="h-9 px-3 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 font-bold text-xs uppercase hover:bg-amber-200 transition-colors">Voltar</button>}
-            <button onClick={handleAdvance} disabled={advanceMutation.isPending} className={`h-9 px-4 rounded-md text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 ${isLast ? "bg-emerald-500 hover:bg-emerald-600" : "bg-primary hover:bg-primary/90"}`}>
+            <button onClick={(e) => { e.stopPropagation(); onAddRepair(job); }} className="p-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors" title="Reparo Extra"><Plus size={16} /></button>
+            {showRetreat && onRetreat && <button onClick={(e) => { e.stopPropagation(); onRetreat(job); }} className="h-9 px-3 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 font-bold text-xs uppercase hover:bg-amber-200 transition-colors">Voltar</button>}
+            <button onClick={(e) => { e.stopPropagation(); handleAdvance(); }} disabled={advanceMutation.isPending} className={`h-9 px-4 rounded-md text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50 ${isLast ? "bg-emerald-500 hover:bg-emerald-600" : "bg-primary hover:bg-primary/90"}`}>
               {advanceMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : (isLast ? "Finalizar" : "Avançar")}
             </button>
           </div>
@@ -1111,6 +1314,9 @@ export default function Mecanica() {
     desconto_valor: 0,
     desconto_motivo: ''
   });
+  const [controlOpen, setControlOpen] = useState(false);
+  const [selectedControlJob, setSelectedControlJob] = useState<MechanicJob | null>(null);
+  
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [receiptData, setReceiptData] = useState<{ job: MechanicJob, history: MechanicJobPaymentHistory } | null>(null);
 
@@ -1608,7 +1814,7 @@ export default function Mecanica() {
               <div className="space-y-4">
                 {(grouped[mobileTab]?.length || 0) > 0 ? (
                   grouped[mobileTab]?.map((job) => (
-                    <JobCard key={job.id} job={job} isLast={mobileTab === "ready"} columnKey={mobileTab} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={mobileTab !== "ready" ? handleAdvanceJob : undefined} onFinalize={mobileTab === "ready" ? handleOpenFinalize : undefined} />
+                    <JobCard key={job.id} job={job} isLast={mobileTab === "ready"} columnKey={mobileTab} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={mobileTab !== "ready" ? handleAdvanceJob : undefined} onFinalize={mobileTab === "ready" ? handleOpenFinalize : undefined} onOpenControl={(j) => { setSelectedControlJob(j); setControlOpen(true); }} />
                   ))
                 ) : (
                   <div className="py-20 text-center space-y-3 opacity-20">
@@ -1635,7 +1841,7 @@ export default function Mecanica() {
                   <div className="space-y-3 pb-6 flex-1">
                     {grouped[col.key].length > 0 ? (
                       grouped[col.key].map((job) => (
-                        <JobCard key={job.id} job={job} isLast={col.key === "ready"} columnKey={col.key} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={col.key !== "ready" ? handleAdvanceJob : undefined} onFinalize={col.key === "ready" ? handleOpenFinalize : undefined} />
+                        <JobCard key={job.id} job={job} isLast={col.key === "ready"} columnKey={col.key} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={col.key !== "ready" ? handleAdvanceJob : undefined} onFinalize={col.key === "ready" ? handleOpenFinalize : undefined} onOpenControl={(j) => { setSelectedControlJob(j); setControlOpen(true); }} />
                       ))
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20">
@@ -1705,6 +1911,13 @@ export default function Mecanica() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <OSControlModal 
+        open={controlOpen} 
+        onOpenChange={setControlOpen} 
+        job={selectedControlJob} 
+        onEdit={handleEditJob} 
+      />
 
       <Dialog open={open} onOpenChange={(v) => { 
         setOpen(v); 
