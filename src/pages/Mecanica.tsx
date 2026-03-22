@@ -1143,8 +1143,12 @@ export default function Mecanica() {
   const [finalizePaymentMethod, setFinalizePaymentMethod] = useState("pix");
 
   const grouped = useMemo(() => {
-    const map: Record<string, MechanicJob[]> = { in_approval: [], in_repair: [], in_maintenance: [], in_analysis: [], ready: [], cancelado: [] };
-    jobs.forEach((j) => { if (map[j.status]) map[j.status].push(j); });
+    const map: Record<string, MechanicJob[]> = { in_approval: [], in_repair: [], in_maintenance: [], in_analysis: [], ready: [] };
+    jobs.forEach((j) => { 
+      // Mostra cards cancelados na coluna de Aprovação com o overlay vermelho
+      const key = j.status === 'cancelado' ? 'in_approval' : (j.status as string);
+      if (map[key]) map[key].push(j); 
+    });
     return map;
   }, [jobs]);
 
