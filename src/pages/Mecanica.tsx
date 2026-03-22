@@ -285,7 +285,7 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
   return (
     <>
       <div className="bg-card border rounded-lg shadow-sm overflow-hidden mb-3 hover:shadow-md transition-shadow relative">
-        {(job as any).status === 'cancelado' && (
+        {job.status === 'cancelado' && (
           <div className="absolute inset-0 z-10 bg-destructive/80 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center gap-3 p-4">
             <AlertTriangle className="text-white animate-pulse" size={40} />
             <p className="text-white font-black text-xl uppercase tracking-widest text-center">OS Cancelada</p>
@@ -984,20 +984,23 @@ export default function Mecanica() {
             (newStatus === 'aprovado' || newStatus === 'negado' || newStatus === 'recusado') &&
             newStatus !== oldStatus;
 
-          if (isApprovalEvent) {
-            const osId = payload.new?.os_id;
-            const { data: job } = await supabase
-              .from('mechanic_jobs')
-              .select('*')
-              .eq('id', osId)
-              .single();
-            
-            const payloadToSave = { 
-              job: job || { customer_name: 'Cliente', bike_name: 'Bike' }, 
-              status: newStatus, 
-              problem: payload.new?.problem || '',
-              timestamp: Date.now()
-            };
+            if (isApprovalEvent) {
+              const osId = payload.new?.os_id;
+              const { data: job } = await supabase
+                .from('mechanic_jobs')
+                .select('*')
+                .eq('id', osId)
+                .single();
+              
+              // Evita disparar "Negado!" se o serviço todo foi cancelado (o outro listener cuida disso)
+              if (job && job.status === 'cancelado') return;
+
+              const payloadToSave = { 
+                job: job || { customer_name: 'Cliente', bike_name: 'Bike' }, 
+                status: newStatus, 
+                problem: payload.new?.problem || '',
+                timestamp: Date.now()
+              };
             
             localStorage.setItem('pendingAlert', JSON.stringify(payloadToSave));
             setNotifData(payloadToSave);
@@ -1017,8 +1020,8 @@ export default function Mecanica() {
       .on('postgres_changes' as any,
         { event: 'INSERT', schema: 'public', table: 'os_alertas' },
         async (payload: any) => {
-          const contexto = payload.new?.contexto || '';
-          if (contexto.toLowerCase().includes('cancelamento total') || contexto.toLowerCase().includes('cancelou todo o serviço')) {
+          const contexto = (payload.new?.contexto || '').toLowerCase();
+          if (contexto.includes('cancelamento total')) {
             const osId = payload.new?.os_id;
             const { data: job } = await supabase
               .from('mechanic_jobs')
@@ -1140,7 +1143,7 @@ export default function Mecanica() {
   const [finalizePaymentMethod, setFinalizePaymentMethod] = useState("pix");
 
   const grouped = useMemo(() => {
-    const map: Record<string, MechanicJob[]> = { in_approval: [], in_repair: [], in_maintenance: [], in_analysis: [], ready: [] };
+    const map: Record<string, MechanicJob[]> = { in_approval: [], in_repair: [], in_maintenance: [], in_analysis: [], ready: [], cancelado: [] };
     jobs.forEach((j) => { if (map[j.status]) map[j.status].push(j); });
     return map;
   }, [jobs]);

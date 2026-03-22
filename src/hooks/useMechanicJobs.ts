@@ -29,7 +29,7 @@ export interface MechanicJob {
   bike_name: string | null;
   problem: string;
   price: number;
-  status: "in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready" | "delivered";
+  status: "in_approval" | "in_repair" | "in_maintenance" | "in_analysis" | "ready" | "delivered" | "cancelado";
   sem_custo: boolean;
   created_at: string;
   updated_at: string;
