@@ -1011,31 +1011,37 @@ export default function Mecanica() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Realtime listener for total cancellations (alerts)
   useEffect(() => {
     const channel = supabase
-      .channel('os_alertas_cancellations')
+      .channel('os_alertas_cancelamento')
       .on('postgres_changes' as any,
         { event: 'INSERT', schema: 'public', table: 'os_alertas' },
         async (payload: any) => {
-          if (payload.new.contexto?.toLowerCase().includes('cancelou todo o serviço')) {
-            const { data: job } = await supabase.from('mechanic_jobs').select('*').eq('id', payload.new.os_id).single();
-            if (job) {
-              const payloadToSave = { 
-                job, 
-                status: 'cancelamento_total', 
-                problem: 'Cliente solicitou cancelamento total de todos os serviços da bike via WhatsApp.',
-                timestamp: Date.now()
-              };
-              localStorage.setItem('pendingAlert', JSON.stringify(payloadToSave));
-              setNotifData(payloadToSave);
-              setNotifOpen(true);
-              new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3").play().catch(() => {});
-            }
+          const contexto = payload.new?.contexto || '';
+          if (contexto.toLowerCase().includes('cancelamento total') || contexto.toLowerCase().includes('cancelou todo o serviço')) {
+            const osId = payload.new?.os_id;
+            const { data: job } = await supabase
+              .from('mechanic_jobs')
+              .select('*')
+              .eq('id', osId)
+              .single();
+
+            const payloadToSave = {
+              job: job || { customer_name: 'Cliente', bike_name: 'Bike' },
+              status: 'cancelamento_total',
+              problem: contexto,
+              timestamp: Date.now()
+            };
+
+            localStorage.setItem('pendingAlert', JSON.stringify(payloadToSave));
+            setNotifData(payloadToSave);
+            setNotifOpen(true);
+            new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3").play().catch(() => {});
           }
         }
       )
       .subscribe();
+
     return () => { supabase.removeChannel(channel); };
   }, []);
 
