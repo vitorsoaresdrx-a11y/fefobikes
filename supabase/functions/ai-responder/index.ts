@@ -119,6 +119,8 @@ Deno.serve(async (req) => {
     let pendingAdditionId = null;
     let pendingOsId = null;
     let pendingAdditionValue = 0;
+    let pendingAdditionProblem = "";
+    let pendingAdditionStatus = "";
     
     const incomingDigits = phone.replace(/\D/g, "");
     const incomingSuffix = incomingDigits.length >= 10 ? incomingDigits.slice(-10) : incomingDigits;
@@ -145,7 +147,7 @@ Deno.serve(async (req) => {
         .from('os_adicionais')
         .select('id, os_id, status, valor_total, problem')
         .in('os_id', jobIds)
-        .in('status', ['enviado', 'pendente', 'negado'])
+        .in('status', ['enviado', 'pendente', 'negado', 'aguardando_cancelamento'])
         .order('criado_em', { ascending: false });
 
       if (adicionais && adicionais.length > 0) {
@@ -153,18 +155,27 @@ Deno.serve(async (req) => {
         pendingAdditionId = first.id;
         pendingOsId = first.os_id;
         pendingAdditionValue = Number(first.valor_total || 0);
-        console.log(`MATCHED pending addition ${pendingAdditionId} for OS ${pendingOsId}`);
+        pendingAdditionProblem = first.problem || 'serviço extra';
+        pendingAdditionStatus = first.status;
+        console.log(`MATCHED pending addition ${pendingAdditionId} for OS ${pendingOsId} (Status: ${pendingAdditionStatus})`);
       }
-    } else {
-      console.log(`No active mechanic jobs found matching phone ${incomingDigits}`);
     }
 
     if (pendingAdditionId) {
-      const sysClassifyContent = 'O cliente tem um orçamento extra PENDENTE. Classifique a mensagem dele:\n' +
-                                 '- APROVACAO: aceitou, concordou, "ok", "pode fazer", "sim", "faz aí", "beleza", "👍".\n' +
-                                 '- NEGACAO: não quer, "não precisa", "deixa pra lá", "não".\n' +
-                                 '- DUVIDA: perguntas, pechincha ou incertezas.\n\n' +
-                                 'Responda APENAS: APROVACAO, NEGACAO ou DUVIDA.';
+      const isWaitingCancel = pendingAdditionStatus === 'aguardando_cancelamento';
+      
+      const sysClassifyContent = isWaitingCancel 
+        ? 'O cliente está decidindo um CANCELAMENTO. Classifique a mensagem dele:\n' +
+          '- CANCELA_ADICIONAL: quer cancelar apenas o extra, mas seguir com o serviço original da bike.\n' +
+          '- CANCELA_TUDO: quer cancelar todos os serviços da bike.\n' +
+          '- VOLTAR: mudou de ideia e quer aprovar ou tirar dúvidas.\n' +
+          'Responda APENAS a categoria em maiúsculo.'
+        : 'O cliente tem um orçamento extra PENDENTE. Classifique a mensagem dele:\n' +
+          '- APROVACAO: aceitou, concordou, "ok", "pode fazer", "sim", "faz aí", "beleza", "👍".\n' +
+          '- NEGACAO: não quer, "não precisa", "deixa pra lá", "não".\n' +
+          '- DUVIDA: perguntas, pechincha ou incertezas.\n' +
+          '- CANCELAMENTO: expressou desejo de cancelar algo.\n\n' +
+          'Responda APENAS: APROVACAO, NEGACAO, DUVIDA ou CANCELAMENTO.';
 
       const classificationRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -175,7 +186,7 @@ Deno.serve(async (req) => {
             { role: "system", content: sysClassifyContent },
             { role: "user", content: `Mensagem: "${message}"` }
           ],
-          max_tokens: 10,
+          max_tokens: 15,
           temperature: 0,
         }),
       });
@@ -183,14 +194,16 @@ Deno.serve(async (req) => {
       if (classificationRes.ok) {
         const classData = await classificationRes.json();
         const intent = (classData.choices?.[0]?.message?.content?.trim() || "").toUpperCase();
+        console.log(`Classification INTENT: ${intent}`);
         
-        if (intent.includes("APROVACAO") || intent.includes("CONFIRMACAO")) {
-          // Process Approval
+        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+        let responseText = "";
+
+        if (intent.includes("APROVACAO") || (isWaitingCancel && intent.includes("VOLTAR"))) {
           console.log(`Intent classification: ${intent}. APROVANDO orçamento na DB...`);
-          
           await supabase.from('os_adicionais').update({ status: 'aprovado', approval: 'aprovado' }).eq('id', pendingAdditionId);
           console.log(`OS adicional ${pendingAdditionId} -> aprovado.`);
-
+          
           const { data: pgData } = await supabase.from('os_pagamentos').select('*').eq('os_id', pendingOsId).maybeSingle();
           if (pgData) {
             await supabase.from('os_pagamentos').update({
@@ -206,18 +219,26 @@ Deno.serve(async (req) => {
           });
           console.log(`Alerta de aprovação inserido para OS ${pendingOsId}.`);
 
-          const responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço. Qualquer dúvida, é só chamar! 🔧";
-          const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-            method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
-          });
-          await supabase.from("whatsapp_messages").insert({
-            conversation_id: conversationId, from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
-          });
-          return new Response(JSON.stringify({ ok: true, processed: "approval" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço da sua bike. Qualquer dúvida, é só chamar! 🔧";
         }
-
-        if (intent.includes("NEGACAO") || intent.includes("DUVIDA")) {
+        else if (intent.includes("CANCELAMENTO") && !isWaitingCancel) {
+          await supabase.from('os_adicionais').update({ status: 'aguardando_cancelamento' }).eq('id', pendingAdditionId);
+          responseText = `Entendido! Você quer cancelar apenas o serviço extra de "${pendingAdditionProblem}" no valor de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingAdditionValue)}, ou cancelar todo o serviço da sua bike?`;
+        }
+        else if (intent.includes("CANCELA_ADICIONAL")) {
+          await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
+          responseText = "Certo! Cancelamos apenas o serviço extra. Vamos seguir apenas com o serviço original da sua bike conforme o planejado. 🚲";
+        }
+        else if (intent.includes("CANCELA_TUDO")) {
+          await supabase.from('mechanic_jobs' as any).update({ status: 'cancelado' }).eq('id', pendingOsId);
+          await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
+          await supabase.from('os_alertas').insert({
+            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'erro',
+            contexto: '🚨 Cliente cancelou TODO o serviço da bike pelo WhatsApp. Verifique a retirada.'
+          });
+          responseText = "Compreendo. Todo o serviço da sua bike foi cancelado em nosso sistema. Por favor, entre em contato ou venha até a loja para combinarmos a retirada. 🛑";
+        }
+        else if (intent.includes("NEGACAO") || intent.includes("DUVIDA")) {
           if (intent.includes("NEGACAO")) await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
           const ctxText = intent.includes("NEGACAO") ? "Cliente negou o orçamento adicional." : "Cliente tem dúvida sobre o orçamento adicional.";
           await supabase.from('os_alertas').insert({
@@ -225,18 +246,19 @@ Deno.serve(async (req) => {
           });
           await supabase.from('whatsapp_conversations').update({ require_human: true, ai_enabled: false }).eq('id', conversationId);
           
-          const responseText = intent.includes("NEGACAO") 
-            ? "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais, tudo bem?"
-            : "Certo, entendi sua dúvida. Vou chamar um atendente humano para analisar seu caso e te responder melhor.";
-          
-          const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+          responseText = intent.includes("NEGACAO") 
+            ? "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais do serviço, tudo bem?"
+            : "Certo, entendi sua dúvida. Vou chamar um atendente humano para analisar seu caso e te responder melhor sobre o serviço da bike.";
+        }
+
+        if (responseText) {
           await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
             method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
           });
           await supabase.from("whatsapp_messages").insert({
             conversation_id: conversationId, from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
           });
-          return new Response(JSON.stringify({ ok: true, processed: "human_fallback" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ ok: true, processed: intent.toLowerCase() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       }
     }
@@ -301,7 +323,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-70b-versatile",
         messages: groqMessages,
         tools: toolDefinitions,
         tool_choice: "auto",
@@ -329,44 +351,57 @@ Deno.serve(async (req) => {
       groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
+        body: JSON.stringify({ model: "llama-3.1-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
       });
       groqData = await groqResponse.json();
       assistantMessage = groqData.choices?.[0]?.message;
     }
 
-    const responseText = assistantMessage?.content?.trim();
-    if (!responseText) throw new Error("Empty response from AI");
+    let finalResponse = assistantMessage?.content?.trim();
+    if (!finalResponse) throw new Error("Empty response from AI");
+
+    if (finalResponse.includes('<function=') || finalResponse.includes('</function>')) {
+      console.log("AI leaked tool tags. Retrying for clean text...");
+      const retryRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "llama-3.1-70b-versatile",
+          messages: [...groqMessages, { role: "user", content: "Responda em texto simples, sem usar ferramentas, filtrando qualquer tag técnica." }],
+          max_tokens: 512,
+          temperature: 0.3,
+        }),
+      });
+      const retryData = await retryRes.json();
+      finalResponse = retryData.choices?.[0]?.message?.content?.trim() || finalResponse;
+    }
 
     const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-    let evoData: any;
     let sentAsAudio = false;
 
     if (respondWithAudio) {
       try {
-        const audioBase64 = await textToSpeechBase64(responseText);
+        const audioBase64 = await textToSpeechBase64(finalResponse);
         const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendMedia/${instName}`, {
           method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, mediatype: "audio", media: `data:audio/mpeg;base64,${audioBase64}`, mimetype: "audio/mpeg", fileName: "audio.mp3" }),
         });
-        evoData = await evoRes.json();
         if (evoRes.ok) sentAsAudio = true;
       } catch (e) { console.error("TTS failed", e); }
     }
 
     if (!sentAsAudio) {
-      const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-        method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
+      await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+        method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: finalResponse }),
       });
-      evoData = await evoRes.json();
     }
 
     await supabase.from("whatsapp_messages").insert({
-      conversation_id: conversationId, from_me: true, type: sentAsAudio ? "audio" : "text", content: sentAsAudio ? `🔊 ${responseText}` : responseText, status: "sent", tenant_id: tenantId,
+      conversation_id: conversationId, from_me: true, type: sentAsAudio ? "audio" : "text", content: sentAsAudio ? `🔊 ${finalResponse}` : finalResponse, status: "sent", tenant_id: tenantId,
     });
 
-    await supabase.from("whatsapp_conversations").update({ last_message: sentAsAudio ? "🔊 Áudio" : responseText, last_message_at: new Date().toISOString() }).eq("id", conversationId);
+    await supabase.from("whatsapp_conversations").update({ last_message: sentAsAudio ? "🔊 Áudio" : finalResponse, last_message_at: new Date().toISOString() }).eq("id", conversationId);
 
-    return new Response(JSON.stringify({ ok: true, response: responseText, sentAsAudio }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ok: true, response: finalResponse, sentAsAudio }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("AI Responder error:", err);
     return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: corsHeaders });

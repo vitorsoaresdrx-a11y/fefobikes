@@ -900,6 +900,20 @@ export default function Mecanica() {
   const [notifData, setNotifData] = useState<{ job: any, status: string, problem: string } | null>(null);
   const reminderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Check for pending alert on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('pendingAlert');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setNotifData(data);
+        setNotifOpen(true);
+      } catch (e) {
+        localStorage.removeItem('pendingAlert');
+      }
+    }
+  }, []);
+
   // Realtime listener for extra services
   useEffect(() => {
     const channel = supabase
@@ -922,30 +936,18 @@ export default function Mecanica() {
               .eq('id', osId)
               .single();
             
-            setNotifData({ 
+            const payloadToSave = { 
               job: job || { customer_name: 'Cliente', bike_name: 'Bike' }, 
               status: newStatus, 
-              problem: payload.new?.problem || '' 
-            });
+              problem: payload.new?.problem || '',
+              timestamp: Date.now()
+            };
+            
+            localStorage.setItem('pendingAlert', JSON.stringify(payloadToSave));
+            setNotifData(payloadToSave);
             setNotifOpen(true);
             new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3").play().catch(() => {});
           }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
-
-  // DEBUG TEMPORÁRIO PARA REALTIME
-  useEffect(() => {
-    const channel = supabase
-      .channel('debug-adicionais')
-      .on('postgres_changes' as any,
-        { event: '*', schema: 'public', table: 'os_adicionais' },
-        (payload: any) => {
-          console.log('REALTIME RECEBIDO:', payload);
-          alert('REALTIME ADICIONAIS: ' + JSON.stringify(payload.new));
         }
       )
       .subscribe();
@@ -2478,10 +2480,13 @@ export default function Mecanica() {
                 <div className="flex flex-col md:flex-row gap-4">
                   <button 
                     onClick={() => {
-                      if (reminderTimeoutRef.current) clearTimeout(reminderTimeoutRef.current);
+                      localStorage.removeItem('pendingAlert');
                       setNotifOpen(false);
-                      reminderTimeoutRef.current = setTimeout(() => {
-                        setNotifOpen(true);
+                      setTimeout(() => {
+                        if (notifData) {
+                          localStorage.setItem('pendingAlert', JSON.stringify({ ...notifData, timestamp: Date.now() }));
+                          setNotifOpen(true);
+                        }
                       }, 15 * 60 * 1000);
                       toast.info("Avisaremos você novamente em 15 minutos.");
                     }}
@@ -2492,11 +2497,11 @@ export default function Mecanica() {
                   
                   <button 
                     onClick={() => {
-                      if (reminderTimeoutRef.current) clearTimeout(reminderTimeoutRef.current);
+                      localStorage.removeItem('pendingAlert');
                       setNotifOpen(false);
                       toast.success("Ótimo atendimento! Conversa assumida.");
                     }}
-                    className="flex-1 h-20 rounded-[2rem] bg-card border-2 border-border text-muted-foreground hover:bg-muted hover:text-foreground text-xl font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                    className="flex-1 h-20 rounded-[2rem] bg-emerald-600 text-white hover:bg-emerald-500 text-xl font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
                   >
                     Vou assumir o chat
                   </button>
@@ -2507,8 +2512,7 @@ export default function Mecanica() {
                     if (!notifData?.job?.customer_whatsapp) return;
                     const phone = notifData.job.customer_whatsapp.replace(/\D/g, "");
                     window.open(`https://wa.me/${phone.startsWith('55') ? phone : '55' + phone}`, '_blank');
-                    // We don't necessarily close it here, but we can if assuming the chat
-                    if (reminderTimeoutRef.current) clearTimeout(reminderTimeoutRef.current);
+                    localStorage.removeItem('pendingAlert');
                     setNotifOpen(false);
                   }}
                   className="w-full h-20 rounded-[2rem] bg-emerald-500 text-white hover:bg-emerald-400 text-xl font-black uppercase tracking-widest transition-all shadow-[0_0_50px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-4"
