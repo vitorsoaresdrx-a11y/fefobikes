@@ -58,6 +58,7 @@ import {
   Bike,
   HelpCircle,
   CheckCircle,
+  RotateCcw,
   LayoutGrid,
   Camera,
   Image as ImageIcon,
@@ -286,19 +287,25 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
     <>
       <div className="bg-card border rounded-lg shadow-sm overflow-hidden mb-3 hover:shadow-md transition-shadow relative">
         {job.status === 'cancelado' && (
-          <div className="absolute inset-0 z-10 bg-destructive/80 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center gap-3 p-4">
-            <AlertTriangle className="text-white animate-pulse" size={40} />
-            <p className="text-white font-black text-xl uppercase tracking-widest text-center">OS Cancelada</p>
-            <div className="flex gap-2">
+          <div className="absolute inset-0 z-10 bg-destructive/90 rounded-lg flex flex-col items-center justify-center gap-4 p-6 backdrop-blur-sm">
+            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
+              <AlertTriangle size={28} className="text-white" />
+            </div>
+            <div className="text-center">
+              <p className="text-white font-black text-lg uppercase tracking-widest leading-none">OS Cancelada</p>
+              <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-1">{job.customer_name || 'Cliente'}</p>
+              <p className="text-white/40 text-[10px] font-medium mt-0.5 italic">{job.bike_name || 'Bike'}</p>
+            </div>
+            <div className="flex gap-2 w-full">
               <button
-                onClick={() => setCancelConfirmAction('retirar')}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/30 transition-all"
+                onClick={(e) => { e.stopPropagation(); setCancelConfirmAction('retirar'); }}
+                className="flex-1 h-10 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[10px] font-black uppercase tracking-widest border border-white/20 transition-all"
               >
-                Retirar Cancelamento
+                Retirar
               </button>
               <button
-                onClick={() => setCancelConfirmAction('ok')}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/30 transition-all"
+                onClick={(e) => { e.stopPropagation(); setCancelConfirmAction('ok'); }}
+                className="flex-1 h-10 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[10px] font-black uppercase tracking-widest border border-white/20 transition-all"
               >
                 Excluir
               </button>
@@ -378,31 +385,47 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
         description={`Tem certeza que deseja excluir o serviço "${job.bike_name || "Bike não informada"}"? Esta ação não pode ser desfeita.`}
       />
 
-      <Dialog open={cancelConfirmAction !== null} onOpenChange={(v) => !v && setCancelConfirmAction(null)}>
+      <Dialog open={cancelConfirmAction === 'retirar'} onOpenChange={(v) => !v && setCancelConfirmAction(null)}>
         <DialogContent className="max-w-xs p-6 bg-card border-border rounded-3xl text-center">
-          <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 ${cancelConfirmAction === 'retirar' ? 'bg-primary/20 text-primary' : 'bg-destructive/20 text-destructive'}`}>
-            {cancelConfirmAction === 'retirar' ? <RotateCcw size={32} /> : <Trash2 size={32} />}
+          <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 bg-primary/20 text-primary">
+            <RotateCcw size={32} />
           </div>
-          <h3 className="text-lg font-black uppercase tracking-tight mb-2">
-            {cancelConfirmAction === 'retirar' ? 'Reverter Cancelamento?' : 'Confirmar Exclusão?'}
-          </h3>
-          <p className="text-xs text-muted-foreground mb-6 font-medium">
-            {cancelConfirmAction === 'retirar' 
-              ? 'O serviço voltará para o status de Aprovação.' 
-              : 'Esta bike será removida permanentemente do sistema.'}
-          </p>
+          <h3 className="text-lg font-black uppercase tracking-tight mb-2">Reverter Cancelamento?</h3>
+          <p className="text-xs text-muted-foreground mb-6 font-medium">O serviço voltará para o status de Aprovação.</p>
           <div className="flex flex-col gap-2">
             <button 
-              onClick={async () => {
-                if (cancelConfirmAction === 'retirar') {
-                  await updateDetails.mutateAsync({ id: job.id, status: 'in_approval' });
-                  toast.success("Cancelamento revertido!");
-                } else if (cancelConfirmAction === 'ok') {
-                  handleConfirmDelete();
-                }
+              onClick={() => {
+                updateDetails.mutate({ id: job.id, status: 'in_approval' }, {
+                  onSuccess: () => {
+                    toast.success("Cancelamento revertido!");
+                    setCancelConfirmAction(null);
+                  },
+                  onError: () => toast.error("Erro ao reverter")
+                });
+              }}
+              className="h-12 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all active:scale-95 bg-primary"
+            >
+              Confirmar
+            </button>
+            <button onClick={() => setCancelConfirmAction(null)} className="h-10 text-[10px] font-bold text-muted-foreground uppercase">Desistir</button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={cancelConfirmAction === 'ok'} onOpenChange={(v) => !v && setCancelConfirmAction(null)}>
+        <DialogContent className="max-w-xs p-6 bg-card border-border rounded-3xl text-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 bg-destructive/20 text-destructive">
+            <Trash2 size={32} />
+          </div>
+          <h3 className="text-lg font-black uppercase tracking-tight mb-2">Confirmar Exclusão?</h3>
+          <p className="text-xs text-muted-foreground mb-6 font-medium">Esta bike será removida permanentemente do sistema.</p>
+          <div className="flex flex-col gap-2">
+            <button 
+              onClick={() => {
+                handleConfirmDelete();
                 setCancelConfirmAction(null);
               }}
-              className={`h-12 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all active:scale-95 ${cancelConfirmAction === 'retirar' ? 'bg-primary' : 'bg-destructive'}`}
+              className="h-12 rounded-xl text-white text-xs font-black uppercase tracking-widest transition-all active:scale-95 bg-destructive"
             >
               Confirmar
             </button>
