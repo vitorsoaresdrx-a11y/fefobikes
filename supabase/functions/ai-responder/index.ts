@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
         .from('os_adicionais')
         .select('id, os_id, status, valor_total, problem')
         .in('os_id', jobIds)
-        .in('status', ['enviado', 'pendente'])
+        .in('status', ['enviado', 'pendente', 'negado'])
         .order('criado_em', { ascending: false });
 
       if (adicionais && adicionais.length > 0) {
