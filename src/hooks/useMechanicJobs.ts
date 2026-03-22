@@ -623,6 +623,42 @@ export function useDeleteMechanicJob() {
   });
 }
 
+export function useCancelAndArchiveMechanicJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (job: MechanicJob) => {
+      // 1. Insere no histórico com tag cancelada, sem mecânico, sem valor
+      await supabase.from("bike_service_history" as any).insert({
+        frame_number: job.id, // usa o id como frame_number se não houver quadro
+        bike_name: job.bike_name || "Bike",
+        customer_name: job.customer_name || null,
+        customer_cpf: job.customer_cpf || null,
+        customer_phone: job.customer_whatsapp || null,
+        problem: job.problem,
+        mechanic_id: null,
+        mechanic_name: null,
+        service_order_id: job.id,
+        status: "cancelado",
+        sem_custo: true, // não contabiliza no DRE
+        completed_at: new Date().toISOString(),
+      });
+
+      // 2. Cancela qualquer venda vinculada (para não entrar no DRE)
+      await supabase.from("sales" as any)
+        .update({ status: "cancelled" })
+        .eq("mechanic_job_id", job.id);
+
+      // 3. Deleta o job do kanban
+      await supabase.from("mechanic_jobs" as any).delete().eq("id", job.id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["bike_service_history"] });
+    },
+  });
+}
+
 export function useCreateAddition() {
   const qc = useQueryClient();
   return useMutation({

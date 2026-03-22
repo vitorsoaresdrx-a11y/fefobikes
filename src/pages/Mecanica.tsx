@@ -21,6 +21,7 @@ import {
   useDeleteAddition,
   useFinalizeJob,
   useRegisterPayment,
+  useCancelAndArchiveMechanicJob,
   type MechanicJob,
   type MechanicJobAddition,
   type AdditionPart,
@@ -250,6 +251,7 @@ function AdditionBadge({ addition, showActions, isMechanicView }: { addition: Me
 
 function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdvance, onFinalize, isMechanicView }: { job: MechanicJob; isLast: boolean; columnKey: string; onAddRepair: (j: MechanicJob) => void; onEdit: (j: MechanicJob) => void; onRetreat?: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void; onFinalize?: (j: MechanicJob) => void; isMechanicView?: boolean }) {
   const remove = useDeleteMechanicJob();
+  const archive = useCancelAndArchiveMechanicJob();
   const advanceMutation = useAdvanceMechanicJob();
   const total = getTotalPrice(job);
   const hasBike = !!job.bike_name;
@@ -277,10 +279,17 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
   };
 
   const handleConfirmDelete = () => {
-    remove.mutate(job.id, {
-      onSuccess: () => { toast.success("Serviço excluído"); setDeleteDialogOpen(false); },
-      onError: () => toast.error("Erro ao excluir"),
-    });
+    if (job.status === 'cancelado') {
+      archive.mutate(job, {
+        onSuccess: () => { toast.success("Serviço arquivado (cancelado)"); setDeleteDialogOpen(false); },
+        onError: () => toast.error("Erro ao arquivar"),
+      });
+    } else {
+      remove.mutate(job.id, {
+        onSuccess: () => { toast.success("Serviço excluído"); setDeleteDialogOpen(false); },
+        onError: () => toast.error("Erro ao excluir"),
+      });
+    }
   };
 
   return (
