@@ -906,20 +906,28 @@ export default function Mecanica() {
       .on('postgres_changes' as any, 
         { event: 'UPDATE', schema: 'public', table: 'os_adicionais' },
         async (payload: any) => {
-          const isV2Approval = payload.new.status === 'aprovado' || payload.new.status === 'negado' || payload.new.status === 'recusado';
-          const isV1Approval = (payload.new.status === 'accepted' || payload.new.status === 'refused') && 
-                               (payload.old.status === 'pending');
+          const newStatus = payload.new?.status;
+          const oldStatus = payload.old?.status;
 
-          if (isV2Approval || isV1Approval) {
-            // Fetch job info
-            const { data: job } = await supabase.from('mechanic_jobs').select('*').eq('id', payload.new.os_id).single();
-            if (job) {
-              setNotifData({ job, status: payload.new.status, problem: payload.new.problem });
-              setNotifOpen(true);
-              // Play a sound if possible
-              const audio = new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3");
-              audio.play().catch(() => {});
-            }
+          const isApprovalEvent = 
+            (newStatus === 'aprovado' || newStatus === 'negado' || newStatus === 'recusado') &&
+            newStatus !== oldStatus;
+
+          if (isApprovalEvent) {
+            const osId = payload.new?.os_id;
+            const { data: job } = await supabase
+              .from('mechanic_jobs')
+              .select('*')
+              .eq('id', osId)
+              .single();
+            
+            setNotifData({ 
+              job: job || { customer_name: 'Cliente', bike_name: 'Bike' }, 
+              status: newStatus, 
+              problem: payload.new?.problem || '' 
+            });
+            setNotifOpen(true);
+            new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3").play().catch(() => {});
           }
         }
       )
