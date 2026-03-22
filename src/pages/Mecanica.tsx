@@ -188,9 +188,26 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
   };
 
   const handleApproveManually = async () => {
-    const pending = job.additions?.find(a => (a.approval as string) === 'pending' || (a.approval as string) === 'pendente');
-    if (pending) {
-      await updateApproval.mutateAsync({ id: pending.id, approval: 'accepted', is_v2: (pending as any).is_v2 });
+    const pendingAddition = job.additions?.find(a => (a.approval as string) === 'pending' || (a.approval as string) === 'pendente');
+    if (pendingAddition) {
+      await updateApproval.mutateAsync({ id: pendingAddition.id, approval: 'accepted', is_v2: (pendingAddition as any).is_v2 });
+      
+      const adicionalTotal = pendingAddition ? getAdditionTotal(pendingAddition) : 0;
+      if (adicionalTotal > 0) {
+        const { data: pgData } = await supabase
+          .from('os_pagamentos')
+          .select('*')
+          .eq('os_id', job.id)
+          .maybeSingle();
+
+        if (pgData) {
+          await supabase.from('os_pagamentos').update({
+            valor_total: Number(pgData.valor_total) + adicionalTotal,
+            valor_restante: Number(pgData.valor_restante) + adicionalTotal
+          }).eq('os_id', job.id);
+        }
+      }
+
       if (job.customer_whatsapp) {
         const phone = job.customer_whatsapp.replace(/\D/g, '');
         const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
@@ -455,6 +472,21 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cancelConfirmAction, setCancelConfirmAction] = useState<'retirar' | 'ok' | null>(null);
   const updateDetails = useUpdateMechanicJobDetails();
+  const [aiActive, setAiActive] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!job.customer_whatsapp) return;
+    const phone = job.customer_whatsapp.replace(/\D/g, '').slice(-10);
+    supabase
+      .from('whatsapp_conversations')
+      .select('ai_enabled, human_takeover')
+      .ilike('contact_phone', `%${phone}%`)
+      .limit(1)
+      .then(({ data }) => {
+        const conv = (data as any)?.[0];
+        if (conv) setAiActive(conv.ai_enabled === true && conv.human_takeover !== true);
+      });
+  }, [job.customer_whatsapp]);
 
   const showApprovalActions = columnKey === "in_approval";
   const showRetreat = columnKey === "ready";
@@ -533,9 +565,16 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
               </div>
               <p className="text-xs text-muted-foreground">{job.customer_name || "Cliente Avulso"}</p>
             </div>
-            <div className="flex gap-1">
-              <button onClick={(e) => { e.stopPropagation(); onEdit(job); }} className="p-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors"><Pencil size={14} /></button>
-              <button onClick={(e) => { e.stopPropagation(); setDeleteDialogOpen(true); }} className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 size={14} /></button>
+            <div className="flex gap-2 items-center">
+              {aiActive !== null && (
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${aiActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`} title={aiActive ? 'IA ativa' : 'IA pausada'}>
+                  {aiActive ? <Activity size={10} /> : <Pause size={10} />}
+                </div>
+              )}
+              <div className="flex gap-1">
+                <button onClick={(e) => { e.stopPropagation(); onEdit(job); }} className="p-1.5 rounded-md text-muted-foreground hover:bg-muted transition-colors"><Pencil size={14} /></button>
+                <button onClick={(e) => { e.stopPropagation(); setDeleteDialogOpen(true); }} className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><Trash2 size={14} /></button>
+              </div>
             </div>
           </div>
 
