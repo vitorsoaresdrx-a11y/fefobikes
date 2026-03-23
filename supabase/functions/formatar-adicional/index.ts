@@ -127,7 +127,10 @@ Deno.serve(async (req) => {
 
     // 3. Send WhatsApp via Evolution API
     const instName = job.tenant_id ? instanceName(job.tenant_id) : "fefo-default";
-    const formattedPhone = (phone.length >= 10 && phone.length <= 11) ? `55${phone}` : phone;
+    
+    // Improved phone formatting
+    const rawPhone = phone.replace(/\D/g, "");
+    const formattedPhone = (rawPhone.length >= 10 && rawPhone.length <= 11 && !rawPhone.startsWith("55")) ? `55${rawPhone}` : rawPhone;
 
       const evoRes = await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
         method: "POST",
@@ -137,9 +140,9 @@ Deno.serve(async (req) => {
       });
 
       if (!evoRes.ok) {
-        const err = await evoRes.text();
-        console.error("Evolution API error:", err);
-        // We log the error but still try to move the card if the message was sent or we want the AI to listen
+        const errText = await evoRes.text();
+        console.error("Evolution API error details:", errText);
+        throw new Error(`Erro ao enviar WhatsApp: ${evoRes.status} - ${errText}`);
       }
 
       console.log("Updating OS status to in_approval and os_adicionais to enviado...");
