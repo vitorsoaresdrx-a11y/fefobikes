@@ -84,14 +84,17 @@ export function useCancelHistoryRecord() {
   return useMutation({
     mutationFn: async (id: string) => {
       // 1. Get the record to find service_order_id
-      const { data: record } = await supabase.from("bike_service_history").select("service_order_id").eq("id", id).single();
+      const { data: record, error: getErr } = await supabase.from("bike_service_history").select("service_order_id").eq("id", id).single();
+      if (getErr) throw getErr;
       
       // 2. Cancel the history record
-      await supabase.from("bike_service_history").update({ status: "cancelado" }).eq("id", id);
+      const { error: cancelErr } = await supabase.from("bike_service_history").update({ status: "cancelado" }).eq("id", id);
+      if (cancelErr) throw cancelErr;
       
       // 3. Cancel the related sale if exists
       if (record?.service_order_id) {
-        await supabase.from("sales").update({ status: "cancelled" }).eq("mechanic_job_id", record.service_order_id);
+        const { error: saleErr } = await supabase.from("sales").update({ status: "cancelled" }).eq("mechanic_job_id", record.service_order_id);
+        if (saleErr) console.warn("Could not cancel related sale:", saleErr);
       }
     },
     onMutate: async (id) => {
@@ -118,14 +121,17 @@ export function useDeleteHistoryRecord() {
   return useMutation({
     mutationFn: async (id: string) => {
       // 1. Get record for linked sale
-      const { data: record } = await supabase.from("bike_service_history").select("service_order_id").eq("id", id).single();
+      const { data: record, error: getErr } = await supabase.from("bike_service_history").select("service_order_id").eq("id", id).single();
+      if (getErr) throw getErr;
       
       // 2. Delete the record
-      await supabase.from("bike_service_history").delete().eq("id", id);
+      const { error: delErr } = await supabase.from("bike_service_history").delete().eq("id", id);
+      if (delErr) throw delErr;
       
       // 3. Delete related sale if exists
       if (record?.service_order_id) {
-        await supabase.from("sales").delete().eq("mechanic_job_id", record.service_order_id);
+        const { error: saleDelErr } = await supabase.from("sales").delete().eq("mechanic_job_id", record.service_order_id);
+        if (saleDelErr) console.warn("Could not delete related sale:", saleDelErr);
       }
     },
     onMutate: async (id) => {

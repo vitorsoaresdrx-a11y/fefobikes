@@ -28,12 +28,14 @@ const formatDate = (d: string | null) =>
 
 export default function MecanicosHistorico() {
   const { data: groups = [], isLoading } = useBikeServiceHistory();
-  const [selected, setSelected] = useState<GroupedBikeHistory | null>(null);
+  const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
   const cancelHistory = useCancelHistoryRecord();
   const deleteHistory = useDeleteHistoryRecord();
+
+  const selectedGroup = groups.find(g => g.frame_number === selectedFrame);
 
   return (
     <div className="min-h-full bg-background text-foreground pb-24 lg:pb-0">
@@ -68,7 +70,7 @@ export default function MecanicosHistorico() {
               return (
                 <button
                   key={group.frame_number}
-                  onClick={() => setSelected(group)}
+                  onClick={() => setSelectedFrame(group.frame_number)}
                   className={`w-full border rounded-2xl p-4 flex items-center justify-between transition-all text-left group ${
                     isCancelled 
                       ? 'bg-destructive/10 border-destructive/40 hover:border-destructive/60' 
@@ -103,31 +105,31 @@ export default function MecanicosHistorico() {
       </div>
 
       {/* Detail Modal */}
-      <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
+      <Dialog open={!!selectedGroup} onOpenChange={(o) => !o && setSelectedFrame(null)}>
         <DialogContent className="bg-secondary border-border w-full sm:max-w-lg overflow-y-auto max-h-[90vh] p-0 gap-0">
           <div className="p-6 border-b border-border/50">
             <DialogHeader>
               <div className="flex items-center justify-between gap-4">
                 <DialogTitle className="text-xl font-black text-white italic uppercase truncate flex-1">
-                  {selected?.bike_name}
+                  {selectedGroup?.bike_name}
                 </DialogTitle>
                 <div className="px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[8px] font-black uppercase tracking-widest">
                   Atendimentos
                 </div>
               </div>
               <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-2 ml-0.5">
-                Nº Quadro: <span className="text-white">{selected?.frame_number}</span>
+                Nº Quadro: <span className="text-white">{selectedGroup?.frame_number}</span>
               </p>
             </DialogHeader>
           </div>
 
           <div className="p-6 space-y-6">
-            {selected?.records.map((record, i) => (
+            {selectedGroup?.records.map((record, i) => (
               <div key={record.id} className="bg-background/40 border border-border/40 rounded-3xl p-6 space-y-5 relative overflow-hidden group hover:border-border/60 transition-all">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1.5">
                     <span className="text-[10px] font-black text-primary uppercase tracking-widest block">
-                      Atendimento #{selected.records.length - i}
+                      Atendimento #{selectedGroup.records.length - i}
                     </span>
                     <div className="flex gap-2 flex-wrap">
                       {record.status === 'cancelado' && (
