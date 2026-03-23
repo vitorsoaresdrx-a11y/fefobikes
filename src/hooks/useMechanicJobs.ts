@@ -450,17 +450,21 @@ export function useRestoreCancelledJob() {
     mutationFn: async (job: any) => {
       console.log('🏁 Iniciando restauração. OS completa:', job);
       
-      const uuid = job?.id || job; // Fallback se passar apenas a string
-      console.log('🔍 Usando UUID para atualização:', uuid);
+      const uuid = job?.id || job;
+      console.log('🔍 Identificador usado (UUID):', uuid);
 
       const { data, error } = await supabase
         .from("mechanic_jobs" as any)
-        .update({ status: "in_approval" })
+        .update({ status: "in_approval" }) // Usando o status do Kanban: 'in_approval'
         .eq("id", uuid)
         .select();
 
       if (error) {
-        console.error("❌ Erro do Supabase ao reativar OS:", error);
+        console.error('❌ Erro completo:', error);
+        console.error('message:', error?.message);
+        console.error('details:', error?.details);
+        console.error('hint:', error?.hint);
+        console.error('code:', error?.code);
         throw error;
       }
 
@@ -470,8 +474,8 @@ export function useRestoreCancelledJob() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
     },
-    onError: (err) => {
-      console.error("💥 Erro na mutação de restauração:", err);
+    onError: (err: any) => {
+      console.error("💥 Falha na mutação de restauração:", err);
     }
   });
 }
