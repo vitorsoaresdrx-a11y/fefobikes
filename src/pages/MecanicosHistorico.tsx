@@ -225,12 +225,16 @@ export default function MecanicosHistorico() {
         onOpenChange={(o) => !o && setCancelId(null)}
         onConfirm={() => {
           if (cancelId) {
-            cancelHistory.mutate(cancelId, {
+            const idToCancel = cancelId;
+            setCancelId(null); // limpa ANTES
+            cancelHistory.mutate(idToCancel, {
               onSuccess: () => {
                 toast.success("Atendimento cancelado");
-                setCancelId(null);
               },
-              onError: () => toast.error("Erro ao cancelar atendimento")
+              onError: () => {
+                toast.error("Erro ao cancelar atendimento");
+                setCancelId(idToCancel); // restaura só se der erro
+              }
             });
           }
         }}
@@ -243,15 +247,19 @@ export default function MecanicosHistorico() {
         onOpenChange={(o) => !o && setDeleteId(null)}
         onConfirm={() => {
           if (deleteId) {
-            deleteHistory.mutate(deleteId, {
+            const idToDelete = deleteId;
+            setDeleteId(null); // limpa ANTES para evitar reabrir
+            deleteHistory.mutate(idToDelete, {
               onSuccess: () => {
                 toast.success("Atendimento excluído");
                 if (selected?.records.length === 1) {
                   setSelectedFrame(null);
                 }
-                setDeleteId(null);
               },
-              onError: () => toast.error("Erro ao excluir atendimento")
+              onError: () => {
+                toast.error("Erro ao excluir atendimento");
+                setDeleteId(idToDelete); // restaura só se der erro
+              }
             });
           }
         }}
