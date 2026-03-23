@@ -113,7 +113,10 @@ h2{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;letter-spacing
 .highlight strong{color:var(--text);font-weight:500}
 
 /* DECISION TABLE */
-.dtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:1rem}
+.dtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:1rem;min-width:500px}
+.dtable-wrapper{overflow-x:auto;margin-top:1rem;-webkit-overflow-scrolling:touch}
+.dtable-wrapper::-webkit-scrollbar{height:3px}
+.dtable-wrapper::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .dtable th{text-align:left;padding:.6rem .8rem;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border-bottom:.5px solid var(--border2);font-weight:500}
 .dtable td{padding:.6rem .8rem;border-bottom:.5px solid var(--border);color:var(--muted);vertical-align:top}
 .dtable tr:last-child td{border-bottom:none}
@@ -134,10 +137,19 @@ footer{padding:3rem 2rem;border-top:.5px solid var(--border);text-align:center}
 .hero-inner>*:nth-child(3){animation-delay:.3s}
 .hero-inner>*:nth-child(4){animation-delay:.4s}
 
+@media(max-width:768px){
+  .hero{padding:4rem 1.5rem 3rem}
+  .section{padding:3.5rem 1.5rem}
+  .sec-header{flex-direction:column;gap:.5rem;margin-bottom:2rem}
+  h1{font-size:clamp(2.2rem,11vw,4rem)}
+}
+
 @media(max-width:600px){
   .chain{flex-direction:column}
-  .chain-arrow{transform:rotate(90deg);justify-content:center;padding:4px 0}
-  .hero-stats{gap:1.5rem}
+  .chain-arrow{transform:rotate(90deg);justify-content:center;padding:12px 0;opacity:0.5}
+  .hero-stats{gap:1.2rem}
+  .stat-n{font-size:1.6rem}
+  .grid2, .grid3{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -435,62 +447,64 @@ footer{padding:3rem 2rem;border-top:.5px solid var(--border);text-align:center}
       <span class="sec-num">07</span>
       <h2>Quando a IA age e quando para</h2>
     </div>
-    <table class="dtable">
-      <thead>
-        <tr>
-          <th>Situação</th>
-          <th>IA faz o quê?</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Sem OS ativa, cliente fala qualquer coisa</td>
-          <td>Atendimento geral — catálogo, frete, dúvidas</td>
-          <td><span class="badge bg-g">Ativa</span></td>
-        </tr>
-        <tr>
-          <td>OS ativa, cliente manda mensagem</td>
-          <td>Responde com status atual da bike</td>
-          <td><span class="badge bg-g">Ativa</span></td>
-        </tr>
-        <tr>
-          <td>Adicional pendente</td>
-          <td>Aguarda e classifica resposta do cliente</td>
-          <td><span class="badge bg-b">Aguardando</span></td>
-        </tr>
-        <tr>
-          <td>Cliente aprova adicional</td>
-          <td>Confirma, soma valor, continua informando status</td>
-          <td><span class="badge bg-g">Ativa</span></td>
-        </tr>
-        <tr>
-          <td>Cliente nega adicional</td>
-          <td>Informa que só o inicial será feito, continua status</td>
-          <td><span class="badge bg-g">Ativa</span></td>
-        </tr>
-        <tr>
-          <td>Cliente cancela a OS inteira</td>
-          <td>Para completamente. Nunca mais responde nessa conversa.</td>
-          <td><span class="badge bg-r">Desativada</span></td>
-        </tr>
-        <tr>
-          <td>Atendente pausa manualmente</td>
-          <td>Silêncio total naquela conversa</td>
-          <td><span class="badge bg-r">Pausada</span></td>
-        </tr>
-        <tr>
-          <td>Nova OS aberta no mesmo número</td>
-          <td>IA reinicia do zero para aquele cliente</td>
-          <td><span class="badge bg-g">Reativada</span></td>
-        </tr>
-        <tr>
-          <td>OS sem número de WhatsApp</td>
-          <td>Não age — apenas atendente gerencia</td>
-          <td><span class="badge bg-m">Inativa</span></td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="dtable-wrapper">
+      <table class="dtable">
+        <thead>
+          <tr>
+            <th>Situação</th>
+            <th>IA faz o quê?</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sem OS ativa, cliente fala qualquer coisa</td>
+            <td>Atendimento geral — catálogo, frete, dúvidas</td>
+            <td><span class="badge bg-g">Ativa</span></td>
+          </tr>
+          <tr>
+            <td>OS ativa, cliente manda mensagem</td>
+            <td>Responde com status atual da bike</td>
+            <td><span class="badge bg-g">Ativa</span></td>
+          </tr>
+          <tr>
+            <td>Adicional pendente</td>
+            <td>Aguarda e classifica resposta do cliente</td>
+            <td><span class="badge bg-b">Aguardando</span></td>
+          </tr>
+          <tr>
+            <td>Cliente aprova adicional</td>
+            <td>Confirma, soma valor, continua informando status</td>
+            <td><span class="badge bg-g">Ativa</span></td>
+          </tr>
+          <tr>
+            <td>Cliente nega adicional</td>
+            <td>Informa que só o inicial será feito, continua status</td>
+            <td><span class="badge bg-g">Ativa</span></td>
+          </tr>
+          <tr>
+            <td>Cliente cancela a OS inteira</td>
+            <td>Para completamente. Nunca mais responde nessa conversa.</td>
+            <td><span class="badge bg-r">Desativada</span></td>
+          </tr>
+          <tr>
+            <td>Atendente pausa manualmente</td>
+            <td>Silêncio total naquela conversa</td>
+            <td><span class="badge bg-r">Pausada</span></td>
+          </tr>
+          <tr>
+            <td>Nova OS aberta no mesmo número</td>
+            <td>IA reinicia do zero para aquele cliente</td>
+            <td><span class="badge bg-g">Reativada</span></td>
+          </tr>
+          <tr>
+            <td>OS sem número de WhatsApp</td>
+            <td>Não age — apenas atendente gerencia</td>
+            <td><span class="badge bg-m">Inativa</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 

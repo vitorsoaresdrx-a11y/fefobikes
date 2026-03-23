@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { cn } from "@/lib/utils";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -50,47 +51,54 @@ export function AppLayout() {
     crumbs.push({ label, path: currentPath });
   }
 
+  const isMecanica = location.pathname === "/mecanica";
+
   return (
     <SidebarProvider>
-        <div className="flex h-screen w-screen bg-background text-foreground">
-        <AppSidebar />
+      <div className="flex h-screen w-screen bg-background text-foreground">
+        {!isMecanica && <AppSidebar />}
         <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Top bar with safe area */}
-          <header className="flex flex-col border-b border-border shrink-0 sticky top-0 z-20 bg-background" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-            <div className="h-12 flex items-center gap-3 px-4">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <div className="h-4 w-px bg-border hidden lg:block" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="text-muted-foreground text-xs">
-                    Fefo Bikes
-                  </BreadcrumbPage>
-                </BreadcrumbItem>
-                {crumbs.map((crumb, i) => (
-                  <span key={crumb.path} className="contents">
-                    <BreadcrumbSeparator className="text-muted-foreground/50" />
+          {!isMecanica && (
+            <header className="flex flex-col border-b border-border shrink-0 sticky top-0 z-20 bg-background" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+              <div className="h-12 flex items-center gap-3 px-4">
+                <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+                <div className="h-4 w-px bg-border hidden lg:block" />
+                <Breadcrumb>
+                  <BreadcrumbList>
                     <BreadcrumbItem>
-                      <BreadcrumbPage
-                        className={
-                          i === crumbs.length - 1
-                            ? "text-foreground text-xs font-medium"
-                            : "text-muted-foreground text-xs"
-                        }
-                      >
-                        {crumb.label}
+                      <BreadcrumbPage className="text-muted-foreground text-xs">
+                        Fefo Bikes
                       </BreadcrumbPage>
                     </BreadcrumbItem>
-                  </span>
-                ))}
-              </BreadcrumbList>
-            </Breadcrumb>
-            </div>
-          </header>
+                    {crumbs.map((crumb, i) => (
+                      <span key={crumb.path} className="contents">
+                        <BreadcrumbSeparator className="text-muted-foreground/50" />
+                        <BreadcrumbItem>
+                          <BreadcrumbPage
+                            className={
+                              i === crumbs.length - 1
+                                ? "text-foreground text-xs font-medium"
+                                : "text-muted-foreground text-xs"
+                            }
+                          >
+                            {crumb.label}
+                          </BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </span>
+                    ))}
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+            </header>
+          )}
 
           {/* Main content */}
           <main
-            className="flex-1 min-w-0 min-h-screen overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 lg:px-6 lg:pt-6 lg:pb-8 bg-background"
+            className={cn(
+              "flex-1 min-w-0 min-h-screen overflow-y-auto overflow-x-hidden bg-background",
+              !isMecanica ? "px-4 pt-4 pb-32 lg:px-6 lg:pt-6 lg:pb-8" : "p-0"
+            )}
           >
             <Suspense
               fallback={
@@ -105,7 +113,7 @@ export function AppLayout() {
         </div>
 
         {/* Bottom nav for mobile */}
-        <BottomNav />
+        {!isMecanica && <BottomNav />}
         <GlobalSearch />
         <CallsOverlay />
       </div>

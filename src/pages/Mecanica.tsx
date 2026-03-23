@@ -67,7 +67,7 @@ import {
   FileText,
   Pause,
   Play,
-  CheckCircle2,
+  ArrowLeft,
 } from "lucide-react";
 import {
   Dialog,
@@ -115,6 +115,14 @@ const columns = [
     color: "text-yellow-400",
     bg: "bg-yellow-400/5",
     border: "border-yellow-400/20",
+  },
+  {
+    key: "in_repair" as const,
+    label: "Na Mecânica",
+    icon: Wrench,
+    color: "text-amber-400",
+    bg: "bg-amber-400/5",
+    border: "border-amber-400/20",
   },
   {
     key: "in_maintenance" as const,
@@ -1155,6 +1163,8 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
 }
 
 export default function Mecanica() {
+  const navigate = useNavigate();
+
   useMechanicJobsRealtime();
   const { data: jobs = [], isLoading } = useMechanicJobs();
   const create = useCreateMechanicJob();
@@ -1692,16 +1702,28 @@ export default function Mecanica() {
         } 
       });
 
-      // 2. If moved manually, update WhatsApp conversation
+      // 2. If moved manually, notify client via WhatsApp and update conversation
       if (confirmedMove && editForm.customer_whatsapp) {
         const phone = editForm.customer_whatsapp.replace(/\D/g, "");
+        const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+
+        const statusMessages: Record<string, string> = {
+          in_repair: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`,
+          in_maintenance: `Boas notícias, ${editForm.customer_name || "cliente"}! A manutenção da sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}acabou de começar! 🛠️`,
+          ready: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`,
+        };
+
+        const message = statusMessages[editForm.status];
+        if (message) {
+          sendMessage.mutate({ phone: formattedPhone, message });
+        }
+
         const phoneSuffix = phone.length > 10 ? phone.slice(-10) : phone;
-        
         const { data: convs } = await supabase
           .from('whatsapp_conversations')
           .select('id')
           .ilike('wa_id', `%${phoneSuffix}%`);
-        
+
         if (convs && convs.length > 0) {
           await supabase
             .from('whatsapp_conversations')
@@ -1868,22 +1890,28 @@ export default function Mecanica() {
   const pendingApprovals = jobs.filter((j) => j.additions?.some((a) => a.approval === "pending")).length;
   const avgTicket = jobs.length > 0 ? jobs.reduce((sum, j) => sum + getTotalPrice(j), 0) / jobs.length : 0;
 
-  const allMobileTabs = [
-    { key: "in_approval" as const, label: "Em Aprovação", icon: FileCheck, color: "text-yellow-400", bg: "bg-yellow-400/5", border: "border-yellow-400/20" },
-    { key: "in_repair" as const, label: "Na Mecânica", icon: Wrench, color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20" },
-    ...columns.slice(1),
-  ];
+  const allMobileTabs = columns;
 
   return (
     <div className="min-h-full bg-background text-foreground selection:bg-primary/30 pb-24 lg:pb-0">
       <div className="w-full min-w-0 p-4 md:p-6 space-y-6 md:space-y-10 overflow-x-hidden">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Wrench className="w-5 h-5 text-primary" />
-              Oficina
-            </h1>
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Gerenciamento de Manutenções</p>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate("/")}
+              className="h-10 px-3 flex items-center justify-center gap-2 rounded-xl bg-secondary border border-border hover:bg-muted transition-all active:scale-95 group"
+              title="Voltar para Ações Rápidas"
+            >
+              <ArrowLeft size={18} className="text-muted-foreground group-hover:text-foreground" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground hidden sm:block">Voltar</span>
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-primary" />
+                Oficina
+              </h1>
+              <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest leading-none mt-1">Gerenciamento de Manutenções</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:block text-right">
@@ -1926,23 +1954,26 @@ export default function Mecanica() {
               </div>
             </div>
 
-            {grouped.in_repair.length > 0 && (
-              <div className="hidden md:flex justify-center">
-                <button onClick={() => setMechanicCardOpen(true)} className="bg-amber-100 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/40 rounded-lg px-4 py-2 flex items-center justify-center gap-2 hover:bg-amber-200 transition-colors">
-                  <Wrench size={14} className="text-amber-600" />
-                  <span className="text-xs font-bold text-amber-600">Na Mecânica ({grouped.in_repair.length})</span>
-                </button>
-              </div>
-            )}
-
-            <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="hidden md:grid grid-cols-2 lg:grid-cols-5 gap-4">
               {columns.map((col) => (
                 <div key={col.key} className="flex-1 min-w-0 flex flex-col bg-muted/20 rounded-lg p-3 border">
                   <ColumnHeader {...col} count={grouped[col.key].length} />
                   <div className="space-y-3 pb-6 flex-1">
                     {grouped[col.key].length > 0 ? (
                       grouped[col.key].map((job) => (
-                        <JobCard key={job.id} job={job} isLast={col.key === "ready"} columnKey={col.key} onAddRepair={handleAddRepair} onEdit={handleEditJob} onRetreat={handleRetreatJob} onAdvance={col.key !== "ready" ? handleAdvanceJob : undefined} onFinalize={col.key === "ready" ? handleOpenFinalize : undefined} onOpenControl={(j) => { setSelectedControlJob(j); setControlOpen(true); }} />
+                        <JobCard 
+                          key={job.id} 
+                          job={job} 
+                          isLast={col.key === "ready"} 
+                          columnKey={col.key} 
+                          onAddRepair={handleAddRepair} 
+                          onEdit={handleEditJob} 
+                          onRetreat={handleRetreatJob} 
+                          onAdvance={col.key !== "ready" ? handleAdvanceJob : undefined} 
+                          onFinalize={col.key === "ready" ? handleOpenFinalize : undefined} 
+                          onOpenControl={(j) => { setSelectedControlJob(j); setControlOpen(true); }}
+                          isMechanicView={col.key === "in_repair"}
+                        />
                       ))
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center py-20 opacity-20">
@@ -2694,60 +2725,7 @@ export default function Mecanica() {
         </DialogContent>
       </Dialog>
 
-      <>
-        {mechanicCardOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60" onClick={() => setMechanicCardOpen(false)} />
-            <div className="relative bg-secondary border border-border rounded-2xl p-0 overflow-hidden w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
-              <div aria-hidden="true" className="sr-only">Ordens na Mecânica</div>
 
-              <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-secondary/50 backdrop-blur-sm sticky top-0 z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                    <Wrench size={18} className="text-amber-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-black text-foreground uppercase tracking-tight">Na Mecânica</h2>
-                    <p className="text-[10px] text-muted-foreground font-bold">{(grouped.in_repair || []).length} OS em andamento</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setMechanicCardOpen(false)} 
-                  className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                {(Array.isArray(grouped.in_repair) && grouped.in_repair.length > 0) ? (
-                  grouped.in_repair.map((job) => {
-                    if (!job) return null;
-                    return (
-                      <JobCard 
-                        key={job.id} 
-                        job={job} 
-                        isLast={false} 
-                        columnKey="in_repair" 
-                        onAddRepair={handleAddRepair} 
-                        onEdit={handleEditJob} 
-                        onRetreat={handleRetreatJob} 
-                        onAdvance={handleAdvanceJob} 
-                        isMechanicView={true} 
-                      />
-                    );
-                  })
-                ) : (
-                  <div className="py-20 text-center space-y-3 opacity-20">
-                    <Wrench className="mx-auto" size={40} />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma bike na mecânica</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </>
   {/* ── Modal de Registro de Pagamento ─────────────────────────────────── */}
       <Dialog open={registerPayOpen} onOpenChange={setRegisterPayOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
