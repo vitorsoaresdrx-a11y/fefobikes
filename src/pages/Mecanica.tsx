@@ -1594,8 +1594,8 @@ export default function Mecanica() {
 
     const orderData = {
       customer_name: form.customer_name || null,
-      customer_cpf: form.customer_cpf || null,
-      customer_whatsapp: form.customer_whatsapp || null,
+      customer_cpf: form.customer_cpf?.replace(/\D/g, '') || null,
+      customer_whatsapp: form.customer_whatsapp?.replace(/\D/g, '') || null,
       customer_id: form.customer_id || null,
       bike_name: form.bike_name || null,
       problem: form.problem || "",
@@ -1774,8 +1774,8 @@ export default function Mecanica() {
       await updateDetails.mutateAsync({ 
         id: editJob.id, 
         customer_name: editForm.customer_name || null, 
-        customer_cpf: editForm.customer_cpf || null, 
-        customer_whatsapp: editForm.customer_whatsapp || null, 
+        customer_cpf: editForm.customer_cpf?.replace(/\D/g, '') || null, 
+        customer_whatsapp: editForm.customer_whatsapp?.replace(/\D/g, '') || null, 
         customer_id: editForm.customer_id || null, 
         bike_name: editForm.bike_name || null, 
         problem: editForm.problem || "", 
