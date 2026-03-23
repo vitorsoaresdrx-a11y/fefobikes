@@ -448,28 +448,28 @@ export function useRestoreCancelledJob() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (job: any) => {
-      console.log('🏁 Iniciando restauração. OS completa:', job);
+      console.log('🏁 Iniciando restauração (sem select para evitar erro wc.phone). OS:', job);
       
       const uuid = job?.id || job;
-      console.log('🔍 Identificador usado (UUID):', uuid);
+      console.log('🔍 UUID identificador:', uuid);
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("mechanic_jobs" as any)
-        .update({ status: "in_approval" }) // Usando o status do Kanban: 'in_approval'
-        .eq("id", uuid)
-        .select();
+        .update({ status: "in_approval" })
+        .eq("id", uuid);
 
       if (error) {
-        console.error('❌ Erro completo:', error);
-        console.error('message:', error?.message);
-        console.error('details:', error?.details);
-        console.error('hint:', error?.hint);
-        console.error('code:', error?.code);
+        console.error('❌ Erro detalhado no Update:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
-      console.log("✅ OS reativada com sucesso:", data);
-      return data;
+      console.log("✅ Update enviado com sucesso!");
+      return { success: true };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
