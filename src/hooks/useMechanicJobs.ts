@@ -707,7 +707,16 @@ export function useCancelAndArchiveMechanicJob() {
         .update({ status: "cancelled" })
         .eq("mechanic_job_id", job.id);
 
-      // 3. Deleta o job do kanban
+      // 3. Insere alerta de cancelamento (como solicitado pelo usuário para abrir alerta full-screen)
+      await supabase.from("os_alertas" as any).insert({
+        os_id: job.id,
+        numero_cliente: job.customer_whatsapp,
+        visto: false,
+        tipo: 'erro',
+        contexto: '🚨 Cancelamento Total: O atendimento foi cancelado manualmente no sistema.'
+      });
+
+      // 4. Deleta o job do kanban
       await supabase.from("mechanic_jobs" as any).delete().eq("id", job.id);
     },
     onSuccess: () => {

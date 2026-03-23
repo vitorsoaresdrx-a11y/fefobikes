@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
           await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
           await supabase.from('os_alertas').insert({
             os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'erro',
-            contexto: '🚨 Cliente cancelou TODO o serviço da bike pelo WhatsApp. Verifique a retirada.'
+            contexto: '🚨 Cancelamento Total: Cliente cancelou TODO o serviço da bike pelo WhatsApp. Verifique a retirada.'
           });
           responseText = "Compreendo. Todo o serviço da sua bike foi cancelado em nosso sistema. Por favor, entre em contato ou venha até a loja para combinarmos a retirada. 🛑";
         }

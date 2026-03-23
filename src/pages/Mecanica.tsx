@@ -1444,11 +1444,27 @@ export default function Mecanica() {
           const contexto = (payload.new?.contexto || '').toLowerCase();
           if (contexto.includes('cancelamento total')) {
             const osId = payload.new?.os_id;
-            const { data: job } = await supabase
+            let { data: job } = await supabase
               .from('mechanic_jobs')
               .select('*')
               .eq('id', osId)
-              .single();
+              .maybeSingle();
+
+            // Se não encontrou no Kanban (já deletado), busca no histórico
+            if (!job) {
+              const { data: hist } = await supabase
+                .from('bike_service_history')
+                .select('customer_name, bike_name, customer_phone')
+                .eq('service_order_id', osId)
+                .maybeSingle();
+              if (hist) {
+                job = {
+                  customer_name: hist.customer_name,
+                  bike_name: hist.bike_name,
+                  customer_whatsapp: hist.customer_phone
+                } as any;
+              }
+            }
 
             const payloadToSave = {
               job: job || { customer_name: 'Cliente', bike_name: 'Bike' },
@@ -1613,64 +1629,108 @@ export default function Mecanica() {
     create.mutate({ ...orderData, payment: paymentData } as any, {
       onSuccess: async (newJob) => {
         const partsTotal = form.parts.reduce((s, p) => s + (Number(p.quantity || 0) * Number(p.unit_price || 0)), 0);
-        
-        // Save composition parts if any
-        if (form.parts && form.parts.length > 0) {
-          try {
-            await createAddition.mutateAsync({
-              job_id: newJob.id,
-              problem: "Peças iniciais da O.S.",
-              price: partsTotal,
-              labor_cost: 0, // Labor already went to base price as per user request
-              parts_used: form.parts,
-            } as any);
-            // After saving addition, we technically should subtract partsTotal from base price
-            // to keep the grand total consistent with (base + additions).
-            // But the user said labor and others go to price, and Total goes to price.
-            // So we'll update the OS price to be (Total - partsTotal) to avoid doubling.
-            await updateDetails.mutateAsync({ id: newJob.id, price: Number(form.price) - partsTotal } as any);
-          } catch (err) {
-             console.error("Erro ao salvar peças da composição:", err);
-          }
-        }
+        const isApproval = form.initialStatus === "in_approval" || !form.initialStatus;
 
-        // Handle Photo Upload if present
-        if (form.arrivalPhoto) {
-          try {
-            await uploadPhoto.mutateAsync({ 
-              osId: newJob.id, 
-              file: form.arrivalPhoto, 
-              tipo: "chegada" 
+        if (isApproval) {
+          // FLUXO DE ORÇAMENTO (TRATA COMO ADICIONAL PENDENTE)
+          const totalToApprove = partsTotal + Number(form.labor_cost || 0);
+
+          // 1. Cria o registro de adicional com status pendente para disparar o sistema de aprovação
+          await supabase.from("os_adicionais" as any).insert({
+            os_id: newJob.id,
+            problem: form.problem,
+            observacoes: form.problem,
+            price: totalToApprove,
+            valor_total: totalToApprove,
+            labor_cost: Number(form.labor_cost || 0),
+            pecas: form.parts,
+            status: "pendente"
+          });
+
+          // 2. Zera o valor base da O.S. para que o total reflita apenas o que for aprovado
+          await updateDetails.mutateAsync({ id: newJob.id, price: 0 } as any);
+
+          // 3. Dispara formatador IA e envia mensagem inicial de orçamento
+          await supabase.functions.invoke("formatar-adicional", {
+            body: {
+              osId: newJob.id,
+              pecas: form.parts,
+              observacoes: form.problem,
+              maoDeObra: Number(form.labor_cost || 0) + Number(form.other_cost || 0)
+            }
+          });
+
+          // 4. Upload de Foto e Envio de Mídia via WhatsApp
+          if (form.arrivalPhoto) {
+            try {
+              const photoUrl = await uploadPhoto.mutateAsync({ 
+                osId: newJob.id, 
+                file: form.arrivalPhoto, 
+                tipo: "problema" 
+              });
+              
+              const phone = form.customer_whatsapp?.replace(/\D/g, "");
+              if (phone) {
+                const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+                await sendMessage.mutateAsync({
+                  phone: formattedPhone,
+                  media: photoUrl,
+                  mediatype: 'image'
+                });
+              }
+            } catch (err) {
+              console.error("Erro ao processar foto inicial:", err);
+            }
+          }
+        } else {
+          // FLUXO DE REPARO DIRETO
+          if (form.parts && form.parts.length > 0) {
+            try {
+              await createAddition.mutateAsync({
+                job_id: newJob.id,
+                problem: "Peças iniciais da O.S.",
+                price: partsTotal,
+                labor_cost: 0,
+                parts_used: form.parts,
+              } as any);
+              await updateDetails.mutateAsync({ id: newJob.id, price: Number(form.price) - partsTotal } as any);
+            } catch (err) {
+               console.error("Erro ao salvar peças da composição:", err);
+            }
+          }
+
+          if (form.arrivalPhoto) {
+            try {
+              await uploadPhoto.mutateAsync({ 
+                osId: newJob.id, 
+                file: form.arrivalPhoto, 
+                tipo: "chegada" 
+              });
+            } catch (err) {
+              console.error("Erro ao subir foto de chegada:", err);
+            }
+          }
+
+          if (form.initialStatus === "in_repair") {
+            createServiceOrder.mutate({ 
+              id: newJob.id, 
+              customer_name: form.customer_name || undefined, 
+              customer_cpf: form.customer_cpf || undefined, 
+              customer_whatsapp: form.customer_whatsapp || undefined, 
+              customer_id: form.customer_id || undefined, 
+              bike_name: form.bike_name || undefined, 
+              problem: form.problem 
             });
-          } catch (err) {
-            console.error("Erro ao subir foto de chegada:", err);
           }
-        }
 
-
-        if (form.initialStatus === "in_repair") {
-          createServiceOrder.mutate({ 
-            id: newJob.id, 
-            customer_name: form.customer_name || undefined, 
-            customer_cpf: form.customer_cpf || undefined, 
-            customer_whatsapp: form.customer_whatsapp || undefined, 
-            customer_id: form.customer_id || undefined, 
-            bike_name: form.bike_name || undefined, 
-            problem: form.problem 
-          });
-        }
-
-        if (form.customer_whatsapp) {
-          const phone = form.customer_whatsapp.replace(/\D/g, "");
-          const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
-          
-          console.log("WhatsApp no handleSave:", form.customer_whatsapp);
-          console.log("Formatted Phone result:", formattedPhone);
-
-          sendMessage.mutate({ 
-            phone: formattedPhone, 
-            message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` 
-          });
+          if (form.customer_whatsapp) {
+            const phone = form.customer_whatsapp.replace(/\D/g, "");
+            const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+            sendMessage.mutate({ 
+              phone: formattedPhone, 
+              message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` 
+            });
+          }
         }
 
         toast.success("Manutenção criada!");
@@ -2153,7 +2213,7 @@ export default function Mecanica() {
           } as any);
         }
       }}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden bg-background border-none shadow-2xl max-h-[90vh] my-4">
+        <DialogContent className="max-w-xl p-0 flex flex-col bg-background border-none shadow-2xl max-h-[96vh] sm:max-h-[90vh] my-2 sm:my-4 overflow-hidden">
           <div className="bg-primary/5 p-6 border-b border-primary/10">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -2184,7 +2244,7 @@ export default function Mecanica() {
             </div>
           </div>
 
-          <div className="p-6 md:p-8 max-h-[55vh] overflow-y-auto custom-scrollbar">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8">
             <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div
@@ -2658,7 +2718,7 @@ export default function Mecanica() {
             </AnimatePresence>
           </div>
 
-          <DialogFooter className="p-6 md:p-8 pt-0 border-t border-border/40 flex items-center justify-between gap-4">
+          <DialogFooter className="p-4 md:p-8 border-t border-border/40 flex items-center justify-between gap-4 shrink-0 bg-background/50 backdrop-blur-sm">
             {step > 1 ? (
               <button 
                 onClick={() => setStep(step - 1)} 
