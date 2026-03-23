@@ -111,11 +111,7 @@ export function useCancelHistoryRecord() {
       if (context?.previous) qc.setQueryData(KEY, context.previous);
     },
     onSuccess: () => {
-      // Delay para garantir que o banco processou antes de refetch
-      setTimeout(() => {
-        qc.invalidateQueries({ queryKey: KEY });
-        qc.invalidateQueries({ queryKey: ["sales"] });
-      }, 1500);
+      // Não invalida manualmente — o realtime cuida da sincronização
     },
   });
 }
@@ -157,11 +153,8 @@ export function useDeleteHistoryRecord() {
       if (context?.previous) qc.setQueryData(KEY, context.previous);
     },
     onSuccess: () => {
-      // Delay para garantir que o banco processou antes de refetch
-      setTimeout(() => {
-        qc.invalidateQueries({ queryKey: KEY });
-        qc.invalidateQueries({ queryKey: ["sales"] });
-      }, 1500);
+      // Não invalida manualmente — o realtime cuida da sincronização
+      // após o banco confirmar o delete
     },
   });
 }
