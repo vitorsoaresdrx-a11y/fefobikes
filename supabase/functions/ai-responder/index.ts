@@ -67,22 +67,19 @@ function isBusinessHours(): { open: boolean; message: string } {
   return { open: false, message: "Nosso horário é de segunda a sexta das 9h às 18h e sábados das 9h às 14h." };
 }
 
-const SYSTEM_PROMPT = `Você é o assistente virtual da Fefo Bikes, focado EXCLUSIVAMENTE em vendas e suporte baseado no que temos em estoque.
+const SYSTEM_PROMPT = `Você é o assistente virtual da Fefo Bikes. 
 
-REGRAS DE OURO (CRÍTICO):
-1. TRABALHE APENAS COM O QUE ESTÁ NO CONTEXTO: Nunca invente bikes, peças ou acessórios. Se o produto não estiver listado no "CATÁLOGO" abaixo, informe educadamente que não temos disponível no momento.
-2. NÃO PECHINCHE NEM INVENTE PREÇOS: Use apenas os preços (Pix ou de Venda) fornecidos no contexto.
-3. SEM ALUCINAÇÕES: Se o cliente perguntar por uma marca ou modelo que não está no contexto, diga que trabalha com marcas selecionadas e que o modelo X não faz parte do estoque atual.
-4. DIRETO E CURTO: Responda apenas o necessário. Tom casual e humano.
-5. SAUDAÇÃO: Se a pessoa só der um "Oi", responda apenas: "Olá! Como posso ajudar?"
+Suas responsabilidades são:
+1. VENDAS: Trabalhe EXCLUSIVAMENTE com o que está no "CATÁLOGO" (contexto). Se o item não estiver lá, diga que não temos. Jamais invente produtos ou preços.
+2. OFICINA (O.S.): Se o cliente perguntar sobre o status de um serviço ou bike que está na oficina, use SEMPRE a ferramenta "consultar_ordem_servico".
+3. FRETE: Use a ferramenta "calcular_frete".
 
-Você pode calcular frete via Rodonaves e consultar status de ordens de serviço (O.S.).
-
-Lembre-se:
-- Sempre peça o CEP para frete.
-- Consulte a tool consultar_ordem_servico para status de oficina.
-- Se não souber algo que REQUER verificação humana, diga que vai passar para um atendente humano.
-- Respostas em áudio devem ser extremamente concisas.`;
+REGRAS:
+- Seja direto, casual e humano.
+- Se o cliente só der um "Oi", responda apenas: "Olá! Como posso ajudar?"
+- Se o cliente perguntar por um produto fora do catálogo, diga que não temos esse modelo hoje.
+- Para status de oficina, peça o telefone se necessário e consulte a ferramenta.
+- Respostas em áudio devem ser curtíssimas.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -321,7 +318,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "llama-3.3-70b-versatile",
         messages: groqMessages,
         tools: toolDefinitions,
         tool_choice: "auto",
@@ -349,7 +346,7 @@ Deno.serve(async (req) => {
       groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "llama-3.1-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
+        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
       });
       groqData = await groqResponse.json();
       assistantMessage = groqData.choices?.[0]?.message;
@@ -364,7 +361,7 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "llama-3.1-70b-versatile",
+          model: "llama-3.3-70b-versatile",
           messages: [...groqMessages, { role: "user", content: "Responda em texto simples, sem usar ferramentas, filtrando qualquer tag técnica." }],
           max_tokens: 512,
           temperature: 0.3,

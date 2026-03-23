@@ -241,6 +241,25 @@ export default function BikeForm() {
     }
   }, [bike]);
 
+  // Auto-calculate installments when price or count changes
+  useEffect(() => {
+    if (installmentsEnabledStore && priceStore > 0 && installmentCountStore > 0) {
+      const rounded = Math.round((priceStore / installmentCountStore) * 100) / 100;
+      if (rounded !== installmentValueStore) {
+        form.setValue("installment_value_store", rounded);
+      }
+    }
+  }, [priceStore, installmentCountStore, installmentsEnabledStore]);
+
+  useEffect(() => {
+    if (installmentsEnabledEcommerce && priceEcommerce > 0 && installmentCountEcommerce > 0) {
+      const rounded = Math.round((priceEcommerce / installmentCountEcommerce) * 100) / 100;
+      if (rounded !== installmentValueEcommerce) {
+        form.setValue("installment_value_ecommerce", rounded);
+      }
+    }
+  }, [priceEcommerce, installmentCountEcommerce, installmentsEnabledEcommerce]);
++
   useEffect(() => {
     if (existingParts) {
       setTemplateParts(
@@ -719,15 +738,93 @@ export default function BikeForm() {
 
             {/* Fixed cost */}
             {costMode === "fixed" && (
-              <div className="space-y-2 group">
-                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 group-focus-within:text-primary transition-colors">
-                  Preço de Custo (R$)
-                </label>
-                <CurrencyInput
-                  value={costPrice || 0}
-                  onChange={(val) => setDirtyValue("cost_price", val)}
-                  className="h-16 text-xl rounded-2xl"
-                />
+              <div className="space-y-6">
+                <div className="space-y-2 group">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 group-focus-within:text-primary transition-colors">
+                    Preço de Custo (R$)
+                  </label>
+                  <CurrencyInput
+                    value={costPrice || 0}
+                    onChange={(val) => setDirtyValue("cost_price", val)}
+                    className="h-16 text-xl rounded-2xl"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border/40">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-background border border-border rounded-2xl">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-bold text-white">Parcelado na Loja</p>
+                        <p className="text-[9px] text-muted-foreground uppercase font-black">Exibir 10x de R$...</p>
+                      </div>
+                      <Switch 
+                        checked={installmentsEnabledStore} 
+                        onCheckedChange={(val) => setDirtyValue("installments_enabled_store", val)} 
+                      />
+                    </div>
+                    {installmentsEnabledStore && (
+                      <div className="grid grid-cols-2 gap-3 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Parcelas</label>
+                          <select 
+                            value={installmentCountStore}
+                            onChange={(e) => setDirtyValue("installment_count_store", parseInt(e.target.value))}
+                            className="w-full h-11 bg-secondary border border-border rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-primary"
+                          >
+                            {[...Array(12)].map((_, i) => (
+                              <option key={i+1} value={i+1}>{i+1}x</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Valor Parcela</label>
+                          <CurrencyInput 
+                            value={installmentValueStore} 
+                            onChange={(val) => setDirtyValue("installment_value_store", val)}
+                            className="h-11 rounded-xl text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-background border border-border rounded-2xl">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-bold text-white">Parcelado Ecommerce</p>
+                        <p className="text-[9px] text-muted-foreground uppercase font-black">Site de Vendas</p>
+                      </div>
+                      <Switch 
+                        checked={installmentsEnabledEcommerce} 
+                        onCheckedChange={(val) => setDirtyValue("installments_enabled_ecommerce", val)} 
+                      />
+                    </div>
+                    {installmentsEnabledEcommerce && (
+                      <div className="grid grid-cols-2 gap-3 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Parcelas</label>
+                          <select 
+                            value={installmentCountEcommerce}
+                            onChange={(e) => setDirtyValue("installment_count_ecommerce", parseInt(e.target.value))}
+                            className="w-full h-11 bg-secondary border border-border rounded-xl px-4 text-xs font-bold text-white outline-none focus:border-primary"
+                          >
+                            {[...Array(12)].map((_, i) => (
+                              <option key={i+1} value={i+1}>{i+1}x</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Valor Parcela</label>
+                          <CurrencyInput 
+                            value={installmentValueEcommerce} 
+                            onChange={(val) => setDirtyValue("installment_value_ecommerce", val)}
+                            className="h-11 rounded-xl text-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
