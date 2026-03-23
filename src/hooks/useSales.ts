@@ -121,6 +121,7 @@ export function useSales() {
 
 export function useCancelSale() {
   const qc = useQueryClient();
+  const KEY = ["sales"];
   return useMutation({
     mutationFn: async (saleId: string) => {
       const { error } = await supabase
@@ -129,8 +130,47 @@ export function useCancelSale() {
         .eq("id", saleId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["sales"] });
+    onMutate: async (saleId) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+      qc.setQueryData(KEY, (old: any[]) =>
+        (old || []).map((s) => (s.id === saleId ? { ...s, status: "cancelled" } : s))
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+    },
+  });
+}
+
+export function useDeleteSale() {
+  const qc = useQueryClient();
+  const KEY = ["sales"];
+  return useMutation({
+    mutationFn: async (saleId: string) => {
+      const { error } = await supabase
+        .from("sales")
+        .delete()
+        .eq("id", saleId);
+      if (error) throw error;
+    },
+    onMutate: async (saleId) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+      qc.setQueryData(KEY, (old: any[]) =>
+        (old || []).filter((s) => s.id !== saleId)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: KEY });
     },
   });
 }

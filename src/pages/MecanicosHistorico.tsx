@@ -9,8 +9,12 @@ import {
   ChevronRight,
   Loader2,
   X,
+  Ban,
+  Trash2,
 } from "lucide-react";
-import { useBikeServiceHistory, type GroupedBikeHistory } from "@/hooks/useBikeServiceHistory";
+import { useBikeServiceHistory, type GroupedBikeHistory, useCancelHistoryRecord, useDeleteHistoryRecord } from "@/hooks/useBikeServiceHistory";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +29,11 @@ const formatDate = (d: string | null) =>
 export default function MecanicosHistorico() {
   const { data: groups = [], isLoading } = useBikeServiceHistory();
   const [selected, setSelected] = useState<GroupedBikeHistory | null>(null);
+  const [cancelId, setCancelId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  
+  const cancelHistory = useCancelHistoryRecord();
+  const deleteHistory = useDeleteHistoryRecord();
 
   return (
     <div className="min-h-full bg-background text-foreground pb-24 lg:pb-0">
@@ -174,19 +183,73 @@ export default function MecanicosHistorico() {
                      </div>
                    )}
 
-                   {/* Add record.price if available in the future. Condition: !record.status === 'cancelado' */}
-                   {record.status !== 'cancelado' && (record as any).price && (
-                      <div className="text-right">
-                        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Total</p>
-                        <p className="text-sm font-black text-white">{formatBRL((record as any).price)}</p>
-                      </div>
-                   )}
-                </div>
+                    {/* Add record.price if available in the future. Condition: !record.status === 'cancelado' */}
+                    {record.status !== 'cancelado' && (record as any).price && (
+                       <div className="text-right">
+                         <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Total</p>
+                         <p className="text-sm font-black text-white">{formatBRL((record as any).price)}</p>
+                       </div>
+                    )}
+                 </div>
+
+                 <div className="flex items-center gap-3 pt-4 border-t border-border/20">
+                    {record.status !== 'cancelado' && (
+                      <button
+                        onClick={() => setCancelId(record.id)}
+                        className="flex items-center gap-1.5 text-[10px] font-bold text-amber-500 hover:text-amber-400 transition-colors"
+                      >
+                        <Ban size={12} /> Cancelar
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setDeleteId(record.id)}
+                      className="flex items-center gap-1.5 text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors ml-auto"
+                    >
+                      <Trash2 size={12} /> Excluir
+                    </button>
+                 </div>
               </div>
             ))}
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDeleteDialog
+        open={!!cancelId}
+        onOpenChange={(o) => !o && setCancelId(null)}
+        onConfirm={() => {
+          if (cancelId) {
+            cancelHistory.mutate(cancelId, {
+              onSuccess: () => {
+                toast.success("Atendimento cancelado");
+                setCancelId(null);
+              },
+              onError: () => toast.error("Erro ao cancelar atendimento")
+            });
+          }
+        }}
+        title="Cancelar atendimento"
+        description="O atendimento será marcado como cancelado. Se houver uma venda vinculada, ela também será cancelada."
+      />
+
+      <ConfirmDeleteDialog
+        open={!!deleteId}
+        onOpenChange={(o) => !o && setDeleteId(null)}
+        onConfirm={() => {
+          if (deleteId) {
+            deleteHistory.mutate(deleteId, {
+              onSuccess: () => {
+                toast.success("Atendimento excluído");
+                setDeleteId(null);
+                // If it was the last record in the group, the modal will close because 'selected' might become invalid or query updates
+              },
+              onError: () => toast.error("Erro ao excluir atendimento")
+            });
+          }
+        }}
+        title="Excluir atendimento"
+        description="Esta ação removerá permanentemente o histórico deste atendimento. Esta ação NÃO pode ser desfeita."
+      />
     </div>
   );
 }

@@ -78,3 +78,74 @@ export function useCreateBikeServiceRecord() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useCancelHistoryRecord() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // 1. Get the record to find service_order_id
+      const { data: record } = await supabase.from("bike_service_history").select("service_order_id").eq("id", id).single();
+      
+      // 2. Cancel the history record
+      await supabase.from("bike_service_history").update({ status: "cancelado" }).eq("id", id);
+      
+      // 3. Cancel the related sale if exists
+      if (record?.service_order_id) {
+        await supabase.from("sales").update({ status: "cancelled" }).eq("mechanic_job_id", record.service_order_id);
+      }
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+      qc.setQueryData(KEY, (old: any) => (old || []).map((group: any) => ({
+        ...group,
+        records: group.records.map((r: any) => r.id === id ? { ...r, status: 'cancelado' } : r)
+      })));
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["sales"] });
+    },
+  });
+}
+
+export function useDeleteHistoryRecord() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // 1. Get record for linked sale
+      const { data: record } = await supabase.from("bike_service_history").select("service_order_id").eq("id", id).single();
+      
+      // 2. Delete the record
+      await supabase.from("bike_service_history").delete().eq("id", id);
+      
+      // 3. Delete related sale if exists
+      if (record?.service_order_id) {
+        await supabase.from("sales").delete().eq("mechanic_job_id", record.service_order_id);
+      }
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+      qc.setQueryData(KEY, (old: any) => (old || [])
+        .map((group: any) => ({
+          ...group,
+          records: group.records.filter((r: any) => r.id !== id)
+        }))
+        .filter((group: any) => group.records.length > 0)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["sales"] });
+    },
+  });
+}

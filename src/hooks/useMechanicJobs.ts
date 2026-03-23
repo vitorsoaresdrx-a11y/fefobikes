@@ -194,6 +194,11 @@ export function useMechanicJobsRealtime() {
         { event: "*", schema: "public", table: "os_pagamentos" },
         () => qc.invalidateQueries({ queryKey: KEY })
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "os_pagamentos_historico" },
+        () => qc.invalidateQueries({ queryKey: KEY })
+      )
       .subscribe();
 
     return () => {
@@ -617,7 +622,39 @@ export function useRegisterPayment() {
       // 4. Update job updated_at
       await supabase.from("mechanic_jobs" as any).update({ updated_at: new Date().toISOString() }).eq("id", payload.os_id);
     },
-    onSuccess: () => {
+    onMutate: async (payload) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+
+      qc.setQueryData(KEY, (old: any[]) => {
+        if (!old) return [];
+        return old.map(j => {
+          if (j.id === payload.os_id) {
+            const newHistoryItem = {
+              id: `temp-${Date.now()}`,
+              os_id: payload.os_id,
+              valor: payload.valor,
+              tipo: payload.tipo,
+              payment_method: payload.payment_method,
+              desconto_valor: payload.desconto_valor || 0,
+              desconto_motivo: payload.desconto_motivo || null,
+              criado_em: new Date().toISOString()
+            };
+            return {
+              ...j,
+              payment_history: [...(j.payment_history || []), newHistoryItem]
+            };
+          }
+          return j;
+        });
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: KEY });
       qc.invalidateQueries({ queryKey: ["sales"] });
     },

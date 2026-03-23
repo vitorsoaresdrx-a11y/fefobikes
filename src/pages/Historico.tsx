@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban, Pencil, Wrench } from "lucide-react";
-import { useSales, useCancelSale } from "@/hooks/useSales";
+import { Search, ChevronDown, Printer, User, ShoppingBag, Download, Ban, Pencil, Wrench, Trash2 } from "lucide-react";
+import { useSales, useCancelSale, useDeleteSale } from "@/hooks/useSales";
 import { SaleReceipt, type ReceiptData } from "@/components/pdv/SaleReceipt";
 import { SaleEditModal } from "@/components/pdv/SaleEditModal";
 import { formatBRL } from "@/lib/format";
@@ -83,6 +83,7 @@ function SaleRow({
   onReceipt,
   onCancel,
   onEdit,
+  onDelete,
 }: {
   sale: any;
   isExpanded: boolean;
@@ -90,6 +91,7 @@ function SaleRow({
   onReceipt: () => void;
   onCancel: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 }) {
   const items = sale.sale_items || [];
   const { date, time } = formatDateTime(sale.created_at);
@@ -189,12 +191,18 @@ function SaleRow({
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onCancel(); }}
-                  className="flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-amber-500 hover:text-amber-400 transition-colors"
                 >
                   <Ban size={12} /> Cancelar
                 </button>
               </>
             )}
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors ml-auto"
+            >
+              <Trash2 size={12} /> Excluir
+            </button>
           </div>
         </div>
       )}
@@ -205,14 +213,17 @@ function SaleRow({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Historico() {
-  const { data: sales = [], isLoading } = useSales();
+  const { data: salesData = [], isLoading } = useSales();
+  const sales = (salesData as any) || [];
   const [search, setSearch] = useState("");
   const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [expandedSale, setExpandedSale] = useState<string | null>(null);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [cancelSaleId, setCancelSaleId] = useState<string | null>(null);
+  const [deleteSaleId, setDeleteSaleId] = useState<string | null>(null);
   const [editingSale, setEditingSale] = useState<any | null>(null);
   const cancelSale = useCancelSale();
+  const deleteSale = useDeleteSale();
 
   const customerGroups = useMemo(() => {
     const groups = new Map<string, CustomerGroup>();
@@ -396,6 +407,7 @@ export default function Historico() {
                               onReceipt={() => setReceiptData(buildReceiptFromSale(sale))}
                               onCancel={() => setCancelSaleId(sale.id)}
                               onEdit={() => setEditingSale(sale)}
+                              onDelete={() => setDeleteSaleId(sale.id)}
                             />
                           ))}
                       </div>
@@ -450,7 +462,25 @@ export default function Historico() {
             }
           }}
           title="Cancelar venda"
-          description="Tem certeza que deseja cancelar esta venda? O valor deixará de ser contabilizado no DRE."
+          description="Tem certeza que deseja marcar esta venda como cancelada? Ela continuará na lista mas não será somada nos totais."
+        />
+
+        <ConfirmDeleteDialog
+          open={!!deleteSaleId}
+          onOpenChange={(open) => !open && setDeleteSaleId(null)}
+          onConfirm={() => {
+            if (deleteSaleId) {
+              deleteSale.mutate(deleteSaleId, {
+                onSuccess: () => {
+                  toast.success("Venda excluída permanentemente");
+                  setDeleteSaleId(null);
+                },
+                onError: () => toast.error("Erro ao excluir venda"),
+              });
+            }
+          }}
+          title="Excluir venda"
+          description="Esta ação removerá permanentemente o registro da venda e todos os seus itens. Esta ação NÃO pode ser desfeita."
         />
       </div>
     </div>
