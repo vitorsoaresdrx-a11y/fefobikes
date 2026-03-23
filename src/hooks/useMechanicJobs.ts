@@ -447,16 +447,30 @@ export function useRetreatMechanicJob() {
 export function useRestoreCancelledJob() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
+    mutationFn: async (id: string | number) => {
+      const stringId = id.toString();
+      console.log("🔧 Iniciando restauração da OS:", { id_original: id, string_id: stringId });
+
+      const { data, error } = await supabase
         .from("mechanic_jobs" as any)
         .update({ status: "in_approval" })
-        .eq("id", id);
-      if (error) throw error;
+        .eq("id", stringId)
+        .select();
+
+      if (error) {
+        console.error("❌ Erro do Supabase ao reativar OS:", error);
+        throw error;
+      }
+
+      console.log("✅ OS reativada com sucesso:", data);
+      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
     },
+    onError: (err) => {
+      console.error("💥 Erro na mutação de restauração:", err);
+    }
   });
 }
 
