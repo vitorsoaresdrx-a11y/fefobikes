@@ -450,10 +450,7 @@ export function useRestoreCancelledJob() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("mechanic_jobs" as any)
-        .update({ 
-          status: "in_approval",
-          updated_at: new Date().toISOString()
-        })
+        .update({ status: "in_approval" })
         .eq("id", id);
       if (error) throw error;
     },
