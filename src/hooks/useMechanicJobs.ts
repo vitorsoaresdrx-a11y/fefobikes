@@ -447,14 +447,16 @@ export function useRetreatMechanicJob() {
 export function useRestoreCancelledJob() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string | number) => {
-      const stringId = id.toString();
-      console.log("🔧 Iniciando restauração da OS:", { id_original: id, string_id: stringId });
+    mutationFn: async (job: any) => {
+      console.log('🏁 Iniciando restauração. OS completa:', job);
+      
+      const uuid = job?.id || job; // Fallback se passar apenas a string
+      console.log('🔍 Usando UUID para atualização:', uuid);
 
       const { data, error } = await supabase
         .from("mechanic_jobs" as any)
         .update({ status: "in_approval" })
-        .eq("id", stringId)
+        .eq("id", uuid)
         .select();
 
       if (error) {

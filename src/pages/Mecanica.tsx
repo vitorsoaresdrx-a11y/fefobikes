@@ -709,7 +709,7 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
           <div className="flex flex-col gap-2">
             <button 
               onClick={() => {
-                restoreJob.mutate(job.id, {
+                restoreJob.mutate(job, {
                   onSuccess: () => {
                     toast.success("Cancelamento revertido!");
                     setCancelConfirmAction(null);
