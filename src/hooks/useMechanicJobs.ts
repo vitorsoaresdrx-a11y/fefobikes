@@ -279,23 +279,31 @@ export function useAdvanceMechanicJob() {
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const nextStatus =
-        status === "in_approval"
-          ? "in_repair"
-          : status === "in_repair"
-          ? "in_maintenance"
-          : status === "in_maintenance"
-          ? "in_analysis"
-          : status === "in_analysis"
-          ? "ready"
-          : null; // "ready" -> must use useFinalizeJob instead
+        status === "in_approval" ? "in_repair" :
+        status === "in_repair" ? "in_maintenance" :
+        status === "in_maintenance" ? "in_analysis" :
+        status === "in_analysis" ? "ready" : null;
       if (!nextStatus) throw new Error("Already at final status");
-      const { error } = await supabase
-        .from("mechanic_jobs" as any)
-        .update({ status: nextStatus })
-        .eq("id", id);
+      const { error } = await supabase.from("mechanic_jobs" as any).update({ status: nextStatus }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+      const nextStatus =
+        status === "in_approval" ? "in_repair" :
+        status === "in_repair" ? "in_maintenance" :
+        status === "in_maintenance" ? "in_analysis" :
+        status === "in_analysis" ? "ready" : status;
+      qc.setQueryData(KEY, (old: any[]) =>
+        (old || []).map(j => j.id === id ? { ...j, status: nextStatus } : j)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
 
@@ -412,13 +420,21 @@ export function useRetreatMechanicJob() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from("mechanic_jobs" as any)
-        .update({ status: "in_maintenance" })
-        .eq("id", id);
+      const { error } = await supabase.from("mechanic_jobs" as any).update({ status: "in_maintenance" }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onMutate: async ({ id }) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+      qc.setQueryData(KEY, (old: any[]) =>
+        (old || []).map(j => j.id === id ? { ...j, status: "in_maintenance" } : j)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
 
@@ -613,13 +629,19 @@ export function useDeleteMechanicJob() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("mechanic_jobs" as any)
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("mechanic_jobs" as any).delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: KEY });
+      const previous = qc.getQueryData(KEY);
+      qc.setQueryData(KEY, (old: any[]) => (old || []).filter(j => j.id !== id));
+      return { previous };
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) qc.setQueryData(KEY, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
 
