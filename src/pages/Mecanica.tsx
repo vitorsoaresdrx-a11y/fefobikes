@@ -547,7 +547,7 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
   }, [job.customer_whatsapp]);
 
   const showApprovalActions = columnKey === "in_approval";
-  const showRetreat = columnKey === "ready";
+  const showRetreat = false;
 
   const handleAdvance = () => {
     // If isLast (ready column) and onFinalize provided, open payment modal
