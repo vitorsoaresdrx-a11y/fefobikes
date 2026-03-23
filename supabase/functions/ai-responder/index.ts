@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
-import { buildBusinessContext, getCustomerContext, getServiceOrdersByPhone, cancelServiceOrder } from "./context.ts";
+import { buildBusinessContext, getCustomerContext, getServiceOrdersByPhone, cancelServiceOrder, getActiveOSContext } from "./context.ts";
 import { toolDefinitions, executeCalcularFrete } from "./tools.ts";
 
 const corsHeaders = {
@@ -67,18 +67,19 @@ function isBusinessHours(): { open: boolean; message: string } {
   return { open: false, message: "Nosso horário é de segunda a sexta das 9h às 18h e sábados das 9h às 14h." };
 }
 
-const SYSTEM_PROMPT = `Você é o assistente virtual da Fefo Bikes. 
+const SYSTEM_PROMPT = `Você é o assistente virtual da Fefo Bikes.
 
-AÇÕES:
-- VENDAS: Use apenas o "CATÁLOGO". Se não tiver o item, informe educadamente. Jamais invente.
-- O.S.: Use "consultar_ordem_servico" ou "cancelar_ordem". Use o telefone do cliente (não peça).
-  - Antes de cancelar, peça uma confirmação ("Tem certeza?").
+AÇÕES E FERRAMENTAS:
+- VENDAS: Use o "CATÁLOGO". Se não tiver o item, informe educadamente. Jamais invente preços.
+- O.S. E STATUS: Use o contexto injetado para responder sobre a bike. Se precisar de dados extras, use "consultar_ordem_servico".
+- ORÇAMENTOS EXTRAS: Se houver ADICIONAL PENDENTE no contexto, peça a aprovação do cliente. Use "atualizar_aprovacao_adicional" para aprovar, negar ou cancelar.
+- HUMANOS: Use "escalar_para_humano" se o cliente pedir desconto, tiver dúvidas complexas de preço ou se você não souber responder.
+- CANCELAMENTO: Use "atualizar_aprovacao_adicional" com acao "cancelar_tudo" se o cliente quiser desistir de tudo. Peça confirmação antes.
 - FRETE: Use "calcular_frete" (peça o CEP).
 
-REGRAS DE RESPOSTA:
-- Se a ferramenta retornar sucesso, apenas confirme e pronto.
-- SÓ diga que não encontrou O.S. se a ferramenta retornar explicitamente que não há registros.
-- Seja casual, humano e extremamente direto.`;
+REGRAS:
+- Seja extremamente conciso, casual e direto.
+- SÓ use ferramentas se tiver as informações necessárias (ID da OS, ID do Adicional, etc) vindas do contexto.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -107,177 +108,26 @@ Deno.serve(async (req) => {
       .limit(1)
       .single();
     const tenantId = tenantRow?.id ?? null;
-
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
 
-    let pendingAdditionId = null;
-    let pendingOsId = null;
-    let pendingAdditionValue = 0;
-    let pendingAdditionProblem = "";
-    let pendingAdditionStatus = "";
-    
-    const incomingDigits = phone.replace(/\D/g, "");
-    const incomingSuffix = incomingDigits.length >= 10 ? incomingDigits.slice(-10) : incomingDigits;
+    // 1. Unified Context Gathering
+    const [businessContext, customerContext, osContext, aiInstructionsRow, conv] = await Promise.all([
+      buildBusinessContext(),
+      getCustomerContext(phone),
+      getActiveOSContext(phone),
+      supabase.from("settings").select("value").eq("key", "ai_instructions").maybeSingle().then(({ data }: any) => data?.value?.prompt),
+      supabase.from("whatsapp_conversations").select("ai_enabled, human_takeover").eq("id", conversationId).maybeSingle()
+    ]);
 
-    console.log(`Searching for pending additions for normalized phone: ${incomingDigits} (suffix: ${incomingSuffix})`);
-
-    // Fetch all active jobs to match phone in JS (bypassing DB formatting issues)
-    const { data: allActiveJobs } = await supabase
-      .from('mechanic_jobs')
-      .select('id, customer_name, customer_whatsapp')
-      .neq('status', 'delivered');
-
-    const matchedJobs = (allActiveJobs || []).filter((j: any) => {
-      const dbDigits = (j.customer_whatsapp || "").replace(/\D/g, "");
-      const dbSuffix = dbDigits.length >= 10 ? dbDigits.slice(-10) : dbDigits;
-      return dbDigits === incomingDigits || (dbSuffix.length >= 8 && incomingSuffix.endsWith(dbSuffix)) || (incomingSuffix.length >= 8 && dbSuffix.endsWith(incomingSuffix));
-    });
-
-    if (matchedJobs.length > 0) {
-      const jobIds = matchedJobs.map((j: any) => j.id);
-      console.log(`Found ${matchedJobs.length} matching jobs:`, jobIds);
-      
-      const { data: adicionais } = await supabase
-        .from('os_adicionais')
-        .select('id, os_id, status, valor_total, problem')
-        .in('os_id', jobIds)
-        .in('status', ['enviado', 'pendente', 'negado', 'aguardando_cancelamento'])
-        .order('criado_em', { ascending: false });
-
-      if (adicionais && adicionais.length > 0) {
-        const first = adicionais[0];
-        pendingAdditionId = first.id;
-        pendingOsId = first.os_id;
-        pendingAdditionValue = Number(first.valor_total || 0);
-        pendingAdditionProblem = first.problem || 'serviço extra';
-        pendingAdditionStatus = first.status;
-        console.log(`MATCHED pending addition ${pendingAdditionId} for OS ${pendingOsId} (Status: ${pendingAdditionStatus})`);
-      }
-    }
-
-    if (pendingAdditionId) {
-      const isWaitingCancel = pendingAdditionStatus === 'aguardando_cancelamento';
-      
-      const sysClassifyContent = isWaitingCancel 
-        ? 'O cliente está decidindo um CANCELAMENTO. Classifique a mensagem dele:\n' +
-          '- CANCELA_ADICIONAL: quer cancelar apenas o extra, mas seguir com o serviço original da bike.\n' +
-          '- CANCELA_TUDO: quer cancelar todos os serviços da bike.\n' +
-          '- VOLTAR: mudou de ideia e quer aprovar ou tirar dúvidas.\n' +
-          'Responda APENAS a categoria em maiúsculo.'
-        : 'O cliente tem um orçamento extra PENDENTE. Classifique a mensagem dele:\n' +
-          '- APROVACAO: aceitou, concordou, "ok", "pode fazer", "sim", "faz aí", "beleza", "👍".\n' +
-          '- NEGACAO: não quer, "não precisa", "deixa pra lá", "não".\n' +
-          '- DUVIDA: perguntas, pechincha ou incertezas.\n' +
-          '- CANCELAMENTO: expressou desejo de cancelar algo.\n' +
-          '- OUTROS: perguntas sobre status da bike, outras dúvidas ou assuntos variados.\n\n' +
-          'Responda APENAS: APROVACAO, NEGACAO, DUVIDA, CANCELAMENTO ou OUTROS.';
-
-      const classificationRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [
-            { role: "system", content: sysClassifyContent },
-            { role: "user", content: `Mensagem: "${message}"` }
-          ],
-          max_tokens: 15,
-          temperature: 0,
-        }),
-      });
-
-      if (classificationRes.ok) {
-        const classData = await classificationRes.json();
-        const intent = (classData.choices?.[0]?.message?.content?.trim() || "").toUpperCase();
-        console.log(`Classification INTENT: ${intent}`);
-        
-        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-        let responseText = "";
-
-        if (intent.includes("APROVACAO") || (isWaitingCancel && intent.includes("VOLTAR"))) {
-          console.log(`Intent classification: ${intent}. APROVANDO orçamento na DB...`);
-          await supabase.from('os_adicionais').update({ status: 'aprovado', approval: 'aprovado' }).eq('id', pendingAdditionId);
-          console.log(`OS adicional ${pendingAdditionId} -> aprovado.`);
-          
-          const { data: pgData } = await supabase.from('os_pagamentos').select('*').eq('os_id', pendingOsId).maybeSingle();
-          if (pgData) {
-            await supabase.from('os_pagamentos').update({
-              valor_total: Number(pgData.valor_total) + pendingAdditionValue,
-              valor_restante: Number(pgData.valor_restante) + pendingAdditionValue
-            }).eq('id', pgData.id);
-            console.log(`OS pagamentos ${pgData.id} atualizado com novo valor: +${pendingAdditionValue}.`);
-          }
-
-          await supabase.from('os_alertas').insert({
-            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'sucesso',
-            contexto: `✅ Cliente APROVOU o orçamento extra de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingAdditionValue)}.`
-          });
-          console.log(`Alerta de aprovação inserido para OS ${pendingOsId}.`);
-
-          responseText = "Perfeito! Sua aprovação foi registrada na oficina e vamos seguir com o serviço da sua bike. Qualquer dúvida, é só chamar! 🔧";
-        }
-        else if (intent.includes("CANCELAMENTO") && !isWaitingCancel) {
-          await supabase.from('os_adicionais').update({ status: 'aguardando_cancelamento' }).eq('id', pendingAdditionId);
-          responseText = `Entendido! Você quer cancelar apenas o serviço extra de "${pendingAdditionProblem}" no valor de ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingAdditionValue)}, ou cancelar todo o serviço da sua bike?`;
-        }
-        else if (intent.includes("CANCELA_ADICIONAL")) {
-          await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
-          responseText = "Certo! Cancelamos apenas o serviço extra. Vamos seguir apenas com o serviço original da sua bike conforme o planejado. 🚲";
-        }
-        else if (intent.includes("CANCELA_TUDO")) {
-          await supabase.from('mechanic_jobs' as any).update({ status: 'cancelado' }).eq('id', pendingOsId);
-          await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
-          await supabase.from('os_alertas').insert({
-            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'erro',
-            contexto: '🚨 Cancelamento Total: Cliente cancelou TODO o serviço da bike pelo WhatsApp. Verifique a retirada.'
-          });
-          responseText = "Compreendo. Todo o serviço da sua bike foi cancelado em nosso sistema. Por favor, entre em contato ou venha até a loja para combinarmos a retirada. 🛑";
-        }
-        else if (intent.includes("NEGACAO")) {
-          await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
-          await supabase.from('os_alertas').insert({
-            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'erro', contexto: "Cliente negou o orçamento adicional."
-          });
-          await supabase.from('whatsapp_conversations').update({ require_human: true, ai_enabled: false }).eq('id', conversationId);
-          responseText = "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais do serviço, tudo bem?";
-        }
-        else if (intent.includes("DUVIDA")) {
-          if (message.toLowerCase().includes("preço") || message.toLowerCase().includes("valor") || message.toLowerCase().includes("caro")) {
-            await supabase.from('os_alertas').insert({
-              os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'info', contexto: "Cliente tem dúvida sobre os valores."
-            });
-            await supabase.from('whatsapp_conversations').update({ require_human: true, ai_enabled: false }).eq('id', conversationId);
-            responseText = "Certo, entendi sua dúvida sobre os valores. Vou chamar um atendente humano para te explicar melhor essa parte do orçamento adicional.";
-          }
-        }
-
-        if (responseText) {
-          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-            method: "POST", headers: evoHeaders(), body: JSON.stringify({ number: phone, text: responseText }),
-          });
-          await supabase.from("whatsapp_messages").insert({
-            conversation_id: conversationId, from_me: true, type: "text", content: responseText, status: "sent", tenant_id: tenantId,
-          });
-          return new Response(JSON.stringify({ ok: true, processed: intent.toLowerCase() }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-      }
-    }
-
-    // --- PRIORITY 2: Check global settings for generic AI chat ---
-    const { data: conv } = await supabase
-      .from("whatsapp_conversations")
-      .select("ai_enabled, human_takeover")
-      .eq("id", conversationId)
-      .maybeSingle();
-
-    if (!conv || conv.ai_enabled === false || conv.human_takeover === true) {
+    // 2. Human Takeover Check
+    if (!conv.data || conv.data.ai_enabled === false || conv.data.human_takeover === true) {
       return new Response(
-        JSON.stringify({ ok: true, skipped: conv?.human_takeover ? "human_takeover" : "ai_disabled" }),
+        JSON.stringify({ ok: true, skipped: conv.data?.human_takeover ? "human_takeover" : "ai_disabled" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // --- STANDARD CHAT FLOW ---
+    // 3. Message History
     const { data: recentMessages } = await supabase
       .from("whatsapp_messages")
       .select("content, from_me, type")
@@ -293,20 +143,10 @@ Deno.serve(async (req) => {
         content: m.content!.replace(/^🎤 /, "").replace(/^🔊 /, ""),
       }));
 
-    const [businessContext, customerContext, aiInstructionsRow] = await Promise.all([
-      buildBusinessContext(),
-      getCustomerContext(phone),
-      supabase
-        .from("settings")
-        .select("value")
-        .eq("key", "ai_instructions")
-        .maybeSingle()
-        .then(({ data }: any) => data?.value?.prompt),
-    ]);
-
+    // 4. System Prompt Assembly
     const bh = isBusinessHours();
-    const hoursNote = bh.open ? "A loja está ABERTA." : `FECHADA. ${bh.message}`;
-    const audioNote = respondWithAudio ? "\n\nResponda apenas com texto curto (será áudio)." : "";
+    const hoursNote = bh.open ? "Loja ABERTA." : `FECHADA. ${bh.message}`;
+    const audioNote = respondWithAudio ? "\nResposta será áudio: seja extremamente conciso." : "";
 
     const systemContent = [
       SYSTEM_PROMPT,
@@ -314,16 +154,18 @@ Deno.serve(async (req) => {
       `\n--- HORÁRIO ---\n${hoursNote}`,
       `\n--- CONTEXTO ---\n${businessContext}`,
       customerContext ? `\n--- CLIENTE ---\n${customerContext}` : "",
-      aiInstructionsRow ? `\n--- INSTRUÇÕES ---\n${aiInstructionsRow}` : "",
+      osContext ? `\n${osContext}` : "",
+      aiInstructionsRow ? `\n--- INSTRUÇÕES EXTRAS ---\n${aiInstructionsRow}` : "",
     ].join("");
 
     let groqMessages: any[] = [{ role: "system", content: systemContent }, ...history];
 
+    // 5. LLM Call with Tools
     let groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-70b-versatile",
         messages: groqMessages,
         tools: toolDefinitions,
         tool_choice: "auto",
@@ -343,16 +185,32 @@ Deno.serve(async (req) => {
       for (const toolCall of assistantMessage.tool_calls) {
         const fnName = toolCall.function.name;
         const args = JSON.parse(toolCall.function.arguments);
-        let result = fnName === "calcular_frete" ? await executeCalcularFrete(args) : 
-                     fnName === "consultar_ordem_servico" ? await getServiceOrdersByPhone(args.telefone || phone) : 
-                     fnName === "cancelar_ordem" ? await cancelServiceOrder(phone, args.motivo) :
-                     { error: "Tool not found" };
+        let result: any;
+
+        if (fnName === "calcular_frete") {
+          result = await executeCalcularFrete(args);
+        } else if (fnName === "consultar_ordem_servico") {
+          result = await getServiceOrdersByPhone(args.telefone || phone);
+        } else if (fnName === "cancelar_ordem") {
+          result = await cancelServiceOrder(phone, args.motivo);
+        } else if (fnName === "atualizar_aprovacao_adicional") {
+          result = await executeAtualizarAprovacao(args, supabase, phone);
+        } else if (fnName === "escalar_para_humano") {
+          await supabase.from("whatsapp_conversations")
+            .update({ require_human: true, ai_enabled: false })
+            .eq("id", conversationId);
+          result = { ok: true, message: "Conversa escalada para humano." };
+        } else {
+          result = { error: "Tool not found" };
+        }
+        
         groqMessages.push({ role: "tool", content: JSON.stringify(result), tool_call_id: toolCall.id });
       }
+      
       groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
+        body: JSON.stringify({ model: "llama-3.1-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
       });
       groqData = await groqResponse.json();
       assistantMessage = groqData.choices?.[0]?.message;
@@ -360,22 +218,6 @@ Deno.serve(async (req) => {
 
     let finalResponse = assistantMessage?.content?.trim();
     if (!finalResponse) throw new Error("Empty response from AI");
-
-    if (finalResponse.includes('<function=') || finalResponse.includes('</function>')) {
-      console.log("AI leaked tool tags. Retrying for clean text...");
-      const retryRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [...groqMessages, { role: "user", content: "Responda em texto simples, sem usar ferramentas, filtrando qualquer tag técnica." }],
-          max_tokens: 512,
-          temperature: 0.3,
-        }),
-      });
-      const retryData = await retryRes.json();
-      finalResponse = retryData.choices?.[0]?.message?.content?.trim() || finalResponse;
-    }
 
     const instName = tenantId ? instanceName(tenantId) : "fefo-default";
     let sentAsAudio = false;
@@ -408,3 +250,57 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: corsHeaders });
   }
 });
+
+/** Consolida toda a lógica de aprovação e cancelamento */
+async function executeAtualizarAprovacao(
+  args: { acao: string; adicional_id: string; os_id: string; valor_total: number },
+  supabase: any,
+  phone: string
+): Promise<{ ok: boolean; mensagem_para_cliente: string }> {
+  const { acao, adicional_id, os_id, valor_total } = args;
+
+  if (acao === "aprovar") {
+    await supabase.from("os_adicionais")
+      .update({ status: "aprovado", approval: "aprovado" })
+      .eq("id", adicional_id);
+
+    const { data: pg } = await supabase.from("os_pagamentos")
+      .select("*").eq("os_id", os_id).maybeSingle();
+    if (pg) {
+      await supabase.from("os_pagamentos").update({
+        valor_total: Number(pg.valor_total) + valor_total,
+        valor_restante: Number(pg.valor_restante) + valor_total,
+      }).eq("id", pg.id);
+    }
+    await supabase.from("os_alertas").insert({
+      os_id, numero_cliente: phone, visto: false, tipo: "sucesso",
+      contexto: `✅ Cliente APROVOU o adicional de R$ ${valor_total.toFixed(2)}.`,
+    });
+    return { ok: true, mensagem_para_cliente: "Perfeito! Aprovação registrada, vamos seguir com o serviço. 🔧" };
+  }
+
+  if (acao === "negar" || acao === "cancelar_adicional") {
+    await supabase.from("os_adicionais")
+      .update({ status: "negado", approval: "negado" })
+      .eq("id", adicional_id);
+    await supabase.from("os_alertas").insert({
+      os_id, numero_cliente: phone, visto: false, tipo: "info",
+      contexto: `Cliente negou o adicional de R$ ${valor_total.toFixed(2)}.`,
+    });
+    return { ok: true, mensagem_para_cliente: "Entendido! Cancelei o serviço extra, seguimos só com o original. 🚲" };
+  }
+
+  if (acao === "cancelar_tudo") {
+    await supabase.from("mechanic_jobs").update({ status: "cancelado" }).eq("id", os_id);
+    await supabase.from("os_adicionais")
+      .update({ status: "negado", approval: "negado" })
+      .eq("id", adicional_id);
+    await supabase.from("os_alertas").insert({
+      os_id, numero_cliente: phone, visto: false, tipo: "erro",
+      contexto: "🚨 Cliente cancelou TUDO pelo WhatsApp.",
+    });
+    return { ok: true, mensagem_para_cliente: "Compreendo. Cancelei todo o serviço. Venha buscar sua bike quando preferir. 🛑" };
+  }
+
+  return { ok: false, mensagem_para_cliente: "" };
+}

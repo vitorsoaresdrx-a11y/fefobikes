@@ -128,6 +128,57 @@ export async function getCustomerContext(phone: string): Promise<string> {
 
   return ctx;
 }
+/** Lookup any active OS and pending additions context for a phone number */
+export async function getActiveOSContext(phone: string): Promise<string> {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+  const digits = phone.replace(/\D/g, "");
+  const suffix = digits.slice(-10);
+
+  const { data: jobs } = await supabase
+    .from("mechanic_jobs")
+    .select("id, bike_name, problem, status, customer_name, customer_whatsapp")
+    .neq("status", "delivered")
+    .neq("status", "cancelado");
+
+  const matched = (jobs || []).filter((j: any) => {
+    const d = (j.customer_whatsapp || "").replace(/\D/g, "");
+    return d.endsWith(suffix) || suffix.endsWith(d.slice(-8));
+  });
+
+  if (!matched.length) return "";
+
+  const statusLabel: Record<string, string> = {
+    in_approval: "aguardando aprovação de orçamento",
+    in_repair: "na fila da mecânica",
+    in_maintenance: "em manutenção",
+    in_analysis: "em análise final",
+    ready: "pronta para retirada",
+  };
+
+  // Busca adicionais pendentes
+  const osIds = matched.map((j: any) => j.id);
+  const { data: adicionais } = await supabase
+    .from("os_adicionais")
+    .select("id, os_id, status, valor_total, problem")
+    .in("os_id", osIds)
+    .in("status", ["enviado", "pendente", "aguardando_cancelamento"]);
+
+  let ctx = "--- OS ATIVA DO CLIENTE ---\n";
+  for (const job of matched) {
+    ctx += `OS ID: ${job.id}\nBike: ${job.bike_name || "não informada"}\nStatus: ${statusLabel[job.status] || job.status}\nServiço: ${job.problem}\n`;
+    const add = (adicionais || []).filter((a: any) => a.os_id === job.id);
+    if (add.length) {
+      ctx += `ADICIONAL PENDENTE (requer decisão do cliente):\n`;
+      for (const a of add) {
+        ctx += `  - ID: ${a.id} | Valor: R$ ${Number(a.valor_total).toFixed(2)} | ${a.problem || ""} | Status: ${a.status}\n`;
+      }
+    }
+  }
+  return ctx;
+}
 
 /** Lookup service orders by phone */
 export async function getServiceOrdersByPhone(phone: string): Promise<string> {

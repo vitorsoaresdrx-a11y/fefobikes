@@ -62,6 +62,42 @@ export const toolDefinitions = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "atualizar_aprovacao_adicional",
+      description: "Atualiza o status de um adicional pendente (aprovar, negar, cancelar parcial ou total). Use quando o cliente expressar claramente uma decisão sobre o orçamento extra.",
+      parameters: {
+        type: "object",
+        properties: {
+          acao: {
+            type: "string",
+            enum: ["aprovar", "negar", "cancelar_adicional", "cancelar_tudo"],
+            description: "A ação a ser tomada"
+          },
+          adicional_id: { type: "string", description: "O ID do adicional conforme informado no contexto da OS." },
+          os_id: { type: "string", description: "O ID da OS associada." },
+          valor_total: { type: "number", description: "O valor do adicional para registro no log." }
+        },
+        required: ["acao", "adicional_id", "os_id", "valor_total"]
+      }
+    }
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "escalar_para_humano",
+      description: "Pausa a IA e sinaliza necessidade de atendente humano. Use quando o cliente tiver dúvida complexa sobre o serviço, pedir desconto, ou quando não há certeza sobre a intenção.",
+      parameters: {
+        type: "object",
+        properties: {
+          motivo: { type: "string", description: "O motivo do escalonamento." },
+          conversation_id: { type: "string", description: "O ID da conversa extraído do contexto." }
+        },
+        required: ["motivo", "conversation_id"]
+      }
+    }
+  }
 ];
 
 interface FreteResult {
