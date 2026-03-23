@@ -2011,7 +2011,7 @@ export default function Mecanica() {
     const formattedPhone = phone ? ((phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone) : null;
 
     advance.mutate({ id: job.id, status: job.status }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Card avançado!");
         
         // Transitions logic
