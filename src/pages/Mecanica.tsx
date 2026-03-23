@@ -1985,14 +1985,29 @@ export default function Mecanica() {
           .ilike('wa_id', `%${phoneSuffix}%`);
 
         if (convs && convs.length > 0) {
+          const movingToApproval = editForm.status === 'in_approval';
           await supabase
             .from('whatsapp_conversations')
             .update({ 
-              ai_enabled: false, 
-              human_takeover: true,
-              ai_notifications_enabled: true // mantém notificações ativas
+              ai_enabled: movingToApproval ? true : false, 
+              human_takeover: movingToApproval ? false : true,
+              ai_notifications_enabled: true
             } as any)
             .eq('id', convs[0].id);
+        }
+
+        // Se moveu para "Na Mecânica", cria a O.S. para os mecânicos
+        if (editForm.status === "in_repair") {
+          createServiceOrder.mutate({ 
+            id: editJob.id, 
+            customer_name: editForm.customer_name || undefined, 
+            customer_cpf: editForm.customer_cpf?.replace(/\D/g, "") || undefined, 
+            customer_whatsapp: editForm.customer_whatsapp || undefined, 
+            customer_id: editForm.customer_id || undefined, 
+            bike_name: editForm.bike_name || undefined, 
+            problem: editForm.problem, 
+            sem_custo: editForm.sem_custo 
+          });
         }
       }
 
@@ -2021,30 +2036,17 @@ export default function Mecanica() {
 
         // WhatsApp notifications
         if (formattedPhone) {
-          // Checa se notificações automáticas estão habilitadas para esta conversa
-          const phone = job.customer_whatsapp?.replace(/\D/g, "");
-          const phoneSuffix = phone?.slice(-10);
-          const { data: convs } = await supabase
-            .from('whatsapp_conversations')
-            .select('ai_notifications_enabled')
-            .ilike('contact_phone', `%${phoneSuffix}%`)
-            .limit(1);
-          
-          const notificationsEnabled = (convs as any)?.[0]?.ai_notifications_enabled !== false;
-          
-          if (notificationsEnabled) {
-            let message = "";
-            if (job.status === "in_approval") {
-              message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
-            } else if (job.status === "in_repair") {
-              message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
-            } else if (job.status === "in_analysis") {
-              message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
-            }
+          let message = "";
+          if (job.status === "in_approval") {
+            message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
+          } else if (job.status === "in_repair") {
+            message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
+          } else if (job.status === "in_analysis") {
+            message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
+          }
 
-            if (message) {
-              sendMessage.mutate({ phone: formattedPhone, message });
-            }
+          if (message) {
+            sendMessage.mutate({ phone: formattedPhone, message });
           }
         }
       },

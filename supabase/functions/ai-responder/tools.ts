@@ -49,13 +49,13 @@ export const toolDefinitions = [
     function: {
       name: "cancelar_ordem",
       description:
-        "Cancela uma ordem de serviço (O.S.) ativa do cliente. Use quando o cliente pedir explicitamente para cancelar o serviço da bike.",
+        "Cancela integralmente uma ordem de serviço (O.S.). Use SOMENTE se o cliente escrever as palavras 'cancelar', 'abortar' ou 'desistir' de todo o serviço. NÃO use se o cliente disser 'sim' para um orçamento — nesse caso deve-se aprovar o adicional.",
       parameters: {
         type: "object",
         properties: {
           motivo: {
             type: "string",
-            description: "Motivo do cancelamento informado pelo cliente.",
+            description: "O motivo explícito do cancelamento dado pelo cliente.",
           },
         },
         required: ["motivo"],
@@ -66,18 +66,18 @@ export const toolDefinitions = [
     type: "function" as const,
     function: {
       name: "atualizar_aprovacao_adicional",
-      description: "Atualiza o status de um adicional pendente (aprovar, negar, cancelar parcial ou total). Use quando o cliente expressar claramente uma decisão sobre o orçamento extra.",
+      description: "FERRAMENTA PRINCIPAL PARA ORÇAMENTOS EXTRAS. Use quando o cliente concordar ('sim', 'pode fazer', 'manda bala', 'ok', 'fechado') ou discordar de um adicional pendente informado no contexto.",
       parameters: {
         type: "object",
         properties: {
           acao: {
             type: "string",
             enum: ["aprovar", "negar", "cancelar_adicional", "cancelar_tudo"],
-            description: "A ação a ser tomada"
+            description: "A ação a ser tomada. 'aprovar' é a escolha se o cliente concordar com o serviço extra proposto."
           },
-          adicional_id: { type: "string", description: "O ID do adicional conforme informado no contexto da OS." },
+          adicional_id: { type: "string", description: "O ID do adicional informado no contexto da OS." },
           os_id: { type: "string", description: "O ID da OS associada." },
-          valor_total: { type: "number", description: "O valor do adicional para registro no log." }
+          valor_total: { type: "number", description: "Valor total do adicional proposto." }
         },
         required: ["acao", "adicional_id", "os_id", "valor_total"]
       }
@@ -91,10 +91,9 @@ export const toolDefinitions = [
       parameters: {
         type: "object",
         properties: {
-          motivo: { type: "string", description: "O motivo do escalonamento." },
-          conversation_id: { type: "string", description: "O ID da conversa extraído do contexto." }
+          motivo: { type: "string", description: "O motivo do escalonamento." }
         },
-        required: ["motivo", "conversation_id"]
+        required: ["motivo"]
       }
     }
   }

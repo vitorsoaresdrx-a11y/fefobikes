@@ -78,6 +78,7 @@ AÇÕES E FERRAMENTAS:
 - FRETE: Use "calcular_frete" (peça o CEP).
 
 REGRAS:
+- REGRA CRÍTICA: Se houver um orçament/reparo ADICIONAL PENDENTE no contexto e o cliente disser SIM, OK, PODE FAZER ou similar, use SEMPRE 'atualizar_aprovacao_adicional' para aprová-lo. Não tente cancelar a menos que a palavra 'cancelar' seja explícita.
 - Seja extremamente conciso, casual e direto.
 - SÓ use ferramentas se tiver as informações necessárias (ID da OS, ID do Adicional, etc) vindas do contexto.`;
 
@@ -165,7 +166,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "llama-3.3-70b-versatile",
         messages: groqMessages,
         tools: toolDefinitions,
         tool_choice: "auto",
@@ -173,7 +174,10 @@ Deno.serve(async (req) => {
       }),
     });
 
-    if (!groqResponse.ok) throw new Error("Groq API error");
+    if (!groqResponse.ok) {
+      const groqErr = await groqResponse.text();
+      throw new Error(`Groq API error ${groqResponse.status}: ${groqErr}`);
+    }
 
     let groqData = await groqResponse.json();
     let assistantMessage = groqData.choices?.[0]?.message;
@@ -210,9 +214,13 @@ Deno.serve(async (req) => {
       groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "llama-3.1-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
+        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: groqMessages, tools: toolDefinitions, tool_choice: "auto", max_tokens: 1024 }),
       });
       groqData = await groqResponse.json();
+      if (!groqResponse.ok) {
+        const groqErr = JSON.stringify(groqData);
+        throw new Error(`Groq API error (tool round) ${groqResponse.status}: ${groqErr}`);
+      }
       assistantMessage = groqData.choices?.[0]?.message;
     }
 
@@ -274,7 +282,7 @@ async function executeAtualizarAprovacao(
     }
     await supabase.from("os_alertas").insert({
       os_id, numero_cliente: phone, visto: false, tipo: "sucesso",
-      contexto: `✅ Cliente APROVOU o adicional de R$ ${valor_total.toFixed(2)}.`,
+      contexto: `✅ Cliente APROVOU o adicional de R$ ${Number(valor_total).toFixed(2)}.`,
     });
     return { ok: true, mensagem_para_cliente: "Perfeito! Aprovação registrada, vamos seguir com o serviço. 🔧" };
   }
@@ -285,7 +293,7 @@ async function executeAtualizarAprovacao(
       .eq("id", adicional_id);
     await supabase.from("os_alertas").insert({
       os_id, numero_cliente: phone, visto: false, tipo: "info",
-      contexto: `Cliente negou o adicional de R$ ${valor_total.toFixed(2)}.`,
+      contexto: `Cliente negou o adicional de R$ ${Number(valor_total).toFixed(2)}.`,
     });
     return { ok: true, mensagem_para_cliente: "Entendido! Cancelei o serviço extra, seguimos só com o original. 🚲" };
   }
