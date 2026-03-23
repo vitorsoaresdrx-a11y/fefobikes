@@ -22,6 +22,7 @@ import {
   useFinalizeJob,
   useRegisterPayment,
   useCancelAndArchiveMechanicJob,
+  useRestoreCancelledJob,
   type MechanicJob,
   type MechanicJobAddition,
   type AdditionPart,
