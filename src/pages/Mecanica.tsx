@@ -148,22 +148,48 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
   
   const [convInfo, setConvInfo] = useState<{ id: string, ai_enabled: boolean, human_takeover: boolean } | null>(null);
   const [loadingConv, setLoadingConv] = useState(false);
+  const [multipleOS, setMultipleOS] = useState(false);
+  const [aiLogs, setAiLogs] = useState<{ content: string; created_at: string }[]>([]);
 
   useEffect(() => {
     if (open && job?.customer_whatsapp) {
-      const fetchConv = async () => {
+      const fetchExtraData = async () => {
         setLoadingConv(true);
         const phone = job.customer_whatsapp.replace(/\D/g, '');
         const phoneSuffix = phone.slice(-10);
+
+        // Check for multiple OS
+        const { count } = await supabase
+          .from('mechanic_jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('customer_whatsapp', job.customer_whatsapp)
+          .in('status', ['in_approval', 'in_repair', 'in_maintenance', 'in_analysis', 'ready']);
+        setMultipleOS(!!(count && count > 1));
+
         const { data: convs } = await supabase
           .from('whatsapp_conversations' as any)
           .select('id, ai_enabled, human_takeover')
           .ilike('contact_phone', `%${phoneSuffix}%`)
           .limit(1);
-        setConvInfo(convs?.[0] || null);
+        
+        const conv = convs?.[0] || null;
+        setConvInfo(conv);
+
+        // Fetch AI logs
+        if (conv?.id) {
+          const { data: messages } = await supabase
+            .from('whatsapp_messages' as any)
+            .select('content, created_at')
+            .eq('conversation_id', conv.id)
+            .eq('from_me', true)
+            .order('created_at', { ascending: false })
+            .limit(3);
+          setAiLogs(messages || []);
+        }
+
         setLoadingConv(false);
       };
-      fetchConv();
+      fetchExtraData();
     }
   }, [open, job]);
 
@@ -277,6 +303,13 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
           </div>
         </DialogHeader>
 
+        {multipleOS && (
+          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-500 text-[10px] font-bold flex items-center gap-2">
+            <AlertTriangle size={14} />
+            Este cliente tem múltiplas OS ativas. A IA pode confundir as bikes.
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-3">
           <button 
             onClick={handleSendStatus}
@@ -333,6 +366,23 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
             </button>
           </div>
         </div>
+
+        {aiLogs.length > 0 && (
+          <div className="mt-6 space-y-2">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Últimas mensagens da IA</p>
+            <div className="space-y-1.5">
+              {aiLogs.map((log, idx) => (
+                <div key={idx} className="p-2.5 rounded-xl bg-background/30 border border-border/40 text-[10px]">
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <span className="text-primary font-bold uppercase tracking-widest">IA fefo bikes</span>
+                    <span className="text-muted-foreground/60">{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <p className="text-white/80 line-clamp-2 leading-relaxed">{log.content.length > 60 ? log.content.substring(0, 60) + '...' : log.content}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-8 pt-6 border-t border-border/40 flex gap-4">
            <button 
@@ -1690,6 +1740,8 @@ export default function Mecanica() {
             message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
           } else if (job.status === "in_repair") {
             message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
+          } else if (job.status === "in_maintenance") {
+            message = `Olá, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}foi concluída e está em análise final. Em breve te avisamos! 🔧`;
           } else if (job.status === "in_analysis") {
             message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
           }
@@ -1728,6 +1780,16 @@ export default function Mecanica() {
     }, {
       onSuccess: () => {
         toast.success(`✅ OS finalizada e registrada no DRE!`);
+        
+        if (finalizeJob?.customer_whatsapp) {
+          const phone = finalizeJob.customer_whatsapp.replace(/\D/g, "");
+          const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+          sendMessage.mutate({
+            phone: formattedPhone,
+            message: `Obrigado pela preferência, ${finalizeJob.customer_name || "cliente"}! 🚲✨ Sua bike ${finalizeJob.bike_name ? `(${finalizeJob.bike_name}) ` : ""}foi finalizada. Foi um prazer atender você na Fefo Bikes! Volte sempre! 😊`
+          });
+        }
+
         setFinalizeOpen(false);
         setFinalizeJob(null);
       },
