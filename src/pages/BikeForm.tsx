@@ -186,7 +186,7 @@ export default function BikeForm() {
   });
 
   const setDirtyValue = <K extends keyof BikeFormValues>(key: K, value: BikeFormValues[K]) =>
-    form.setValue(key, value, { shouldDirty: true, shouldTouch: true });
+    form.setValue(key as any, value as any, { shouldDirty: true, shouldTouch: true });
 
   const { isDirty } = form.formState;
   const hasUnsavedChanges = isDirty || partsChanged || imagesChanged;
