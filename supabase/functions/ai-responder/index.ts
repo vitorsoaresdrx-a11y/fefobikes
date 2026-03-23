@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
-import { buildBusinessContext, getCustomerContext, getServiceOrdersByPhone } from "./context.ts";
+import { buildBusinessContext, getCustomerContext, getServiceOrdersByPhone, cancelServiceOrder } from "./context.ts";
 import { toolDefinitions, executeCalcularFrete } from "./tools.ts";
 
 const corsHeaders = {
@@ -71,14 +71,14 @@ const SYSTEM_PROMPT = `Você é o assistente virtual da Fefo Bikes.
 
 Suas responsabilidades são:
 1. VENDAS: Trabalhe EXCLUSIVAMENTE com o que está no "CATÁLOGO" (contexto). Se o item não estiver lá, diga que não temos. Jamais invente produtos ou preços.
-2. OFICINA (O.S.): Se o cliente perguntar sobre o status de um serviço ou bike que está na oficina, use SEMPRE a ferramenta "consultar_ordem_servico".
-3. FRETE: Use a ferramenta "calcular_frete".
+2. OFICINA (O.S.): Se o cliente perguntar sobre o status de um serviço (ou onde está a bike dele), use SEMPRE a ferramenta "consultar_ordem_servico". VOCÊ JÁ TEM O TELEFONE DO CLIENTE, NÃO PEÇA! Basta rodar a ferramenta.
+   - CANCELAMENTO: Se o cliente pedir para cancelar, você DEVE perguntar se ele tem certeza antes de executar a ferramenta "cancelar_ordem". Só cancele após o "Sim" ou confirmação explícita.
+3. FRETE: Use a ferramenta "calcular_frete" (peça o CEP).
 
 REGRAS:
 - Seja direto, casual e humano.
 - Se o cliente só der um "Oi", responda apenas: "Olá! Como posso ajudar?"
-- Se o cliente perguntar por um produto fora do catálogo, diga que não temos esse modelo hoje.
-- Para status de oficina, peça o telefone se necessário e consulte a ferramenta.
+- Para O.S., use a ferramenta imediatamente. Se não encontrar nada, diga que não localizou nenhuma ordem de serviço ativa vinculada a este número e sugira falar com um atendente.
 - Respostas em áudio devem ser curtíssimas.`;
 
 Deno.serve(async (req) => {
@@ -340,6 +340,7 @@ Deno.serve(async (req) => {
         const args = JSON.parse(toolCall.function.arguments);
         let result = fnName === "calcular_frete" ? await executeCalcularFrete(args) : 
                      fnName === "consultar_ordem_servico" ? await getServiceOrdersByPhone(args.telefone || phone) : 
+                     fnName === "cancelar_ordem" ? await cancelServiceOrder(phone, args.motivo) :
                      { error: "Tool not found" };
         groqMessages.push({ role: "tool", content: JSON.stringify(result), tool_call_id: toolCall.id });
       }

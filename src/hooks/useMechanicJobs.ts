@@ -469,6 +469,30 @@ export function useRestoreCancelledJob() {
       }
 
       console.log("✅ Update enviado com sucesso!");
+
+      // 2. Re-enable AI for this customer if they were disabled
+      if (job?.customer_whatsapp) {
+        const phoneDigits = job.customer_whatsapp.replace(/\D/g, "");
+        const phoneSuffix = phoneDigits.slice(-8);
+        
+        console.log(`🤖 Re-habilitando IA para o telefone: ${phoneDigits} (sufixo ${phoneSuffix})`);
+        
+        // Find conversation by phone suffix
+        const { data: convs } = await supabase
+          .from("whatsapp_conversations")
+          .select("id")
+          .or(`phone.ilike.%${phoneSuffix}%`);
+
+        if (convs && convs.length > 0) {
+          const convIds = convs.map(c => c.id);
+          await supabase
+            .from("whatsapp_conversations")
+            .update({ ai_enabled: true, require_human: false, human_takeover: false })
+            .in("id", convIds);
+          console.log(`✅ IA reativada para ${convIds.length} conversa(s).`);
+        }
+      }
+
       return { success: true };
     },
     onSuccess: () => {

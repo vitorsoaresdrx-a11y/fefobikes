@@ -135,8 +135,8 @@ export async function getServiceOrdersByPhone(phone: string): Promise<string> {
   const cleanPhone = phone.replace(/\D/g, "");
 
   const { data: orders } = await supabase
-    .from("service_orders")
-    .select("id, bike_name, problem, status, mechanic_name, price, created_at, completed_at")
+    .from("mechanic_jobs")
+    .select("id, bike_name, problem, status, price, created_at")
     .or(`customer_whatsapp.ilike.%${cleanPhone.slice(-8)}%`)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -157,4 +157,50 @@ export async function getServiceOrdersByPhone(phone: string): Promise<string> {
   }));
 
   return JSON.stringify({ found: true, orders: result });
+}
+
+/** Cancel a service order by phone */
+export async function cancelServiceOrder(phone: string, motivo: string): Promise<string> {
+  const supabase = supabaseAdmin();
+  const cleanPhone = phone.replace(/\D/g, "");
+  
+  // 1. Find active OS
+  const { data: jobs } = await supabase
+    .from("mechanic_jobs")
+    .select("id, bike_name")
+    .neq("status", "delivered")
+    .neq("status", "cancelado")
+    .or(`customer_whatsapp.ilike.%${cleanPhone.slice(-8)}%`)
+    .limit(1);
+
+  if (!jobs || jobs.length === 0) {
+    return JSON.stringify({ success: false, message: "Nenhuma ordem de serviço ativa encontrada para cancelar." });
+  }
+
+  const job = jobs[0];
+
+  // 2. Update status to 'cancelado'
+  const { error: updateErr } = await supabase
+    .from("mechanic_jobs")
+    .update({ status: "cancelado" })
+    .eq("id", job.id);
+
+  if (updateErr) {
+    return JSON.stringify({ success: false, message: `Erro ao cancelar: ${updateErr.message}` });
+  }
+
+  // 3. Create alert
+  await supabase.from("os_alertas").insert({
+    os_id: job.id,
+    numero_cliente: phone,
+    visto: false,
+    tipo: "erro",
+    contexto: `🚨 CANCELAMENTO: O cliente cancelou o serviço da bike "${job.bike_name}" pelo WhatsApp. Motivo: ${motivo}`
+  });
+
+  return JSON.stringify({ 
+    success: true, 
+    message: `Ordem de serviço da bike "${job.bike_name}" cancelada com sucesso.`,
+    bike: job.bike_name
+  });
 }

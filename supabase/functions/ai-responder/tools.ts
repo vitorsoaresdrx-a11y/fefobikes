@@ -44,6 +44,24 @@ export const toolDefinitions = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "cancelar_ordem",
+      description:
+        "Cancela uma ordem de serviço (O.S.) ativa do cliente. Use quando o cliente pedir explicitamente para cancelar o serviço da bike.",
+      parameters: {
+        type: "object",
+        properties: {
+          motivo: {
+            type: "string",
+            description: "Motivo do cancelamento informado pelo cliente.",
+          },
+        },
+        required: ["motivo"],
+      },
+    },
+  },
 ];
 
 interface FreteResult {
