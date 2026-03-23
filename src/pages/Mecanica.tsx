@@ -533,6 +533,7 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cancelConfirmAction, setCancelConfirmAction] = useState<'retirar' | 'ok' | null>(null);
   const updateDetails = useUpdateMechanicJobDetails();
+  const restoreJob = useRestoreCancelledJob();
   const [aiActive, setAiActive] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -707,7 +708,7 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
           <div className="flex flex-col gap-2">
             <button 
               onClick={() => {
-                updateDetails.mutate({ id: job.id, status: 'in_approval' }, {
+                restoreJob.mutate(job.id, {
                   onSuccess: () => {
                     toast.success("Cancelamento revertido!");
                     setCancelConfirmAction(null);

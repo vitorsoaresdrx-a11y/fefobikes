@@ -443,6 +443,26 @@ export function useRetreatMechanicJob() {
   });
 }
 
+// Hook dedicated to restoring cancelled jobs back to the budget column
+export function useRestoreCancelledJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("mechanic_jobs" as any)
+        .update({ 
+          status: "in_approval",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+    },
+  });
+}
+
 export function useUpdateMechanicJobDetails() {
   const qc = useQueryClient();
   return useMutation({
