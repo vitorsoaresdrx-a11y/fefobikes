@@ -2082,7 +2082,7 @@ export default function Mecanica() {
       bikeName: finalizeJob.bike_name,
       problem: finalizeJob.problem,
     }, {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success(`✅ OS finalizada e registrada no DRE!`);
         
         if (finalizeJob?.customer_whatsapp) {
