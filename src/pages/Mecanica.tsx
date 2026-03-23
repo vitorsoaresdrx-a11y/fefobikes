@@ -1032,7 +1032,8 @@ function EditJobModal({ open, onOpenChange, editJob, editForm, setEditForm, onSa
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
                     { key: "in_approval", label: "Aprovação", icon: FileCheck },
-                    { key: "in_maintenance", label: "Manutenção", icon: Wrench },
+                    { key: "in_repair", label: "Na Mecânica", icon: Wrench },
+                    { key: "in_maintenance", label: "Manutenção", icon: Settings },
                     { key: "in_analysis", label: "Análise", icon: Eye },
                     { key: "ready", label: "Pronto", icon: CheckCircle2 },
                   ].map((col) => (
@@ -1379,6 +1380,8 @@ export default function Mecanica() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifData, setNotifData] = useState<{ job: any, status: string, problem: string } | null>(null);
   const reminderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useMechanicJobsRealtime();
 
   // Check for pending alert on mount
   useEffect(() => {
@@ -2012,8 +2015,6 @@ export default function Mecanica() {
             message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
           } else if (job.status === "in_repair") {
             message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
-          } else if (job.status === "in_maintenance") {
-            message = `Olá, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}foi concluída e está em análise final. Em breve te avisamos! 🔧`;
           } else if (job.status === "in_analysis") {
             message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
           }
@@ -2027,7 +2028,14 @@ export default function Mecanica() {
     });
   };
 
-  const handleRetreatJob = (job: MechanicJob) => { retreat.mutate({ id: job.id }, { onSuccess: () => toast.success("Retornado para 'Em Manutenção'"), onError: () => toast.error("Erro ao retroceder") }); };
+  const handleRetreatJob = (job: MechanicJob) => { 
+    retreat.mutate({ id: job.id }, { 
+      onSuccess: () => {
+        toast.success("Retornado com sucesso!");
+      }, 
+      onError: () => toast.error("Erro ao retroceder") 
+    }); 
+  };
 
   // Opens the finalize+payment modal instead of directly advancing
   const handleOpenFinalize = (job: MechanicJob) => {

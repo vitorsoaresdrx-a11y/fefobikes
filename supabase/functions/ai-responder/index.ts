@@ -69,17 +69,16 @@ function isBusinessHours(): { open: boolean; message: string } {
 
 const SYSTEM_PROMPT = `Você é o assistente virtual da Fefo Bikes. 
 
-Suas responsabilidades são:
-1. VENDAS: Trabalhe EXCLUSIVAMENTE com o que está no "CATÁLOGO" (contexto). Se o item não estiver lá, diga que não temos. Jamais invente produtos ou preços.
-2. OFICINA (O.S.): Se o cliente perguntar sobre o status de um serviço (ou onde está a bike dele), use SEMPRE a ferramenta "consultar_ordem_servico". VOCÊ JÁ TEM O TELEFONE DO CLIENTE, NÃO PEÇA! Basta rodar a ferramenta.
-   - CANCELAMENTO: Se o cliente pedir para cancelar, você DEVE perguntar se ele tem certeza antes de executar a ferramenta "cancelar_ordem". Só cancele após o "Sim" ou confirmação explícita.
-3. FRETE: Use a ferramenta "calcular_frete" (peça o CEP).
+AÇÕES:
+- VENDAS: Use apenas o "CATÁLOGO". Se não tiver o item, informe educadamente. Jamais invente.
+- O.S.: Use "consultar_ordem_servico" ou "cancelar_ordem". Use o telefone do cliente (não peça).
+  - Antes de cancelar, peça uma confirmação ("Tem certeza?").
+- FRETE: Use "calcular_frete" (peça o CEP).
 
-REGRAS:
-- Seja direto, casual e humano.
-- Se o cliente só der um "Oi", responda apenas: "Olá! Como posso ajudar?"
-- Para O.S., use a ferramenta imediatamente. Se não encontrar nada, diga que não localizou nenhuma ordem de serviço ativa vinculada a este número e sugira falar com um atendente.
-- Respostas em áudio devem ser curtíssimas.`;
+REGRAS DE RESPOSTA:
+- Se a ferramenta retornar sucesso, apenas confirme e pronto.
+- SÓ diga que não encontrou O.S. se a ferramenta retornar explicitamente que não há registros.
+- Seja casual, humano e extremamente direto.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -169,8 +168,9 @@ Deno.serve(async (req) => {
           '- APROVACAO: aceitou, concordou, "ok", "pode fazer", "sim", "faz aí", "beleza", "👍".\n' +
           '- NEGACAO: não quer, "não precisa", "deixa pra lá", "não".\n' +
           '- DUVIDA: perguntas, pechincha ou incertezas.\n' +
-          '- CANCELAMENTO: expressou desejo de cancelar algo.\n\n' +
-          'Responda APENAS: APROVACAO, NEGACAO, DUVIDA ou CANCELAMENTO.';
+          '- CANCELAMENTO: expressou desejo de cancelar algo.\n' +
+          '- OUTROS: perguntas sobre status da bike, outras dúvidas ou assuntos variados.\n\n' +
+          'Responda APENAS: APROVACAO, NEGACAO, DUVIDA, CANCELAMENTO ou OUTROS.';
 
       const classificationRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -233,17 +233,22 @@ Deno.serve(async (req) => {
           });
           responseText = "Compreendo. Todo o serviço da sua bike foi cancelado em nosso sistema. Por favor, entre em contato ou venha até a loja para combinarmos a retirada. 🛑";
         }
-        else if (intent.includes("NEGACAO") || intent.includes("DUVIDA")) {
-          if (intent.includes("NEGACAO")) await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
-          const ctxText = intent.includes("NEGACAO") ? "Cliente negou o orçamento adicional." : "Cliente tem dúvida sobre o orçamento adicional.";
+        else if (intent.includes("NEGACAO")) {
+          await supabase.from('os_adicionais').update({ status: 'negado', approval: 'negado' }).eq('id', pendingAdditionId);
           await supabase.from('os_alertas').insert({
-            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: intent.includes("NEGACAO") ? 'erro' : 'info', contexto: ctxText
+            os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'erro', contexto: "Cliente negou o orçamento adicional."
           });
           await supabase.from('whatsapp_conversations').update({ require_human: true, ai_enabled: false }).eq('id', conversationId);
-          
-          responseText = intent.includes("NEGACAO") 
-            ? "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais do serviço, tudo bem?"
-            : "Certo, entendi sua dúvida. Vou chamar um atendente humano para analisar seu caso e te responder melhor sobre o serviço da bike.";
+          responseText = "Entendido. Apontei aqui que não faremos essa parte. Vou passar para um atendente humano confirmar os detalhes finais do serviço, tudo bem?";
+        }
+        else if (intent.includes("DUVIDA")) {
+          if (message.toLowerCase().includes("preço") || message.toLowerCase().includes("valor") || message.toLowerCase().includes("caro")) {
+            await supabase.from('os_alertas').insert({
+              os_id: pendingOsId, numero_cliente: phone, visto: false, tipo: 'info', contexto: "Cliente tem dúvida sobre os valores."
+            });
+            await supabase.from('whatsapp_conversations').update({ require_human: true, ai_enabled: false }).eq('id', conversationId);
+            responseText = "Certo, entendi sua dúvida sobre os valores. Vou chamar um atendente humano para te explicar melhor essa parte do orçamento adicional.";
+          }
         }
 
         if (responseText) {

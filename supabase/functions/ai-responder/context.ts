@@ -195,7 +195,7 @@ export async function cancelServiceOrder(phone: string, motivo: string): Promise
     numero_cliente: phone,
     visto: false,
     tipo: "erro",
-    contexto: `🚨 CANCELAMENTO: O cliente cancelou o serviço da bike "${job.bike_name}" pelo WhatsApp. Motivo: ${motivo}`
+    contexto: `🚨 Cancelamento Total: O cliente cancelou o serviço da bike "${job.bike_name}" pelo WhatsApp. Motivo: ${motivo}`
   });
 
   return JSON.stringify({ 
