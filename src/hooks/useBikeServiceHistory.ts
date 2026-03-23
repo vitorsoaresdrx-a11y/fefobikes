@@ -100,6 +100,7 @@ export function useCancelHistoryRecord() {
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: KEY });
       const previous = qc.getQueryData(KEY);
+      // We still update optimistically for immediate feedback
       qc.setQueryData(KEY, (old: any) => (old || []).map((group: any) => ({
         ...group,
         records: group.records.map((r: any) => r.id === id ? { ...r, status: 'cancelado' } : r)
@@ -109,7 +110,8 @@ export function useCancelHistoryRecord() {
     onError: (_err, _vars, context: any) => {
       if (context?.previous) qc.setQueryData(KEY, context.previous);
     },
-    onSettled: () => {
+    onSuccess: () => {
+      // Invalidate both after real success to ensure sync, but the optimistic UI holds the fort
       qc.invalidateQueries({ queryKey: KEY });
       qc.invalidateQueries({ queryKey: ["sales"] });
     },
@@ -137,6 +139,8 @@ export function useDeleteHistoryRecord() {
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: KEY });
       const previous = qc.getQueryData(KEY);
+      
+      // Optimistic update
       qc.setQueryData(KEY, (old: any) => (old || [])
         .map((group: any) => ({
           ...group,
@@ -144,12 +148,13 @@ export function useDeleteHistoryRecord() {
         }))
         .filter((group: any) => group.records.length > 0)
       );
+      
       return { previous };
     },
     onError: (_err, _vars, context: any) => {
       if (context?.previous) qc.setQueryData(KEY, context.previous);
     },
-    onSettled: () => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
       qc.invalidateQueries({ queryKey: ["sales"] });
     },

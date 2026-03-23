@@ -242,8 +242,10 @@ export default function MecanicosHistorico() {
             deleteHistory.mutate(deleteId, {
               onSuccess: () => {
                 toast.success("Atendimento excluído");
+                if (selectedGroup?.records.length === 1) {
+                  setSelectedFrame(null);
+                }
                 setDeleteId(null);
-                // If it was the last record in the group, the modal will close because 'selected' might become invalid or query updates
               },
               onError: () => toast.error("Erro ao excluir atendimento")
             });
