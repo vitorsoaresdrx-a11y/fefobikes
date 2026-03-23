@@ -1381,8 +1381,6 @@ export default function Mecanica() {
   const [notifData, setNotifData] = useState<{ job: any, status: string, problem: string } | null>(null);
   const reminderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useMechanicJobsRealtime();
-
   // Check for pending alert on mount
   useEffect(() => {
     const saved = localStorage.getItem('pendingAlert');
@@ -1483,6 +1481,15 @@ export default function Mecanica() {
             setNotifData(payloadToSave);
             setNotifOpen(true);
             new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3").play().catch(() => {});
+
+            // Desabilita notificações automáticas pois OS foi cancelada
+            if (job?.customer_whatsapp) {
+              const phone = (job.customer_whatsapp as string).replace(/\D/g, '').slice(-10);
+              await supabase
+                .from('whatsapp_conversations')
+                .update({ ai_notifications_enabled: false } as any)
+                .ilike('contact_phone', `%${phone}%`);
+            }
           }
         }
       )
@@ -1980,7 +1987,11 @@ export default function Mecanica() {
         if (convs && convs.length > 0) {
           await supabase
             .from('whatsapp_conversations')
-            .update({ ai_enabled: false, human_takeover: true } as any)
+            .update({ 
+              ai_enabled: false, 
+              human_takeover: true,
+              ai_notifications_enabled: true // mantém notificações ativas
+            } as any)
             .eq('id', convs[0].id);
         }
       }
@@ -2010,17 +2021,30 @@ export default function Mecanica() {
 
         // WhatsApp notifications
         if (formattedPhone) {
-          let message = "";
-          if (job.status === "in_approval") {
-            message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
-          } else if (job.status === "in_repair") {
-            message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
-          } else if (job.status === "in_analysis") {
-            message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
-          }
+          // Checa se notificações automáticas estão habilitadas para esta conversa
+          const phone = job.customer_whatsapp?.replace(/\D/g, "");
+          const phoneSuffix = phone?.slice(-10);
+          const { data: convs } = await supabase
+            .from('whatsapp_conversations')
+            .select('ai_notifications_enabled')
+            .ilike('contact_phone', `%${phoneSuffix}%`)
+            .limit(1);
+          
+          const notificationsEnabled = (convs as any)?.[0]?.ai_notifications_enabled !== false;
+          
+          if (notificationsEnabled) {
+            let message = "";
+            if (job.status === "in_approval") {
+              message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
+            } else if (job.status === "in_repair") {
+              message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
+            } else if (job.status === "in_analysis") {
+              message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
+            }
 
-          if (message) {
-            sendMessage.mutate({ phone: formattedPhone, message });
+            if (message) {
+              sendMessage.mutate({ phone: formattedPhone, message });
+            }
           }
         }
       },
@@ -2068,6 +2092,19 @@ export default function Mecanica() {
             phone: formattedPhone,
             message: `Obrigado pela preferência, ${finalizeJob.customer_name || "cliente"}! 🚲✨ Sua bike ${finalizeJob.bike_name ? `(${finalizeJob.bike_name}) ` : ""}foi finalizada. Foi um prazer atender você na Fefo Bikes! Volte sempre! 😊`
           });
+
+          // Reativa IA para a próxima conversa
+          if (finalizeJob?.customer_whatsapp) {
+            const phone = finalizeJob.customer_whatsapp.replace(/\D/g, '').slice(-10);
+            await supabase
+              .from('whatsapp_conversations')
+              .update({ 
+                ai_enabled: true, 
+                human_takeover: false,
+                ai_notifications_enabled: true 
+              } as any)
+              .ilike('contact_phone', `%${phone}%`);
+          }
         }
 
         setFinalizeOpen(false);
