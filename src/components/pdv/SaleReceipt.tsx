@@ -154,18 +154,18 @@ function buildPrintHTML(data: ReceiptData) {
   <title>Recibo - FeFo Bikes</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Courier New',Courier,monospace;font-size:12px;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm}
     .center{text-align:center}
-    .bold{font-weight:bold}
-    .big{font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:2px}
-    .small{font-size:11px}
-    .xsmall{font-size:9px;color:#444}
-    .divider{border-top:1px dashed #000;margin:6px 0}
-    .row{display:flex;justify-content:space-between;margin-bottom:2px}
+    .bold{font-weight:800}
+    .big{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+    .small{font-size:12px;font-weight:700}
+    .xsmall{font-size:10px;font-weight:700;color:#000}
+    .divider{border-top:1.5px dashed #000;margin:8px 0}
+    .row{display:flex;justify-content:space-between;margin-bottom:4px}
     .row .left{flex:1;padding-right:6px}
-    .row .right{white-space:nowrap}
-    .section-label{font-size:9px;text-transform:uppercase;font-weight:bold;margin-bottom:4px}
-    .total{font-size:14px;font-weight:900}
+    .row .right{white-space:nowrap;font-weight:800}
+    .section-label{font-size:11px;text-transform:uppercase;font-weight:900;margin-bottom:6px;border-bottom:1px solid #000;display:inline-block}
+    .total{font-size:16px;font-weight:900;border-top:2px solid #000;padding-top:4px}
     .mt4{margin-top:4px}
     .mt8{margin-top:8px}
   </style>

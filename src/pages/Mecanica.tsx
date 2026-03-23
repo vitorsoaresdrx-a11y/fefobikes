@@ -72,6 +72,7 @@ import {
   PlusCircle,
   Receipt,
   DollarSign,
+  Printer,
 } from "lucide-react";
 import {
   Dialog,
@@ -1579,6 +1580,106 @@ export default function Mecanica() {
     setReceiptOpen(true);
   };
 
+  const handlePrintOSReceipt = useCallback(() => {
+    if (!receiptData) return;
+    const { job, history } = receiptData;
+    
+    const printWindow = window.open("", "_blank", "width=400,height=700");
+    if (!printWindow) return;
+
+    const historyArray = Array.isArray(job.payment_history) ? job.payment_history : [];
+    const totalPaidUntilNow = historyArray
+      .filter(h => new Date(h.criado_em) <= new Date(history.criado_em))
+      .reduce((s, h) => s + Number(h.valor) + Number(h.desconto_valor), 0);
+    
+    const remainingBalance = Math.max(0, getTotalPrice(job) - totalPaidUntilNow);
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Recibo OS - FeFo Bikes</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm}
+    .center{text-align:center}
+    .bold{font-weight:800}
+    .big{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+    .small{font-size:12px;font-weight:700}
+    .xsmall{font-size:10px;font-weight:700;color:#000}
+    .divider{border-top:1.5px dashed #000;margin:8px 0}
+    .row{display:flex;justify-content:space-between;margin-bottom:4px}
+    .section-label{font-size:11px;text-transform:uppercase;font-weight:900;margin-bottom:6px;border-bottom:1px solid #000;display:inline-block}
+    .total{font-size:15px;font-weight:900;border-top:2px solid #000;padding-top:4px}
+    .mt4{margin-top:4px}
+    .mt8{margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="center">
+    <p class="big">FeFo Bikes</p>
+    <p class="small mt4">Av. Ipanema, 1036 — Sorocaba, SP</p>
+    <p class="small">(15) 99612-8054</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <p class="section-label">Comprovante de Serviço</p>
+  <div class="row small">
+    <span>O.S. #${job.code || job.id.slice(0, 4).toUpperCase()}</span>
+    <span>${new Date(history.criado_em).toLocaleDateString()}</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="row small"><span>Cliente:</span><span class="bold">${job.customer_name}</span></div>
+  <div class="row small"><span>Bike:</span><span>${job.bike_name}</span></div>
+
+  <div class="divider"></div>
+
+  <p class="section-label">Financeiro</p>
+  <div class="row small">
+    <span>Valor Total O.S.</span>
+    <span>${formatBRL(getTotalPrice(job))}</span>
+  </div>
+  <div class="row total mt4">
+    <span>ESTE PAGAMENTO</span>
+    <span>${formatBRL(history.valor)}</span>
+  </div>
+  <div class="row small mt4">
+    <span>Forma</span>
+    <span>${(history.payment_method || 'PIX').toUpperCase()}</span>
+  </div>
+  
+  ${history.desconto_valor > 0 ? `<div class="row small"><span>Desconto</span><span>-${formatBRL(history.desconto_valor)}</span></div>` : ''}
+
+  <div class="divider"></div>
+
+  <div class="row small font-bold">
+    <span>SALDO RESTANTE</span>
+    <span>${formatBRL(remainingBalance)}</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="center mt8">
+    <p class="small">Obrigado pela preferência!</p>
+    <p class="xsmall mt4">GARANTIA DE 90 DIAS EM MÃO DE OBRA</p>
+    <p class="xsmall mt4">${new Date().toLocaleString("pt-BR")}</p>
+  </div>
+  
+  <script>
+    window.onload = function() {
+      setTimeout(() => { window.print(); window.close(); }, 300);
+    };
+  </script>
+</body>
+</html>`;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }, [receiptData]);
+
   // Modal de finalização com pagamento
   const [finalizeOpen, setFinalizeOpen] = useState(false);
   const [finalizeJob, setFinalizeJob] = useState<MechanicJob | null>(null);
@@ -2992,19 +3093,28 @@ export default function Mecanica() {
               </div>
             )}
 
-            <button 
-              onClick={() => {
-                if (!receiptData) return;
-                const msg = `📋 *Recibo de Serviço - Fefo Bikes*\n\n*Cliente:* ${receiptData.job.customer_name}\n*Bike:* ${receiptData.job.bike_name}\n*Data:* ${new Date(receiptData.history.criado_em).toLocaleDateString()}\n\n*Pagamento:* ${formatBRL(receiptData.history.valor)}\n*Forma:* ${receiptData.history.payment_method?.toUpperCase() || 'PIX'}\n*Total do Serviço:* ${formatBRL(getTotalPrice(receiptData.job))}\n\nObrigado pela preferência! 🚴✨`;
-                sendMessage.mutate({
-                  phone: receiptData.job.customer_whatsapp!,
-                  message: msg
-                }, { onSuccess: () => toast.success("Recibo enviado!") });
-              }}
-              className="w-full h-12 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-400 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2"
-            >
-              <Phone size={16} /> Enviar pelo WhatsApp
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={handlePrintOSReceipt}
+                className="w-full h-12 rounded-2xl bg-black text-white hover:bg-gray-800 font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 shadow-xl shadow-black/10"
+              >
+                <Printer size={16} /> Imprimir Recibo
+              </button>
+
+              <button 
+                onClick={() => {
+                  if (!receiptData) return;
+                  const msg = `📋 *Recibo de Serviço - Fefo Bikes*\n\n*Cliente:* ${receiptData.job.customer_name}\n*Bike:* ${receiptData.job.bike_name}\n*Data:* ${new Date(receiptData.history.criado_em).toLocaleDateString()}\n\n*Pagamento:* ${formatBRL(receiptData.history.valor)}\n*Forma:* ${receiptData.history.payment_method?.toUpperCase() || 'PIX'}\n*Total do Serviço:* ${formatBRL(getTotalPrice(receiptData.job))}\n\nObrigado pela preferência! 🚴✨`;
+                  sendMessage.mutate({
+                    phone: receiptData.job.customer_whatsapp!,
+                    message: msg
+                  }, { onSuccess: () => toast.success("Recibo enviado!") });
+                }}
+                className="w-full h-12 rounded-2xl bg-emerald-500 text-white hover:bg-emerald-400 font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/10"
+              >
+                <Phone size={16} /> WhatsApp
+              </button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

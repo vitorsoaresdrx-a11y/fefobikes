@@ -57,8 +57,8 @@ export function QRCodeModal({ open, onOpenChange, sku, productName }: QRCodeModa
               display: flex; flex-direction: column; align-items: center; justify-content: center; 
               padding: 15px; border: 1px solid #eee; border-radius: 8px; width: 200px; page-break-inside: avoid;
             }
-            .sku { font-family: monospace; font-weight: bold; font-size: 16px; margin: 8px 0 2px; letter-spacing: 0.1em; }
-            .name { font-size: 12px; color: #666; text-align: center; }
+            .sku { font-family: -apple-system, system-ui, sans-serif; font-weight: 900; font-size: 16px; margin: 8px 0 2px; letter-spacing: 0.1em; }
+            .name { font-size: 14px; color: #000; text-align: center; font-weight: 800; }
           </style>
         </head>
         <body>

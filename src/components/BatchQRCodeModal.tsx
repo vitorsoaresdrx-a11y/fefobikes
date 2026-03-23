@@ -57,8 +57,8 @@ export function BatchQRCodeModal({ open, onOpenChange, bikes }: BatchQRCodeModal
             .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
             .qr-item { display: flex; flex-direction: column; align-items: center; padding: 15px; border: 1px solid #eee; border-radius: 8px; page-break-inside: avoid; }
             .qr-code-placeholder { width: 140px; height: 140px; margin-bottom: 10px; }
-            .sku { font-family: monospace; font-weight: bold; font-size: 14px; margin: 5px 0; letter-spacing: 0.1em; }
-            .name { font-size: 11px; color: #666; text-align: center; max-width: 140px; }
+            .sku { font-family: -apple-system, system-ui, sans-serif; font-weight: 900; font-size: 14px; margin: 5px 0; letter-spacing: 0.1em; color: #000; }
+            .name { font-size: 12px; color: #000; text-align: center; max-width: 140px; font-weight: 800; }
           </style>
         </head>
         <body>
