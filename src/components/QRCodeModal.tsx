@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer, Download } from "lucide-react";
+import { Printer, Download, Plus, Minus } from "lucide-react";
 
 interface QRCodeModalProps {
   open: boolean;
@@ -85,18 +85,24 @@ export function QRCodeModal({ open, onOpenChange, sku, productName }: QRCodeModa
           <p className="text-sm font-mono font-semibold text-foreground tracking-widest">{sku}</p>
           <p className="text-xs text-muted-foreground text-center mb-2">{productName}</p>
           
-          <div className="w-full flex items-center justify-between border-y border-border py-4 mb-2">
-            <span className="text-sm font-bold text-foreground">Quantidade de Cópias:</span>
-            <div className="flex items-center gap-4">
+          <div className="w-full flex items-center justify-between border-y border-border py-6 my-2 bg-muted/20 px-4 rounded-xl">
+            <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Quantidade:</span>
+            <div className="flex items-center gap-6">
               <button 
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors"
-              >-</button>
-              <span className="w-6 text-center text-sm font-black text-primary">{quantity}</span>
+                type="button"
+                onClick={(e) => { e.preventDefault(); setQuantity(Math.max(1, quantity - 1)); }}
+                className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center hover:text-primary hover:border-primary active:scale-95 transition-all text-foreground/70"
+              >
+                <Minus size={18} />
+              </button>
+              <span className="w-8 text-center text-xl font-black text-primary animate-in zoom-in-50 duration-200">{quantity}</span>
               <button 
-                onClick={() => setQuantity(Math.min(20, quantity + 1))}
-                className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors"
-              >+</button>
+                type="button"
+                onClick={(e) => { e.preventDefault(); setQuantity(Math.min(50, quantity + 1)); }}
+                className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center hover:text-primary hover:border-primary active:scale-95 transition-all text-foreground/70"
+              >
+                <Plus size={18} />
+              </button>
             </div>
           </div>
           <div className="flex gap-2 w-full">
