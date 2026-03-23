@@ -54,8 +54,9 @@ export function useCreateServiceOrder() {
       price?: number;
       sem_custo?: boolean;
       responsible_name?: string;
+      mechanic_status?: string;
     }) => {
-      const { data, error } = await supabase.from("service_orders").insert(order).select().single();
+      const { data, error } = await supabase.from("service_orders").upsert(order).select().single();
       if (error) throw error;
       return data as any;
     },

@@ -1996,8 +1996,8 @@ export default function Mecanica() {
             .eq('id', convs[0].id);
         }
 
-        // Se moveu para "Na Mecânica", cria a O.S. para os mecânicos
-        if (editForm.status === "in_repair") {
+        // Se moveu para "Na Mecânica" ou "Em Manutenção", sincroniza com os mecânicos
+        if (editForm.status === "in_repair" || editForm.status === "in_maintenance") {
           createServiceOrder.mutate({ 
             id: editJob.id, 
             customer_name: editForm.customer_name || undefined, 
@@ -2006,7 +2006,8 @@ export default function Mecanica() {
             customer_id: editForm.customer_id || undefined, 
             bike_name: editForm.bike_name || undefined, 
             problem: editForm.problem, 
-            sem_custo: editForm.sem_custo 
+            sem_custo: editForm.sem_custo,
+            mechanic_status: editForm.status === "in_repair" ? "pending" : "accepted"
           });
         }
       }
@@ -2029,9 +2030,20 @@ export default function Mecanica() {
       onSuccess: async () => {
         toast.success("Card avançado!");
         
-        // Transitions logic
-        if (job.status === "in_approval") {
-          createServiceOrder.mutate({ id: job.id, customer_name: job.customer_name || undefined, customer_cpf: job.customer_cpf || undefined, customer_whatsapp: job.customer_whatsapp || undefined, customer_id: job.customer_id || undefined, bike_name: job.bike_name || undefined, problem: job.problem, sem_custo: job.sem_custo });
+        // Quando avança para "Na Mecânica" ou "Em Manutenção", sincroniza com os mecânicos
+        if (job.status === "in_approval" || job.status === "in_repair") {
+          const nextStatus = job.status === "in_approval" ? "in_repair" : "in_maintenance";
+          createServiceOrder.mutate({ 
+            id: job.id, 
+            customer_name: job.customer_name || undefined, 
+            customer_cpf: job.customer_cpf || undefined, 
+            customer_whatsapp: job.customer_whatsapp || undefined, 
+            customer_id: job.customer_id || undefined, 
+            bike_name: job.bike_name || undefined, 
+            problem: job.problem, 
+            sem_custo: job.sem_custo,
+            mechanic_status: nextStatus === "in_repair" ? "pending" : "accepted"
+          });
         }
 
         // WhatsApp notifications

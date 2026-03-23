@@ -56,6 +56,7 @@ const PontoCadastro = lazyRetry(() => import("@/pages/PontoCadastro"));
 const PontoRegistro = lazyRetry(() => import("@/pages/PontoRegistro"));
 const PontoRelatorio = lazyRetry(() => import("@/pages/PontoRelatorio"));
 const Metas = lazyRetry(() => import("@/pages/Metas"));
+const DeveloperTasks = lazyRetry(() => import("@/pages/DeveloperTasks"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,6 +115,7 @@ function AuthGate() {
           <Route path="/historico" element={<GuardedRoute module="historico"><PageTransition><Historico /></PageTransition></GuardedRoute>} />
           <Route path="/dre" element={<GuardedRoute module="dre"><PageTransition><DRE /></PageTransition></GuardedRoute>} />
           <Route path="/metas" element={<GuardedRoute module="metas"><PageTransition><Metas /></PageTransition></GuardedRoute>} />
+          <Route path="/developer" element={<GuardedRoute module="dashboard"><PageTransition><DeveloperTasks /></PageTransition></GuardedRoute>} />
           <Route path="/gastos" element={<GuardedRoute module="gastos"><PageTransition><Gastos /></PageTransition></GuardedRoute>} />
           <Route path="/contas" element={<GuardedRoute module="contas"><PageTransition><Contas /></PageTransition></GuardedRoute>} />
           <Route path="/mecanica" element={<GuardedRoute module="mecanica"><PageTransition><Mecanica /></PageTransition></GuardedRoute>} />

@@ -25,6 +25,7 @@ import {
   TrendingUp,
   Target,
   ShoppingBag,
+  Terminal,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
@@ -107,6 +108,7 @@ const navGroups = [
   {
     label: "Sistema",
     items: [
+      { title: "Developer", url: "/developer", icon: Terminal },
       { title: "Chamadas", url: "/chamadas", icon: Bell },
       { title: "Permissões", url: "/permissoes", icon: Shield },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
