@@ -21,8 +21,10 @@ import {
   type BikeModel,
 } from "@/hooks/useBikes";
 import { QRCodeModal } from "@/components/QRCodeModal";
+import { BatchQRCodeModal } from "@/components/BatchQRCodeModal";
 import { getOptimizedImageUrl } from "@/lib/image";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { CheckSquare, Square, Check } from "lucide-react";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -128,9 +130,26 @@ export default function Bikes() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  
+  // Batch selection states
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchPrintOpen, setBatchPrintOpen] = useState(false);
 
   const handleToggle = (id: string, current: boolean) => {
     updateBike.mutate({ id, visible_on_storefront: !current });
+  };
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filtered.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filtered.map(b => b.id)));
   };
 
   const categories = useMemo(() => {
@@ -185,6 +204,17 @@ export default function Bikes() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Btn 
+              variant={selectionMode ? "secondary" : "outline"} 
+              className={`hidden md:flex rounded-2xl ${selectionMode ? 'bg-primary/20 text-primary border-primary/30' : ''}`}
+              onClick={() => {
+                setSelectionMode(!selectionMode);
+                if (selectionMode) setSelectedIds(new Set());
+              }}
+            >
+              <CheckSquare className="w-5 h-5 mr-2" />
+              {selectionMode ? "Cancelar Seleção" : "Imprimir em Lote"}
+            </Btn>
             <div className="hidden md:flex items-center bg-card border border-border rounded-2xl px-4 py-2 text-muted-foreground focus-within:border-primary/50 transition-colors">
               <Search className="w-4 h-4 mr-2 shrink-0" />
               <input
@@ -201,6 +231,35 @@ export default function Bikes() {
             </Btn>
           </div>
         </header>
+
+        {/* Batch Actions Toolbar */}
+        {selectionMode && (
+          <div className="bg-primary/10 border border-primary/20 p-4 rounded-3xl flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-black text-primary uppercase tracking-widest bg-primary/20 px-4 py-2 rounded-xl">
+                {selectedIds.size} selecionadas
+              </span>
+              <button 
+                className="text-xs font-bold text-muted-foreground hover:text-white transition-colors"
+                onClick={selectAll}
+              >
+                {selectedIds.size === filtered.length ? "Desmarcar Tudo" : "Selecionar Tudo"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Btn 
+                variant="primary" 
+                size="md" 
+                className="px-6 rounded-xl font-bold"
+                disabled={selectedIds.size === 0}
+                onClick={() => setBatchPrintOpen(true)}
+              >
+                <QrCode className="w-4 h-4 mr-2" />
+                Imprimir QR Codes
+              </Btn>
+            </div>
+          </div>
+        )}
 
         {/* Stats Mobile */}
         <div className="grid grid-cols-3 gap-2 md:hidden">
@@ -279,9 +338,28 @@ export default function Bikes() {
               return (
                 <div
                   key={bike.id}
-                  className="group relative bg-card border border-border rounded-2xl md:rounded-[40px] overflow-hidden hover:border-primary/50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] cursor-pointer"
-                  onClick={() => navigate(`/bikes/${bike.id}`)}
+                  className={`group relative bg-card border rounded-2xl md:rounded-[40px] overflow-hidden transition-all duration-500 cursor-pointer ${
+                    selectedIds.has(bike.id) 
+                      ? 'border-primary ring-2 ring-primary/20 shadow-[0_20px_40px_rgba(0,0,0,0.5)]' 
+                      : 'border-border hover:border-primary/50 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]'
+                  }`}
+                  onClick={() => {
+                    if (selectionMode) toggleSelect(bike.id);
+                    else navigate(`/bikes/${bike.id}`);
+                  }}
                 >
+                  {/* Selection Indicator */}
+                  {selectionMode && (
+                    <div className="absolute top-4 left-4 z-[40]">
+                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                        selectedIds.has(bike.id) 
+                          ? 'bg-primary border-primary text-white scale-110' 
+                          : 'bg-black/50 border-white/30 text-transparent'
+                      }`}>
+                        <Check size={18} strokeWidth={4} />
+                      </div>
+                    </div>
+                  )}
                   {/* Imagem Mobile */}
                   <div className="md:hidden relative">
                     <img 
@@ -460,6 +538,12 @@ export default function Bikes() {
           productName={qrBike.name}
         />
       )}
+
+      <BatchQRCodeModal
+        open={batchPrintOpen}
+        onOpenChange={setBatchPrintOpen}
+        bikes={bikes.filter(b => selectedIds.has(b.id))}
+      />
       <ConfirmDeleteDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
