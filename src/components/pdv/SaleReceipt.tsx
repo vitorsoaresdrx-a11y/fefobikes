@@ -154,18 +154,16 @@ function buildPrintHTML(data: ReceiptData) {
   <title>Recibo - FeFo Bikes</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:900 !important;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm;line-height:1.2}
     .center{text-align:center}
-    .bold{font-weight:800}
+    .bold{font-weight:900 !important}
     .big{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
-    .small{font-size:12px;font-weight:700}
-    .xsmall{font-size:10px;font-weight:700;color:#000}
-    .divider{border-top:1.5px dashed #000;margin:8px 0}
-    .row{display:flex;justify-content:space-between;margin-bottom:4px}
-    .row .left{flex:1;padding-right:6px}
-    .row .right{white-space:nowrap;font-weight:800}
-    .section-label{font-size:11px;text-transform:uppercase;font-weight:900;margin-bottom:6px;border-bottom:1px solid #000;display:inline-block}
-    .total{font-size:16px;font-weight:900;border-top:2px solid #000;padding-top:4px}
+    .small{font-size:11px;font-weight:900}
+    .xsmall{font-size:9px;font-weight:900}
+    .divider{border-top:1.5px dashed #000;margin:6px 0}
+    .row{display:flex;justify-content:space-between;margin-bottom:2px}
+    .section-label{font-size:10px;text-transform:uppercase;font-weight:900;margin-top:6px;margin-bottom:4px;display:block}
+    .total{font-size:14px;font-weight:950;border-top:1.5px solid #000;padding-top:4px;margin-top:4px}
     .mt4{margin-top:4px}
     .mt8{margin-top:8px}
   </style>
@@ -261,65 +259,52 @@ export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
         {/* Receipt card — white bg, black text to simulate thermal print */}
         <div className="overflow-y-auto max-h-[85vh] rounded-2xl">
           <div className="bg-white text-black rounded-2xl p-5 w-full">
-            {/* Header */}
-            <div className="text-center border-b border-dashed border-black pb-3 mb-3">
-              <p className="text-lg font-black uppercase tracking-widest">FeFo Bikes</p>
-              <p className="text-xs">Av. Ipanema, 1036 — Sorocaba, SP</p>
-              <p className="text-xs">CEP: 18070-671</p>
-              <p className="text-xs">(15) 99612-8054</p>
-              <p className="text-xs">CNPJ: 27.291.055/0001-54</p>
+            {/* Header Info */}
+            <div className="text-center space-y-0.5 border-b border-dashed border-black/20 pb-4">
+              <h3 className="text-xl font-black uppercase tracking-tight text-black">FEFO BIKES</h3>
+              <p className="text-[11px] font-black text-black/80 leading-tight">Av. Ipanema, 1036 — Sorocaba, SP</p>
+              <p className="text-[11px] font-black text-black/80 leading-tight">CEP: 18070-671</p>
+              <p className="text-[11px] font-black text-black/80 leading-tight">(15) 99612-8054</p>
+              <p className="text-[11px] font-black text-black/80 leading-tight">CNPJ: 27.291.055/0001-54</p>
             </div>
 
-            {/* Order + Date */}
-            <div className="flex justify-between text-xs mb-3">
-              <span className="font-bold">PEDIDO #{data.orderNumber}</span>
-              <span>{formatDate(data.timestamp)} {formatTime(data.timestamp)}</span>
-            </div>
+            {/* Details */}
+            <div className="py-4 space-y-4">
+              <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-widest text-black">
+                <span>Pedido #{data.orderNumber}</span>
+                <span>{data.timestamp.toLocaleDateString()} {data.timestamp.toLocaleTimeString().slice(0,5)}</span>
+              </div>
 
-            {/* Customer */}
-            {data.customerName && (
-              <div className="border-t border-dashed border-black pt-2 pb-2 mb-2">
-                <p className="text-[10px] uppercase font-bold mb-1">Cliente</p>
-                <p className="text-xs font-bold">{data.customerName}</p>
-                {data.customerWhatsapp && (
-                  <p className="text-xs">{data.customerWhatsapp}</p>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black text-black/60 uppercase tracking-widest">Cliente</p>
+                <p className="text-[11px] font-black text-black">{data.customerName || "Não informado"}</p>
+                {data.customerWhatsapp && <p className="text-[11px] font-black text-black">{data.customerWhatsapp}</p>}
+              </div>
+
+              <div className="space-y-2 border-t border-dashed border-black/10 pt-4">
+                <p className="text-[9px] font-black text-black/60 uppercase tracking-widest">Itens</p>
+                {data.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-start gap-4">
+                    <div className="flex-1">
+                      <p className="text-[11px] font-black text-black leading-tight">{item.name}</p>
+                      <p className="text-[10px] font-black text-black/60">{item.quantity}x {formatBRL(item.unit_price)}</p>
+                    </div>
+                    <p className="text-[11px] font-black text-black">{formatBRL(item.quantity * item.unit_price)}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-1 border-t border-dashed border-black/10 pt-4">
+                <div className="flex justify-between text-[11px] font-black text-black">
+                  <span>Subtotal</span>
+                  <span>{formatBRL(data.subtotal)}</span>
+                </div>
+                {data.discount > 0 && (
+                  <div className="flex justify-between text-[11px] font-black text-black">
+                    <span>Desconto</span>
+                    <span>-{formatBRL(data.discount)}</span>
+                  </div>
                 )}
-              </div>
-            )}
-
-            {/* Items */}
-            <div className="border-t border-dashed border-black pt-2 pb-2 mb-2">
-              <p className="text-[10px] uppercase font-bold mb-2">Itens</p>
-              {data.items.map((item, i) => (
-                <div key={i}>
-                  <div className="flex justify-between text-xs mb-0.5">
-                    <span className="flex-1 pr-2">{item.name}</span>
-                    <span className="shrink-0 font-bold">
-                      {formatBRL(item.quantity * item.unit_price)}
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-gray-600 mb-2">
-                    {item.quantity}x {formatBRL(item.unit_price)}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Totals */}
-            <div className="border-t border-dashed border-black pt-2 pb-2 mb-2">
-              <div className="flex justify-between text-xs mb-1">
-                <span>Subtotal</span>
-                <span>{formatBRL(data.subtotal)}</span>
-              </div>
-              {data.discount > 0 && (
-                <div className="flex justify-between text-xs mb-1">
-                  <span>Desconto</span>
-                  <span>-{formatBRL(data.discount)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm font-black mt-1">
-                <span>TOTAL</span>
-                <span>{formatBRL(data.total)}</span>
               </div>
             </div>
 

@@ -1601,16 +1601,16 @@ export default function Mecanica() {
   <title>Recibo OS - FeFo Bikes</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:900 !important;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm;line-height:1.2}
     .center{text-align:center}
-    .bold{font-weight:800}
+    .bold{font-weight:900 !important}
     .big{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
-    .small{font-size:12px;font-weight:700}
-    .xsmall{font-size:10px;font-weight:700;color:#000}
-    .divider{border-top:1.5px dashed #000;margin:8px 0}
-    .row{display:flex;justify-content:space-between;margin-bottom:4px}
-    .section-label{font-size:11px;text-transform:uppercase;font-weight:900;margin-bottom:6px;border-bottom:1px solid #000;display:inline-block}
-    .total{font-size:15px;font-weight:900;border-top:2px solid #000;padding-top:4px}
+    .small{font-size:11px;font-weight:900}
+    .xsmall{font-size:9px;font-weight:900}
+    .divider{border-top:1.5px dashed #000;margin:6px 0}
+    .row{display:flex;justify-content:space-between;margin-bottom:2px}
+    .section-label{font-size:10px;text-transform:uppercase;font-weight:900;margin-top:6px;margin-bottom:4px;display:block}
+    .total{font-size:14px;font-weight:950;border-top:1.5px solid #000;padding-top:4px;margin-top:4px}
     .mt4{margin-top:4px}
     .mt8{margin-top:8px}
   </style>
