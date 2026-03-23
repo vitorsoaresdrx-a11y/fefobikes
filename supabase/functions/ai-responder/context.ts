@@ -14,12 +14,12 @@ export async function buildBusinessContext(): Promise<string> {
     supabase
       .from("parts")
       .select("id, name, category, sale_price, pix_price, stock_qty, material, color, rim_size, frame_size, gears, images")
-      .eq("visible_on_storefront", true)
+      .gt("stock_qty", 0)
       .order("name"),
     supabase
       .from("bike_models")
       .select("id, name, category, sale_price, pix_price, stock_qty, brand, color, rim_size, frame_size, weight_kg, description, images")
-      .eq("visible_on_storefront", true)
+      .gt("stock_qty", 0)
       .order("name"),
     supabase
       .from("bike_model_parts")
