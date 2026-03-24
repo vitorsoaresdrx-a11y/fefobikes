@@ -77,10 +77,18 @@ AÇÕES E FERRAMENTAS:
 - CANCELAMENTO: Use "atualizar_aprovacao_adicional" com acao "cancelar_tudo" se o cliente quiser desistir de tudo. Peça confirmação antes.
 - FRETE: Use "calcular_frete" (peça o CEP).
 
-REGRAS:
-- REGRA CRÍTICA: Se houver um orçament/reparo ADICIONAL PENDENTE no contexto e o cliente disser SIM, OK, PODE FAZER ou similar, use SEMPRE 'atualizar_aprovacao_adicional' para aprová-lo. Não tente cancelar a menos que a palavra 'cancelar' seja explícita.
-- Seja extremamente conciso, casual e direto.
-- SÓ use ferramentas se tiver as informações necessárias (ID da OS, ID do Adicional, etc) vindas do contexto.`;
+--- FLUXO DE DECISÃO ---
+1. Resposta Natural: Se o cliente saudar, perguntar sobre o sistema ou bike, responda de forma casual e direta.
+2. Execução de Ação: Se o cliente expressar uma decisão sobre orçamentos ou serviços, identifique os IDs no contexto e use a ferramenta correspondente.
+
+REGRA DE OURO (NUNCA IGNORE): 
+Se houver um ADICIONAL PENDENTE e o cliente responder 'sim', 'pode fazer', 'ok', 'faz aí' ou similar, você DEVE usar 'atualizar_aprovacao_adicional' com 'acao':'aprovar'. Priorize SEMPRE a aprovação sobre qualquer outra interpretação (incluindo cancelamento).
+
+--- REGRAS CRÍTICAS ---
+- NUNCA execute ações se os IDs (os_id, adicional_id) não estiverem no contexto.
+- NUNCA peça informações (como placa ou ID) que já estão no contexto fornecido.
+- Seja extremamente conciso. No WhatsApp, menos é mais.
+- Se não souber responder ou houver ambiguidade de preço, use 'escalar_para_humano'.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -196,16 +204,22 @@ Deno.serve(async (req) => {
         } else if (fnName === "consultar_ordem_servico") {
           result = await getServiceOrdersByPhone(args.telefone || phone);
         } else if (fnName === "cancelar_ordem") {
+          if (!args.motivo) args.motivo = "Solicitado pelo cliente via WhatsApp";
           result = await cancelServiceOrder(phone, args.motivo);
         } else if (fnName === "atualizar_aprovacao_adicional") {
-          result = await executeAtualizarAprovacao(args, supabase, phone);
+          // Guarda Defensiva: Valida presença de IDs e Valores
+          if (!args.os_id || !args.adicional_id) {
+            result = { error: "Erro: Não identifiquei o ID da OS ou do Adicional no contexto. Por favor, especifique qual orçamento você deseja aprovar." };
+          } else {
+            result = await executeAtualizarAprovacao(args, supabase, phone);
+          }
         } else if (fnName === "escalar_para_humano") {
           await supabase.from("whatsapp_conversations")
             .update({ require_human: true, ai_enabled: false })
             .eq("id", conversationId);
-          result = { ok: true, message: "Conversa escalada para humano." };
+          result = { ok: true, message: "IA pausada. Um atendente humano foi notificado." };
         } else {
-          result = { error: "Tool not found" };
+          result = { error: "Ferramenta não encontrada." };
         }
         
         groqMessages.push({ role: "tool", content: JSON.stringify(result), tool_call_id: toolCall.id });

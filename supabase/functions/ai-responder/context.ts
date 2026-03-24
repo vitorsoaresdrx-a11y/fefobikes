@@ -166,15 +166,16 @@ export async function getActiveOSContext(phone: string): Promise<string> {
     .in("os_id", osIds)
     .in("status", ["enviado", "pendente", "aguardando_cancelamento"]);
 
-  let ctx = "--- OS ATIVA DO CLIENTE ---\n";
+  let ctx = "--- DADOS DA OS ATIVA ---\n";
   for (const job of matched) {
-    ctx += `OS ID: ${job.id}\nBike: ${job.bike_name || "não informada"}\nStatus: ${statusLabel[job.status] || job.status}\nServiço: ${job.problem}\n`;
+    ctx += `ID_OS: ${job.id}\nBIKE: ${job.bike_name || "não informada"}\nSTATUS_OFICINA: ${statusLabel[job.status] || job.status}\nSERVIÇO_SOLICITADO: ${job.problem}\n`;
     const add = (adicionais || []).filter((a: any) => a.os_id === job.id);
     if (add.length) {
-      ctx += `ADICIONAL PENDENTE (requer decisão do cliente):\n`;
+      ctx += `\nESTE CLIENTE TEM ORÇAMENTOS EXTRAS PENDENTES (Aguardando Aprovação):\n`;
       for (const a of add) {
-        ctx += `  - ID: ${a.id} | Valor: R$ ${Number(a.valor_total).toFixed(2)} | ${a.problem || ""} | Status: ${a.status}\n`;
+        ctx += `  - ID_ADICIONAL: ${a.id} | VALOR: R$ ${Number(a.valor_total).toFixed(2)} | ITEM: ${a.problem || ""} | STATUS: ${a.status}\n`;
       }
+      ctx += `\nINSTRUÇÃO: Se o cliente disser SIM, OK, PODE FAZER, use a ferramenta 'atualizar_aprovacao_adicional' usando os IDs acima.`;
     }
   }
   return ctx;
