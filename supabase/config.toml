@@ -29,13 +29,10 @@ entrypoint = "./functions/cleanup-db/index.ts"
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/cleanup-db/*.html" ]
 
-[functions.rodonaves-frete]
+[functions.calcular-frete-rodonaves]
 enabled = true
-verify_jwt = true
-import_map = "./functions/rodonaves-frete/deno.json"
+verify_jwt = false
+import_map = "./functions/calcular-frete-rodonaves/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
-entrypoint = "./functions/rodonaves-frete/index.ts"
-# Specifies static files to be bundled with the function. Supports glob patterns.
-# For example, if you want to serve static HTML pages in your function:
-# static_files = [ "./functions/rodonaves-frete/*.html" ]
+entrypoint = "./functions/calcular-frete-rodonaves/index.ts"

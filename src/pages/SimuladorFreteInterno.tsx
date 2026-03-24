@@ -69,7 +69,7 @@ export default function SimuladorFreteInterno() {
       const bike = productTab === "sistema" ? bikes.find(b => b.id === selectedBikeId) : null;
       const valorBike = productTab === "sistema" ? Number(bike?.sale_price || 0) : Number(manualValue);
       
-      const { data: response, error } = await supabase.functions.invoke("rodonaves-frete", {
+      const { data: response, error } = await supabase.functions.invoke("calcular-frete-rodonaves", {
         body: { 
           DestinationZipCode: cleanCep, 
           InvoiceValue: valorBike 
