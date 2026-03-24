@@ -9,50 +9,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const cityDisplay = document.getElementById('cidade-display');
     const ufDisplay = document.getElementById('uf-display');
     const volumeCards = document.querySelectorAll('.volume-card');
-    const toggleButtons = document.querySelectorAll('.toggle-btn');
-
+    
     // State
-    let currentVolumeType = 'quadro';
+    let freteData = [];
+    let selectedRoute = null;
+    let currentVolumeType = 'quadro'; // Default
+
+    // --- DATA LOADING ---
+    async function initData() {
+        try {
+            // Fetching from the actual public folder (assuming served from root)
+            const response = await fetch('../../public/frete_rodonaves.json');
+            if (!response.ok) throw new Error('Falha ao carregar base de frete');
+            freteData = await response.json();
+            console.log('📦 Base Rodonaves Carregada:', freteData.length, 'registros');
+        } catch (err) {
+            console.error('❌ Erro Crítico:', err);
+            alert('Erro ao carregar banco de dados de frete. Verifique o console.');
+        }
+    }
+    initData();
 
     // --- MASKING & FORMATTING ---
-
-    // CEP Mask (00000-000)
     cepInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/\D/g, '');
-        if (val.length > 5) {
-            val = val.slice(0, 5) + '-' + val.slice(5, 8);
-        }
+        if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5, 8);
         e.target.value = val;
 
-        // Auto-search simulation when 8 digits are reached
         if (val.replace('-', '').length === 8) {
-            simulateCepSearch(val);
+            searchByCep(val.replace('-', ''));
         }
     });
 
-    // Money Formatting (Real R$)
     bikeValueInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/\D/g, '');
-        val = (val / 100).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+        val = (val / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         e.target.value = val;
     });
 
-    // --- TOGGLES & SELECTION ---
+    // --- SEARCH LOGIC ---
+    function searchByCep(cepStr) {
+        const cep = parseInt(cepStr);
+        const cepLoader = document.getElementById('cep-loader');
+        if (cepLoader) cepLoader.classList.add('active');
 
-    // Handle Segmented Toggles (Tab switching)
-    toggleButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const parent = btn.parentElement;
-            parent.querySelector('.active').classList.remove('active');
-            btn.classList.add('active');
-            
-            // Visual feedback only for this demo
-            console.log(`Switched to: ${btn.innerText}`);
-        });
-    });
+        // Linear search inside the JSON (best for local small-medium datasets)
+        const found = freteData.find(item => 
+            cep >= parseInt(item.cep_ini) && cep <= parseInt(item.cep_fim)
+        );
+
+        setTimeout(() => {
+            if (found) {
+                selectedRoute = found;
+                cityDisplay.value = found.cidade.toUpperCase();
+                ufDisplay.value = found.uf.toUpperCase();
+            } else {
+                selectedRoute = null;
+                cityDisplay.value = 'NÃO ENCONTRADO';
+                ufDisplay.value = '??';
+            }
+            if (cepLoader) cepLoader.classList.remove('active');
+        }, 300);
+    }
 
     // Handle Volume Card Selection
     volumeCards.forEach(card => {
@@ -63,74 +81,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- LOGIC SIMULATIONS ---
-
-    function simulateCepSearch(cep) {
-        // Show loading state in fields
-        cityDisplay.value = 'Buscando...';
-        ufDisplay.value = '...';
-        
-        // Mock delay 600ms
-        setTimeout(() => {
-            // Mock data for demo
-            if (cep.startsWith('69')) {
-                cityDisplay.value = 'BOA VISTA';
-                ufDisplay.value = 'RR';
-            } else if (cep.startsWith('01')) {
-                cityDisplay.value = 'SÃO PAULO';
-                ufDisplay.value = 'SP';
-            } else {
-                cityDisplay.value = 'CURITIBA';
-                ufDisplay.value = 'PR';
-            }
-        }, 800);
-    }
-
-    // --- MAIN CALCULATION ACTION ---
-
+    // --- CALCULATION ENGINE ---
     btnCalculate.addEventListener('click', async () => {
-        // Validation
-        if (!cepInput.value || !bikeValueInput.value) {
-            alert('Por favor, preencha o CEP e o Valor da Bike para continuar.');
+        if (!selectedRoute) {
+            alert('Por favor, insira um CEP válido primeiro.');
             return;
         }
 
-        // 1. Loading State
+        const bikeValue = parseFloat(bikeValueInput.value.replace(/\D/g, '')) / 100;
+        if (isNaN(bikeValue) || bikeValue <= 0) {
+            alert('Insira o valor da bike.');
+            return;
+        }
+
+        // 1. Loading UI
         btnCalculate.disabled = true;
-        const originalIcon = btnIcon.innerHTML;
         btnIcon.innerHTML = '<div class="spinner"></div>';
-        btnText.innerText = 'CALCULANDO FRETE...';
+        btnText.innerText = 'CALCULANDO...';
         resultContainer.classList.add('hidden');
 
-        // 2. Simulation Delay (1.2s)
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 800));
 
-        // 3. Mock Calculation Results
-        const city = cityDisplay.value || 'BOA VISTA';
-        const uf = ufDisplay.value || 'RR';
-        const valRaw = parseFloat(bikeValueInput.value.replace('.', '').replace(',', '.'));
+        // 2. Calculation Logic (Based on your business rules)
+        // Weight: Quadro (6kg) or Bike (15.5kg). Calculation always uses Cubage (38.48kg)
+        const pesoCalculo = 38.48; 
         
-        // Mock business rules
-        const baseFrete = (uf === 'RR') ? 1100 : 250;
-        const gris = valRaw * 0.003; // 0.3%
-        const subtotal = baseFrete + gris + 11.63 + 8.89;
-        const totalSugerido = Math.ceil((subtotal + 30) / 5) * 5;
+        // Find correct Bracket (peso40 because 38.48 is in [21, 40])
+        let fretePeso = selectedRoute.peso40 || selectedRoute.peso60 || selectedRoute.peso100 || 0;
+        
+        // Taxes
+        const gris = Math.max(selectedRoute.gris_min || 0, (bikeValue * (selectedRoute.gris_pct || 0)) / 100);
+        const tas = selectedRoute.tas || 0;
+        const pedagio = selectedRoute.pedagio_fixo || 0;
 
-        // 4. Update Result UI
-        document.getElementById('res-location').innerText = `${city} — ${uf}`;
-        document.getElementById('res-prazo').innerText = (uf === 'RR') ? '25' : '8';
-        document.getElementById('res-frete-peso').innerText = `R$ ${baseFrete.toFixed(2).replace('.', ',')}`;
+        const subtotal = fretePeso + gris + tas + pedagio;
+        
+        // Your Custom Rounding Rule: ceil((subtotal + 30) / 5) * 5
+        const totalFinal = Math.ceil((subtotal + 30) / 5) * 5;
+
+        // 3. Update UI
+        document.getElementById('res-location').innerText = `${selectedRoute.cidade.toUpperCase()} — ${selectedRoute.uf.toUpperCase()}`;
+        document.getElementById('res-prazo').innerText = (parseInt(selectedRoute.prazo) + 2).toString();
+        document.getElementById('res-frete-peso').innerText = `R$ ${fretePeso.toFixed(2).replace('.', ',')}`;
         document.getElementById('res-gris').innerText = `R$ ${gris.toFixed(2).replace('.', ',')}`;
-        document.getElementById('res-total').innerText = totalSugerido.toString();
+        document.getElementById('res-tas').innerText = `R$ ${tas.toFixed(2).replace('.', ',')}`;
+        document.getElementById('res-pedagio').innerText = `R$ ${pedagio.toFixed(2).replace('.', ',')}`;
+        document.getElementById('res-total').innerText = totalFinal.toLocaleString('pt-BR');
         document.getElementById('res-subtotal').innerText = `Subtotal Real: R$ ${subtotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
-        // 5. Finalize UI State
+        // 4. Show Result
         btnCalculate.disabled = false;
-        btnIcon.innerHTML = originalIcon;
+        btnIcon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="14"></line><line x1="16" y1="18" x2="16" y2="18"></line><line x1="12" y1="14" x2="12" y2="14"></line><line x1="12" y1="18" x2="12" y2="18"></line><line x1="8" y1="14" x2="8" y2="14"></line><line x1="8" y1="18" x2="8" y2="18"></line></svg>`;
         btnText.innerText = 'CALCULAR FRETE OFICIAL';
         resultContainer.classList.remove('hidden');
-
-        // Smooth scroll to result
-        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
     });
 });
