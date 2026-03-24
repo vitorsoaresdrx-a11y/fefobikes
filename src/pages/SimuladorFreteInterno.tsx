@@ -3,139 +3,234 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Truck, 
-  Search, 
   MapPin, 
+  Search, 
+  Package, 
   Bike, 
-  Calculator, 
-  AlertCircle, 
-  Clock, 
-  DollarSign, 
-  ChevronRight,
-  Monitor
+  CheckCircle2, 
+  AlertCircle,
+  Calculator
 } from "lucide-react";
-import { formatBRL } from "@/lib/format";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface FreightRule {
-  // Removido - Agora usamos a API Oficial
+  cep_ini: number;
+  cep_fim: number;
+  cidade: string;
+  uf: string;
+  prazo: number;
+  peso5: number;
+  peso10: number;
+  peso20: number;
+  peso40: number;
+  peso60: number;
+  peso100: number;
+  excedente_kg: number;
+  gris_min: number;
+  gris_pct: number;
+  tas: number;
+  pedagio_fixo: number;
+  pedagio_fracao_kg: number;
 }
 
 const PESO_CUBADO_PADRAO = 38.48; // (78 * 20 * 148) / 6000
 
-export default function SimuladorFreteInterno() {
+const SimuladorFreteInterno = () => {
+  // Estados de Busca
   const [activeTab, setActiveTab] = useState<"cep" | "cidade">("cep");
-  const [productTab, setProductTab] = useState<"sistema" | "manual">("sistema");
-  
-  // Destino
   const [cep, setCep] = useState("");
   const [selectedUf, setSelectedUf] = useState("");
   const [selectedCidade, setSelectedCidade] = useState("");
   
-  // Produto
+  // Estados de Produto
+  const [productTab, setProductTab] = useState<"sistema" | "manual">("sistema");
   const [selectedBikeId, setSelectedBikeId] = useState("");
   const [manualValue, setManualValue] = useState("");
   const [tipoProduto, setTipoProduto] = useState<"quadro" | "bike_completa" | null>(null);
-  
-  // Resultado
+
+  // Estados de Resultado
   const [calculating, setCalculating] = useState(false);
   const [result, setResult] = useState<any>(null);
 
-  // 1. A API Oficial agora é chamada via invoke no handleCalculate
+  // 1. Carregar dados do JSON (Cache via React Query)
+  const { data: rawData = [] as FreightRule[], isLoading: loadingJson } = useQuery({
+    queryKey: ["freight_rodonaves_json_v2"],
+    queryFn: async () => {
+      const res = await fetch("/frete_rodonaves.json");
+      if (!res.ok) throw new Error("Falha ao carregar tabela de frete.");
+      return res.json();
+    },
+    staleTime: Infinity,
+  });
 
   // 2. Carregar bikes do sistema
   const { data: bikes = [] } = useQuery({
-    queryKey: ["bikes_for_freight"],
+    queryKey: ["bikes_frete"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bike_models")
-        .select("id, name, sale_price")
+        .select("*")
         .order("name");
       if (error) throw error;
-      return data || [];
+      return data;
     }
   });
 
-  const ufs = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
+  // UFs Únicas para o Dropdown
+  const ufs = useMemo(() => {
+    const set = new Set(rawData.map(r => r.uf));
+    return (Array.from(set).sort() as string[]);
+  }, [rawData]);
 
-  const cidades = [] as string[]; // Na busca por cidade, agora recomendamos usar o CEP para maior precisão na API
+  // Cidades filtradas por UF
+  const cidadesFiltradas = useMemo(() => {
+    if (!selectedUf) return ([] as string[]);
+    const filtered = rawData.filter(r => r.uf === selectedUf);
+    const set = new Set(filtered.map(r => r.cidade));
+    return (Array.from(set).sort() as string[]);
+  }, [selectedUf, rawData]);
 
-  // Busca por CEP via API agora disparada no botão Calcular
+  // Busca automática ao digitar CEP
+  useEffect(() => {
+    const cleanCep = cep.replace(/\D/g, "");
+    if (activeTab === "cep" && cleanCep.length === 8) {
+      const cepNum = parseInt(cleanCep);
+      const rule = rawData.find(r => cepNum >= r.cep_ini && cepNum <= r.cep_fim);
+      if (rule) {
+        setSelectedCidade(rule.cidade);
+        setSelectedUf(rule.uf);
+      } else {
+        toast.error("CEP não localizado na nossa base.");
+      }
+    }
+  }, [cep, activeTab, rawData]);
 
-  const handleCalculate = async () => {
+  // Auto-detectar tipo de bike do sistema
+  useEffect(() => {
+    if (productTab === "sistema" && selectedBikeId) {
+      const bike = bikes.find(b => b.id === selectedBikeId);
+      if (bike?.tipo) {
+        setTipoProduto(bike.tipo as any);
+      } else {
+        setTipoProduto(null);
+      }
+    }
+  }, [selectedBikeId, productTab, bikes]);
+
+  const handleCalculate = () => {
     setCalculating(true);
     setResult(null);
-    try {
-      const cleanCep = cep.replace(/\D/g, "");
-      const bike = productTab === "sistema" ? bikes.find(b => b.id === selectedBikeId) : null;
-      const valorBike = productTab === "sistema" ? Number(bike?.sale_price || 0) : Number(manualValue);
-      
-      const { data: response, error } = await supabase.functions.invoke("calcular-frete-rodonaves", {
-        body: { 
-          DestinationZipCode: cleanCep, 
-          InvoiceValue: valorBike 
+
+    setTimeout(() => {
+      try {
+        let rule: FreightRule | undefined;
+        
+        if (activeTab === "cep") {
+          const cleanCep = cep.replace(/\D/g, "");
+          const cepNum = parseInt(cleanCep);
+          rule = rawData.find(r => cepNum >= r.cep_ini && cepNum <= r.cep_fim);
+        } else {
+          rule = rawData.find(r => r.uf === selectedUf && r.cidade === selectedCidade);
         }
-      });
 
-      if (error || !response.ok) {
-        throw new Error(response?.error || "Erro na cotação");
-      }
-
-      const quote = response.data;
-      console.log("Cotação Oficial Rodonaves:", quote);
-
-      // O valor retornado pela API da Rodonaves costuma estar em quote.ShippingPrice ou similar
-      // Dependendo da estrutura da resposta (v1/gera-cotacao)
-      // Normalmente é quote.TotalValue ou quote.Value
-      const valorBruto = quote.Value || quote.TotalValue || quote.ShippingPrice;
-      const prazoApi = quote.DeliveryDeadline || quote.Deadline || 5;
-
-      if (!valorBruto) {
-        throw new Error("Valor do frete não retornado pela transportadora.");
-      }
-
-      // Regra de arredondamento personalizada: teto multiplo de 5 + 30
-      const valorFinal = Math.ceil(valorBruto / 5) * 5 + 30;
-      const prazoFinal = Number(prazoApi) + 2;
-
-      setResult({
-        cidade: activeTab === "cep" ? selectedCidade : selectedCidade,
-        uf: selectedUf,
-        prazo: prazoFinal,
-        valorFinal,
-        detalhes: {
-          fretePeso: valorBruto,
-          gris: 0, // A API já inclui GRIS/TAS no Value total normalmente
-          tas: 0,
-          pedagio: 0,
-          subtotalBruto: valorBruto
+        if (!rule) {
+          toast.error("Destino não localizado.");
+          setCalculating(false);
+          return;
         }
-      });
 
-    } catch (err: any) {
-      console.error("Erro no Simulador:", err);
-      toast.error(err.message || "Não foi possível calcular o frete para esse CEP. Entre em contato conosco.");
-    } finally {
-      setCalculating(false);
-    }
+        const bike = productTab === "sistema" ? bikes.find(b => b.id === selectedBikeId) : null;
+        const valorBike = productTab === "sistema" ? Number(bike?.sale_price || 0) : Number(manualValue);
+        
+        // Regra de Peso: Cubado sempre vence para caixa padrão
+        const pesoCalculo = PESO_CUBADO_PADRAO;
+
+        // Cálculo Frete por Peso
+        let fretePeso = 0;
+        if (pesoCalculo <= 5) fretePeso = rule.peso5;
+        else if (pesoCalculo <= 10) fretePeso = rule.peso10;
+        else if (pesoCalculo <= 20) fretePeso = rule.peso20;
+        else if (pesoCalculo <= 40) fretePeso = rule.peso40;
+        else if (pesoCalculo <= 60) fretePeso = rule.peso60;
+        else if (pesoCalculo <= 100) fretePeso = rule.peso100;
+        else {
+          fretePeso = rule.peso100 + (pesoCalculo - 100) * rule.excedente_kg;
+        }
+
+        // Lógica de fallback para faixas vazias (comum no Norte)
+        if (!fretePeso) {
+          const fallback = rule.peso100 || rule.peso60 || rule.peso40 || rule.peso20 || rule.peso10 || rule.peso5;
+          const fallbackMaxKg = rule.peso100 ? 100 : (rule.peso60 ? 60 : (rule.peso40 ? 40 : (rule.peso20 ? 20 : (rule.peso10 ? 10 : 5))));
+          fretePeso = fallback + (Math.max(0, pesoCalculo - fallbackMaxKg) * rule.excedente_kg);
+        }
+
+        const gris = Math.max(valorBike * rule.gris_pct, rule.gris_min);
+        const tas = rule.tas;
+        const pedagio = rule.pedagio_fixo * Math.ceil(pesoCalculo / rule.pedagio_fracao_kg);
+
+        const subtotalBruto = fretePeso + gris + tas + pedagio;
+        
+        // Arredondamento: múltiplo de 5 + 30
+        const valorFinal = Math.ceil(subtotalBruto / 5) * 5 + 30;
+        const prazoFinal = rule.prazo + 2;
+
+        setResult({
+          cidade: rule.cidade,
+          uf: rule.uf,
+          prazo: prazoFinal,
+          valorFinal,
+          detalhes: {
+            fretePeso,
+            gris,
+            tas,
+            pedagio,
+            subtotalBruto
+          }
+        });
+      } catch (err) {
+        toast.error("Erro interno no cálculo.");
+      } finally {
+        setCalculating(false);
+      }
+    }, 600);
   };
 
   const isFormReady = () => {
     const hasDestino = activeTab === "cep" ? cep.replace(/\D/g, "").length === 8 : (selectedUf && selectedCidade);
-    const valorPronto = (productTab === "sistema" ? selectedBikeId : manualValue);
-    return hasDestino && valorPronto && tipoProduto;
+    const hasValue = productTab === "sistema" ? !!selectedBikeId : (Number(manualValue) > 0);
+    return hasDestino && hasValue && !!tipoProduto;
   };
+
+  if (loadingJson) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="font-bold text-muted-foreground animate-pulse uppercase tracking-widest text-xs">Carregando Tabelas de Frete...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-8 pb-20">
       <header className="flex items-center gap-4 border-b border-border pb-6">
-        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+        <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
           <Truck size={24} />
         </div>
         <div>
-          <h1 className="text-2xl font-black tracking-tight">Simulador de Frete Interno</h1>
-          <p className="text-muted-foreground text-sm flex items-center gap-1.5 uppercase font-bold tracking-widest font-sans">
-            <Monitor size={14} /> Uso Administrativo · Transportadora Rodonaves
-          </p>
+          <h1 className="text-2xl font-black uppercase tracking-tighter">Simulador de Frete</h1>
+          <p className="text-sm text-muted-foreground font-medium">Uso Interno — Rodonaves (Base Local)</p>
         </div>
       </header>
 
@@ -164,63 +259,65 @@ export default function SimuladorFreteInterno() {
             </button>
           </div>
 
-          <div className="space-y-4">
-            {activeTab === "cep" ? (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">CEP de Destino</label>
-                <input 
-                  type="text" 
-                  value={cep}
+          {activeTab === "cep" ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">CEP de Destino</Label>
+                <Input 
+                  value={cep} 
                   onChange={(e) => setCep(e.target.value)}
                   placeholder="00000-000"
-                  className="w-full h-12 bg-background border border-border rounded-xl px-4 font-bold focus:ring-2 ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/30"
+                  className="rounded-xl font-bold h-12 px-4 focus-visible:ring-primary"
                 />
               </div>
-            ) : (
-              <>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Estado (UF)</label>
-                  <select 
-                    value={selectedUf}
-                    onChange={(e) => { setSelectedUf(e.target.value); setSelectedCidade(""); }}
-                    className="w-full h-12 bg-background border border-border rounded-xl px-4 font-bold appearance-none outline-none focus:ring-2 ring-primary/20"
-                  >
-                    <option value="">Selecione...</option>
-                    {ufs.map(u => <option key={u} value={u}>{u}</option>)}
-                  </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">Cidade</Label>
+                  <Input value={selectedCidade} readOnly className="bg-muted border-none font-bold rounded-xl h-12" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Cidade</label>
-                  <select 
-                    value={selectedCidade}
-                    disabled={!selectedUf}
-                    onChange={(e) => setSelectedCidade(e.target.value)}
-                    className="w-full h-12 bg-background border border-border rounded-xl px-4 font-bold appearance-none outline-none focus:ring-2 ring-primary/20 disabled:opacity-50"
-                  >
-                    <option value="">Selecione...</option>
-                    {cidades.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">UF</Label>
+                  <Input value={selectedUf} readOnly className="bg-muted border-none font-bold rounded-xl h-12" />
                 </div>
-              </>
-            )}
-
-            {(selectedCidade || selectedUf) && (
-              <div className="p-4 bg-muted/30 border border-border/50 rounded-2xl flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Localizado:</p>
-                  <p className="font-black text-sm uppercase">{selectedCidade || "---"} – {selectedUf || "--"}</p>
-                </div>
-                <Search size={18} className="text-muted-foreground/30" />
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">Estado (UF)</Label>
+                <Select onValueChange={setSelectedUf} value={selectedUf}>
+                  <SelectTrigger className="h-12 rounded-xl font-bold">
+                    <SelectValue placeholder="Selecione o Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ufs.map(uf => (
+                      <SelectItem key={uf} value={uf} className="font-bold">{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">Cidade</Label>
+                <Select onValueChange={setSelectedCidade} value={selectedCidade} disabled={!selectedUf}>
+                  <SelectTrigger className="h-12 rounded-xl font-bold uppercase">
+                    <SelectValue placeholder="Selecione a Cidade" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {cidadesFiltradas.map(cidade => (
+                      <SelectItem key={cidade} value={cidade} className="font-bold uppercase">{cidade}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* BLOCO 2 - PRODUTO */}
         <section className="bg-card border border-border rounded-3xl p-6 space-y-6 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-              <Bike size={16} />
+              <Package size={16} />
             </div>
             <h3 className="font-black uppercase tracking-widest text-xs">2. Produto</h3>
           </div>
@@ -230,7 +327,7 @@ export default function SimuladorFreteInterno() {
               onClick={() => setProductTab("sistema")}
               className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${productTab === "sistema" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"}`}
             >
-              Lista do Sistema
+              Sistema
             </button>
             <button 
               onClick={() => setProductTab("manual")}
@@ -240,51 +337,52 @@ export default function SimuladorFreteInterno() {
             </button>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-4">
             {productTab === "sistema" ? (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Selecionar Bicicleta</label>
-                <select 
-                  value={selectedBikeId}
-                  onChange={(e) => setSelectedBikeId(e.target.value)}
-                  className="w-full h-12 bg-background border border-border rounded-xl px-4 font-bold appearance-none outline-none focus:ring-2 ring-primary/20"
-                >
-                  <option value="">Selecione...</option>
-                  {bikes.map(b => <option key={b.id} value={b.id}>{b.name} ({formatBRL(Number(b.sale_price))})</option>)}
-                </select>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">Escolher Bike</Label>
+                <Select onValueChange={setSelectedBikeId} value={selectedBikeId}>
+                  <SelectTrigger className="h-12 rounded-xl font-bold">
+                    <SelectValue placeholder="Selecione uma bike" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bikes.map(bike => (
+                      <SelectItem key={bike.id} value={bike.id} className="font-bold">
+                        {bike.name} — R$ {Number(bike.sale_price).toLocaleString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             ) : (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Valor da Bike (R$)</label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-bold">R$</div>
-                  <input 
-                    type="number" 
-                    value={manualValue}
-                    onChange={(e) => setManualValue(e.target.value)}
-                    placeholder="0,00"
-                    className="w-full h-12 bg-background border border-border rounded-xl pl-12 pr-4 font-bold outline-none focus:ring-2 ring-primary/20"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">Valor da Bike (R$)</Label>
+                <Input 
+                  type="number"
+                  value={manualValue} 
+                  onChange={(e) => setManualValue(e.target.value)}
+                  placeholder="Ex: 5000"
+                  className="rounded-xl font-bold h-12 px-4"
+                />
               </div>
             )}
 
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tipo de Embalagem (Obrigatório)</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button 
+            <div className="space-y-3 pt-2">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pl-1">Tipo de Volume</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
                   onClick={() => setTipoProduto("quadro")}
-                  className={`py-3 px-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 ${tipoProduto === "quadro" ? "border-primary bg-primary/5 text-primary" : "border-border hover:border-border/80 text-muted-foreground"}`}
+                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 h-24 ${tipoProduto === "quadro" ? "border-primary bg-primary/5 text-primary scale-[0.98]" : "border-border text-muted-foreground hover:border-border/80"}`}
                 >
-                  <span className="font-black text-xs uppercase tracking-tight">Quadro</span>
-                  <span className="text-[9px] font-bold opacity-60">6,0 KG</span>
+                  <Package size={20} className={tipoProduto === "quadro" ? "animate-bounce" : ""} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Quadro (6kg)</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setTipoProduto("bike_completa")}
-                  className={`py-3 px-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 ${tipoProduto === "bike_completa" ? "border-primary bg-primary/5 text-primary" : "border-border hover:border-border/80 text-muted-foreground"}`}
+                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 h-24 ${tipoProduto === "bike_completa" ? "border-primary bg-primary/5 text-primary scale-[0.98]" : "border-border text-muted-foreground hover:border-border/80"}`}
                 >
-                  <span className="font-black text-xs uppercase tracking-tight">Bike Completa</span>
-                  <span className="text-[9px] font-bold opacity-60">15,5 KG</span>
+                  <Bike size={20} className={tipoProduto === "bike_completa" ? "animate-bounce" : ""} />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-center leading-tight">Bike Completa (15,5kg)</span>
                 </button>
               </div>
             </div>
@@ -292,81 +390,91 @@ export default function SimuladorFreteInterno() {
         </section>
       </div>
 
-      <div className="flex flex-col items-center gap-6">
-        <button 
-          onClick={handleCalculate}
+      <div className="flex justify-center pt-4">
+        <Button 
           disabled={!isFormReady() || calculating}
-          className="w-full max-w-sm h-14 bg-primary text-white rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-30 shadow-xl shadow-primary/20"
+          onClick={handleCalculate}
+          className="h-16 px-12 rounded-2xl text-base font-black uppercase tracking-widest shadow-xl shadow-primary/20 gap-3 group"
         >
           {calculating ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Calculando...
-            </>
+            <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
           ) : (
-            <>
-              Calcular Frete Rodonaves
-              <ChevronRight size={20} />
-            </>
+            <Calculator size={20} className="group-hover:rotate-12 transition-transform" />
           )}
-        </button>
+          Calcular Frete Oficial
+        </Button>
+      </div>
 
-        {result && (
-          <div className="w-full bg-primary/5 border-2 border-primary/20 rounded-[40px] p-8 md:p-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-primary/10 pb-8">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Estimativa de Frete</p>
-                <h2 className="text-3xl font-black flex items-center gap-3">
-                  {result.cidade} <span className="text-primary/40">–</span> {result.uf}
+      {result && (
+        <Card className="border-2 border-primary/20 bg-background rounded-[40px] overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="p-8 md:p-12 space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-primary">
+                  <CheckCircle2 size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Cotação Garantida</span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                  {result.cidade} — {result.uf}
                 </h2>
               </div>
-              <div className="bg-background/80 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-primary/10 flex items-center gap-3">
-                <Clock size={18} className="text-primary" />
-                <span className="font-black text-sm uppercase tracking-tight">Prazo: {result.prazo} dias úteis</span>
+              <div className="flex flex-col md:items-end">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Prazo Estimado</span>
+                <span className="text-3xl md:text-4xl font-black text-primary tracking-tighter">
+                  {result.prazo} <span className="text-xl">Dias úteis</span>
+                </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center text-xs font-bold text-muted-foreground border-b border-primary/5 pb-2">
-                  <span className="uppercase tracking-widest">Frete por Peso (Cubagem)</span>
-                  <span className="text-foreground">{formatBRL(result.detalhes.fretePeso)}</span>
+            <Separator className="bg-border/50" />
+
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-12 gap-y-6">
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Frete Peso</p>
+                  <p className="text-lg font-black tracking-tight">R$ {result.detalhes.fretePeso.toFixed(2)}</p>
                 </div>
-                <div className="flex justify-between items-center text-xs font-bold text-muted-foreground border-b border-primary/5 pb-2">
-                  <span className="uppercase tracking-widest">GRIS (Seguro)</span>
-                  <span className="text-foreground">{formatBRL(result.detalhes.gris)}</span>
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Taxa GRIS</p>
+                  <p className="text-lg font-black tracking-tight">R$ {result.detalhes.gris.toFixed(2)}</p>
                 </div>
-                <div className="flex justify-between items-center text-xs font-bold text-muted-foreground border-b border-primary/5 pb-2">
-                  <span className="uppercase tracking-widest">TAS (Taxa Adm)</span>
-                  <span className="text-foreground">{formatBRL(result.detalhes.tas)}</span>
-                </div>
-                {result.detalhes.pedagio > 0 && (
-                  <div className="flex justify-between items-center text-xs font-bold text-muted-foreground border-b border-primary/5 pb-2">
-                    <span className="uppercase tracking-widest">Pedágio</span>
-                    <span className="text-foreground">{formatBRL(result.detalhes.pedagio)}</span>
+                {result.detalhes.tas > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Taxa TAS</p>
+                    <p className="text-lg font-black tracking-tight">R$ {result.detalhes.tas.toFixed(2)}</p>
                   </div>
                 )}
-                <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground/30 pt-2">
-                  <span className="uppercase tracking-[0.1em]">Subtotal Bruto</span>
-                  <span>{formatBRL(result.detalhes.subtotalBruto)}</span>
-                </div>
+                {result.detalhes.pedagio > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Pedágio</p>
+                    <p className="text-lg font-black tracking-tight">R$ {result.detalhes.pedagio.toFixed(2)}</p>
+                  </div>
+                )}
               </div>
 
-              <div className="bg-primary text-white rounded-[32px] p-8 md:p-10 flex flex-col items-center justify-center text-center shadow-2xl shadow-primary/30">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-2">Valor Sugerido para Cliente</p>
-                <h4 className="text-5xl md:text-6xl font-black tracking-tighter mb-4">
-                  {formatBRL(result.valorFinal).replace("R$", "").trim()}
-                  <span className="text-xl md:text-2xl ml-1 font-bold">R$</span>
-                </h4>
-                <div className="flex items-center gap-2 bg-black/10 px-4 py-1.5 rounded-full border border-white/10">
-                  <AlertCircle size={14} />
-                  <span className="text-[9px] font-black uppercase tracking-widest">Confirmar na emissão do CT-e</span>
+              <div className="bg-primary/5 border border-primary/20 rounded-[30px] p-6 md:p-8 flex flex-col items-center md:items-end gap-1 shadow-inner min-w-[240px]">
+                <span className="text-xs font-bold text-primary/60 uppercase tracking-widest">Valor Final Sugerido</span>
+                <span className="text-5xl font-black text-primary tracking-tighter">
+                  R$ {result.valorFinal.toLocaleString()}
+                </span>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] font-bold text-muted-foreground line-through">Subtotal: R$ {result.detalhes.subtotalBruto.toFixed(2)}</span>
                 </div>
               </div>
             </div>
+
+            <div className="flex items-start gap-2 bg-muted/30 p-4 rounded-2xl border border-border/50">
+              <AlertCircle size={14} className="text-muted-foreground shrink-0 mt-0.5" />
+              <p className="text-[10px] text-muted-foreground font-semibold leading-relaxed uppercase tracking-wider">
+                Valor orçado com base no peso cubado padrão (38.48kg). Estimativa calculada via tabela Rodonaves 2024. 
+                Sempre confirmar o valor final na emissão do CT-e.
+              </p>
+            </div>
           </div>
-        )}
-      </div>
+        </Card>
+      )}
     </div>
   );
-}
+};
+
+export default SimuladorFreteInterno;
