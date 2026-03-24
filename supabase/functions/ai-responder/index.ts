@@ -67,28 +67,23 @@ function isBusinessHours(): { open: boolean; message: string } {
   return { open: false, message: "Nosso horário é de segunda a sexta das 9h às 18h e sábados das 9h às 14h." };
 }
 
-const SYSTEM_PROMPT = `Você é o assistente virtual da Fefo Bikes.
+const SYSTEM_PROMPT = `Você é um agente de IA especializado de atendimento da oficina Fefo Bikes. 
+Sua função é interpretar mensagens do cliente no WhatsApp e decidir entre duas saídas:
 
-AÇÕES E FERRAMENTAS:
-- VENDAS: Use o "CATÁLOGO". Se não tiver o item, informe educadamente. Jamais invente preços.
-- O.S. E STATUS: Use o contexto injetado para responder sobre a bike. Se precisar de dados extras, use "consultar_ordem_servico".
-- ORÇAMENTOS EXTRAS: Se houver ADICIONAL PENDENTE no contexto, peça a aprovação do cliente. Use "atualizar_aprovacao_adicional" para aprovar, negar ou cancelar.
-- HUMANOS: Use "escalar_para_humano" se o cliente pedir desconto, tiver dúvidas complexas de preço ou se você não souber responder.
-- CANCELAMENTO: Use "atualizar_aprovacao_adicional" com acao "cancelar_tudo" se o cliente quiser desistir de tudo. Peça confirmação antes.
-- FRETE: Use "calcular_frete" (peça o CEP).
+1. TIPO: RESPOSTA (Chat)
+- Use para saludações, dúvidas sobre o sistema, bike ou informações gerais.
+- NUNCA execute ações sistêmicas aqui.
+- Seja casual, direto e use emojis de ciclista.
 
---- FLUXO DE DECISÃO ---
-1. Resposta Natural: Se o cliente saudar, perguntar sobre o sistema ou bike, responda de forma casual e direta.
-2. Execução de Ação: Se o cliente expressar uma decisão sobre orçamentos ou serviços, identifique os IDs no contexto e use a ferramenta correspondente.
+2. TIPO: AÇAO (Executor)
+- Use para aprovar orçamentos extras, cancelar serviços ou orçar frete.
+- SÓ execute se o contexto de IDs (ID_OS, ID_ADICIONAL) estiver presente nas ferramentas.
+- REGRA DE OURO: Se houver ADICIONAL PENDENTE e o cliente responder SIM, OK, PODE FAZER ou similar, use SEMPRE 'atualizar_aprovacao_adicional' com acao 'aprovar'.
 
-REGRA DE OURO (NUNCA IGNORE): 
-Se houver um ADICIONAL PENDENTE e o cliente responder 'sim', 'pode fazer', 'ok', 'faz aí' ou similar, você DEVE usar 'atualizar_aprovacao_adicional' com 'acao':'aprovar'. Priorize SEMPRE a aprovação sobre qualquer outra interpretação (incluindo cancelamento).
-
---- REGRAS CRÍTICAS ---
-- NUNCA execute ações se os IDs (os_id, adicional_id) não estiverem no contexto.
-- NUNCA peça informações (como placa ou ID) que já estão no contexto fornecido.
-- Seja extremamente conciso. No WhatsApp, menos é mais.
-- Se não souber responder ou houver ambiguidade de preço, use 'escalar_para_humano'.`;
+--- REGRAS DE OURO ---
+- NÃO PEÇA informações que já estão no CONTEXTO (como IDs). Use-as automaticamente.
+- SEJA EXTREMAMENTE CONCISO. Evite textos longos.
+- Se houver dúvida sobre o pedido, use 'escalar_para_humano'.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -199,27 +194,19 @@ Deno.serve(async (req) => {
         const args = JSON.parse(toolCall.function.arguments);
         let result: any;
 
-        if (fnName === "calcular_frete") {
-          result = await executeCalcularFrete(args);
-        } else if (fnName === "consultar_ordem_servico") {
-          result = await getServiceOrdersByPhone(args.telefone || phone);
-        } else if (fnName === "cancelar_ordem") {
-          if (!args.motivo) args.motivo = "Solicitado pelo cliente via WhatsApp";
-          result = await cancelServiceOrder(phone, args.motivo);
-        } else if (fnName === "atualizar_aprovacao_adicional") {
-          // Guarda Defensiva: Valida presença de IDs e Valores
-          if (!args.os_id || !args.adicional_id) {
-            result = { error: "Erro: Não identifiquei o ID da OS ou do Adicional no contexto. Por favor, especifique qual orçamento você deseja aprovar." };
+        // REDIRECIONAMENTO PARA O EXECUTOR BLINDADO
+        try {
+          if (fnName === "calcular_frete") {
+            result = await executeCalcularFrete(args);
+          } else if (fnName === "consultar_ordem_servico") {
+            result = await getServiceOrdersByPhone(args.telefone || phone);
           } else {
-            result = await executeAtualizarAprovacao(args, supabase, phone);
+            // Delega para o módulo Executor para validações defensivas
+            const { runActionExecutor } = await import("./executor.ts");
+            result = await runActionExecutor(supabase, phone, fnName, args, conversationId);
           }
-        } else if (fnName === "escalar_para_humano") {
-          await supabase.from("whatsapp_conversations")
-            .update({ require_human: true, ai_enabled: false })
-            .eq("id", conversationId);
-          result = { ok: true, message: "IA pausada. Um atendente humano foi notificado." };
-        } else {
-          result = { error: "Ferramenta não encontrada." };
+        } catch (err) {
+          result = { error: `Erro no Executor: ${String(err)}` };
         }
         
         groqMessages.push({ role: "tool", content: JSON.stringify(result), tool_call_id: toolCall.id });
