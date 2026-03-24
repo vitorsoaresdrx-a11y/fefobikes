@@ -33,6 +33,8 @@ Deno.serve(async (req) => {
     authParams.append("username", USER);
     authParams.append("password", PASS);
 
+    console.log(`Tentando autenticação para usuário: ${USER}`);
+
     const tokenResponse = await fetch("https://quotation-apigateway.rte.com.br/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -41,9 +43,9 @@ Deno.serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error("Erro no Token Rodonaves:", errorText);
+      console.error(`Erro no Token Rodonaves (Status: ${tokenResponse.status}):`, errorText);
       return new Response(
-        JSON.stringify({ ok: false, error: "Erro de autenticação com a transportadora. Tente novamente." }),
+        JSON.stringify({ ok: false, error: "Usuário ou senha da Rodonaves inválidos. Verifique as credenciais." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
