@@ -26,6 +26,7 @@ import {
   Target,
   ShoppingBag,
   Terminal,
+  Truck,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
@@ -110,6 +111,7 @@ const navGroups = [
     items: [
       { title: "Developer", url: "/developer", icon: Terminal },
       { title: "Chamadas", url: "/chamadas", icon: Bell },
+      { title: "Simulador de Frete", url: "/simulador-frete", icon: Truck },
       { title: "Permissões", url: "/permissoes", icon: Shield },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],

@@ -1968,6 +1968,7 @@ export default function Mecanica() {
         const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
 
         const statusMessages: Record<string, string> = {
+          in_approval: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}está em avaliação técnica. Se houver algum orçamento extra, te avisaremos por aqui.`,
           in_repair: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`,
           in_maintenance: `Boas notícias, ${editForm.customer_name || "cliente"}! A manutenção da sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}acabou de começar! 🛠️`,
           ready: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`,
@@ -1985,12 +1986,11 @@ export default function Mecanica() {
           .ilike('wa_id', `%${phoneSuffix}%`);
 
         if (convs && convs.length > 0) {
-          const movingToApproval = editForm.status === 'in_approval';
           await supabase
             .from('whatsapp_conversations')
             .update({ 
-              ai_enabled: movingToApproval ? true : false, 
-              human_takeover: movingToApproval ? false : true,
+              ai_enabled: false, 
+              human_takeover: true,
               ai_notifications_enabled: true
             } as any)
             .eq('id', convs[0].id);
@@ -2049,11 +2049,12 @@ export default function Mecanica() {
         // WhatsApp notifications
         if (formattedPhone) {
           let message = "";
+          // Determine the message based on the status the job MOVED FROM/TO (advance logic)
           if (job.status === "in_approval") {
             message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`;
           } else if (job.status === "in_repair") {
             message = `Boas notícias, ${job.customer_name || "cliente"}! A manutenção da sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}acabou de começar! 🛠️`;
-          } else if (job.status === "in_analysis") {
+          } else if (job.status === "in_maintenance") {
             message = `Olá, ${job.customer_name || "cliente"}! Sua bicicleta ${job.bike_name ? `(${job.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`;
           }
 
