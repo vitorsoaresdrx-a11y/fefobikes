@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Trash2,
   Bot,
+  Bell,
 } from "lucide-react";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import {
@@ -26,6 +27,8 @@ import {
   useUpdateSalaoNames,
   useAiInstructions,
   useUpdateAiInstructions,
+  useWhatsAppNumber,
+  useUpdateWhatsAppNumber,
   type StationPasswords,
 } from "@/hooks/useSettings";
 import { useMechanics, useCreateMechanic, useToggleMechanic, useDeleteMechanic } from "@/hooks/useMechanics";
@@ -206,6 +209,12 @@ export default function Configuracoes() {
   const [aiInstructionsText, setAiInstructionsText] = useState<string | null>(null);
   const effectiveAiInstructions = aiInstructionsText ?? aiInstructions;
 
+  // WhatsApp Agenda
+  const { data: whatsappNumber = "" } = useWhatsAppNumber();
+  const updateWhatsApp = useUpdateWhatsAppNumber();
+  const [whatsappText, setWhatsappText] = useState<string | null>(null);
+  const effectiveWhatsApp = whatsappText ?? whatsappNumber;
+
   // --- Handlers ---
 
   const handleSaveTaxes = async () => {
@@ -288,6 +297,16 @@ export default function Configuracoes() {
       setAiInstructionsText(null);
     } catch {
       toast({ title: "Erro ao salvar instruções", variant: "destructive" });
+    }
+  };
+
+  const handleSaveWhatsApp = async () => {
+    try {
+      await updateWhatsApp.mutateAsync(effectiveWhatsApp);
+      toast({ title: "Número de WhatsApp atualizado" });
+      setWhatsappText(null);
+    } catch {
+      toast({ title: "Erro ao salvar número", variant: "destructive" });
     }
   };
 
@@ -616,6 +635,47 @@ export default function Configuracoes() {
                   >
                     <Save size={16} />
                     Salvar Instruções
+                  </Button>
+                </div>
+              </ConfigSection>
+
+              {/* 6. Lembretes de Agenda */}
+              <ConfigSection
+                title="Lembretes WhatsApp"
+                description="Defina o número que receberá os alertas automáticos da agenda."
+                icon={Bell}
+                active={activeTab === "agenda_notifications"}
+                onClick={() => toggle("agenda_notifications")}
+                summary={
+                  whatsappNumber ? (
+                    <span className="text-[9px] font-bold text-zinc-600 uppercase">Configurado</span>
+                  ) : null
+                }
+              >
+                <div className="space-y-6">
+                  <div className="space-y-2 group">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-primary">
+                      Número do WhatsApp
+                    </label>
+                    <div className="relative">
+                      <input
+                        placeholder="5511999999999"
+                        className="premium-input h-16 text-2xl font-black tracking-widest"
+                        value={effectiveWhatsApp}
+                        onChange={(e) => setWhatsappText(e.target.value.replace(/\D/g, ""))}
+                      />
+                    </div>
+                    <p className="text-[10px] text-zinc-500 mt-2 font-medium">
+                      Use o formato internacional sem espaços ou símbolos. Ex: 5511999999999
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={handleSaveWhatsApp}
+                    disabled={updateWhatsApp.isPending}
+                  >
+                    <Save size={16} />
+                    Salvar Número
                   </Button>
                 </div>
               </ConfigSection>

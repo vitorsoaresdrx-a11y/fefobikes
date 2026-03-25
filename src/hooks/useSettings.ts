@@ -174,3 +174,34 @@ export function useUpdateAiInstructions() {
     onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
   });
 }
+
+// ─── Agenda WhatsApp ──────────────────────────────────────────────────────────
+
+export function useWhatsAppNumber() {
+  return useQuery({
+    queryKey: [...SETTINGS_KEY, "whatsapp_numero"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("configuracoes" as any)
+        .select("valor")
+        .eq("chave", "whatsapp_numero")
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.valor || "";
+    },
+  });
+}
+
+export function useUpdateWhatsAppNumber() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (number: string) => {
+      const { error } = await supabase
+        .from("configuracoes" as any)
+        .update({ valor: number } as any)
+        .eq("chave", "whatsapp_numero");
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
+  });
+}

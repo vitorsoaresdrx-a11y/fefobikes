@@ -27,6 +27,7 @@ import {
   ShoppingBag,
   Terminal,
   Truck,
+  Calendar,
 } from "lucide-react";
 import { useInternalCalls } from "@/hooks/useInternalCalls";
 import { NavLink } from "@/components/NavLink";
@@ -112,6 +113,7 @@ const navGroups = [
       { title: "Developer", url: "/developer", icon: Terminal },
       { title: "Chamadas", url: "/chamadas", icon: Bell },
       { title: "Simulador de Frete", url: "/simulador-frete", icon: Truck },
+      { title: "Agenda Interna", url: "/agenda", icon: Calendar },
       { title: "Permissões", url: "/permissoes", icon: Shield },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
