@@ -282,6 +282,11 @@ export default function Orcamentos() {
       return;
     }
 
+    if (!form.customer_name || !form.customer_whatsapp) {
+      toast.error("Nome e WhatsApp são obrigatórios!");
+      return;
+    }
+
     const problemDescription = lineItems.length > 0
       ? `Orçamento: ${lineItems.map((li) => `${li.quantity}x ${li.part_name}`).join(", ")}${laborCost > 0 ? ` + Mão de obra ${formatBRL(laborCost)}` : ""}`
       : `Mão de obra: ${formatBRL(laborCost)}`;
@@ -417,17 +422,17 @@ export default function Orcamentos() {
                 }}
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputGroup label="Nome do Cliente">
-                  <PremiumInput placeholder="Nome completo" value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} />
+                <InputGroup label="Nome do Cliente *">
+                  <PremiumInput placeholder="Nome completo *" value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} />
                 </InputGroup>
-                <InputGroup label="WhatsApp">
-                  <PremiumInput placeholder="(00) 00000-0000" value={form.customer_whatsapp} onChange={(e) => setForm({ ...form, customer_whatsapp: maskPhone(e.target.value) })} />
+                <InputGroup label="WhatsApp *">
+                  <PremiumInput placeholder="(00) 00000-0000 *" value={form.customer_whatsapp} onChange={(e) => setForm({ ...form, customer_whatsapp: maskPhone(e.target.value) })} />
                 </InputGroup>
-                <InputGroup label="CPF / CNPJ">
-                  <PremiumInput placeholder="000.000.000-00" value={form.customer_cpf} onChange={(e) => setForm({ ...form, customer_cpf: maskCpfCnpj(e.target.value) })} />
+                <InputGroup label="CPF / CNPJ (Opcional)">
+                  <PremiumInput placeholder="000.000.000-00 (Opcional)" value={form.customer_cpf} onChange={(e) => setForm({ ...form, customer_cpf: maskCpfCnpj(e.target.value) })} />
                 </InputGroup>
-                <InputGroup label="Observações">
-                  <PremiumInput placeholder="Detalhes adicionais" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                <InputGroup label="Observações (Opcional)">
+                  <PremiumInput placeholder="Detalhes adicionais (Opcional)" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 </InputGroup>
               </div>
             </div>

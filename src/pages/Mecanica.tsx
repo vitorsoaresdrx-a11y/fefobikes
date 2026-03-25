@@ -1711,8 +1711,8 @@ export default function Mecanica() {
     if (!form.problem.trim()) { toast.error("Descreva o problema"); return; }
     
     // Validate required fields for Step 1
-    if (!form.customer_name || !form.customer_whatsapp || !form.customer_cpf || !form.bike_name) {
-      toast.error("Nome, WhatsApp, CPF e Bike são obrigatórios!");
+    if (!form.customer_name || !form.customer_whatsapp || !form.bike_name) {
+      toast.error("Nome, WhatsApp e Bike são obrigatórios!");
       return;
     }
     const phoneDigits = form.customer_whatsapp.replace(/\D/g, "");
@@ -2468,7 +2468,7 @@ export default function Mecanica() {
                       </div>
                     </InputGroup>
 
-                    <InputGroup label="CPF *">
+                    <InputGroup label="CPF (Opcional)">
                       <div className="relative">
                         <PremiumInput 
                           value={form.customer_cpf} 
@@ -2477,7 +2477,7 @@ export default function Mecanica() {
                             setSuggestionField('cpf');
                           }} 
                           onBlur={() => setTimeout(() => setSuggestionField(null), 200)}
-                          placeholder="000.000.000-00" 
+                          placeholder="000.000.000-00 (Opcional)" 
                         />
                         {suggestionField === 'cpf' && filteredCustomers.length > 0 && (
                           <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-secondary border border-border rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">

@@ -35,7 +35,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentCashRegister } from "@/hooks/useCashRegister";
 import { useTotalUnread } from "@/hooks/useWhatsApp";
-import { useMyPermissions, type AppModule, NAV_MODULE_MAP } from "@/hooks/usePermissions";
+import { useMyPermissions, usePermissions, type AppModule, NAV_MODULE_MAP } from "@/hooks/usePermissions";
 import {
   Sidebar,
   SidebarContent,
@@ -129,7 +129,10 @@ export function AppSidebar() {
   const isCashOpen = currentRegister?.status === "open";
   const { data: totalUnread = 0 } = useTotalUnread();
   const { data: permsData } = useMyPermissions();
+  const { isMecanica, isOficina } = usePermissions();
   const { data: pendingCalls = [] } = useInternalCalls();
+
+  const isAnyMechanic = isMecanica || isOficina;
 
   const isOwner = permsData?.isOwner ?? true;
   const permissions = permsData?.permissions ?? [];
@@ -141,6 +144,23 @@ export function AppSidebar() {
 
   const canAccessModule = (url: string): boolean => {
     if (isOwner) return true;
+    
+    // Filtro restritivo para mecânicos
+    if (isAnyMechanic) {
+      // Lista branca do que o mecânico PODE ver
+      const mechanicAllowed = [
+        "/mecanica",
+        "/mecanicos",
+        "/mecanicos/historico",
+        "/ponto/registro",
+      ];
+      
+      // Se não estiver na lista permitida, bloqueia
+      if (!mechanicAllowed.some(allowed => url === allowed || url.startsWith(allowed + "/"))) {
+        return false;
+      }
+    }
+
     const moduleKey = NAV_MODULE_MAP[url] as AppModule | undefined;
     if (!moduleKey) return true;
     if (url === "/permissoes") return false;

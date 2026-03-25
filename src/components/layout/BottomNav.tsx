@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ShoppingCart, Wrench, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMyPermissions, NAV_MODULE_MAP, type AppModule } from "@/hooks/usePermissions";
+import { useMyPermissions, usePermissions, NAV_MODULE_MAP, type AppModule } from "@/hooks/usePermissions";
 
 const tabs = [
   { label: "Início", path: "/", icon: LayoutDashboard },
@@ -16,12 +16,20 @@ export function BottomNav() {
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement | null>(null);
   const { data: permsData } = useMyPermissions();
+  const { isMecanica, isOficina } = usePermissions();
+  const isAnyMechanic = isMecanica || isOficina;
 
   const isOwner = permsData?.isOwner ?? true;
   const permissions = permsData?.permissions ?? [];
 
   const canAccessTab = (path: string): boolean => {
     if (isOwner) return true;
+    
+    // Se for mecânico, só deve ver a Mecânica
+    if (isAnyMechanic) {
+      return path === "/mecanica";
+    }
+
     const moduleKey = NAV_MODULE_MAP[path] as AppModule | undefined;
     if (!moduleKey) return true;
     const perm = permissions.find((p) => p.module === moduleKey);

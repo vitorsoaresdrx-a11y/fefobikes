@@ -106,6 +106,9 @@ export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/permissoes": "permissoes",
   "/configuracoes": "configuracoes",
   "/agenda": "agenda",
+  "/loja": "dashboard",
+  "/developer": "configuracoes",
+  "/simulador-frete": "configuracoes",
 };
 
 export interface TenantMember {
