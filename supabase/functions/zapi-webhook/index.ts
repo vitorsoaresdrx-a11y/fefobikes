@@ -298,21 +298,29 @@ Deno.serve(async (req) => {
         const pesoCubado = volumeM3 * 300;
         const tas = Number(rule.tas);
         const pedagio = Number(rule.pedagio_fixo);
-        const remoteStates = ["AC", "AM", "RO", "RR", "AP", "PA"];
-        const surcharge = remoteStates.includes(rule.uf) ? 1.30 : 1.05; // 30% remoto, 5% padrão segurança
 
         const calculateForWeight = (actualWeight: number, nfeValue: number) => {
           const p = Math.max(actualWeight, pesoCubado);
+          const tiers = [
+            { w: 100, v: Number(rule.peso100) },
+            { w: 60, v: Number(rule.peso60) },
+            { w: 40, v: Number(rule.peso40) },
+            { w: 20, v: Number(rule.peso20) },
+            { w: 10, v: Number(rule.peso10) },
+            { w: 5, v: Number(rule.peso5) }
+          ].filter(t => t.v > 0);
+
           let base = 0;
-          if (p <= 5) base = Number(rule.peso5);
-          else if (p <= 10) base = Number(rule.peso10);
-          else if (p <= 20) base = Number(rule.peso20);
-          else if (p <= 40) base = Number(rule.peso40);
-          else if (p <= 60) base = Number(rule.peso60);
-          else base = Number(rule.peso60) + (p - 60) * Number(rule.excedente_kg);
+          const exactTier = [...tiers].reverse().find(t => t.w >= p);
+          if (exactTier) {
+            base = exactTier.v;
+          } else {
+            const highest = tiers[0];
+            base = highest.v + (p - highest.w) * Number(rule.excedente_kg);
+          }
           
           const gris = Math.max(Number(rule.gris_min), nfeValue * Number(rule.gris_pct));
-          return Math.ceil((base + gris + tas + pedagio) * surcharge);
+          return Math.ceil((base + gris + tas + pedagio) * 1.03);
         };
 
         const totalQuadro = calculateForWeight(6, 1000);

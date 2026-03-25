@@ -98,23 +98,29 @@ const SimuladorFreteTabela = () => {
       
       // Cálculo de Cubagem (78 x 20 x 148)
       const volumeM3 = (78 * 20 * 148) / 1000000;
-      const pesoCubado = volumeM3 * 300; // Fator Rodonaves Rodoviário
+      const pesoCubado = volumeM3 * 300; 
       const pesoTaxado = Math.max(pesoCubado, tipoProduto === "quadro" ? 6 : 15.5);
       
-      // DeterminarFrete Peso Base (Tiers)
+      // Motor de Cálculo Dinâmico de Faixas
+      const tiers = [
+        { w: 100, v: Number(rule.peso100) },
+        { w: 60, v: Number(rule.peso60) },
+        { w: 40, v: Number(rule.peso40) },
+        { w: 20, v: Number(rule.peso20) },
+        { w: 10, v: Number(rule.peso10) },
+        { w: 5, v: Number(rule.peso5) }
+      ].filter(t => t.v > 0);
+
       let basePrice = 0;
-      if (pesoTaxado <= 5) basePrice = Number(rule.peso5);
-      else if (pesoTaxado <= 10) basePrice = Number(rule.peso10);
-      else if (pesoTaxado <= 20) basePrice = Number(rule.peso20);
-      else if (pesoTaxado <= 40) basePrice = Number(rule.peso40);
-      else if (pesoTaxado <= 60) basePrice = Number(rule.peso60);
-      else {
-        // Acima de 60kg, usa peso60 + excedente
-        basePrice = Number(rule.peso60) + (pesoTaxado - 60) * Number(rule.excedente_kg);
-        // Garante que não ultrapasse pes100 se pesoTaxado for menor que 100
-        if (pesoTaxado <= 100) {
-          basePrice = Math.min(basePrice, Number(rule.peso100));
-        }
+      // Tenta achar uma faixa que cubra o peso
+      const exactTier = [...tiers].reverse().find(t => t.w >= pesoTaxado);
+      
+      if (exactTier) {
+        basePrice = exactTier.v;
+      } else {
+        // Peso maior que a maior faixa disponível
+        const highest = tiers[0];
+        basePrice = highest.v + (pesoTaxado - highest.w) * Number(rule.excedente_kg);
       }
       
       // Determinar nome e valor para seguro
@@ -133,15 +139,8 @@ const SimuladorFreteTabela = () => {
       const tas = Number(rule.tas);
       const pedagio = Number(rule.pedagio_fixo);
       
-      let subtotal = basePrice + gris + tas + pedagio;
-      
-      // Adicional para Regiões Remotas (AC, AM, RO, RR, AP)
-      const remoteStates = ["AC", "AM", "RO", "RR", "AP", "PA"];
-      if (remoteStates.includes(rule.uf)) {
-        subtotal *= 1.25; // +25% para TDE/Interiorização
-      }
-
-      const valorFinal = Math.ceil(subtotal);
+      // Soma final com margem de segurança de 3% para arredondamentos da transportadora
+      const valorFinal = Math.ceil((basePrice + gris + tas + pedagio) * 1.03);
 
       setResult({
         cidade: rule.cidade,
