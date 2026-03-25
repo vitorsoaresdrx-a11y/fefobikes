@@ -30,7 +30,7 @@ async function authenticate() {
   params.append("username", USER);
   params.append("password", PASS);
   params.append("companyId", "1");
-  params.append("auth_type", "dev");
+  params.append("auth_type", "DEV");
 
   const response = await fetch(`${RODONAVES_API}/token`, {
     method: "POST",
@@ -110,37 +110,32 @@ export async function gerarCotacao(input: {
   const cleanTaxId = input.customerTaxId.replace(/\D/g, "");
   const qty = Math.max(1, Number(input.quantidade || 1));
 
-  // Payload ajustado conforme a documentação oficial da Rodonaves (dev.rodonaves.com.br)
+  // Payload atualizado para a versão 2024 da API (conforme subagente e manual oficial)
   const payload = {
     OriginZipCode: input.originZip.replace(/\D/g, ""),
     OriginCityId: Number(originCityId),
     DestinationZipCode: input.destinationZip.replace(/\D/g, ""),
     DestinationCityId: Number(destinationCityId),
+    TotalPackages: qty, // Obrigatório na raiz nesta versão
     TotalWeight: totalWeight,
-    EconomicActivityId: 1, // Geral
+    EconomicActivityId: 1, 
     CustomerTaxIdRegistration: cleanTaxId,
-    ReceiverCpfcnp: cleanTaxId, // Placeholder (CNPJ da loja) visto que na simulação não temos o CPF do cliente
-    ContactName: "FEFO BIKES - SIMULACAO",
+    ReceiverCpfcnp: cleanTaxId, // Simulando destino com o mesmo CNPJ (padrão Rodonaves)
+    ContactName: "FEFO BIKES",
     ContactPhoneNumber: "15996128054",
-    EletronicInvoiceValue: input.invoiceValue, // Exigido em algumas versões do Gateway
-    VolumesQuantity: qty, // Exigido para evitar erro de "quantidade zero"
-    Invoices: [
+    EletronicInvoiceValue: input.invoiceValue, // Valor na raiz é essencial aqui
+    Packs: [
       {
-        InvoiceValue: input.invoiceValue,
-        Volumes: [
-          {
-            Amount: qty,
-            Weight: preset.pesoPorUnidade,
-            Length: preset.comprimento,
-            Width: preset.largura,
-            Height: preset.altura
-          }
-        ]
+        AmountPackages: qty, // Campo exato para quantidade de volumes dentro do item
+        Weight: preset.pesoPorUnidade,
+        Length: preset.comprimento,
+        Width: preset.largura,
+        Height: preset.altura
       }
     ]
   };
 
-  console.log("Enviando cotação Rodonaves:", JSON.stringify(payload, null, 2));
+  console.log("JSON de Envio Rodonaves:", JSON.stringify(payload, null, 2));
 
   console.log("Enviando cotação para Rodonaves...");
   const response = await fetch(`${RODONAVES_API}/api/v1/gera-cotacao`, {
