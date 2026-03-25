@@ -90,12 +90,16 @@ export default function Mecanicos() {
     );
   };
 
-  const handleFinish = async (order: ServiceOrder) => {
-    const frame = frameNumbers[order.id]?.trim();
-    if (!frame) {
+  const handleFinish = async (order: ServiceOrder, skipFrameNum = false) => {
+    let frame = frameNumbers[order.id]?.trim() || "";
+    if (!skipFrameNum && !frame) {
       toast.error("Preencha o número do quadro");
       return;
     }
+    if (skipFrameNum) {
+      frame = "sem numero";
+    }
+
     try {
       await finishOrder.mutateAsync({ id: order.id, frame_number: frame });
       
@@ -207,6 +211,13 @@ export default function Mecanicos() {
           className="w-full h-10 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-emerald-500/20 disabled:opacity-50"
         >
           {finishOrder.isPending ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} /> Finalizar</>}
+        </button>
+        <button
+          onClick={() => handleFinish(order, true)}
+          disabled={finishOrder.isPending || createHistory.isPending}
+          className="w-full h-8 rounded-xl bg-transparent text-muted-foreground hover:text-white hover:bg-muted text-[10px] font-bold uppercase tracking-widest flex items-center justify-center transition-all disabled:opacity-50"
+        >
+          Finalizar sem número
         </button>
       </div>
     </div>
