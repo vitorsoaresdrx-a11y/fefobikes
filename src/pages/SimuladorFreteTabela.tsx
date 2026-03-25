@@ -96,10 +96,30 @@ const SimuladorFreteTabela = () => {
 
       const rule = data as FreightRule;
       
-      // Determinar nome e valor
-      let finalName = "";
+      // Cálculo de Cubagem (78 x 20 x 148)
+      const volumeM3 = (78 * 20 * 148) / 1000000;
+      const pesoCubado = volumeM3 * 300; // Fator Rodonaves Rodoviário
+      const pesoTaxado = Math.max(pesoCubado, tipoProduto === "quadro" ? 6 : 15.5);
+      
+      // DeterminarFrete Peso Base (Tiers)
+      let basePrice = 0;
+      if (pesoTaxado <= 5) basePrice = Number(rule.peso5);
+      else if (pesoTaxado <= 10) basePrice = Number(rule.peso10);
+      else if (pesoTaxado <= 20) basePrice = Number(rule.peso20);
+      else if (pesoTaxado <= 40) basePrice = Number(rule.peso40);
+      else if (pesoTaxado <= 60) basePrice = Number(rule.peso60);
+      else {
+        // Acima de 60kg, usa peso60 + excedente
+        basePrice = Number(rule.peso60) + (pesoTaxado - 60) * Number(rule.excedente_kg);
+        // Garante que não ultrapasse pes100 se pesoTaxado for menor que 100
+        if (pesoTaxado <= 100) {
+          basePrice = Math.min(basePrice, Number(rule.peso100));
+        }
+      }
+      
+      // Determinar nome e valor para seguro
       let finalValue = 0;
-
+      let finalName = "";
       if (productMode === "catalog") {
         const bike = bikes.find(b => b.id === selectedBikeId);
         finalName = bike?.name || "";
@@ -109,12 +129,18 @@ const SimuladorFreteTabela = () => {
         finalValue = parseFloat(manualValue);
       }
       
-      const basePrice = tipoProduto === "quadro" ? Number(rule.peso10) : Number(rule.peso20);
       const gris = Math.max(Number(rule.gris_min), finalValue * Number(rule.gris_pct));
       const tas = Number(rule.tas);
       const pedagio = Number(rule.pedagio_fixo);
       
-      const subtotal = basePrice + gris + tas + pedagio;
+      let subtotal = basePrice + gris + tas + pedagio;
+      
+      // Adicional para Regiões Remotas (AC, AM, RO, RR, AP)
+      const remoteStates = ["AC", "AM", "RO", "RR", "AP", "PA"];
+      if (remoteStates.includes(rule.uf)) {
+        subtotal *= 1.25; // +25% para TDE/Interiorização
+      }
+
       const valorFinal = Math.ceil(subtotal);
 
       setResult({

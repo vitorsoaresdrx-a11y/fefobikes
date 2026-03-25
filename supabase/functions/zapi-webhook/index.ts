@@ -277,6 +277,74 @@ Deno.serve(async (req) => {
       tenant_id: tenantId,
     });
 
+    // --- Automated Freight Lookup (Robô de Frete) ---
+    const AUTHORIZED_PHONES = ["5515996128054", "5515998175561", "5515988351790"];
+    const cepMatch = content.match(/\d{5}-?\d{3}/);
+
+    if (cepMatch && AUTHORIZED_PHONES.includes(phone) && !isFromMe) {
+      const cleanCep = parseInt(cepMatch[0].replace(/\D/g, ""));
+      console.log(`Freight lookup triggered for CEP ${cleanCep} by ${phone}`);
+
+      const { data: rule, error: ruleErr } = await supabase
+        .from("frete_tabela_rodonaves")
+        .select("*")
+        .lte("cep_ini", cleanCep)
+        .gte("cep_fim", cleanCep)
+        .single();
+
+      if (rule && !ruleErr) {
+        // Cálculo de Cubagem (78 x 20 x 148)
+        const volumeM3 = (78 * 20 * 148) / 1000000;
+        const pesoCubado = volumeM3 * 300;
+        const tas = Number(rule.tas);
+        const pedagio = Number(rule.pedagio_fixo);
+        const remoteStates = ["AC", "AM", "RO", "RR", "AP", "PA"];
+        const surcharge = remoteStates.includes(rule.uf) ? 1.30 : 1.05; // 30% remoto, 5% padrão segurança
+
+        const calculateForWeight = (actualWeight: number, nfeValue: number) => {
+          const p = Math.max(actualWeight, pesoCubado);
+          let base = 0;
+          if (p <= 5) base = Number(rule.peso5);
+          else if (p <= 10) base = Number(rule.peso10);
+          else if (p <= 20) base = Number(rule.peso20);
+          else if (p <= 40) base = Number(rule.peso40);
+          else if (p <= 60) base = Number(rule.peso60);
+          else base = Number(rule.peso60) + (p - 60) * Number(rule.excedente_kg);
+          
+          const gris = Math.max(Number(rule.gris_min), nfeValue * Number(rule.gris_pct));
+          return Math.ceil((base + gris + tas + pedagio) * surcharge);
+        };
+
+        const totalQuadro = calculateForWeight(6, 1000);
+        const totalBike = calculateForWeight(15.5, 5000);
+
+        const responseMsg = `Frete FeFo Bikes\n` +
+          `Destino: ${rule.cidade}-${rule.uf}\n` +
+          `Prazo: ${rule.prazo} dias úteis\n\n` +
+          `📦 Quadro: R$ ${totalQuadro.toFixed(2)}\n` +
+          `🚲 Bike Completa: R$ ${totalBike.toFixed(2)}`;
+
+        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+        
+        try {
+          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+            method: "POST",
+            headers: evoHeaders(),
+            body: JSON.stringify({ number: phone, text: responseMsg }),
+          });
+
+          console.log(`Freight response sent to ${phone}`);
+          return new Response(JSON.stringify({ ok: true, source: "freight_robot" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (sendErr) {
+          console.error("Error sending freight response:", sendErr);
+        }
+      } else if (ruleErr) {
+        console.error("Freight rule lookup error:", ruleErr);
+      }
+    }
+
     // Handle audio: transcribe and respond with audio
     if (type === "audio" && !isFromMe) {
       const instName = tenantId ? instanceName(tenantId) : "fefo-default";
