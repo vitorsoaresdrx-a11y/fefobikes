@@ -107,15 +107,20 @@ export async function gerarCotacao(input: {
   const destinationCityId = await getCityId(input.destinationZip, supabase);
 
   const totalWeight = preset.pesoPorUnidade * input.quantidade;
+  const cleanTaxId = input.customerTaxId.replace(/\D/g, "");
 
+  // Payload ajustado conforme a documentação oficial da Rodonaves (dev.rodonaves.com.br)
   const payload = {
     OriginZipCode: input.originZip.replace(/\D/g, ""),
-    OriginCityId: originCityId,
+    OriginCityId: Number(originCityId),
     DestinationZipCode: input.destinationZip.replace(/\D/g, ""),
-    DestinationCityId: destinationCityId,
+    DestinationCityId: Number(destinationCityId),
     TotalWeight: totalWeight,
-    EconomicActivityId: 1,
-    CustomerTaxId: input.customerTaxId.replace(/\D/g, ""),
+    EconomicActivityId: 1, // Geral
+    CustomerTaxIdRegistration: cleanTaxId,
+    ReceiverCpfcnp: cleanTaxId, // Placeholder (CNPJ da loja) visto que na simulação não temos o CPF do cliente
+    ContactName: "FEFO BIKES - SIMULACAO",
+    ContactPhoneNumber: "15996128054",
     Invoices: [
       {
         InvoiceValue: input.invoiceValue,
