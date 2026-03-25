@@ -1,5 +1,4 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildFreteCardSVG, svgToPngBase64 } from "./frete-card.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -277,25 +276,32 @@ Deno.serve(async (req) => {
 
     // --- Robô de Frete (Via API Rodonaves) ---
     const AUTHORIZED_PHONES = ["5515996128054", "5515998175561", "5515988351790"];
-    const cepMatch = content.match(/\d{5}-?\d{3}/);
+    const cepMatch = content.match(/\b\d{5}-?\d{3}\b/);
 
-    // Tenta pegar o valor da NF na linha seguinte ao CEP
-    // Formato esperado: "18073351\n3800"
-    let invoiceValue = 5000; // Valor padrão
+    const isAuthorized = AUTHORIZED_PHONES.some(p => {
+      const pClean = p.replace(/\D/g, "").replace(/^55/, "");
+      const phoneClean = phone.replace(/\D/g, "").replace(/^55/, "");
+      
+      const pCanonical = pClean.length === 11 ? pClean.slice(0, 2) + pClean.slice(3) : pClean;
+      const phoneCanonical = phoneClean.length === 11 ? phoneClean.slice(0, 2) + phoneClean.slice(3) : phoneClean;
+      
+      return pCanonical === phoneCanonical;
+    });
+
+    let invoiceValue = 5000; 
     if (cepMatch) {
       const lines = content.trim().split(/\r?\n/);
-      const cepLineIdx = lines.findIndex(l => l.replace(/\D/g, "").length === 8 && /\d{5}-?\d{3}/.test(l));
+      const cleanLine = (l: string) => l.replace(/\D/g, "");
+      const cepLineIdx = lines.findIndex(l => cleanLine(l).length === 8 && /\b\d{5}-?\d{3}\b/.test(l));
       if (cepLineIdx !== -1 && lines[cepLineIdx + 1]) {
         const nextLineVal = parseFloat(lines[cepLineIdx + 1].replace(/[^\d.,]/g, "").replace(",", "."));
-        if (!isNaN(nextLineVal) && nextLineVal > 0) {
-          invoiceValue = nextLineVal;
-        }
+        if (!isNaN(nextLineVal) && nextLineVal > 0) invoiceValue = nextLineVal;
       }
     }
 
-    if (cepMatch && AUTHORIZED_PHONES.includes(phone) && !isFromMe) {
+    if (cepMatch && isAuthorized && !isFromMe) {
       const cleanCep = cepMatch[0].replace(/\D/g, "");
-      console.log(`Freight lookup via Rodonaves API for CEP ${cleanCep} by ${phone}`);
+      console.log(`Freight robot triggered for ${phone} (CEP: ${cleanCep})`);
 
       try {
         const freteRes = await fetch(
@@ -316,67 +322,40 @@ Deno.serve(async (req) => {
         );
 
         const freteData = await freteRes.json();
-
+        const instName = tenantId ? instanceName(tenantId) : "fefo-default";
+        
         if (freteData.sucesso) {
           const valorNum = Number(freteData.valorFrete) + 30;
-          const prazo = freteData.prazoEntrega + 2;
-          const cidade = freteData.cidade
-            ? `${freteData.cidade}${freteData.uf ? ` - ${freteData.uf}` : ""}`
-            : `CEP ${cleanCep}`;
+          const prazo = Number(freteData.prazoEntrega || 0) + 2;
+          const cidade = freteData.cidade ? `${freteData.cidade}${freteData.uf ? ` - ${freteData.uf}` : ""}` : `CEP ${cleanCep}`;
 
-          const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-
-          // Gerar card visual de frete
-          try {
-            const svgCard = buildFreteCardSVG({
-              destino: cidade,
-              origem: "Sorocaba - SP",
-              valor: valorNum,
-              prazo,
-              cep: cleanCep,
-            });
-
-            const { base64: imgBase64, mimeType } = await svgToPngBase64(svgCard);
-            const ispng = mimeType === "image/png";
-
-            // Enviar imagem PNG via Evolution API
-            await fetch(`${EVOLUTION_BASE}/message/sendMedia/${instName}`, {
-              method: "POST",
-              headers: evoHeaders(),
-              body: JSON.stringify({
-                number: phone,
-                mediatype: "image",
-                mimetype: mimeType,
-                media: imgBase64,
-                fileName: ispng ? "cotacao-frete-fefobikes.png" : "cotacao-frete-fefobikes.svg",
-                caption: `🚲 *FeFo Bikes* — Cotação de Frete\n📍 *Destino:* ${cidade}\n💰 *Valor:* R$ ${valorNum.toFixed(2)}\n📅 *Prazo:* ${prazo} dias úteis`,
-              }),
-            });
-
-            console.log(`Freight image card sent to ${phone}: R$ ${valorNum.toFixed(2)}`);
-          } catch (imgErr) {
-            console.error("Failed to generate/send freight image, falling back to text:", imgErr);
-            // Fallback para mensagem de texto
-            const responseMsg =
-              `🚚 *Frete FeFo Bikes*\n` +
-              `📍 Destino: ${cidade}\n` +
-              `📅 Prazo: ${prazo} dias úteis\n` +
-              `💰 Valor: R$ ${valorNum.toFixed(2)}`;
-            await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-              method: "POST",
-              headers: evoHeaders(),
-              body: JSON.stringify({ number: phone, text: responseMsg }),
-            });
-          }
+          const responseText = 
+            `🚚 *COTAÇÃO DE FRETE FEFO BIKES*\n\n` +
+            `📍 *Destino:* ${cidade}\n` +
+            `📅 *Prazo:* ${prazo} dias úteis\n` +
+            `💰 *Valor:* R$ ${valorNum.toFixed(2)}`;
+          
+          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+            method: "POST",
+            headers: evoHeaders(),
+            body: JSON.stringify({ number: phone, text: responseText }),
+          });
         } else {
-          console.error("Rodonaves API returned error:", freteData.error);
+          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+            method: "POST",
+            headers: evoHeaders(),
+            body: JSON.stringify({ number: phone, text: `❌ Erro no cálculo: ${freteData.error || "CEP inválido ou indisponível"}` }),
+          });
         }
 
         return new Response(JSON.stringify({ ok: true, source: "freight_robot_api" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
-      } catch (freteErr) {
-        console.error("Freight robot API error:", freteErr);
+      } catch (err) {
+        console.error("Robot Exception:", err);
+        return new Response(JSON.stringify({ ok: false, error: "robot_failed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 

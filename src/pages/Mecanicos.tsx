@@ -102,6 +102,15 @@ export default function Mecanicos() {
       // Atualiza também o status na tabela mechanic_jobs para sincronizar o Kanban
       await supabase.from("mechanic_jobs" as any).update({ status: "in_analysis" }).eq("id", order.id);
 
+      if (order.customer_whatsapp) {
+        const phone = order.customer_whatsapp.replace(/\D/g, "");
+        const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+        sendMessage.mutate({
+          phone: formattedPhone,
+          message: "Opa! Os mecânicos já finalizaram sua bike e a gente está fazendo uma revisão minuciosa para garantir que tudo está perfeito. Logo, logo, te avisamos quando ficar pronta!"
+        });
+      }
+
       await createHistory.mutateAsync({
         frame_number: frame,
         bike_name: order.bike_name || "Bike",
