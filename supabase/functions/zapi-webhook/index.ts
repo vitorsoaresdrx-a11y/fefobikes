@@ -291,17 +291,16 @@ Deno.serve(async (req) => {
         .lte("cep_ini", cleanCep)
         .gte("cep_fim", cleanCep)
         .single();
-
-      if (rule && !ruleErr) {
+      if (rule && !ruleErr) {
         const boxVolume = (78 * 20 * 148) / 1000000;
         const pesoTaxado = Math.max(15.5, boxVolume * 300); // 70kg
-        const tas = Number(rule.tas);
-        const pedagio = Number(rule.pedagio_fixo);
+        const tas = Number(rule.tas) || 0;
+        const pedagio = Number(rule.pedagio_fixo) || 0;
 
         // --- Multiplicadores FeFo Bikes v3 ---
         const BRAZIL_CAPITALS = ["ARACAJU", "BELEM", "BELO HORIZONTE", "BOA VISTA", "CAMPO GRANDE", "CUIABA", "CURITIBA", "FLORIANOPOLIS", "FORTALEZA", "GOIANIA", "JOAO PESSOA", "MACEIO", "MANAUS", "NATAL", "PALMAS", "PORTO ALEGRE", "PORTO VELHO", "RECIFE", "RIO BRANCO", "RIO DE JANEIRO", "SALVADOR", "SAO LUIS", "SAO PAULO", "TERESINA", "VITORIA", "BRASILIA"];
-        const city = rule.cidade.toUpperCase().trim();
-        const uf = rule.uf.toUpperCase().trim();
+        const city = (rule.cidade || "").toString().toUpperCase().trim();
+        const uf = (rule.uf || "").toString().toUpperCase().trim();
         
         let bucket: 'capital' | 'interior' | 'remoto' = 'interior';
         if (BRAZIL_CAPITALS.includes(city)) bucket = 'capital';
@@ -309,7 +308,7 @@ Deno.serve(async (req) => {
         else if (city.includes("GARRUCHOS")) bucket = 'remoto';
 
         const MULTIPLIERS = { capital: 1.25, interior: 1.65, remoto: 2.90 };
-        const multiplier = MULTIPLIERS[bucket];
+        const multiplier = MULTIPLIERS[bucket] || 1.65;
 
         const availableTiers = [
           { w: 100, v: Number(rule.peso100) },
@@ -327,9 +326,9 @@ Deno.serve(async (req) => {
           const match = [...availableTiers].reverse().find(t => t.w >= pesoTaxado);
           
           if (match) base = match.v;
-          else base = highest.v + (pesoTaxado - highest.w) * Number(rule.excedente_kg);
+          else base = highest.v + (pesoTaxado - highest.w) * (Number(rule.excedente_kg) || 0);
           
-          const gris = Math.max(Number(rule.gris_min), bikeVal * Number(rule.gris_pct));
+          const gris = Math.max(Number(rule.gris_min) || 0, bikeVal * (Number(rule.gris_pct) || 0));
           const subtotalCSV = base + gris + tas + pedagio;
           const valorFinal = Math.ceil(subtotalCSV * multiplier);
           
@@ -339,6 +338,7 @@ Deno.serve(async (req) => {
 
         const totalQuadro = calculatePrice(1000);
         const totalBike = calculatePrice(5000);
+
 
         const responseMsg = `Frete FeFo Bikes\n` +
           `Destino: ${rule.cidade}-${rule.uf}\n` +

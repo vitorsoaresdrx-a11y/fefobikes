@@ -79,7 +79,13 @@ const SimuladorFreteTabela = () => {
     }
 
     setCalculating(true);
-    const cleanCep = parseInt(cep.replace(/\D/g, ""));
+    const cleanCepString = cep.replace(/\D/g, "");
+    if (cleanCepString.length !== 8) {
+      toast.error("CEP incompleto. Digite os 8 números.");
+      setCalculating(false);
+      return;
+    }
+    const cleanCep = parseInt(cleanCepString);
 
     try {
       const { data, error } = await supabase
@@ -100,9 +106,8 @@ const SimuladorFreteTabela = () => {
       // CONFIGURAÇÃO FIXA FEFO BIKES
       const boxWeight = 15.5;
       const boxVolume = (78 * 20 * 148) / 1000000;
-      const pesoTaxado = Math.max(boxWeight, boxVolume * 300); // Sempre resultará em ~70kg
+      const pesoTaxado = Math.max(boxWeight, boxVolume * 300); // 70kg
       
-      // Busca da melhor faixa de peso (Tier)
       const availableTiers = [
         { w: 100, v: Number(rule.peso100) },
         { w: 60, v: Number(rule.peso60) },
@@ -124,11 +129,9 @@ const SimuladorFreteTabela = () => {
       if (matchingTier) {
         basePrice = matchingTier.v;
       } else {
-        // Peso excede todas as faixas, calcula excedente
-        basePrice = highestTier.v + (pesoTaxado - highestTier.w) * Number(rule.excedente_kg);
+        basePrice = highestTier.v + (pesoTaxado - highestTier.w) * (Number(rule.excedente_kg) || 0);
       }
       
-      // Seguro e Taxas
       let bikeValue = 0;
       let finalName = "";
 
@@ -141,19 +144,16 @@ const SimuladorFreteTabela = () => {
         finalName = manualName;
       }
 
-      const gris = Math.max(Number(rule.gris_min), bikeValue * Number(rule.gris_pct));
-      const tas = Number(rule.tas);
-      const pedagio = Number(rule.pedagio_fixo);
+      const gris = Math.max(Number(rule.gris_min) || 0, bikeValue * (Number(rule.gris_pct) || 0));
+      const tas = Number(rule.tas) || 0;
+      const pedagio = Number(rule.pedagio_fixo) || 0;
       
-      let subtotalCSV = basePrice + gris + tas + pedagio;
-      
-      // Motor de Multiplicadores FeFo Bikes v3 (Buckets)
+      const subtotalCSV = basePrice + gris + tas + pedagio;
       const bucket = classifyLocality(rule.cidade, rule.uf);
-      const multiplier = MULTIPLIERS[bucket];
+      const multiplier = MULTIPLIERS[bucket] || 1.65;
       const valorFinal = Math.ceil(subtotalCSV * multiplier);
 
-      // Debug Log Estruturado
-      console.log("Freight Debug:", { 
+      console.log("Freight Engine v3 Debug:", { 
         cep: cleanCep, 
         cidade: rule.cidade, 
         subtotalCSV: subtotalCSV.toFixed(2), 
@@ -173,8 +173,8 @@ const SimuladorFreteTabela = () => {
 
       toast.success("Frete calculado com sucesso!");
     } catch (err) {
-      console.error(err);
-      toast.error("Erro ao realizar o cálculo.");
+      console.error("Freight Error:", err);
+      toast.error("Erro interno. Tente novamente.");
     } finally {
       setCalculating(false);
     }
@@ -182,13 +182,7 @@ const SimuladorFreteTabela = () => {
 
   const handleShareWhatsApp = () => {
     if (!result) return;
-
-    const text = `Frete FeFo Bikes
-Bike: ${result.bikeName}
-Saída: Sorocaba-SP
-Destino: ${result.cidade}-${result.uf}
-Valor: R$ ${result.valorFinal.toFixed(2)}`;
-
+    const text = `Frete FeFo Bikes\nBike: ${result.bikeName}\nSaída: Sorocaba-SP\nDestino: ${result.cidade}-${result.uf}\nValor: R$ ${result.valorFinal.toFixed(2)}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -226,7 +220,7 @@ Valor: R$ ${result.valorFinal.toFixed(2)}`;
                 </TabsList>
                 <TabsContent value="catalog" className="mt-4 animate-in slide-in-from-left-2 duration-300">
                   <Select onValueChange={setSelectedBikeId} value={selectedBikeId}>
-                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold focus:ring-0">
                       <SelectValue placeholder="Selecione a bike..." />
                     </SelectTrigger>
                     <SelectContent>
