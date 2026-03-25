@@ -108,6 +108,7 @@ export async function gerarCotacao(input: {
 
   const totalWeight = preset.pesoPorUnidade * input.quantidade;
   const cleanTaxId = input.customerTaxId.replace(/\D/g, "");
+  const qty = Math.max(1, Number(input.quantidade || 1));
 
   // Payload ajustado conforme a documentação oficial da Rodonaves (dev.rodonaves.com.br)
   const payload = {
@@ -121,12 +122,14 @@ export async function gerarCotacao(input: {
     ReceiverCpfcnp: cleanTaxId, // Placeholder (CNPJ da loja) visto que na simulação não temos o CPF do cliente
     ContactName: "FEFO BIKES - SIMULACAO",
     ContactPhoneNumber: "15996128054",
+    EletronicInvoiceValue: input.invoiceValue, // Exigido em algumas versões do Gateway
+    VolumesQuantity: qty, // Exigido para evitar erro de "quantidade zero"
     Invoices: [
       {
         InvoiceValue: input.invoiceValue,
         Volumes: [
           {
-            Amount: input.quantidade,
+            Amount: qty,
             Weight: preset.pesoPorUnidade,
             Length: preset.comprimento,
             Width: preset.largura,
@@ -136,6 +139,8 @@ export async function gerarCotacao(input: {
       }
     ]
   };
+
+  console.log("Enviando cotação Rodonaves:", JSON.stringify(payload, null, 2));
 
   console.log("Enviando cotação para Rodonaves...");
   const response = await fetch(`${RODONAVES_API}/api/v1/gera-cotacao`, {
