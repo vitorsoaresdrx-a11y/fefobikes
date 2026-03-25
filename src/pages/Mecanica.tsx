@@ -303,14 +303,14 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-6 bg-secondary border-border rounded-[32px] overflow-hidden shadow-2xl">
-        <DialogHeader className="mb-6 pr-8">
-          <div className="flex items-start justify-between gap-3">
+      <DialogContent className="max-w-md w-[95vw] md:w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-5 md:p-6 bg-secondary border-border rounded-3xl md:rounded-[32px] shadow-2xl">
+        <DialogHeader className="pr-6 md:pr-8 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 text-left">
              <div className="min-w-0 flex-1">
-               <DialogTitle className="text-lg font-black text-white italic truncate uppercase">{job.bike_name || 'Bike'}</DialogTitle>
+               <DialogTitle className="text-base md:text-lg font-black text-white italic truncate uppercase">{job.bike_name || 'Bike'}</DialogTitle>
                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 truncate">{job.customer_name || 'Cliente'}</p>
              </div>
-             <div className={`shrink-0 mt-1 px-3 py-1.5 rounded-full border text-[9px] md:text-[10px] font-black uppercase tracking-widest ${currentStatus.color}`}>
+             <div className={`self-start shrink-0 px-2.5 py-1 rounded-full border text-[9px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ${currentStatus.color}`}>
                {currentStatus.label}
              </div>
           </div>
