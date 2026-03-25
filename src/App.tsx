@@ -59,6 +59,7 @@ const Metas = lazyRetry(() => import("@/pages/Metas"));
 const DeveloperTasks = lazyRetry(() => import("@/pages/DeveloperTasks"));
 const SimuladorFreteInterno = lazyRetry(() => import("@/pages/SimuladorFreteInterno"));
 const Agenda = lazyRetry(() => import("@/pages/Agenda"));
+const SimuladorFreteTabela = lazyRetry(() => import("@/pages/SimuladorFreteTabela"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -134,6 +135,7 @@ function AuthGate() {
           <Route path="/ponto/relatorio" element={<GuardedRoute module="ponto"><PageTransition><PontoRelatorio /></PageTransition></GuardedRoute>} />
           <Route path="/ponto/cadastro" element={<GuardedRoute module="ponto"><PageTransition><PontoCadastro /></PageTransition></GuardedRoute>} />
           <Route path="/simulador-frete" element={<GuardedRoute module="dashboard"><PageTransition><SimuladorFreteInterno /></PageTransition></GuardedRoute>} />
+          <Route path="/simulador-frete-tabela" element={<GuardedRoute module="dashboard"><PageTransition><SimuladorFreteTabela /></PageTransition></GuardedRoute>} />
           <Route path="/agenda" element={<GuardedRoute module="agenda"><PageTransition><Agenda /></PageTransition></GuardedRoute>} />
         </Route>
         <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />

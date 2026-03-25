@@ -112,7 +112,8 @@ const navGroups = [
     items: [
       { title: "Developer", url: "/developer", icon: Terminal },
       { title: "Chamadas", url: "/chamadas", icon: Bell },
-      { title: "Simulador de Frete", url: "/simulador-frete", icon: Truck },
+      { title: "Simulador Oficial (API)", url: "/simulador-frete", icon: Truck },
+      { title: "Simulador Tabela", url: "/simulador-frete-tabela", icon: ClipboardList },
       { title: "Agenda Interna", url: "/agenda", icon: Calendar },
       { title: "Permissões", url: "/permissoes", icon: Shield },
       { title: "Configurações", url: "/configuracoes", icon: Settings },

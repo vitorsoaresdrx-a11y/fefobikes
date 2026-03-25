@@ -30,7 +30,7 @@ async function authenticate() {
   params.append("username", USER);
   params.append("password", PASS);
   params.append("companyId", "1");
-  params.append("auth_type", "web");
+  params.append("auth_type", "DEV");
 
   const response = await fetch(`${RODONAVES_API}/token`, {
     method: "POST",
@@ -110,23 +110,23 @@ export async function gerarCotacao(input: {
   const cleanTaxId = input.customerTaxId.replace(/\D/g, "");
   const qty = Math.max(1, Number(input.quantidade || 1));
 
-  // Payload atualizado para a versão 2024 da API (conforme subagente e manual oficial)
+  // Payload final: obedecendo os nomes da documentação 2024 mas mantendo simples
   const payload = {
     OriginZipCode: input.originZip.replace(/\D/g, ""),
     OriginCityId: Number(originCityId),
     DestinationZipCode: input.destinationZip.replace(/\D/g, ""),
     DestinationCityId: Number(destinationCityId),
-    TotalPackages: qty, // Obrigatório na raiz nesta versão
+    TotalPackages: qty,
     TotalWeight: totalWeight,
     EconomicActivityId: 1, 
     CustomerTaxIdRegistration: cleanTaxId,
-    ReceiverCpfcnp: cleanTaxId, // Simulando destino com o mesmo CNPJ (padrão Rodonaves)
+    ReceiverCpfcnp: cleanTaxId, 
     ContactName: "FEFO BIKES",
     ContactPhoneNumber: "15996128054",
-    EletronicInvoiceValue: input.invoiceValue, // Valor na raiz é essencial aqui
+    EletronicInvoiceValue: input.invoiceValue,
     Packs: [
       {
-        AmountPackages: qty, // Campo exato para quantidade de volumes dentro do item
+        AmountPackages: qty,
         Weight: preset.pesoPorUnidade,
         Length: preset.comprimento,
         Width: preset.largura,
@@ -135,7 +135,7 @@ export async function gerarCotacao(input: {
     ]
   };
 
-  console.log("JSON de Envio Rodonaves:", JSON.stringify(payload, null, 2));
+  console.log("Payload Final Enviado para Rodonaves:", JSON.stringify(payload, null, 2));
 
   console.log("Enviando cotação para Rodonaves...");
   const response = await fetch(`${RODONAVES_API}/api/v1/gera-cotacao`, {
