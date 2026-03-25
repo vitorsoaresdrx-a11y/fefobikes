@@ -30,7 +30,7 @@ async function authenticate() {
   params.append("username", USER);
   params.append("password", PASS);
   params.append("companyId", "1");
-  params.append("auth_type", "DEV");
+  params.append("auth_type", "web");
 
   const response = await fetch(`${RODONAVES_API}/token`, {
     method: "POST",
