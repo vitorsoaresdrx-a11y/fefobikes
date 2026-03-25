@@ -1,7 +1,6 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import html2canvas from "html2canvas";
 import { 
   Truck, 
   MapPin, 
@@ -10,18 +9,24 @@ import {
   CheckCircle2, 
   Share2,
   Calculator,
-  Clock,
   ArrowRight,
   ClipboardList,
-  Download,
-  Image as ImageIcon
+  Search,
+  Plus
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface FreightRule {
   cep_ini: number;
@@ -45,15 +50,29 @@ interface FreightRule {
 
 const SimuladorFreteTabela = () => {
   const [cep, setCep] = useState("");
-  const [bikeValue, setBikeValue] = useState("");
+  const [productMode, setProductMode] = useState<"catalog" | "manual">("catalog");
+  const [selectedBikeId, setSelectedBikeId] = useState("");
+  const [manualName, setManualName] = useState("");
+  const [manualValue, setManualValue] = useState("");
   const [tipoProduto, setTipoProduto] = useState<"quadro" | "bike_completa" | null>(null);
   const [calculating, setCalculating] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [capturing, setCapturing] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Carregar bikes do sistema
+  const { data: bikes = [] } = useQuery({
+    queryKey: ["bikes_frete_tabela"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bike_models")
+        .select("id, name, sale_price")
+        .order("name");
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const handleCalculate = async () => {
-    if (!cep || !bikeValue || !tipoProduto) {
+    if (!cep || !tipoProduto || (productMode === "catalog" && !selectedBikeId) || (productMode === "manual" && (!manualName || !manualValue))) {
       toast.error("Preencha todos os campos corretamente.");
       return;
     }
@@ -76,11 +95,22 @@ const SimuladorFreteTabela = () => {
       }
 
       const rule = data as FreightRule;
-      const value = parseFloat(bikeValue);
       
-      const weight = tipoProduto === "quadro" ? 6 : 15.5;
+      // Determinar nome e valor
+      let finalName = "";
+      let finalValue = 0;
+
+      if (productMode === "catalog") {
+        const bike = bikes.find(b => b.id === selectedBikeId);
+        finalName = bike?.name || "";
+        finalValue = Number(bike?.sale_price || 0);
+      } else {
+        finalName = manualName;
+        finalValue = parseFloat(manualValue);
+      }
+      
       const basePrice = tipoProduto === "quadro" ? Number(rule.peso10) : Number(rule.peso20);
-      const gris = Math.max(Number(rule.gris_min), value * Number(rule.gris_pct));
+      const gris = Math.max(Number(rule.gris_min), finalValue * Number(rule.gris_pct));
       const tas = Number(rule.tas);
       const pedagio = Number(rule.pedagio_fixo);
       
@@ -92,13 +122,8 @@ const SimuladorFreteTabela = () => {
         uf: rule.uf,
         prazo: rule.prazo,
         valorFinal,
-        produto: tipoProduto === "quadro" ? "Quadro (Box)" : "Bike Completa",
-        detalhes: {
-          origem: "Sorocaba / SP",
-          destino: `${rule.cidade} / ${rule.uf}`,
-          valorBike: value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          valorBikeNum: value
-        }
+        bikeName: finalName,
+        produtoTipo: tipoProduto === "quadro" ? "Quadro" : "Bike Completa",
       });
 
       toast.success("Frete calculado com sucesso!");
@@ -110,205 +135,168 @@ const SimuladorFreteTabela = () => {
     }
   };
 
-  const handleCaptureImage = async () => {
-    if (!cardRef.current) return;
-    
-    setCapturing(true);
-    try {
-      // Ajuste para melhor qualidade
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        backgroundColor: "#09090b", // Tema dark
-        logging: false,
-        useCORS: true
-      });
+  const handleShareWhatsApp = () => {
+    if (!result) return;
 
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = image;
-      link.download = `Cote-Fefo-Bikes-${result.cidade}.png`;
-      link.click();
-      
-      toast.success("Imagem gerada e baixada com sucesso!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao gerar imagem.");
-    } finally {
-      setCapturing(false);
-    }
-  };
+    const text = `Frete FeFo Bikes
+Bike: ${result.bikeName}
+Saída: Sorocaba-SP
+Destino: ${result.cidade}-${result.uf}
+Valor: R$ ${result.valorFinal.toFixed(2)}`;
 
-  const shareTextWhatsApp = () => {
-    const text = `*COTAÇÃO FEFO BIKES* 🚲
-Produto: ${result.produto}
-Destino: ${result.cidade}/${result.uf}
-Valor: R$ ${result.valorFinal.toFixed(2)}
-Prazo: ${result.prazo} dias úteis`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20 pt-4">
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <div className="p-3.5 rounded-[20px] bg-primary/10 text-primary border border-primary/20 shadow-inner">
-            <ClipboardList size={26} />
-          </div>
-          <div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter leading-none">Cote na Tabela</h1>
-            <p className="text-muted-foreground font-black uppercase text-[9px] tracking-[0.2em] mt-1 opacity-70">Logística Interna Fefo Bikes</p>
-          </div>
+    <div className="max-w-4xl mx-auto space-y-6 pb-20 animate-in fade-in duration-500">
+      <header className="flex items-center gap-3 px-1">
+        <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+          <Truck size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-black uppercase tracking-tight">Simulador Tabela</h1>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Cote fretes em segundos</p>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* INPUTS */}
-        <div className="space-y-8">
-          <Card className="p-8 border-2 border-border/50 bg-muted/20 backdrop-blur-xl rounded-[40px] space-y-8 shadow-inner">
-            <div className="space-y-6">
-              <div className="space-y-2.5">
-                <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground ml-1">Para Onde? (CEP)</Label>
-                <div className="relative group">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" size={20} />
-                  <Input 
-                    placeholder="00000-000"
-                    value={cep}
-                    onChange={(e) => setCep(e.target.value)}
-                    className="pl-12 h-16 rounded-[24px] font-black text-xl border-2 bg-background focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all"
-                  />
-                </div>
-              </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* INPUT SECTION */}
+        <Card className="p-5 border-2 border-border/60 bg-background/50 backdrop-blur rounded-[28px] space-y-6">
+          <div className="space-y-4">
+            {/* CEP */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Destino (CEP)</Label>
+              <Input 
+                placeholder="00000-000"
+                value={cep}
+                onChange={(e) => setCep(e.target.value)}
+                className="h-12 rounded-xl font-bold border-2 bg-background focus-visible:ring-primary/20 transition-all"
+              />
+            </div>
 
-              <div className="space-y-2.5">
-                <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground ml-1">Valor do Produto (R$)</Label>
-                <div className="relative group">
-                  <Calculator className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" size={20} />
+            {/* SELEÇÃO DE BIKE */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Produto</Label>
+              <Tabs defaultValue="catalog" onValueChange={(v) => setProductMode(v as any)} className="w-full">
+                <TabsList className="grid grid-cols-2 w-full h-11 rounded-xl p-1 bg-muted/50 border border-border">
+                  <TabsTrigger value="catalog" className="rounded-lg text-[10px] font-black uppercase tracking-widest">Catálogo</TabsTrigger>
+                  <TabsTrigger value="manual" className="rounded-lg text-[10px] font-black uppercase tracking-widest">Manual</TabsTrigger>
+                </TabsList>
+                <TabsContent value="catalog" className="mt-4 animate-in slide-in-from-left-2 duration-300">
+                  <Select onValueChange={setSelectedBikeId} value={selectedBikeId}>
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                      <SelectValue placeholder="Selecione a bike..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bikes.map(bike => (
+                        <SelectItem key={bike.id} value={bike.id} className="font-bold">
+                          {bike.name} — R$ {Number(bike.sale_price).toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TabsContent>
+                <TabsContent value="manual" className="mt-4 space-y-3 animate-in slide-in-from-right-2 duration-300">
+                  <Input 
+                    placeholder="Nome da Bike"
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    className="h-12 rounded-xl font-bold border-2"
+                  />
                   <Input 
                     type="number"
-                    placeholder="5.000"
-                    value={bikeValue}
-                    onChange={(e) => setBikeValue(e.target.value)}
-                    className="pl-12 h-16 rounded-[24px] font-black text-xl border-2 bg-background focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all"
+                    placeholder="Valor (R$)"
+                    value={manualValue}
+                    onChange={(e) => setManualValue(e.target.value)}
+                    className="h-12 rounded-xl font-bold border-2"
                   />
-                </div>
-              </div>
-
-              <div className="space-y-3.5">
-                <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground ml-1">O que vamos enviar?</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setTipoProduto("quadro")}
-                    className={`flex flex-col items-center justify-center p-4 rounded-[28px] border-2 transition-all gap-2 h-32 ${tipoProduto === "quadro" ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "border-border bg-background text-muted-foreground hover:border-primary/40"}`}
-                  >
-                    <Package size={28} className={tipoProduto === "quadro" ? "animate-pulse" : ""} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Apenas Quadro</span>
-                  </button>
-                  <button
-                    onClick={() => setTipoProduto("bike_completa")}
-                    className={`flex flex-col items-center justify-center p-4 rounded-[28px] border-2 transition-all gap-2 h-32 ${tipoProduto === "bike_completa" ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "border-border bg-background text-muted-foreground hover:border-primary/40"}`}
-                  >
-                    <Bike size={28} className={tipoProduto === "bike_completa" ? "animate-pulse" : ""} />
-                    <span className="text-[10px] font-black uppercase tracking-widest leading-tight">Bike Completa</span>
-                  </button>
-                </div>
-              </div>
+                </TabsContent>
+              </Tabs>
             </div>
 
-            <Button 
-              disabled={calculating || !cep || !bikeValue || !tipoProduto}
-              onClick={handleCalculate}
-              className="w-full h-16 rounded-[24px] font-black uppercase tracking-widest text-base gap-3 shadow-2xl shadow-primary/30 transition-all hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <Calculator size={22} />
-              Calcular Frete na Tabela
-            </Button>
-          </Card>
-        </div>
-
-        {/* OUTPUT PRETTY VIEW */}
-        <div className="flex flex-col gap-6">
-          {!result ? (
-            <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-12 border-4 border-dashed border-border/50 rounded-[50px] bg-muted/5 opacity-50">
-              <div className="w-24 h-24 rounded-full bg-border/20 flex items-center justify-center mb-6">
-                <Truck size={40} className="text-muted-foreground" />
+            {/* TIPO DE CAIXA */}
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Volume</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setTipoProduto("quadro")}
+                  className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all h-14 ${tipoProduto === "quadro" ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border text-muted-foreground hover:border-primary/30"}`}
+                >
+                  <Package size={18} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Quadro</span>
+                </button>
+                <button
+                  onClick={() => setTipoProduto("bike_completa")}
+                  className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all h-14 ${tipoProduto === "bike_completa" ? "border-primary bg-primary/10 text-primary shadow-sm" : "border-border text-muted-foreground hover:border-primary/30"}`}
+                >
+                  <Bike size={18} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Bike</span>
+                </button>
               </div>
-              <h3 className="font-black uppercase tracking-widest text-xs mb-2">Simulador Rodonaves Local</h3>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest max-w-[200px]">Os preços e prazos oficiais aparecerão aqui após carregar os dados.</p>
+            </div>
+          </div>
+
+          <Button 
+            disabled={calculating || !cep || (productMode === "catalog" && !selectedBikeId) || (productMode === "manual" && !manualName) || !tipoProduto}
+            onClick={handleCalculate}
+            className="w-full h-14 rounded-xl font-black uppercase tracking-[0.15em] text-xs gap-2 transition-transform active:scale-[0.98]"
+          >
+            {calculating ? <ArrowRight className="animate-spin" /> : <Calculator size={18} />}
+            Calcular Frete
+          </Button>
+        </Card>
+
+        {/* RESULT SECTION */}
+        <div className="flex flex-col gap-4">
+          {!result ? (
+            <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-border/80 rounded-[32px] opacity-40">
+              <Truck size={36} className="mb-4 text-primary" />
+              <p className="font-black uppercase text-[10px] tracking-widest">Aguardando cotação...</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* THE CARD TO TAKE A SCREENSHOT OF */}
-              <div 
-                ref={cardRef}
-                className="p-1 border-[6px] border-primary/20 rounded-[45px] bg-zinc-950 overflow-hidden shadow-2xl"
-              >
-                <div className="relative p-10 bg-zinc-950 border border-white/5 rounded-[40px] space-y-10 overflow-hidden">
-                  {/* WATERMARK LOGO */}
-                  <div className="absolute top-10 right-10 opacity-10">
-                    <Bike size={80} />
+            <div className="space-y-4 animate-in zoom-in-95 duration-300">
+              <Card className="p-6 border-2 border-primary/20 bg-primary/5 rounded-[32px] space-y-6 relative overflow-hidden">
+                <div className="space-y-1 relative z-10">
+                  <div className="flex items-center gap-1.5 text-primary">
+                    <CheckCircle2 size={12} />
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em]">Cálculo Tabela</span>
                   </div>
+                  <h2 className="text-3xl font-black tracking-tight leading-none uppercase">{result.cidade}</h2>
+                  <p className="text-sm font-bold text-muted-foreground">{result.uf} — Sorocaba Saída</p>
+                </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-[0.3em]">
-                      <Package size={14} />
-                      Ticket de Entrega
-                    </div>
-                    <div className="space-y-2">
-                      <h2 className="text-5xl font-black tracking-tighter leading-none text-white uppercase">{result.cidade}</h2>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-primary/20 text-primary text-sm font-black rounded-lg">{result.uf}</span>
-                        <div className="h-1 w-8 bg-zinc-800 rounded-full" />
-                        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Entrega Porta a Porta</span>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-2 gap-4 relative z-10">
+                  <div className="p-4 bg-background/80 rounded-2xl border border-border shadow-sm">
+                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Prazo</span>
+                    <span className="text-xl font-black leading-none">{result.prazo} <span className="text-[10px] opacity-50">DIAS</span></span>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-8 py-8 border-y border-white/5">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Prazo Estimado</p>
-                      <p className="text-3xl font-black text-white tracking-tighter uppercase">{result.prazo} <span className="text-sm opacity-50">DIAS ÚTEIS</span></p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Mercadoria</p>
-                      <p className="text-lg font-black text-white uppercase truncate">{result.produto}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-primary p-10 rounded-[35px] flex flex-col items-center text-primary-foreground shadow-2xl shadow-primary/40 relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-full h-full bg-white opacity-5 group-hover:opacity-10 transition-opacity" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-80">Valor Total do Frete</span>
-                    <span className="text-7xl font-black tracking-tighter leading-none mb-1">
-                      R$ {result.valorFinal.toFixed(2)}
-                    </span>
-                    <p className="text-[9px] font-black uppercase tracking-[0.15em] opacity-60">Seguro e Taxas Incluso</p>
-                  </div>
-
-                  <div className="flex items-center justify-between opacity-40">
-                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">fefobikes.com — Tabela Oficial 2024</div>
-                    <CheckCircle2 size={16} className="text-emerald-500" />
+                  <div className="p-4 bg-background/80 rounded-2xl border border-border shadow-sm">
+                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Produto</span>
+                    <span className="text-xs font-black leading-none truncate block">{result.produtoTipo}</span>
                   </div>
                 </div>
-              </div>
 
-              {/* ACTION BUTTONS */}
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  onClick={handleCaptureImage}
-                  disabled={capturing}
-                  variant="outline"
-                  className="h-14 rounded-2xl font-black uppercase tracking-widest border-2 gap-2 bg-background hover:bg-muted"
-                >
-                  {capturing ? <ArrowRight className="animate-spin" /> : <Download size={18} />}
-                  Baixar Foto
-                </Button>
-                <Button 
-                  onClick={shareTextWhatsApp}
-                  className="h-14 rounded-2xl font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-lg shadow-emerald-500/20 px-8"
-                >
-                  <Share2 size={18} />
-                  Enviar Watts
-                </Button>
-              </div>
+                <div className="p-6 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/20 flex items-end justify-between relative z-10 overflow-hidden group">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-1">Custo Final</span>
+                    <span className="text-4xl font-black leading-none tracking-tighter">R$ {result.valorFinal.toFixed(2)}</span>
+                  </div>
+                  <Share2 className="opacity-40 group-hover:opacity-100 transition-opacity" size={24} />
+                </div>
+
+                {/* BACKGROUND DECORATION */}
+                <div className="absolute -bottom-6 -right-6 opacity-[0.03] rotate-12 -z-0">
+                  <Truck size={180} />
+                </div>
+              </Card>
+
+              <Button 
+                onClick={handleShareWhatsApp}
+                className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black uppercase tracking-widest text-xs gap-3 shadow-lg shadow-emerald-500/20"
+              >
+                <Share2 size={18} />
+                Compartilhar no WhatsApp
+              </Button>
             </div>
           )}
         </div>
