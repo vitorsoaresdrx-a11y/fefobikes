@@ -27,6 +27,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { classifyLocality, MULTIPLIERS } from "@/utils/freightUtils";
 
 interface FreightRule {
   cep_ini: number;
@@ -129,24 +130,37 @@ const SimuladorFreteTabela = () => {
       
       // Seguro e Taxas
       let bikeValue = 0;
+      let finalName = "";
+
       if (productMode === "catalog") {
         const b = bikes.find(x => x.id === selectedBikeId);
         bikeValue = Number(b?.sale_price || 0);
+        finalName = b?.name || "";
       } else {
         bikeValue = parseFloat(manualValue) || 0;
+        finalName = manualName;
       }
 
       const gris = Math.max(Number(rule.gris_min), bikeValue * Number(rule.gris_pct));
       const tas = Number(rule.tas);
       const pedagio = Number(rule.pedagio_fixo);
       
-      let total = basePrice + gris + tas + pedagio;
+      let subtotalCSV = basePrice + gris + tas + pedagio;
       
-      // AJUSTE REAL (PF + Interiorização + Margem)
-      const norte = ["AC", "AM", "RO", "RR", "AP", "PA", "TO"];
-      const multiplier = norte.includes(rule.uf) ? 1.35 : 1.15;
-      
-      const valorFinal = Math.ceil(total * multiplier);
+      // Motor de Multiplicadores FeFo Bikes v3 (Buckets)
+      const bucket = classifyLocality(rule.cidade, rule.uf);
+      const multiplier = MULTIPLIERS[bucket];
+      const valorFinal = Math.ceil(subtotalCSV * multiplier);
+
+      // Debug Log Estruturado
+      console.log("Freight Debug:", { 
+        cep: cleanCep, 
+        cidade: rule.cidade, 
+        subtotalCSV: subtotalCSV.toFixed(2), 
+        bucket, 
+        multiplier, 
+        valorFinal 
+      });
 
       setResult({
         cidade: rule.cidade,
@@ -191,10 +205,8 @@ Valor: R$ ${result.valorFinal.toFixed(2)}`;
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* INPUT SECTION */}
         <Card className="p-5 border-2 border-border/60 bg-background/50 backdrop-blur rounded-[28px] space-y-6">
           <div className="space-y-4">
-            {/* CEP */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Destino (CEP)</Label>
               <Input 
@@ -205,7 +217,6 @@ Valor: R$ ${result.valorFinal.toFixed(2)}`;
               />
             </div>
 
-            {/* SELEÇÃO DE BIKE */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Produto</Label>
               <Tabs defaultValue="catalog" onValueChange={(v) => setProductMode(v as any)} className="w-full">
@@ -245,7 +256,6 @@ Valor: R$ ${result.valorFinal.toFixed(2)}`;
               </Tabs>
             </div>
 
-            {/* TIPO DE CAIXA */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Volume</Label>
               <div className="grid grid-cols-2 gap-3">
@@ -277,7 +287,6 @@ Valor: R$ ${result.valorFinal.toFixed(2)}`;
           </Button>
         </Card>
 
-        {/* RESULT SECTION */}
         <div className="flex flex-col gap-4">
           {!result ? (
             <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-border/80 rounded-[32px] opacity-40">
@@ -315,7 +324,6 @@ Valor: R$ ${result.valorFinal.toFixed(2)}`;
                   <Share2 className="opacity-40 group-hover:opacity-100 transition-opacity" size={24} />
                 </div>
 
-                {/* BACKGROUND DECORATION */}
                 <div className="absolute -bottom-6 -right-6 opacity-[0.03] rotate-12 -z-0">
                   <Truck size={180} />
                 </div>

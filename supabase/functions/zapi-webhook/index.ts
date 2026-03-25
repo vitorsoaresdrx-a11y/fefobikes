@@ -298,6 +298,19 @@ Deno.serve(async (req) => {
         const tas = Number(rule.tas);
         const pedagio = Number(rule.pedagio_fixo);
 
+        // --- Multiplicadores FeFo Bikes v3 ---
+        const BRAZIL_CAPITALS = ["ARACAJU", "BELEM", "BELO HORIZONTE", "BOA VISTA", "CAMPO GRANDE", "CUIABA", "CURITIBA", "FLORIANOPOLIS", "FORTALEZA", "GOIANIA", "JOAO PESSOA", "MACEIO", "MANAUS", "NATAL", "PALMAS", "PORTO ALEGRE", "PORTO VELHO", "RECIFE", "RIO BRANCO", "RIO DE JANEIRO", "SALVADOR", "SAO LUIS", "SAO PAULO", "TERESINA", "VITORIA", "BRASILIA"];
+        const city = rule.cidade.toUpperCase().trim();
+        const uf = rule.uf.toUpperCase().trim();
+        
+        let bucket: 'capital' | 'interior' | 'remoto' = 'interior';
+        if (BRAZIL_CAPITALS.includes(city)) bucket = 'capital';
+        else if (["AC", "AM", "RO", "RR", "AP", "PA", "TO"].includes(uf)) bucket = 'remoto';
+        else if (city.includes("GARRUCHOS")) bucket = 'remoto';
+
+        const MULTIPLIERS = { capital: 1.25, interior: 1.65, remoto: 2.80 };
+        const multiplier = MULTIPLIERS[bucket];
+
         const availableTiers = [
           { w: 100, v: Number(rule.peso100) },
           { w: 60, v: Number(rule.peso60) },
@@ -309,7 +322,6 @@ Deno.serve(async (req) => {
 
         const calculatePrice = (bikeVal: number) => {
           if (availableTiers.length === 0) return 0;
-          
           let base = 0;
           const highest = availableTiers[0];
           const match = [...availableTiers].reverse().find(t => t.w >= pesoTaxado);
@@ -318,10 +330,11 @@ Deno.serve(async (req) => {
           else base = highest.v + (pesoTaxado - highest.w) * Number(rule.excedente_kg);
           
           const gris = Math.max(Number(rule.gris_min), bikeVal * Number(rule.gris_pct));
-          const norte = ["AC", "AM", "RO", "RR", "AP", "PA", "TO"];
-          const mult = norte.includes(rule.uf) ? 1.35 : 1.15;
+          const subtotalCSV = base + gris + tas + pedagio;
+          const valorFinal = Math.ceil(subtotalCSV * multiplier);
           
-          return Math.ceil((base + gris + tas + pedagio) * mult);
+          console.log(`Freight Robot [${bucket}]:`, { city, subtotalCSV, multiplier, valorFinal });
+          return valorFinal;
         };
 
         const totalQuadro = calculatePrice(1000);
