@@ -109,7 +109,7 @@ function buildWhatsAppMessage(data: ReceiptData) {
   if (detail) lines.push(detail);
   lines.push("");
   lines.push("Obrigado pela preferência! 🚴");
-  lines.push("Garantia de 90 dias em mão de obra.");
+  lines.push("Deus acima de tudo.");
   lines.push("FeFo Bikes — (15) 99612-8054");
 
   return lines.join("\n");
@@ -154,7 +154,7 @@ function buildPrintHTML(data: ReceiptData) {
   <title>Recibo - FeFo Bikes</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:900 !important;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm;line-height:1.2}
+    body{font-family:"Arial Black", "Impact", "Segoe UI", Arial, sans-serif;font-size:12px;font-weight:900 !important;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm;line-height:1.2;-webkit-text-stroke: 0.3px black;}
     .center{text-align:center}
     .bold{font-weight:900 !important}
     .big{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
@@ -215,7 +215,7 @@ function buildPrintHTML(data: ReceiptData) {
 
   <div class="center mt8">
     <p class="small">Obrigado pela preferência!</p>
-    <p class="xsmall mt4">GARANTIA DE 90 DIAS EM MÃO DE OBRA</p>
+    <p class="xsmall mt4 uppercase">DEUS ACIMA DE TUDO</p>
     <p class="xsmall mt4">${new Date().toLocaleString("pt-BR")}</p>
   </div>
 </body>
@@ -258,7 +258,7 @@ export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
       >
         {/* Receipt card — white bg, black text to simulate thermal print */}
         <div className="overflow-y-auto max-h-[85vh] rounded-2xl">
-          <div className="bg-white text-black rounded-2xl p-5 w-full">
+          <div className="bg-white text-black rounded-2xl p-5 w-full" style={{ WebkitTextStroke: "0.3px black", fontWeight: 900 }}>
             {/* Header Info */}
             <div className="text-center space-y-0.5 border-b border-dashed border-black/20 pb-4">
               <h3 className="text-xl font-black uppercase tracking-tight text-black">FEFO BIKES</h3>
@@ -326,7 +326,7 @@ export function SaleReceipt({ open, onClose, data }: SaleReceiptProps) {
             {/* Footer */}
             <div className="border-t border-dashed border-black pt-3 text-center">
               <p className="text-xs">Obrigado pela preferência!</p>
-              <p className="text-[10px] font-bold mt-1">GARANTIA DE 90 DIAS EM MÃO DE OBRA</p>
+              <p className="text-[10px] font-black uppercase tracking-widest mt-1">DEUS ACIMA DE TUDO</p>
               <p className="text-[10px] mt-3 text-gray-500">
                 {new Date().toLocaleString("pt-BR")}
               </p>

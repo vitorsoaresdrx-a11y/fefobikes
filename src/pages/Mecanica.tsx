@@ -1651,7 +1651,7 @@ export default function Mecanica() {
   <title>Recibo OS - FeFo Bikes</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:900 !important;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm;line-height:1.2}
+    body{font-family:"Arial Black", "Impact", "Segoe UI", Arial, sans-serif;font-size:12px;font-weight:900 !important;color:#000;background:#fff;width:80mm;max-width:80mm;padding:4mm;line-height:1.2;-webkit-text-stroke: 0.3px black;}
     .center{text-align:center}
     .bold{font-weight:900 !important}
     .big{font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
@@ -1714,7 +1714,7 @@ export default function Mecanica() {
 
   <div class="center mt8">
     <p class="small">Obrigado pela preferência!</p>
-    <p class="xsmall mt4">GARANTIA DE 90 DIAS EM MÃO DE OBRA</p>
+    <p class="xsmall mt4 uppercase">DEUS ACIMA DE TUDO</p>
     <p class="xsmall mt4">${new Date().toLocaleString("pt-BR")}</p>
   </div>
   
@@ -3188,7 +3188,7 @@ export default function Mecanica() {
       {/* ── Modal de Recibo ─────────────────────────────────────────────────── */}
       <Dialog open={receiptOpen} onOpenChange={setReceiptOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
-          <div className="p-8 space-y-6" id="receipt-capture-area">
+          <div className="p-8 space-y-6" id="receipt-capture-area" style={{ WebkitTextStroke: "0.4px currentColor", fontWeight: 900 }}>
             <div className="text-center space-y-2">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
                 <FileCheck size={24} className="text-primary" />
@@ -3235,10 +3235,15 @@ export default function Mecanica() {
                     <span>{formatBRL(Math.max(0, getTotalPrice(receiptData.job) - (Array.isArray(receiptData.job.payment_history) ? receiptData.job.payment_history : []).filter(h => new Date(h.criado_em) <= new Date(receiptData.history.criado_em)).reduce((s, h) => s + Number(h.valor) + Number(h.desconto_valor), 0)))}</span>
                   </div>
                 </div>
+                
+                <div className="text-center pt-2 pb-1 space-y-1">
+                  <p className="text-[10px] text-muted-foreground uppercase">Obrigado pela preferência!</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">DEUS ACIMA DE TUDO</p>
+                </div>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3" data-html2canvas-ignore="true">
               <button 
                 onClick={handlePrintOSReceipt}
                 className="w-full h-12 rounded-2xl bg-black text-white hover:bg-gray-800 font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 shadow-xl shadow-black/10"
