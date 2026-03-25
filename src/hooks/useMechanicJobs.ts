@@ -234,13 +234,14 @@ export function useCreateMechanicJob() {
         .single();
       if (error) throw error;
       
+      let initialPaymentHistory = null;
       if (payment && payment.tipo !== 'nenhum') {
         const valor_total = job.price;
         const valor_pago = payment.tipo === 'integral' ? valor_total : payment.valor_pago;
         const valor_restante = valor_total - valor_pago;
         
         // 1. Record payment in history
-        await supabase.from("os_pagamentos_historico" as any).insert({
+        const { data: histRow } = await supabase.from("os_pagamentos_historico" as any).insert({
           os_id: (data as any).id,
           valor: valor_pago,
           tipo: payment.tipo === 'integral' ? 'integral' : 'parcial',
@@ -248,7 +249,8 @@ export function useCreateMechanicJob() {
           customer_id: job.customer_id || null,
           customer_name: job.customer_name || null,
           customer_whatsapp: job.customer_whatsapp || null
-        });
+        }).select().single();
+        initialPaymentHistory = histRow;
 
         // 2. Initial summary entry
         await supabase.from("os_pagamentos" as any).insert({
@@ -273,7 +275,7 @@ export function useCreateMechanicJob() {
         });
       }
 
-      return data as unknown as MechanicJob;
+      return { job: data as unknown as MechanicJob, initialPaymentHistory };
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
@@ -613,7 +615,7 @@ export function useRegisterPayment() {
       bike_name?: string | null;
     }) => {
       // 1. Add to history
-      const { error: histErr } = await supabase
+      const { data: histRow, error: histErr } = await supabase
         .from("os_pagamentos_historico" as any)
         .insert({
           os_id: payload.os_id,
@@ -625,7 +627,7 @@ export function useRegisterPayment() {
           customer_id: payload.customer_id,
           customer_name: payload.customer_name,
           customer_whatsapp: payload.customer_whatsapp
-        });
+        }).select().single();
       if (histErr) throw histErr;
 
       // 2. Update summary os_pagamentos
@@ -682,6 +684,8 @@ export function useRegisterPayment() {
 
       // 4. Update job updated_at
       await supabase.from("mechanic_jobs" as any).update({ updated_at: new Date().toISOString() }).eq("id", payload.os_id);
+
+      return histRow;
     },
     onMutate: async (payload) => {
       await qc.cancelQueries({ queryKey: KEY });

@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useEffect, Fragment, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, Fragment } from "react";
+import html2canvas from "html2canvas";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -1535,7 +1536,40 @@ export default function Mecanica() {
   const [selectedControlJob, setSelectedControlJob] = useState<MechanicJob | null>(null);
   
   const [receiptOpen, setReceiptOpen] = useState(false);
-  const [receiptData, setReceiptData] = useState<{ job: MechanicJob, history: MechanicJobPaymentHistory } | null>(null);
+  const [receiptData, setReceiptData] = useState<{ job: MechanicJob, history: MechanicJobPaymentHistory, autoSend?: boolean } | null>(null);
+
+  useEffect(() => {
+    if (receiptOpen && receiptData?.autoSend) {
+      setReceiptData(prev => prev ? { ...prev, autoSend: false } : null);
+
+      setTimeout(async () => {
+        const el = document.getElementById("receipt-capture-area");
+        if (el && receiptData.job.customer_whatsapp) {
+          try {
+            toast.info("Gerando recibo para envio...", { id: "receipt-gen" });
+            const canvas = await html2canvas(el, { backgroundColor: "#000" });
+            const base64Data = canvas.toDataURL("image/png");
+            
+            const phone = receiptData.job.customer_whatsapp.replace(/\D/g, "");
+            const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
+
+            await sendMessage.mutateAsync({
+              phone: formattedPhone,
+              message: `🧾 *Opa, ${receiptData.job.customer_name}!* Recebemos seu pagamento referente à ${receiptData.job.bike_name || 'bike'}. O comprovante segue anexo. Conta com a gente!`,
+              media: base64Data,
+              mediatype: 'image',
+              mimetype: 'image/png',
+              fileName: `recibo_${receiptData.job.id.slice(0, 4)}.png`
+            });
+            toast.success("Foto do recibo enviada via WhatsApp!", { id: "receipt-gen" });
+          } catch (e) {
+            console.error("Erro ao enviar recibo:", e);
+            toast.error("Falha ao gerar/enviar o recibo", { id: "receipt-gen" });
+          }
+        }
+      }, 600);
+    }
+  }, [receiptOpen, receiptData, sendMessage]);
 
   const registerPaymentMutation = useRegisterPayment();
 
@@ -1580,9 +1614,13 @@ export default function Mecanica() {
       customer_whatsapp: editJob.customer_whatsapp,
       bike_name: editJob.bike_name
     }, {
-      onSuccess: () => {
+      onSuccess: (historyRecord) => {
         toast.success("Pagamento registrado!");
         setRegisterPayOpen(false);
+        if (historyRecord) {
+          setReceiptData({ job: editJob, history: historyRecord as MechanicJobPaymentHistory, autoSend: true });
+          setReceiptOpen(true);
+        }
       }
     });
   };
@@ -1777,7 +1815,7 @@ export default function Mecanica() {
     } : undefined;
 
     create.mutate({ ...orderData, payment: paymentData } as any, {
-      onSuccess: async (newJob) => {
+      onSuccess: async ({ job: newJob, initialPaymentHistory }) => {
         const partsTotal = form.parts.reduce((s, p) => s + (Number(p.quantity || 0) * Number(p.unit_price || 0)), 0);
         const isApproval = form.initialStatus === "in_approval" || !form.initialStatus;
 
@@ -1881,6 +1919,11 @@ export default function Mecanica() {
               message: `Olá, ${form.customer_name || "cliente"}! Sua bicicleta ${form.bike_name ? `(${form.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.` 
             });
           }
+        }
+
+        if (initialPaymentHistory) {
+          setReceiptData({ job: newJob, history: initialPaymentHistory, autoSend: true });
+          setReceiptOpen(true);
         }
 
         toast.success("Manutenção criada!");
@@ -3145,7 +3188,7 @@ export default function Mecanica() {
       {/* ── Modal de Recibo ─────────────────────────────────────────────────── */}
       <Dialog open={receiptOpen} onOpenChange={setReceiptOpen}>
         <DialogContent className="bg-secondary border-border rounded-2xl p-0 overflow-hidden max-w-md shadow-2xl w-full">
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-6" id="receipt-capture-area">
             <div className="text-center space-y-2">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
                 <FileCheck size={24} className="text-primary" />
