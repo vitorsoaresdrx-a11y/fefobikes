@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   History,
   Wrench,
@@ -11,6 +11,7 @@ import {
   X,
   Ban,
   Trash2,
+  Search,
 } from "lucide-react";
 import { useBikeServiceHistory, type GroupedBikeHistory, useCancelHistoryRecord, useDeleteHistoryRecord } from "@/hooks/useBikeServiceHistory";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
@@ -32,6 +33,22 @@ export default function MecanicosHistorico() {
   const selected = selectedFrame ? (groups.find(g => g.frame_number === selectedFrame) ?? null) : null;
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return groups;
+    const lowerQ = searchQuery.toLowerCase();
+    
+    return groups.filter(g => {
+      if (g.frame_number?.toLowerCase().includes(lowerQ)) return true;
+      if (g.bike_name?.toLowerCase().includes(lowerQ)) return true;
+      return g.records.some(r => 
+        (r.customer_name?.toLowerCase().includes(lowerQ)) ||
+        (r.customer_cpf?.toLowerCase().replace(/\D/g, '').includes(lowerQ.replace(/\D/g, ''))) ||
+        (r.customer_phone?.toLowerCase().replace(/\D/g, '').includes(lowerQ.replace(/\D/g, '')))
+      );
+    });
+  }, [groups, searchQuery]);
   
   const cancelHistory = useCancelHistoryRecord();
   const deleteHistory = useDeleteHistoryRecord();
@@ -58,18 +75,29 @@ export default function MecanicosHistorico() {
           <p className="text-muted-foreground font-medium text-sm">Todos os atendimentos agrupados por quadro</p>
         </header>
 
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70" size={18} />
+          <input
+            type="text"
+            placeholder="Buscar por nome, telefone, CPF ou quadro da bike..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-14 pl-12 pr-4 bg-card border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm font-medium"
+          />
+        </div>
+
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/70" />
           </div>
-        ) : groups.length === 0 ? (
+        ) : filteredGroups.length === 0 ? (
           <div className="text-center py-20 space-y-3 opacity-30">
             <History className="mx-auto" size={40} />
             <p className="text-xs font-black uppercase tracking-widest">Nenhum histórico encontrado</p>
           </div>
         ) : (
           <div className="space-y-3 mt-4">
-            {groups.map((group) => {
+            {filteredGroups.map((group) => {
               const isCancelled = group.records[0]?.status === 'cancelado';
               return (
                 <button
