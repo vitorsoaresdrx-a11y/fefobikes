@@ -7,7 +7,7 @@ export type LocalityBucket = 'capital' | 'interior' | 'remoto';
 export const MULTIPLIERS: Record<LocalityBucket, number> = {
   capital: 1.25,   // Cidades principais (ICMS + Margem base)
   interior: 1.65,  // Cidades de interior padrão
-  remoto: 2.80,    // Interior profundo (AC, AM, PA ou cidades como Garruchos/RS)
+  remoto: 2.90,    // Interior profundo (AC, AM, PA ou cidades como Garruchos/RS)
 };
 
 const BRAZIL_CAPITALS = [

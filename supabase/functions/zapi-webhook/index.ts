@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
         else if (["AC", "AM", "RO", "RR", "AP", "PA", "TO"].includes(uf)) bucket = 'remoto';
         else if (city.includes("GARRUCHOS")) bucket = 'remoto';
 
-        const MULTIPLIERS = { capital: 1.25, interior: 1.65, remoto: 2.80 };
+        const MULTIPLIERS = { capital: 1.25, interior: 1.65, remoto: 2.90 };
         const multiplier = MULTIPLIERS[bucket];
 
         const availableTiers = [
