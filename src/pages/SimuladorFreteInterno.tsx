@@ -151,7 +151,18 @@ const SimuladorFreteInterno = () => {
         body: payload
       });
 
-      if (error) throw error;
+      if (error) {
+        let errorMsg = "Erro na cotação";
+        try {
+          // Capturar o JSON de erro retornado pela Edge Function
+          const errorJson = await (error as any).context?.json();
+          errorMsg = errorJson?.error || error.message;
+        } catch (e) {
+          errorMsg = error.message;
+        }
+        throw new Error(errorMsg);
+      }
+      
       if (!data.sucesso) throw new Error(data.error || "Erro na cotação");
 
       setResult({
