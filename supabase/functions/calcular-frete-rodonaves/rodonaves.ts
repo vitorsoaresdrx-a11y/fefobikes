@@ -1,0 +1,159 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { PRESETS_EMBALAGEM, type PresetKey } from "./embalagem-presets.ts";
+
+// Cache de token em memória (isolado por instância warm)
+let cachedToken: string | null = null;
+let tokenExpiresAt: number | null = null;
+
+const RODONAVES_API = "https://quotation-apigateway.rte.com.br";
+const DNE_API = "https://dne-api.rte.com.br";
+
+async function authenticate() {
+  const now = Date.now();
+  
+  // Renovar 5 minutos antes de expirar
+  if (cachedToken && tokenExpiresAt && now < tokenExpiresAt - (5 * 60 * 1000)) {
+    console.log("Utilizando token Rodonaves cacheado");
+    return cachedToken;
+  }
+
+  console.log("Autenticando na Rodonaves...");
+  const USER = Deno.env.get("RODONAVES_USER");
+  const PASS = Deno.env.get("RODONAVES_PASS");
+
+  if (!USER || !PASS) {
+    throw new Error("Credenciais RODONAVES_USER ou RODONAVES_PASS não configuradas.");
+  }
+
+  const params = new URLSearchParams();
+  params.append("grant_type", "password");
+  params.append("username", USER);
+  params.append("password", PASS);
+  params.append("companyId", "1");
+  params.append("auth_type", "dev");
+
+  const response = await fetch(`${RODONAVES_API}/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error("Erro na autenticação Rodonaves:", errorBody);
+    throw new Error("Falha na autenticação com Rodonaves.");
+  }
+
+  const data = await response.json();
+  cachedToken = data.access_token;
+  // expires_in geralmente vem em segundos
+  tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+  
+  return cachedToken;
+}
+
+async function getCityId(zipCode: string, supabase: any) {
+  const cleanZip = zipCode.replace(/\D/g, "");
+  
+  // 1. Consultar banco local primeiro
+  const { data: localData, error: dbError } = await supabase
+    .from("cep_rodonaves")
+    .select("city_id")
+    .eq("zipcode", cleanZip)
+    .single();
+
+  if (localData?.city_id) {
+    console.log(`CityId encontrado localmente para CEP ${cleanZip}: ${localData.city_id}`);
+    return localData.city_id;
+  }
+
+  // 2. Fallback para API DNE
+  console.log(`CEP ${cleanZip} não encontrado localmente. Consultando DNE API...`);
+  const dneResponse = await fetch(`${DNE_API}/api/cities/byzipcode?zipCode=${cleanZip}`);
+  
+  if (!dneResponse.ok) {
+    throw new Error("CEP não atendido pela Rodonaves");
+  }
+
+  const cityData = await dneResponse.json();
+  if (!cityData || !cityData.CityId) {
+    throw new Error("CEP não atendido pela Rodonaves");
+  }
+
+  console.log(`CityId obtido via API para CEP ${cleanZip}: ${cityData.CityId}`);
+  
+  // Opcional: Salvar no banco local para futuras consultas
+  await supabase.from("cep_rodonaves").insert({ zipcode: cleanZip, city_id: cityData.CityId }).maybeSingle();
+
+  return cityData.CityId;
+}
+
+export async function gerarCotacao(input: {
+  originZip: string;
+  destinationZip: string;
+  customerTaxId: string;
+  invoiceValue: number;
+  preset: PresetKey;
+  quantidade: number;
+}, supabase: any) {
+  const token = await authenticate();
+  
+  const preset = PRESETS_EMBALAGEM[input.preset];
+  if (!preset) {
+    throw new Error(`Preset inválido: ${input.preset}`);
+  }
+
+  const originCityId = await getCityId(input.originZip, supabase);
+  const destinationCityId = await getCityId(input.destinationZip, supabase);
+
+  const totalWeight = preset.pesoPorUnidade * input.quantidade;
+
+  const payload = {
+    OriginZipCode: input.originZip.replace(/\D/g, ""),
+    OriginCityId: originCityId,
+    DestinationZipCode: input.destinationZip.replace(/\D/g, ""),
+    DestinationCityId: destinationCityId,
+    TotalWeight: totalWeight,
+    EconomicActivityId: 1,
+    CustomerTaxId: input.customerTaxId.replace(/\D/g, ""),
+    Invoices: [
+      {
+        InvoiceValue: input.invoiceValue,
+        Volumes: [
+          {
+            Amount: input.quantidade,
+            Weight: preset.pesoPorUnidade,
+            Length: preset.comprimento,
+            Width: preset.largura,
+            Height: preset.altura
+          }
+        ]
+      }
+    ]
+  };
+
+  console.log("Enviando cotação para Rodonaves...");
+  const response = await fetch(`${RODONAVES_API}/api/v1/gera-cotacao`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.error("Erro na cotação Rodonaves:", JSON.stringify(result, null, 2));
+    throw new Error(result.Message || "Erro ao gerar cotação na Rodonaves.");
+  }
+
+  // Assumindo que a resposta contém campos como ValorTotal ou similar.
+  // Ajustar conforme o retorno real da API Rodonaves
+  return {
+    valorFrete: result.Value || result.TotalValue || 0,
+    prazoEntrega: result.DeliveryTime || 0,
+    sucesso: true
+  };
+}

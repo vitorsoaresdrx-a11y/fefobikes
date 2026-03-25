@@ -129,82 +129,53 @@ const SimuladorFreteInterno = () => {
     }
   }, [selectedBikeId, productTab, bikes]);
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     setCalculating(true);
     setResult(null);
 
-    setTimeout(() => {
-      try {
-        let rule: FreightRule | undefined;
-        
-        if (activeTab === "cep") {
-          const cleanCep = cep.replace(/\D/g, "");
-          const cepNum = parseInt(cleanCep);
-          rule = rawData.find(r => cepNum >= r.cep_ini && cepNum <= r.cep_fim);
-        } else {
-          rule = rawData.find(r => r.uf === selectedUf && r.cidade === selectedCidade);
+    try {
+      const bike = productTab === "sistema" ? bikes.find(b => b.id === selectedBikeId) : null;
+      const valorBike = productTab === "sistema" ? Number(bike?.sale_price || 0) : Number(manualValue);
+      
+      const cleanCep = cep.replace(/\D/g, "");
+      
+      const payload = {
+        destinationZip: cleanCep,
+        invoiceValue: valorBike,
+        preset: tipoProduto,
+        quantidade: 1, // Por enquanto 1, mas pode ser expansível
+        // originZip e customerTaxId são resolvidos no backend via env
+      };
+
+      const { data, error } = await supabase.functions.invoke("calcular-frete-rodonaves", {
+        body: payload
+      });
+
+      if (error) throw error;
+      if (!data.sucesso) throw new Error(data.error || "Erro na cotação");
+
+      setResult({
+        cidade: selectedCidade || "Destino",
+        uf: selectedUf || "UF",
+        prazo: data.prazoEntrega,
+        valorFinal: data.valorFrete, // O valor retornado já é o final da API
+        detalhes: {
+          fretePeso: 0, // A API da Rodonaves já consolida os valores
+          gris: 0,
+          tas: 0,
+          pedagio: 0,
+          subtotalBruto: data.valorFrete
         }
+      });
 
-        if (!rule) {
-          toast.error("Destino não localizado.");
-          setCalculating(false);
-          return;
-        }
+      toast.success("Cotação realizada com sucesso!");
 
-        const bike = productTab === "sistema" ? bikes.find(b => b.id === selectedBikeId) : null;
-        const valorBike = productTab === "sistema" ? Number(bike?.sale_price || 0) : Number(manualValue);
-        
-        // Regra de Peso: Cubado sempre vence para caixa padrão
-        const pesoCalculo = PESO_CUBADO_PADRAO;
-
-        // Cálculo Frete por Peso
-        let fretePeso = 0;
-        if (pesoCalculo <= 5) fretePeso = rule.peso5;
-        else if (pesoCalculo <= 10) fretePeso = rule.peso10;
-        else if (pesoCalculo <= 20) fretePeso = rule.peso20;
-        else if (pesoCalculo <= 40) fretePeso = rule.peso40;
-        else if (pesoCalculo <= 60) fretePeso = rule.peso60;
-        else if (pesoCalculo <= 100) fretePeso = rule.peso100;
-        else {
-          fretePeso = rule.peso100 + (pesoCalculo - 100) * rule.excedente_kg;
-        }
-
-        // Lógica de fallback para faixas vazias (comum no Norte)
-        if (!fretePeso) {
-          const fallback = rule.peso100 || rule.peso60 || rule.peso40 || rule.peso20 || rule.peso10 || rule.peso5;
-          const fallbackMaxKg = rule.peso100 ? 100 : (rule.peso60 ? 60 : (rule.peso40 ? 40 : (rule.peso20 ? 20 : (rule.peso10 ? 10 : 5))));
-          fretePeso = fallback + (Math.max(0, pesoCalculo - fallbackMaxKg) * rule.excedente_kg);
-        }
-
-        const gris = Math.max(valorBike * rule.gris_pct, rule.gris_min);
-        const tas = rule.tas;
-        const pedagio = rule.pedagio_fixo * Math.ceil(pesoCalculo / rule.pedagio_fracao_kg);
-
-        const subtotalBruto = fretePeso + gris + tas + pedagio;
-        
-        // Arredondamento: múltiplo de 5 + 30
-        const valorFinal = Math.ceil(subtotalBruto / 5) * 5 + 30;
-        const prazoFinal = rule.prazo + 2;
-
-        setResult({
-          cidade: rule.cidade,
-          uf: rule.uf,
-          prazo: prazoFinal,
-          valorFinal,
-          detalhes: {
-            fretePeso,
-            gris,
-            tas,
-            pedagio,
-            subtotalBruto
-          }
-        });
-      } catch (err) {
-        toast.error("Erro interno no cálculo.");
-      } finally {
-        setCalculating(false);
-      }
-    }, 600);
+    } catch (err: any) {
+      console.error("Erro no cálculo de frete:", err);
+      toast.error(err.message || "Não foi possível calcular o frete.");
+    } finally {
+      setCalculating(false);
+    }
   };
 
   const isFormReady = () => {
