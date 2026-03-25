@@ -72,12 +72,12 @@ async function getCityId(zipCode: string, supabase: any) {
   const dneResponse = await fetch(`${DNE_API}/api/cities/byzipcode?zipCode=${cleanZip}`);
   
   if (!dneResponse.ok) {
-    throw new Error("CEP não atendido pela Rodonaves");
+    throw new Error(`CEP ${cleanZip} não localizado na Rodonaves. Verifique se eles atendem essa região.`);
   }
 
   const cityData = await dneResponse.json();
   if (!cityData || !cityData.CityId) {
-    throw new Error("CEP não atendido pela Rodonaves");
+    throw new Error(`CEP ${cleanZip} não localizado na Rodonaves. Verifique se eles atendem essa região.`);
   }
 
   console.log(`CityId obtido via API para CEP ${cleanZip}: ${cityData.CityId}`);
