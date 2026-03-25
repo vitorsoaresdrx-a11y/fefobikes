@@ -2902,8 +2902,8 @@ export default function Mecanica() {
               {step < 4 ? (
                 <button 
                   onClick={() => {
-                    if (step === 1 && (!form.customer_name || !form.customer_whatsapp || !form.customer_cpf || !form.bike_name)) {
-                      toast.error("Nome, WhatsApp, CPF e Bike são obrigatórios!");
+                    if (step === 1 && (!form.customer_name || !form.customer_whatsapp || !form.bike_name)) {
+                      toast.error("Nome, WhatsApp e Bike são obrigatórios!");
                       return;
                     }
                     if (step === 2 && !form.problem.trim()) {

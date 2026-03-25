@@ -146,11 +146,12 @@ export async function gerarCotacao(input: {
 
   if (!response.ok) {
     console.error("Erro na cotação Rodonaves:", JSON.stringify(result, null, 2));
-    throw new Error(result.Message || "Erro ao gerar cotação na Rodonaves.");
+    // Capturar mensagem amigável ou os erros de validação
+    const detail = Array.isArray(result.Errors) ? result.Errors.join(", ") : (result.Message || "Erro desconhecido");
+    throw new Error(`Rodonaves recusou: ${detail}`);
   }
 
-  // Assumindo que a resposta contém campos como ValorTotal ou similar.
-  // Ajustar conforme o retorno real da API Rodonaves
+  // A resposta de sucesso costuma ter os campos Value (ou TotalValue) e DeliveryTime
   return {
     valorFrete: result.Value || result.TotalValue || 0,
     prazoEntrega: result.DeliveryTime || 0,
