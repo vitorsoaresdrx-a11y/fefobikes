@@ -23,7 +23,8 @@ export type AppModule =
   | "configuracoes"
   | "chamadas"
   | "permissoes"
-  | "ponto";
+  | "ponto"
+  | "agenda";
 
 export const ALL_MODULES: { key: AppModule; label: string }[] = [
   { key: "dashboard", label: "Ações Rápidas" },
@@ -47,6 +48,7 @@ export const ALL_MODULES: { key: AppModule; label: string }[] = [
   { key: "chamadas", label: "Chamadas" },
   { key: "permissoes", label: "Permissões" },
   { key: "configuracoes", label: "Configurações" },
+  { key: "agenda", label: "Agenda" },
 ];
 
 export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
@@ -74,6 +76,7 @@ export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
   "/ponto/registro": "ponto",
   "/ponto/relatorio": "ponto",
   "/ponto/cadastro": "ponto",
+  "/agenda": "agenda",
 };
 
 export const NAV_MODULE_MAP: Record<string, AppModule> = {
@@ -102,6 +105,7 @@ export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/chamadas": "chamadas",
   "/permissoes": "permissoes",
   "/configuracoes": "configuracoes",
+  "/agenda": "agenda",
 };
 
 export interface TenantMember {
@@ -282,10 +286,10 @@ export function useUpsertPermission() {
         .upsert(
           {
             tenant_member_id: tenantMemberId,
-            module,
+            module: module as any,
             can_access: canAccess,
             hide_sensitive: hideSensitive,
-          },
+          } as any,
           { onConflict: "tenant_member_id,module" }
         );
 

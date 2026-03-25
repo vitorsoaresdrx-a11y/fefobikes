@@ -134,7 +134,7 @@ function AuthGate() {
           <Route path="/ponto/relatorio" element={<GuardedRoute module="ponto"><PageTransition><PontoRelatorio /></PageTransition></GuardedRoute>} />
           <Route path="/ponto/cadastro" element={<GuardedRoute module="ponto"><PageTransition><PontoCadastro /></PageTransition></GuardedRoute>} />
           <Route path="/simulador-frete" element={<GuardedRoute module="dashboard"><PageTransition><SimuladorFreteInterno /></PageTransition></GuardedRoute>} />
-          <Route path="/agenda" element={<GuardedRoute module="dashboard"><PageTransition><Agenda /></PageTransition></GuardedRoute>} />
+          <Route path="/agenda" element={<GuardedRoute module="agenda"><PageTransition><Agenda /></PageTransition></GuardedRoute>} />
         </Route>
         <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />
       </Routes>
