@@ -445,6 +445,24 @@ export default function PDV() {
           });
           customerId = created.id;
         }
+      } else if (customerId && online) {
+        try {
+          await updateCustomer.mutateAsync({
+            id: customerId,
+            name: custName.trim() || undefined,
+            whatsapp: custWhatsapp.trim() || null,
+            cpf: custCpf.trim() || null,
+            cep: custCep.trim() || null,
+            address_street: custStreet.trim() || null,
+            address_number: custNumber.trim() || null,
+            address_complement: custComplement.trim() || null,
+            address_neighborhood: custNeighborhood.trim() || null,
+            address_city: custCity.trim() || null,
+            address_state: custState.trim() || null,
+          });
+        } catch (e) {
+          console.error("Erro ao atualizar dados do cliente", e);
+        }
       }
 
       const saleId = crypto.randomUUID();

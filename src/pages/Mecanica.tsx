@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { maskPhone, maskCpfCnpj } from "@/lib/masks";
-import { useCustomers, type Customer } from "@/hooks/useCustomers";
+import { useCustomers, useCreateCustomer, useUpdateCustomer, type Customer } from "@/hooks/useCustomers";
 import imageCompression from "browser-image-compression";
 import { CustomerAutocomplete } from "@/components/CustomerAutocomplete";
 import {
@@ -304,13 +304,13 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-6 bg-secondary border-border rounded-[32px] overflow-hidden shadow-2xl">
-        <DialogHeader className="mb-6">
-          <div className="flex items-center justify-between gap-4">
-             <div className="min-w-0">
-               <DialogTitle className="text-xl font-black text-white italic truncate uppercase">{job.bike_name || 'Bike'}</DialogTitle>
-               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{job.customer_name || 'Cliente'}</p>
+        <DialogHeader className="mb-6 pr-8">
+          <div className="flex items-start justify-between gap-3">
+             <div className="min-w-0 flex-1">
+               <DialogTitle className="text-lg font-black text-white italic truncate uppercase">{job.bike_name || 'Bike'}</DialogTitle>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 truncate">{job.customer_name || 'Cliente'}</p>
              </div>
-             <div className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${currentStatus.color}`}>
+             <div className={`shrink-0 mt-1 px-3 py-1.5 rounded-full border text-[9px] md:text-[10px] font-black uppercase tracking-widest ${currentStatus.color}`}>
                {currentStatus.label}
              </div>
           </div>
@@ -1291,6 +1291,8 @@ export default function Mecanica() {
   useServiceOrdersRealtime({ onDone: handleServiceOrderDone, onAccepted: handleServiceOrderAccepted });
 
   const { data: customers = [] } = useCustomers();
+  const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [showManualCustomer, setShowManualCustomer] = useState(true);
@@ -1707,7 +1709,7 @@ export default function Mecanica() {
 
   const uploadPhoto = useUploadPhoto();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.problem.trim()) { toast.error("Descreva o problema"); return; }
     
     // Validate required fields for Step 1
@@ -1720,12 +1722,47 @@ export default function Mecanica() {
       toast.error("WhatsApp inválido — digite o número completo com DDD");
       return;
     }
+    
+    let resolvedCustomerId = form.customer_id;
+    try {
+      if (resolvedCustomerId) {
+        await updateCustomer.mutateAsync({
+          id: resolvedCustomerId,
+          name: form.customer_name.trim(),
+          whatsapp: phoneDigits || null,
+          cpf: form.customer_cpf?.replace(/\D/g, '') || null,
+          cep: form.cep?.replace(/\D/g, '') || null,
+          address_street: form.address?.trim() || null,
+          address_number: form.number?.trim() || null,
+          address_complement: form.complement?.trim() || null,
+          address_neighborhood: form.bairro?.trim() || null,
+          address_city: form.city?.trim() || null,
+          address_state: form.state?.trim() || null,
+        });
+      } else {
+        const created = await createCustomer.mutateAsync({
+          name: form.customer_name.trim(),
+          whatsapp: phoneDigits || null,
+          cpf: form.customer_cpf?.replace(/\D/g, '') || null,
+          cep: form.cep?.replace(/\D/g, '') || null,
+          address_street: form.address?.trim() || null,
+          address_number: form.number?.trim() || null,
+          address_complement: form.complement?.trim() || null,
+          address_neighborhood: form.bairro?.trim() || null,
+          address_city: form.city?.trim() || null,
+          address_state: form.state?.trim() || null,
+        });
+        resolvedCustomerId = created.id;
+      }
+    } catch (err) {
+      console.error("Erro ao salvar cliente:", err);
+    }
 
     const orderData = {
       customer_name: form.customer_name || null,
       customer_cpf: form.customer_cpf?.replace(/\D/g, '') || null,
       customer_whatsapp: form.customer_whatsapp?.replace(/\D/g, '') || null,
-      customer_id: form.customer_id || null,
+      customer_id: resolvedCustomerId || null,
       bike_name: form.bike_name || null,
       problem: form.problem || "",
       price: form.sem_custo ? 0 : (Number(form.price) || 0),
@@ -2516,7 +2553,12 @@ export default function Mecanica() {
                           <PremiumInput value={form.number} onChange={(e) => setForm(f => ({ ...f, number: e.target.value }))} placeholder="Nº" />
                         </InputGroup>
                       </div>
-                      <div className="col-span-3">
+                      <div className="col-span-1">
+                        <InputGroup label="Compl.">
+                          <PremiumInput value={form.complement} onChange={(e) => setForm(f => ({ ...f, complement: e.target.value }))} placeholder="Apto/Bl" />
+                        </InputGroup>
+                      </div>
+                      <div className="col-span-2">
                         <InputGroup label="Bairro">
                           <PremiumInput value={form.bairro} onChange={(e) => setForm(f => ({ ...f, bairro: e.target.value }))} placeholder="Bairro" />
                         </InputGroup>
