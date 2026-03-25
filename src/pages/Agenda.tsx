@@ -142,30 +142,30 @@ const Agenda = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6 max-w-6xl mx-auto pb-24 md:pb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Agenda Interna</h1>
-          <p className="text-muted-foreground">Gestão de eventos e lembretes Rodonaves</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Agenda Interna</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Gestão de eventos e lembretes Rodonaves</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
+        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+          <Button variant="outline" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h3 className="text-lg font-bold min-w-[150px] text-center capitalize">
+          <h3 className="text-sm md:text-lg font-bold min-w-[120px] md:min-w-[150px] text-center capitalize">
             {format(currentDate, "MMMM yyyy", { locale: ptBR })}
           </h3>
-          <Button variant="outline" size="icon" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
+          <Button variant="outline" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr,350px] gap-8">
-        <Card className="p-4 border-2">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr,350px] gap-6 md:gap-8">
+        <Card className="p-2 md:p-4 border-2">
           <div className="grid grid-cols-7 gap-px bg-muted rounded-lg overflow-hidden border border-muted">
-            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(day => (
-              <div key={day} className="bg-background py-3 text-center text-xs font-black uppercase text-muted-foreground">{day}</div>
+            {["D", "S", "T", "Q", "Q", "S", "S"].map(day => (
+              <div key={day} className="bg-background py-2 md:py-3 text-center text-[10px] md:text-xs font-black uppercase text-muted-foreground">{day}</div>
             ))}
             {days.map((day, i) => {
               const dayItems = getDayItems(day);
@@ -174,19 +174,20 @@ const Agenda = () => {
                 <div 
                   key={i} 
                   onClick={() => setSelectedDay(day)}
-                  className={`min-h-[100px] bg-background p-2 cursor-pointer transition-all hover:bg-muted/30 relative
+                  className={`min-h-[60px] md:min-h-[100px] bg-background p-1 md:p-2 cursor-pointer transition-all hover:bg-muted/30 relative
                     ${!isSameMonth(day, currentDate) ? 'opacity-30' : ''}
                     ${isSelected ? 'ring-2 ring-primary ring-inset bg-primary/5' : ''}
                   `}
                 >
-                  <span className={`text-sm font-bold ${isSelected ? 'text-primary' : ''}`}>{format(day, "d")}</span>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {dayItems.map(item => (
-                      <div key={item.id} className={`w-2 h-2 rounded-full ${
+                  <span className={`text-xs md:text-sm font-bold ${isSelected ? 'text-primary' : ''}`}>{format(day, "d")}</span>
+                  <div className="flex flex-wrap gap-0.5 md:gap-1 mt-1 md:mt-2">
+                    {dayItems.slice(0, 4).map(item => (
+                      <div key={item.id} className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${
                         item.tipo === 'evento' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 
                         item.tipo === 'periodo' ? 'bg-emerald-500' : 'bg-amber-500'
                       }`} />
                     ))}
+                    {dayItems.length > 4 && <div className="text-[8px] font-bold text-muted-foreground">+{dayItems.length - 4}</div>}
                   </div>
                 </div>
               );
@@ -194,15 +195,15 @@ const Agenda = () => {
           </div>
         </Card>
 
-        <Card className="p-6 border-2 flex flex-col h-[650px]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-black text-xl uppercase tracking-widest">{format(selectedDay || new Date(), "dd 'de' MMMM", { locale: ptBR })}</h3>
+        <Card className="p-4 md:p-6 border-2 flex flex-col h-auto md:h-[650px]">
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <h3 className="font-black text-lg md:text-xl uppercase tracking-widest">{format(selectedDay || new Date(), "dd 'de' MMMM", { locale: ptBR })}</h3>
             <Button size="icon" className="rounded-full h-8 w-8" onClick={() => { resetForm(); setIsModalOpen(true); }}>
               <Plus className="h-4 w-4" />
             </Button>
           </div>
           
-          <ScrollArea className="flex-1 -mx-2 px-2">
+          <ScrollArea className="flex-1 -mx-2 px-2 max-h-[400px] md:max-h-full">
             <div className="space-y-4">
               {selectedDay && getDayItems(selectedDay).length > 0 ? (
                 getDayItems(selectedDay).map(item => (
