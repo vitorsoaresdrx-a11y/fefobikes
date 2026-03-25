@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildFreteCardSVG, svgToPngBase64 } from "./frete-card.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -317,26 +318,56 @@ Deno.serve(async (req) => {
         const freteData = await freteRes.json();
 
         if (freteData.sucesso) {
-          const valor = (Number(freteData.valorFrete) + 30).toFixed(2);
+          const valorNum = Number(freteData.valorFrete) + 30;
           const prazo = freteData.prazoEntrega + 2;
           const cidade = freteData.cidade
-            ? `${freteData.cidade}${freteData.uf ? `-${freteData.uf}` : ""}`
+            ? `${freteData.cidade}${freteData.uf ? ` - ${freteData.uf}` : ""}`
             : `CEP ${cleanCep}`;
 
-          const responseMsg =
-            `Frete FeFo Bikes\n` +
-            `Destino: ${cidade}\n` +
-            `Prazo: ${prazo} dias úteis\n` +
-            `Valor: R$ ${valor}`;
-
           const instName = tenantId ? instanceName(tenantId) : "fefo-default";
-          await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
-            method: "POST",
-            headers: evoHeaders(),
-            body: JSON.stringify({ number: phone, text: responseMsg }),
-          });
 
-          console.log(`Freight response sent to ${phone}: R$ ${valor}`);
+          // Gerar card visual de frete
+          try {
+            const svgCard = buildFreteCardSVG({
+              destino: cidade,
+              origem: "Sorocaba - SP",
+              valor: valorNum,
+              prazo,
+              cep: cleanCep,
+            });
+
+            const { base64: imgBase64, mimeType } = await svgToPngBase64(svgCard);
+            const ispng = mimeType === "image/png";
+
+            // Enviar imagem PNG via Evolution API
+            await fetch(`${EVOLUTION_BASE}/message/sendMedia/${instName}`, {
+              method: "POST",
+              headers: evoHeaders(),
+              body: JSON.stringify({
+                number: phone,
+                mediatype: "image",
+                mimetype: mimeType,
+                media: imgBase64,
+                fileName: ispng ? "cotacao-frete-fefobikes.png" : "cotacao-frete-fefobikes.svg",
+                caption: `🚲 *FeFo Bikes* — Cotação de Frete\n📍 *Destino:* ${cidade}\n💰 *Valor:* R$ ${valorNum.toFixed(2)}\n📅 *Prazo:* ${prazo} dias úteis`,
+              }),
+            });
+
+            console.log(`Freight image card sent to ${phone}: R$ ${valorNum.toFixed(2)}`);
+          } catch (imgErr) {
+            console.error("Failed to generate/send freight image, falling back to text:", imgErr);
+            // Fallback para mensagem de texto
+            const responseMsg =
+              `🚚 *Frete FeFo Bikes*\n` +
+              `📍 Destino: ${cidade}\n` +
+              `📅 Prazo: ${prazo} dias úteis\n` +
+              `💰 Valor: R$ ${valorNum.toFixed(2)}`;
+            await fetch(`${EVOLUTION_BASE}/message/sendText/${instName}`, {
+              method: "POST",
+              headers: evoHeaders(),
+              body: JSON.stringify({ number: phone, text: responseMsg }),
+            });
+          }
         } else {
           console.error("Rodonaves API returned error:", freteData.error);
         }

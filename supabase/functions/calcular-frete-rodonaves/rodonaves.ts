@@ -58,13 +58,17 @@ async function getCityId(zipCode: string, supabase: any) {
   // 1. Consultar banco local primeiro
   const { data: localData, error: dbError } = await supabase
     .from("cep_rodonaves")
-    .select("city_id")
+    .select("city_id, city_name, state_uf")
     .eq("zipcode", cleanZip)
     .single();
 
   if (localData?.city_id) {
     console.log(`CityId encontrado localmente para CEP ${cleanZip}: ${localData.city_id}`);
-    return localData.city_id;
+    return { 
+      id: localData.city_id, 
+      name: localData.city_name, 
+      uf: localData.state_uf 
+    };
   }
 
   // 2. Fallback para API DNE
@@ -76,8 +80,10 @@ async function getCityId(zipCode: string, supabase: any) {
   }
 
   const cityData = await dneResponse.json();
-  // A DNE API retorna o campo "Id" como CityId da cidade
   const cityId = cityData?.Id || cityData?.CityId || cityData?.cityId;
+  const cityName = cityData?.Description || cityData?.Name || "";
+  const stateUf = cityData?.StateDescription || cityData?.State || "";
+
   if (!cityData || !cityId) {
     throw new Error(`CEP ${cleanZip} não localizado na Rodonaves. Verifique se eles atendem essa região.`);
   }
@@ -85,9 +91,14 @@ async function getCityId(zipCode: string, supabase: any) {
   console.log(`CityId obtido via API para CEP ${cleanZip}: ${cityId}`);
   
   // Salvar no banco local para futuras consultas
-  await supabase.from("cep_rodonaves").insert({ zipcode: cleanZip, city_id: cityId }).maybeSingle();
+  await supabase.from("cep_rodonaves").insert({ 
+    zipcode: cleanZip, 
+    city_id: cityId,
+    city_name: cityName,
+    state_uf: stateUf
+  }).maybeSingle();
 
-  return cityId;
+  return { id: cityId, name: cityName, uf: stateUf };
 }
 
 export async function gerarCotacao(input: {
@@ -105,19 +116,18 @@ export async function gerarCotacao(input: {
     throw new Error(`Preset inválido: ${input.preset}`);
   }
 
-  const originCityId = await getCityId(input.originZip, supabase);
-  const destinationCityId = await getCityId(input.destinationZip, supabase);
+  const originCity = await getCityId(input.originZip, supabase);
+  const destinationCity = await getCityId(input.destinationZip, supabase);
 
   const totalWeight = preset.pesoPorUnidade * input.quantidade;
   const cleanTaxId = input.customerTaxId.replace(/\D/g, "");
   const qty = Math.max(1, Number(input.quantidade || 1));
 
-  // Payload final: obedecendo os nomes da documentação 2024 mas mantendo simples
   const payload = {
     OriginZipCode: input.originZip.replace(/\D/g, ""),
-    OriginCityId: Number(originCityId),
+    OriginCityId: Number(originCity.id),
     DestinationZipCode: input.destinationZip.replace(/\D/g, ""),
-    DestinationCityId: Number(destinationCityId),
+    DestinationCityId: Number(destinationCity.id),
     TotalPackages: qty,
     TotalWeight: totalWeight,
     EconomicActivityId: 1, 
@@ -153,15 +163,15 @@ export async function gerarCotacao(input: {
 
   if (!response.ok) {
     console.error("Erro na cotação Rodonaves:", JSON.stringify(result, null, 2));
-    // Capturar mensagem amigável ou os erros de validação
     const detail = Array.isArray(result.Errors) ? result.Errors.join(", ") : (result.Message || "Erro desconhecido");
     throw new Error(`Rodonaves recusou: ${detail}`);
   }
 
-  // A resposta de sucesso costuma ter os campos Value (ou TotalValue) e DeliveryTime
   return {
     valorFrete: result.Value || result.TotalValue || 0,
     prazoEntrega: result.DeliveryTime || 0,
+    cidade: destinationCity.name,
+    uf: destinationCity.uf,
     sucesso: true
   };
 }
