@@ -38,15 +38,21 @@ export default function MecanicosHistorico() {
   const filteredGroups = useMemo(() => {
     if (!searchQuery.trim()) return groups;
     const lowerQ = searchQuery.toLowerCase();
+    const numericQ = lowerQ.replace(/\D/g, '');
     
     return groups.filter(g => {
       if (g.frame_number?.toLowerCase().includes(lowerQ)) return true;
       if (g.bike_name?.toLowerCase().includes(lowerQ)) return true;
-      return g.records.some(r => 
-        (r.customer_name?.toLowerCase().includes(lowerQ)) ||
-        (r.customer_cpf?.toLowerCase().replace(/\D/g, '').includes(lowerQ.replace(/\D/g, ''))) ||
-        (r.customer_phone?.toLowerCase().replace(/\D/g, '').includes(lowerQ.replace(/\D/g, '')))
-      );
+      return g.records.some(r => {
+        if (r.customer_name?.toLowerCase().includes(lowerQ)) return true;
+        
+        if (numericQ) {
+          if (r.customer_cpf && r.customer_cpf.replace(/\D/g, '').includes(numericQ)) return true;
+          if (r.customer_phone && r.customer_phone.replace(/\D/g, '').includes(numericQ)) return true;
+        }
+        
+        return false;
+      });
     });
   }, [groups, searchQuery]);
   
