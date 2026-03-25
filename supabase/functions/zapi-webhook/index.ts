@@ -303,8 +303,8 @@ Deno.serve(async (req) => {
         const freteData = await freteRes.json();
 
         if (freteData.sucesso) {
-          const valor = Number(freteData.valorFrete).toFixed(2);
-          const prazo = freteData.prazoEntrega;
+          const valor = (Number(freteData.valorFrete) + 30).toFixed(2);
+          const prazo = freteData.prazoEntrega + 2;
           const cidade = freteData.cidade
             ? `${freteData.cidade}${freteData.uf ? `-${freteData.uf}` : ""}`
             : `CEP ${cleanCep}`;

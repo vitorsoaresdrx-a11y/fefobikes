@@ -101,8 +101,8 @@ const SimuladorFreteInterno = () => {
       setResult({
         cidade: data.cidade || "Destino",
         uf: data.uf || "",
-        prazo: data.prazoEntrega,
-        valorFinal: data.valorFrete,
+        prazo: data.prazoEntrega + 2,
+        valorFinal: data.valorFrete + 30,
         bikeName: finalName,
       });
 
