@@ -293,38 +293,39 @@ Deno.serve(async (req) => {
         .single();
 
       if (rule && !ruleErr) {
-        // Cálculo de Cubagem (78 x 20 x 148)
-        const volumeM3 = (78 * 20 * 148) / 1000000;
-        const pesoCubado = volumeM3 * 300;
+        const boxVolume = (78 * 20 * 148) / 1000000;
+        const pesoTaxado = Math.max(15.5, boxVolume * 300); // 70kg
         const tas = Number(rule.tas);
         const pedagio = Number(rule.pedagio_fixo);
 
-        const calculateForWeight = (actualWeight: number, nfeValue: number) => {
-          const p = Math.max(actualWeight, pesoCubado);
-          const tiers = [
-            { w: 100, v: Number(rule.peso100) },
-            { w: 60, v: Number(rule.peso60) },
-            { w: 40, v: Number(rule.peso40) },
-            { w: 20, v: Number(rule.peso20) },
-            { w: 10, v: Number(rule.peso10) },
-            { w: 5, v: Number(rule.peso5) }
-          ].filter(t => t.v > 0);
+        const availableTiers = [
+          { w: 100, v: Number(rule.peso100) },
+          { w: 60, v: Number(rule.peso60) },
+          { w: 40, v: Number(rule.peso40) },
+          { w: 20, v: Number(rule.peso20) },
+          { w: 10, v: Number(rule.peso10) },
+          { w: 5, v: Number(rule.peso5) }
+        ].filter(t => t.v > 0);
 
-          let base = 0;
-          const exactTier = [...tiers].reverse().find(t => t.w >= p);
-          if (exactTier) {
-            base = exactTier.v;
-          } else {
-            const highest = tiers[0];
-            base = highest.v + (p - highest.w) * Number(rule.excedente_kg);
-          }
+        const calculatePrice = (bikeVal: number) => {
+          if (availableTiers.length === 0) return 0;
           
-          const gris = Math.max(Number(rule.gris_min), nfeValue * Number(rule.gris_pct));
-          return Math.ceil((base + gris + tas + pedagio) * 1.03);
+          let base = 0;
+          const highest = availableTiers[0];
+          const match = [...availableTiers].reverse().find(t => t.w >= pesoTaxado);
+          
+          if (match) base = match.v;
+          else base = highest.v + (pesoTaxado - highest.w) * Number(rule.excedente_kg);
+          
+          const gris = Math.max(Number(rule.gris_min), bikeVal * Number(rule.gris_pct));
+          const norte = ["AC", "AM", "RO", "RR", "AP", "PA", "TO"];
+          const mult = norte.includes(rule.uf) ? 1.35 : 1.15;
+          
+          return Math.ceil((base + gris + tas + pedagio) * mult);
         };
 
-        const totalQuadro = calculateForWeight(6, 1000);
-        const totalBike = calculateForWeight(15.5, 5000);
+        const totalQuadro = calculatePrice(1000);
+        const totalBike = calculatePrice(5000);
 
         const responseMsg = `Frete FeFo Bikes\n` +
           `Destino: ${rule.cidade}-${rule.uf}\n` +

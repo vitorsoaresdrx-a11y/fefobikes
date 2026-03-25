@@ -96,13 +96,13 @@ const SimuladorFreteTabela = () => {
 
       const rule = data as FreightRule;
       
-      // Cálculo de Cubagem (78 x 20 x 148)
-      const volumeM3 = (78 * 20 * 148) / 1000000;
-      const pesoCubado = volumeM3 * 300; 
-      const pesoTaxado = Math.max(pesoCubado, tipoProduto === "quadro" ? 6 : 15.5);
+      // CONFIGURAÇÃO FIXA FEFO BIKES
+      const boxWeight = 15.5;
+      const boxVolume = (78 * 20 * 148) / 1000000;
+      const pesoTaxado = Math.max(boxWeight, boxVolume * 300); // Sempre resultará em ~70kg
       
-      // Motor de Cálculo Dinâmico de Faixas
-      const tiers = [
+      // Busca da melhor faixa de peso (Tier)
+      const availableTiers = [
         { w: 100, v: Number(rule.peso100) },
         { w: 60, v: Number(rule.peso60) },
         { w: 40, v: Number(rule.peso40) },
@@ -111,36 +111,42 @@ const SimuladorFreteTabela = () => {
         { w: 5, v: Number(rule.peso5) }
       ].filter(t => t.v > 0);
 
+      if (availableTiers.length === 0) {
+        toast.error("Erro nas faixas de preço para esta cidade.");
+        return;
+      }
+
       let basePrice = 0;
-      // Tenta achar uma faixa que cubra o peso
-      const exactTier = [...tiers].reverse().find(t => t.w >= pesoTaxado);
-      
-      if (exactTier) {
-        basePrice = exactTier.v;
+      const highestTier = availableTiers[0];
+      const matchingTier = [...availableTiers].reverse().find(t => t.w >= pesoTaxado);
+
+      if (matchingTier) {
+        basePrice = matchingTier.v;
       } else {
-        // Peso maior que a maior faixa disponível
-        const highest = tiers[0];
-        basePrice = highest.v + (pesoTaxado - highest.w) * Number(rule.excedente_kg);
+        // Peso excede todas as faixas, calcula excedente
+        basePrice = highestTier.v + (pesoTaxado - highestTier.w) * Number(rule.excedente_kg);
       }
       
-      // Determinar nome e valor para seguro
-      let finalValue = 0;
-      let finalName = "";
+      // Seguro e Taxas
+      let bikeValue = 0;
       if (productMode === "catalog") {
-        const bike = bikes.find(b => b.id === selectedBikeId);
-        finalName = bike?.name || "";
-        finalValue = Number(bike?.sale_price || 0);
+        const b = bikes.find(x => x.id === selectedBikeId);
+        bikeValue = Number(b?.sale_price || 0);
       } else {
-        finalName = manualName;
-        finalValue = parseFloat(manualValue);
+        bikeValue = parseFloat(manualValue) || 0;
       }
-      
-      const gris = Math.max(Number(rule.gris_min), finalValue * Number(rule.gris_pct));
+
+      const gris = Math.max(Number(rule.gris_min), bikeValue * Number(rule.gris_pct));
       const tas = Number(rule.tas);
       const pedagio = Number(rule.pedagio_fixo);
       
-      // Soma final com margem de segurança de 3% para arredondamentos da transportadora
-      const valorFinal = Math.ceil((basePrice + gris + tas + pedagio) * 1.03);
+      let total = basePrice + gris + tas + pedagio;
+      
+      // AJUSTE REAL (PF + Interiorização + Margem)
+      const norte = ["AC", "AM", "RO", "RR", "AP", "PA", "TO"];
+      const multiplier = norte.includes(rule.uf) ? 1.35 : 1.15;
+      
+      const valorFinal = Math.ceil(total * multiplier);
 
       setResult({
         cidade: rule.cidade,
