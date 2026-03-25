@@ -278,6 +278,20 @@ Deno.serve(async (req) => {
     const AUTHORIZED_PHONES = ["5515996128054", "5515998175561", "5515988351790"];
     const cepMatch = content.match(/\d{5}-?\d{3}/);
 
+    // Tenta pegar o valor da NF na linha seguinte ao CEP
+    // Formato esperado: "18073351\n3800"
+    let invoiceValue = 5000; // Valor padrão
+    if (cepMatch) {
+      const lines = content.trim().split(/\r?\n/);
+      const cepLineIdx = lines.findIndex(l => l.replace(/\D/g, "").length === 8 && /\d{5}-?\d{3}/.test(l));
+      if (cepLineIdx !== -1 && lines[cepLineIdx + 1]) {
+        const nextLineVal = parseFloat(lines[cepLineIdx + 1].replace(/[^\d.,]/g, "").replace(",", "."));
+        if (!isNaN(nextLineVal) && nextLineVal > 0) {
+          invoiceValue = nextLineVal;
+        }
+      }
+    }
+
     if (cepMatch && AUTHORIZED_PHONES.includes(phone) && !isFromMe) {
       const cleanCep = cepMatch[0].replace(/\D/g, "");
       console.log(`Freight lookup via Rodonaves API for CEP ${cleanCep} by ${phone}`);
@@ -293,7 +307,7 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               destinationZip: cleanCep,
-              invoiceValue: 5000,
+              invoiceValue: invoiceValue,
               preset: "bike_completa",
               quantidade: 1,
             }),
