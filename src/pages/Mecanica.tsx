@@ -307,7 +307,7 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
         <DialogHeader className="pr-6 md:pr-8 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 text-left">
              <div className="min-w-0 flex-1">
-               <DialogTitle className="text-base md:text-lg font-black text-white italic truncate uppercase">{job.bike_name || 'Bike'}</DialogTitle>
+               <DialogTitle className="text-base md:text-lg font-black text-white italic uppercase">{job.bike_name || 'Bike'}</DialogTitle>
                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 truncate">{job.customer_name || 'Cliente'}</p>
              </div>
              <div className={`self-start shrink-0 px-2.5 py-1 rounded-full border text-[9px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ${currentStatus.color}`}>
