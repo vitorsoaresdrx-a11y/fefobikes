@@ -1547,8 +1547,8 @@ export default function Mecanica() {
         if (el && receiptData.job.customer_whatsapp) {
           try {
             toast.info("Gerando recibo para envio...", { id: "receipt-gen" });
-            const canvas = await html2canvas(el, { backgroundColor: "#000" });
-            const base64Data = canvas.toDataURL("image/png");
+            const canvas = await html2canvas(el, { backgroundColor: "#000", scale: 1 });
+            const base64Data = canvas.toDataURL("image/jpeg", 0.8);
             
             const phone = receiptData.job.customer_whatsapp.replace(/\D/g, "");
             const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
@@ -1558,8 +1558,8 @@ export default function Mecanica() {
               message: `🧾 *Opa, ${receiptData.job.customer_name}!* Recebemos seu pagamento referente à ${receiptData.job.bike_name || 'bike'}. O comprovante segue anexo. Conta com a gente!`,
               media: base64Data,
               mediatype: 'image',
-              mimetype: 'image/png',
-              fileName: `recibo_${receiptData.job.id.slice(0, 4)}.png`
+              mimetype: 'image/jpeg',
+              fileName: `recibo_${receiptData.job.id.slice(0, 4)}.jpg`
             });
             toast.success("Foto do recibo enviada via WhatsApp!", { id: "receipt-gen" });
           } catch (e) {
@@ -1637,10 +1637,14 @@ export default function Mecanica() {
     const printWindow = window.open("", "_blank", "width=400,height=700");
     if (!printWindow) return;
 
-    const historyArray = Array.isArray(job.payment_history) ? job.payment_history : [];
+    const historyArray = Array.isArray(job.payment_history) ? [...job.payment_history] : [];
+    if (!historyArray.find((h: any) => h.id === history.id)) {
+      historyArray.push(history);
+    }
+
     const totalPaidUntilNow = historyArray
-      .filter(h => new Date(h.criado_em) <= new Date(history.criado_em))
-      .reduce((s, h) => s + Number(h.valor) + Number(h.desconto_valor), 0);
+      .filter((h: any) => new Date(h.criado_em) <= new Date(history.criado_em))
+      .reduce((s: any, h: any) => s + Number(h.valor) + Number(h.desconto_valor), 0);
     
     const remainingBalance = Math.max(0, getTotalPrice(job) - totalPaidUntilNow);
 
@@ -3232,7 +3236,12 @@ export default function Mecanica() {
                   <div className="h-px bg-border/40 my-1" />
                   <div className="flex justify-between text-foreground">
                     <span>Saldo Restante</span>
-                    <span>{formatBRL(Math.max(0, getTotalPrice(receiptData.job) - (Array.isArray(receiptData.job.payment_history) ? receiptData.job.payment_history : []).filter(h => new Date(h.criado_em) <= new Date(receiptData.history.criado_em)).reduce((s, h) => s + Number(h.valor) + Number(h.desconto_valor), 0)))}</span>
+                    <span>{(() => {
+                      const arr = Array.isArray(receiptData.job.payment_history) ? [...receiptData.job.payment_history] : [];
+                      if (!arr.find((h: any) => h.id === receiptData.history.id)) arr.push(receiptData.history);
+                      const paid = arr.filter((h: any) => new Date(h.criado_em) <= new Date(receiptData.history.criado_em)).reduce((s: any, h: any) => s + Number(h.valor) + Number(h.desconto_valor), 0);
+                      return formatBRL(Math.max(0, getTotalPrice(receiptData.job) - paid));
+                    })()}</span>
                   </div>
                 </div>
                 
