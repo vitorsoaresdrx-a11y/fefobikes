@@ -76,16 +76,18 @@ async function getCityId(zipCode: string, supabase: any) {
   }
 
   const cityData = await dneResponse.json();
-  if (!cityData || !cityData.CityId) {
+  // A DNE API retorna o campo "Id" como CityId da cidade
+  const cityId = cityData?.Id || cityData?.CityId || cityData?.cityId;
+  if (!cityData || !cityId) {
     throw new Error(`CEP ${cleanZip} não localizado na Rodonaves. Verifique se eles atendem essa região.`);
   }
 
-  console.log(`CityId obtido via API para CEP ${cleanZip}: ${cityData.CityId}`);
+  console.log(`CityId obtido via API para CEP ${cleanZip}: ${cityId}`);
   
-  // Opcional: Salvar no banco local para futuras consultas
-  await supabase.from("cep_rodonaves").insert({ zipcode: cleanZip, city_id: cityData.CityId }).maybeSingle();
+  // Salvar no banco local para futuras consultas
+  await supabase.from("cep_rodonaves").insert({ zipcode: cleanZip, city_id: cityId }).maybeSingle();
 
-  return cityData.CityId;
+  return cityId;
 }
 
 export async function gerarCotacao(input: {
