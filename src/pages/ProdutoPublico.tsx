@@ -8,13 +8,10 @@ import {
   Package,
   ShieldCheck,
   Truck,
-  Zap,
   ArrowRight,
-  Info,
-  Settings,
   CreditCard,
-  List,
   ShoppingBag,
+  ChevronLeft,
 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { CartDrawer } from "@/components/shop/CartDrawer";
@@ -41,13 +38,13 @@ const Btn = ({
   variant?: "primary" | "secondary" | "outline";
 }) => {
   const v = {
-    primary: "bg-[#EFFF00] text-black border-2 border-[#EFFF00] hover:bg-black hover:text-[#EFFF00]",
-    secondary: "bg-[#0033FF] text-white border-2 border-[#0033FF] hover:bg-black hover:text-[#0033FF]",
-    outline: "border-2 border-white/20 bg-transparent text-white hover:border-white",
+    primary: "bg-[#EFFF00] text-black hover:bg-white transition-colors",
+    secondary: "bg-[#0033FF] text-white hover:bg-[#0022AA] transition-colors",
+    outline: "bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-colors",
   };
   return (
     <button
-      className={`inline-flex items-center justify-center px-8 py-4 font-['Syne'] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${v[variant]} ${className}`}
+      className={`inline-flex items-center justify-center px-6 py-3.5 rounded-xl font-semibold text-[15px] transition-all disabled:opacity-50 ${v[variant]} ${className}`}
       {...props}
     >
       {children}
@@ -56,7 +53,7 @@ const Btn = ({
 };
 
 const BadgeEl = ({ children }: { children: React.ReactNode }) => (
-  <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-white/10 text-white border border-white/20">
+  <span className="px-2.5 py-1 text-xs font-semibold tracking-wide bg-white/5 text-white/70 border border-white/10 rounded-md">
     {children}
   </span>
 );
@@ -65,45 +62,29 @@ const BadgeEl = ({ children }: { children: React.ReactNode }) => (
 
 function Header() {
   return (
-    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b-2 border-white/10 px-4 md:px-8 py-4 h-20 md:h-24 flex items-center justify-between">
-      <Link to="/store" className="flex items-center gap-3">
-        <div className="w-10 h-10 md:w-14 md:h-14 bg-[#EFFF00] text-black flex items-center justify-center hover:rotate-12 transition-transform">
-          <Bike className="w-6 h-6 md:w-8 md:h-8" strokeWidth={2.5} />
+    <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10 px-6 md:px-12 h-20 flex items-center justify-between">
+      <Link to="/store" className="flex items-center gap-3 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-[#EFFF00] text-black flex items-center justify-center">
+          <Bike className="w-5 h-5" strokeWidth={2} />
         </div>
-        <div className="flex flex-col">
-          <span className="font-['Syne'] font-extrabold text-xl md:text-3xl tracking-tighter uppercase leading-none text-white">FEFO BIKES</span>
-          <span className="font-['Space_Grotesk'] font-bold text-[8px] md:text-[10px] uppercase tracking-[0.3em] text-white/50">PERFORMANCE R.</span>
-        </div>
+        <span className="font-bold tracking-tight text-lg text-white">Fefo Bikes</span>
       </Link>
       <div className="flex gap-4">
-        <Link to="/store" className="hidden sm:flex h-12 px-6 border-2 border-white text-[10px] font-['Syne'] font-bold text-white hover:bg-white hover:text-black transition-colors items-center uppercase tracking-widest">
-          VOLTAR À LOJA
+        <Link to="/store" className="flex h-10 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-medium text-white transition-colors items-center gap-2">
+          <ChevronLeft size={14} /> Voltar à Loja
         </Link>
       </div>
     </header>
   );
 }
 
-function Footer() {
-  return (
-    <footer className="w-full bg-black border-t-2 border-white/20 py-16 px-8 flex flex-col items-center justify-center gap-6 mt-20">
-      <div className="font-['Syne'] font-black text-3xl md:text-5xl uppercase tracking-tighter text-white opacity-50">
-        FEFO BIKES.
-      </div>
-      <p className="font-['Space_Grotesk'] text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] text-center">
-        Engineered in Sorocaba. Não aceitamos o segundo lugar.
-      </p>
-    </footer>
-  );
-}
-
 function LoadingState() {
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <div className="flex flex-col items-center gap-6">
-        <div className="w-16 h-16 border-4 border-white/20 border-t-[#EFFF00] rounded-full animate-spin" />
-        <span className="font-['Syne'] text-xs font-black uppercase tracking-[0.3em] animate-pulse">
-          LOADING PERFORMANCE...
+    <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-8 h-8 border-2 border-white/10 border-t-[#EFFF00] rounded-full animate-spin" />
+        <span className="text-sm font-medium text-white/50 animate-pulse">
+          Carregando produto...
         </span>
       </div>
     </div>
@@ -125,30 +106,28 @@ function PriceSection({ product }: { product: any }) {
   if (!ecommercePrice && !hasInstallments) return null;
 
   return (
-    <section className="space-y-4 border-l-4 border-[#0033FF] pl-6 md:pl-8 py-2">
+    <section className="space-y-4 py-4">
       {ecommercePrice > 0 && (
-        <div className="flex flex-col gap-1">
-          <p className="font-['Space_Grotesk'] text-[10px] font-bold text-[#EFFF00] uppercase tracking-[0.3em]">
-            PIX / Á VISTA
-          </p>
-          <p className="font-['Syne'] text-5xl md:text-7xl font-black text-white tracking-tighter leading-none">
+        <div className="flex flex-col">
+          <p className="text-3xl lg:text-5xl font-bold tracking-tight text-white mb-2">
             {formatBRL(ecommercePrice)}
+          </p>
+          <p className="text-sm font-medium text-white/50">
+            Preço à vista no PIX
           </p>
         </div>
       )}
 
       {hasInstallments && (
-        <div className="pt-4 flex flex-col md:flex-row md:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 border-2 border-white/20 flex items-center justify-center text-white/50">
-              <CreditCard size={18} />
-            </div>
-            <div>
-              <p className="font-['Space_Grotesk'] text-[10px] font-bold text-white/50 uppercase tracking-widest">Cartão de Crédito</p>
-              <p className="font-['Space_Grotesk'] text-sm font-bold text-white">
-                {installmentCount}x de {formatBRL(installmentPrice)}
-              </p>
-            </div>
+        <div className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[#0033FF]/20 text-[#0033FF] flex items-center justify-center">
+            <CreditCard size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white">
+              {installmentCount}x de {formatBRL(installmentPrice)} sem juros
+            </p>
+            <p className="text-xs font-medium text-white/50 mt-0.5">Cartão de Crédito</p>
           </div>
         </div>
       )}
@@ -159,24 +138,22 @@ function PriceSection({ product }: { product: any }) {
 function ShippingSimulator() {
   const [cep, setCep] = useState("");
   return (
-    <div className="border-2 border-white/20 p-6 md:p-8 space-y-6 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#EFFF00]/5 -translate-y-1/2 translate-x-1/2 rounded-full blur-2xl pointer-events-none" />
-      <div className="flex items-center gap-3">
-        <Truck className="text-[#0033FF]" size={28} strokeWidth={2.5}/>
-        <h3 className="font-['Syne'] text-xl font-black uppercase tracking-tighter text-white">LOGÍSTICA / FRETE</h3>
+    <div className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col gap-4">
+      <div className="flex items-center gap-3 text-white">
+        <Truck className="text-white/50" size={20} />
+        <h3 className="font-semibold text-[15px]">Frete e Prazos</h3>
       </div>
-      <p className="font-['Space_Grotesk'] text-white/50 text-sm">
-        Consulte prazos e valores de envio de alta performance para o seu CEP.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-2">
         <input 
           type="text"
-          placeholder="00000-000"
+          placeholder="Seu CEP (00000-000)"
           value={cep}
           onChange={e => setCep(e.target.value)}
-          className="flex-1 bg-white/5 border-2 border-white/20 h-14 px-6 font-['Space_Grotesk'] font-bold text-white text-lg tracking-widest outline-none focus:border-[#EFFF00] transition-colors"
+          className="flex-1 bg-black border border-white/10 rounded-xl h-11 px-4 text-sm font-medium outline-none focus:border-white/30 transition-colors placeholder:text-white/30"
         />
-        <Btn variant="primary" className="h-14 sm:w-auto w-full px-10 text-xs">Calcular</Btn>
+        <button className="h-11 px-6 bg-white/10 hover:bg-white/20 transition-colors border border-white/10 text-sm font-semibold rounded-xl text-white whitespace-nowrap">
+          Calcular
+        </button>
       </div>
     </div>
   );
@@ -228,23 +205,22 @@ export default function ProdutoPublico() {
 
   if (!product || !product.visible_on_storefront) {
     return (
-      <div className="min-h-screen bg-black text-white font-['Space_Grotesk'] flex flex-col">
+      <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] flex flex-col">
         <Header />
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8">
-          <div className="w-32 h-32 border-2 border-white/10 flex items-center justify-center rotate-45">
-            <Package size={48} className="-rotate-45 opacity-50" />
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30">
+            <Package size={24} />
           </div>
-          <div className="space-y-4">
-            <h2 className="font-['Syne'] text-4xl md:text-6xl font-black uppercase tracking-tighter">OFFLINE</h2>
-            <p className="text-white/50 max-w-sm mx-auto">
-              Equipamento não localizado ou indisponível no momento.
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold tracking-tight">Produto Indisponível</h2>
+            <p className="text-white/50 text-sm max-w-sm mx-auto">
+              O item que você procura não está mais disponível ou não existe.
             </p>
           </div>
           <Link to="/store">
-            <Btn variant="primary">VOLTAR AO CATÁLOGO</Btn>
+            <Btn variant="outline" className="text-sm">Explorar Catálogo</Btn>
           </Link>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -252,7 +228,7 @@ export default function ProdutoPublico() {
   const images: string[] = (product as any).images || [];
   const category = product.category;
 
-  const specs: { label: string; value: string; icon: React.ReactNode }[] = [];
+  const specs: { label: string; value: string }[] = [];
   if (product._type === "bike") {
     const b = product as any;
     if (b.brand) specs.push({ label: "Marca", value: b.brand });
@@ -272,80 +248,70 @@ export default function ProdutoPublico() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-['Space_Grotesk'] selection:bg-[#EFFF00] selection:text-black flex flex-col">
+    <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black flex flex-col pb-20">
       <Header />
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 py-8 md:py-16">
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
+      <main className="flex-1 w-full max-w-[1280px] mx-auto px-6 md:px-12 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           
-          {/* LADO ESQUERDO: GALERIA E FICHA TÉCNICA */}
-          <div className="w-full lg:w-[55%] space-y-12">
+          {/* LADO ESQUERDO: GALERIA E DESCRIÇÃO */}
+          <div className="space-y-12">
             
             {/* Titulo Mobile */}
-            <div className="space-y-4 lg:hidden">
+            <div className="space-y-3 lg:hidden">
                <div className="flex gap-2">
                  <BadgeEl>{sku}</BadgeEl>
                  {category && <BadgeEl>{category}</BadgeEl>}
                </div>
-               <h1 className="font-['Syne'] text-4xl font-black uppercase tracking-tighter leading-none">
+               <h1 className="text-3xl font-bold tracking-tight leading-tight">
                  {product.name}
                </h1>
             </div>
 
             {/* Galeria */}
-            <section className="relative">
+            <section className="relative group">
               {images.length > 0 ? (
-                <Carousel className="w-full border-2 border-white/20 p-2 group">
+                <Carousel className="w-full">
                   <CarouselContent>
                     {images.map((img, i) => (
                       <CarouselItem key={i}>
-                        <div className="aspect-square sm:aspect-[4/3] bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
+                        <div className="aspect-square sm:aspect-[4/3] bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center p-8 overflow-hidden">
                           <img
-                            src={getOptimizedImageUrl(img, 1200, 85) || img}
+                            src={getOptimizedImageUrl(img, 1000, 85) || img}
                             alt={`${product.name} ${i + 1}`}
                             loading={i === 0 ? "eager" : "lazy"}
-                            className="w-full h-full object-contain filter grayscale-[0.2] transition-transform duration-700 hover:scale-105"
+                            className="w-full h-full object-contain"
                           />
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
                   {images.length > 1 && (
-                     <div className="absolute bottom-6 right-6 flex gap-2">
-                       <CarouselPrevious className="static transform-none bg-[#EFFF00] border-none text-black h-12 w-12 rounded-none hover:bg-white transition-colors" />
-                       <CarouselNext className="static transform-none bg-[#EFFF00] border-none text-black h-12 w-12 rounded-none hover:bg-white transition-colors" />
+                     <div className="absolute inset-y-0 left-4 right-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                       <CarouselPrevious className="relative left-0 pointer-events-auto bg-white/10 hover:bg-white/20 border-white/10 text-white h-10 w-10" />
+                       <CarouselNext className="relative right-0 pointer-events-auto bg-white/10 hover:bg-white/20 border-white/10 text-white h-10 w-10" />
                      </div>
                   )}
                 </Carousel>
               ) : (
-                <div className="aspect-square sm:aspect-[4/3] border-2 border-white/20 flex items-center justify-center text-white/10 bg-[#0A0A0A]">
+                <div className="aspect-square sm:aspect-[4/3] bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/10">
                   {product._type === "bike" ? <Bike size={120} strokeWidth={1} /> : <Package size={120} strokeWidth={1} />}
                 </div>
               )}
             </section>
 
-            {/* Descrição */}
-            {(product as any).description && (
-              <section className="space-y-6">
-                <h2 className="font-['Syne'] text-3xl font-black uppercase tracking-tighter">Detalhes</h2>
-                <p className="text-white/60 leading-relaxed font-['Space_Grotesk'] text-base md:text-lg whitespace-pre-line">
-                  {(product as any).description}
-                </p>
-              </section>
-            )}
-
           </div>
 
           {/* LADO DIREITO: INFO, PREÇO, ACTION */}
-          <div className="w-full lg:w-[45%] flex flex-col gap-12">
+          <div className="flex flex-col gap-10">
             
             {/* Título Desktop */}
-            <div className="hidden lg:block space-y-6">
+            <div className="hidden lg:block space-y-4">
                <div className="flex gap-2">
-                 <BadgeEl>{sku}</BadgeEl>
+                 <BadgeEl>SKU: {sku}</BadgeEl>
                  {category && <BadgeEl>{category}</BadgeEl>}
                </div>
-               <h1 className="font-['Syne'] text-5xl xl:text-7xl font-black uppercase tracking-tighter leading-none break-words">
+               <h1 className="text-4xl xl:text-5xl font-bold tracking-tight leading-[1.1]">
                  {product.name}
                </h1>
             </div>
@@ -354,88 +320,84 @@ export default function ProdutoPublico() {
             <PriceSection product={product} />
 
             {/* CTA */}
-            <section className="flex flex-col gap-4">
+            <section className="flex flex-col gap-3">
               <Btn 
                 variant="primary" 
-                className="w-full h-20 text-sm md:text-base flex justify-between items-center px-8"
+                className="w-full py-5 text-[15px] gap-2"
                 onClick={() => {
                   const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
                   useCart.getState().addItem(product, price);
-                  import("sonner").then(({ toast }) => toast.success("ADICIONADO AO CARRINHO", {
-                     style: { background: "#EFFF00", color: "#000", border: "2px solid #000" }
-                  }));
+                  import("sonner").then(({ toast }) => toast.success("Produto adicionado ao carrinho"));
                 }}
               >
-                <span>COMPRAR AGORA</span> <ArrowRight size={24} strokeWidth={3} />
+                <ShoppingBag size={18} /> Adicionar ao Carrinho
               </Btn>
               
               <Btn 
                 variant="outline" 
-                className="w-full h-16 text-xs md:text-sm text-white/70"
+                className="w-full py-4 text-sm font-medium"
                 onClick={() => {
-                  const whatsappUrl = `https://wa.me/5515996128054?text=${encodeURIComponent(`SALVE! TENHO INTERESSE NA PERFORMANCE DA ${product.name} (SKU: ${product.sku || ""})`)}`;
+                  const whatsappUrl = `https://wa.me/5515996128054?text=${encodeURIComponent(`Olá, tenho interesse em ${product.name} (SKU: ${product.sku || ""})`)}`;
                   window.open(whatsappUrl, "_blank");
                 }}
               >
-                FALE COM ESPECIALISTA VIA WHATSAPP
+                Falar com Especialista
               </Btn>
             </section>
 
-            {/* Calculadora Frete */}
+            {/* Calculadora de Frete */}
             <ShippingSimulator />
 
-            {/* Componentes da Bike */}
-            {product._type === "bike" && bikeParts.length > 0 && (
-              <section className="space-y-6 pt-8 border-t-2 border-white/20">
-                <h2 className="font-['Syne'] text-2xl font-black uppercase tracking-tighter text-[#0033FF]">
-                  SPECS TÉCNICAS.
-                </h2>
-                <div className="flex flex-col border-2 border-white/20 divide-y-2 divide-white/10">
-                  {bikeParts.map((bp: any) => (
-                    <div key={bp.id} className="flex items-center justify-between p-4 group hover:bg-white/5 transition-colors">
-                      <span className="font-bold text-white uppercase font-['Space_Grotesk'] text-sm">
-                        {bp.parts?.name || bp.part_name_override || "PEÇA"}
-                      </span>
-                      <span className="font-['Syne'] font-black text-[#EFFF00]">
-                        ×{bp.quantity}
-                      </span>
-                    </div>
-                  ))}
+            {/* Descrição e Especificações juntas */}
+            <section className="space-y-8 pt-8 border-t border-white/10">
+              {/* Descrição */}
+              {(product as any).description && (
+                <div className="space-y-4 text-white/70 leading-relaxed text-[15px] whitespace-pre-line">
+                  {(product as any).description}
                 </div>
-              </section>
-            )}
+              )}
 
-            {/* Atributos Gerais */}
-            {(attrs.length > 0 || specs.length > 0) && (
-              <section className="space-y-6 pt-8 border-t-2 border-white/20">
-                <h2 className="font-['Syne'] text-2xl font-black uppercase tracking-tighter">
-                  INFORMAÇÕES.
-                </h2>
-                <div className="flex flex-col border-2 border-white/20 divide-y-2 divide-white/10">
-                  {[...specs, ...attrs].map((s: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
-                      <span className="font-bold text-white/50 uppercase font-['Space_Grotesk'] text-xs tracking-widest">{s.label || s.name}</span>
-                      <span className="font-bold text-white uppercase font-['Space_Grotesk'] text-sm tracking-widest">{s.value}</span>
-                    </div>
-                  ))}
+              {/* Especificações */}
+              {((product._type === "bike" && bikeParts.length > 0) || attrs.length > 0 || specs.length > 0) && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg text-white">Especificações</h3>
+                  <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden divide-y divide-white/5">
+                    
+                    {/* Lista de Specs e Atributos */}
+                    {[...specs, ...attrs].map((s: any, idx: number) => (
+                      <div key={`spec-${idx}`} className="flex items-center justify-between p-4">
+                        <span className="text-sm text-white/50">{s.label || s.name}</span>
+                        <span className="text-sm font-medium text-white/90">{s.value}</span>
+                      </div>
+                    ))}
+
+                    {/* Lista de Componentes da Bike */}
+                    {product._type === "bike" && bikeParts.map((bp: any) => (
+                      <div key={`bp-${bp.id}`} className="flex items-center justify-between p-4">
+                        <span className="text-sm text-white/50">{bp.parts?.name || bp.part_name_override || "Componente"}</span>
+                        <span className="text-sm font-medium text-white/90 px-2 py-0.5 rounded bg-white/10">x{bp.quantity}</span>
+                      </div>
+                    ))}
+                    
+                  </div>
                 </div>
-              </section>
-            )}
+              )}
+            </section>
 
             {/* Garantia */}
-            <section className="grid grid-cols-2 gap-4 pt-8">
-              <div className="border-2 border-white/20 p-6 flex flex-col gap-4 text-white hover:border-[#EFFF00] transition-colors">
-                <ShieldCheck size={32} className="text-[#EFFF00]" />
-                <div>
-                   <p className="font-['Syne'] font-black uppercase text-sm">Garantia Fefo</p>
-                   <p className="font-['Space_Grotesk'] text-[10px] text-white/50 uppercase tracking-widest mt-1">90 DIAS ASSEGURADOS</p>
+            <section className="grid grid-cols-2 gap-4 mt-4">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/5">
+                <ShieldCheck size={20} className="text-[#EFFF00]" />
+                <div className="flex flex-col">
+                   <span className="text-sm font-medium text-white/90">Garantia</span>
+                   <span className="text-xs text-white/50">90 dias assegurados</span>
                 </div>
               </div>
-              <div className="border-2 border-white/20 p-6 flex flex-col gap-4 text-white hover:border-[#0033FF] transition-colors">
-                <Truck size={32} className="text-[#0033FF]" />
-                <div>
-                   <p className="font-['Syne'] font-black uppercase text-sm">Logística</p>
-                   <p className="font-['Space_Grotesk'] text-[10px] text-white/50 uppercase tracking-widest mt-1">RETIRADA OU ENVIO BRASIL</p>
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/5">
+                <Truck size={20} className="text-[#0033FF]" />
+                <div className="flex flex-col">
+                   <span className="text-sm font-medium text-white/90">Envio Seguro</span>
+                   <span className="text-xs text-white/50">Para todo Brasil</span>
                 </div>
               </div>
             </section>
@@ -444,7 +406,6 @@ export default function ProdutoPublico() {
         </div>
       </main>
 
-      <Footer />
       <CartDrawer />
       <StoreChat />
     </div>
