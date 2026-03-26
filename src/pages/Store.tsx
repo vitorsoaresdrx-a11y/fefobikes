@@ -36,15 +36,17 @@ function ProductCard({ p }: { p: PublicProduct }) {
   return (
     <Link 
       to={`/produto/${p.sku}`} 
-      className="group flex flex-col bg-[#0A0A0A] rounded-2xl border border-white/10 hover:border-white/20 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden"
+      className="group flex flex-col bg-[#0A0A0A] rounded-2xl border border-white/10 hover:border-white/20 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00]"
+      aria-label={`Ver produto: ${p.name}, Preço atual: ${formatBRL(price)}`}
     >
       {/* Imagem */}
       <div className="aspect-[4/3] bg-white/5 relative flex items-center justify-center p-6 overflow-hidden">
         {mainImage ? (
           <img 
             src={getOptimizedImageUrl(mainImage, 600, 80) || mainImage} 
-            alt={p.name}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+            alt={`Imagem do produto ${p.name}`}
+            loading="lazy"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
           />
         ) : (
           <div className="text-white/20">
@@ -53,14 +55,14 @@ function ProductCard({ p }: { p: PublicProduct }) {
         )}
         
         {/* Badges Funcionais */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
           {discount > 0 && (
-             <span className="bg-[#EFFF00] text-black px-2 py-1 rounded-md text-[10px] font-bold tracking-wide">
+             <span className="bg-[#EFFF00] text-black px-2.5 py-1 rounded-md text-xs font-bold tracking-wide">
                {discount}% OFF
              </span>
           )}
           {p._type === 'bike' && (
-             <span className="bg-[#0033FF] text-white px-2 py-1 rounded-md text-[10px] font-medium tracking-wide">
+             <span className="bg-[#0033FF] text-white px-2.5 py-1 rounded-md text-xs font-medium tracking-wide">
                Bicicleta
              </span>
           )}
@@ -68,9 +70,9 @@ function ProductCard({ p }: { p: PublicProduct }) {
       </div>
       
       {/* Informações */}
-      <div className="p-5 flex-1 flex flex-col">
+      <div className="p-5 flex-1 flex flex-col gap-2">
         <div className="space-y-1 mb-auto">
-          <p className="text-[11px] font-medium text-white/50 tracking-wide uppercase">
+          <p className="text-xs font-medium text-white/50 tracking-wide uppercase">
             {p.category || 'Geral'}
           </p>
           <h3 className="text-[15px] font-medium text-white/90 leading-snug line-clamp-2 group-hover:text-white transition-colors">
@@ -78,13 +80,18 @@ function ProductCard({ p }: { p: PublicProduct }) {
           </h3>
         </div>
         
-        <div className="mt-5 flex items-end justify-between">
+        <div className="mt-4 flex items-end justify-between">
            <div className="flex flex-col">
-              {discount > 0 && <span className="text-xs text-white/40 line-through mb-0.5">{formatBRL(p.price_ecommerce || 0)}</span>}
+              {discount > 0 && <span className="text-xs text-white/50 line-through mb-0.5">{formatBRL(p.price_ecommerce || 0)}</span>}
               <span className="text-lg font-semibold text-white">{formatBRL(price)}</span>
            </div>
-           <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-[#EFFF00] group-hover:text-black flex items-center justify-center transition-colors text-white/50">
-              <ShoppingBag size={14} />
+           
+           {/* Adicionar ao Carrinho (Botão Mínimo de 44x44px em mobile) */}
+           <div 
+             className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/5 group-hover:bg-[#EFFF00] group-hover:text-black flex items-center justify-center transition-colors text-white/50 -mt-2 -mr-2 sm:mt-0 sm:mr-0"
+             aria-hidden="true"
+           >
+              <ShoppingBag size={18} />
            </div>
         </div>
       </div>
@@ -159,48 +166,60 @@ export default function Store() {
     <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black flex flex-col pb-10">
       
       {/* ── HEADER CLEAN ────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10 px-6 md:px-12 h-20 flex items-center justify-between gap-6">
-        <Link to="/store" className="flex items-center gap-3 shrink-0" onClick={() => window.location.reload()}>
-          <div className="w-8 h-8 rounded-lg bg-[#EFFF00] text-black flex items-center justify-center">
-            <Bike className="w-5 h-5" strokeWidth={2} />
+      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 md:px-12 h-[72px] md:h-20 flex items-center justify-between gap-6">
+        <Link 
+          to="/store" 
+          className="flex items-center gap-3 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00]" 
+          onClick={() => window.location.reload()}
+          aria-label="Atualizar Página Fefo Bikes"
+        >
+          <div className="w-10 h-10 rounded-lg bg-[#EFFF00] text-black flex items-center justify-center">
+            <Bike className="w-6 h-6" strokeWidth={2.5} />
           </div>
-          <span className="font-bold tracking-tight text-lg text-white">Fefo Bikes</span>
+          <span className="font-bold tracking-tight text-xl text-white hidden sm:block">Fefo Bikes</span>
         </Link>
 
         {/* Search Desktop */}
         <div className="flex-1 max-w-2xl relative hidden md:block group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-          <input 
-            type="text"
-            placeholder="Pesquisar componentes, bikes e acessórios..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              if (aiSkus.length > 0) setAiSkus([]);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
-            className="w-full h-11 bg-white/5 border border-white/10 rounded-xl text-white text-sm pl-12 pr-28 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors placeholder:text-white/40"
-          />
-          <button 
-            onClick={handleAiSearch}
-            disabled={isAiSearching || search.length < 3}
-            className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-white/10 text-white rounded-lg text-xs font-medium hover:bg-white/20 disabled:opacity-0 transition-all flex items-center justify-center gap-2"
-          >
-            {isAiSearching ? <Loader2 size={14} className="animate-spin" /> : "IA Buscar"}
-          </button>
+          <div className="relative flex items-center">
+            <Search className="absolute left-4 text-white/50" size={20} aria-hidden="true" />
+            <input 
+              type="text"
+              placeholder="Pesquisar componentes, bikes e acessórios..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                if (aiSkus.length > 0) setAiSkus([]);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
+              className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white text-[15px] pl-12 pr-32 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors placeholder:text-white/40"
+              aria-label="Campo de pesquisa"
+            />
+            <button 
+              onClick={handleAiSearch}
+              disabled={isAiSearching || search.length < 3}
+              className="absolute right-1.5 px-4 h-9 bg-white/10 text-white rounded-lg text-xs font-semibold hover:bg-white/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="Pesquisar usando Inteligência Artificial"
+            >
+              {isAiSearching ? <Loader2 size={14} className="animate-spin" /> : "IA Buscar"}
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 shrink-0">
-          <Link to="/minha-garagem" className="h-10 px-5 rounded-xl bg-white/10 border border-white/5 text-sm font-medium text-white hover:bg-white/20 transition-colors flex items-center gap-2">
+          <Link 
+            to="/minha-garagem" 
+            className="h-11 px-5 rounded-xl bg-white/10 border border-white/5 text-sm font-semibold text-white hover:bg-white/20 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
             Minha Garagem
           </Link>
         </div>
       </header>
 
       {/* Search Mobile */}
-      <div className="md:hidden p-4 border-b border-white/10">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
+      <div className="md:hidden px-4 py-3 border-b border-white/10 bg-black">
+        <div className="relative flex items-center">
+          <Search className="absolute left-4 text-white/50" size={18} aria-hidden="true" />
           <input 
               type="text"
               placeholder="Pesquisar..."
@@ -210,23 +229,30 @@ export default function Store() {
                 if (aiSkus.length > 0) setAiSkus([]);
               }}
               onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
-              className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white text-sm pl-12 pr-4 focus:outline-none focus:border-white/30 transition-colors"
+              className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white text-[15px] pl-12 pr-4 focus:outline-none focus:border-white/30 transition-colors placeholder:text-white/40"
+              aria-label="Campo de pesquisa mobile"
             />
         </div>
       </div>
 
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-6 md:px-12 py-10 space-y-10">
+      <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 md:px-12 py-8 md:py-10 space-y-8 md:space-y-10">
         
         {/* Filtros e Categorias */}
         <section className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+          <div 
+            className="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 scrollbar-hide"
+            role="tablist"
+            aria-label="Filtro de Categorias"
+          >
             {categoriesList.map(cat => (
               <button
                 key={cat}
+                role="tab"
+                aria-selected={activeCategory === cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`h-9 px-4 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                className={`h-11 px-5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white border ${
                   activeCategory === cat 
-                  ? "bg-white text-black border-white" 
+                  ? "bg-white text-black border-white shadow-sm" 
                   : "bg-transparent text-white/70 border-white/20 hover:border-white/50 hover:text-white"
                 }`}
               >
@@ -236,12 +262,15 @@ export default function Store() {
           </div>
           
           <div className="flex items-center gap-4 shrink-0 border-t md:border-t-0 border-white/10 pt-4 md:pt-0">
-             <div className="text-sm font-medium text-white/50">
+             <div className="text-sm font-medium text-white/50" aria-live="polite">
                {displayProducts.length} resultados
              </div>
              {aiSkus.length > 0 && (
-                <button onClick={() => setAiSkus([])} className="text-sm text-[#0033FF] hover:text-[#EFFF00] font-medium transition-colors">
-                  Limpar Inteligência Artificial
+                <button 
+                  onClick={() => setAiSkus([])} 
+                  className="h-11 px-4 text-sm text-[#0033FF] hover:text-[#0022AA] bg-[#0033FF]/10 rounded-lg hover:bg-[#0033FF]/20 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF]"
+                >
+                  Limpar Busca IA
                 </button>
              )}
           </div>
@@ -250,24 +279,24 @@ export default function Store() {
         {/* Grade de Produtos */}
         <section>
           {isLoading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className="aspect-[4/3] rounded-2xl bg-white/5 animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6" aria-busy="true">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="aspect-[4/3] rounded-2xl bg-white/5 border border-white/10 animate-pulse" />
               ))}
             </div>
           ) : displayProducts.length > 0 ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {displayProducts.map(p => (
                 <ProductCard key={`${p._type}-${p.id}`} p={p} />
               ))}
             </div>
           ) : (
-            <div className="py-24 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/30 mb-2">
-                 <Package size={24} />
+            <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 mb-2">
+                 <Package size={24} aria-hidden="true" />
               </div>
-              <h2 className="text-lg font-semibold tracking-tight">Nenhum produto encontrado</h2>
-              <p className="text-sm text-white/50 max-w-sm">
+              <h2 className="text-xl font-semibold tracking-tight">Nenhum produto encontrado</h2>
+              <p className="text-[15px] text-white/50 max-w-sm">
                 Ajuste os filtros de categoria ou tente um termo diferente na pesquisa.
               </p>
             </div>
@@ -276,10 +305,10 @@ export default function Store() {
 
       </main>
 
-      <footer className="w-full max-w-[1400px] mx-auto px-6 md:px-12 mt-20 pt-10 border-t border-white/10 flex items-center justify-between text-white/40 text-sm">
-         <div className="flex items-center gap-2">
+      <footer className="w-full max-w-[1280px] mx-auto px-6 md:px-12 py-10 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-white/40 text-sm mt-auto">
+         <div className="flex items-center gap-2 text-white/60">
             <Bike size={16} />
-            <span>Fefo Bikes © 2026. Todos os direitos reservados.</span>
+            <span className="font-semibold tracking-wide">Fefo Bikes © 2026. Todos os direitos reservados.</span>
          </div>
       </footer>
 
