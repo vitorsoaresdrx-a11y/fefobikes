@@ -70,14 +70,14 @@ Deno.serve(async (req) => {
       const payload = {
         items: [
           ...itens.map((i: any) => ({
-            title: i.nome,
-            unit_price: Number(Number(i.preco_unitario).toFixed(2)),
-            quantity: Number(i.quantity),
+            title: i.nome || i.title || "Produto",
+            unit_price: Number(Number(i.preco_unitario || i.unit_price).toFixed(2)),
+            quantity: Number(i.quantidade || i.quantity || 1),
             currency_id: "BRL",
           })),
           {
             title: `Frete: ${frete.descricao || "Entrega"}`,
-            unit_price: Number(freteValor.toFixed(2)),
+            unit_price: Number(Number(frete.valor || 0).toFixed(2)),
             quantity: 1,
             currency_id: "BRL",
           }
