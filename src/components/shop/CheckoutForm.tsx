@@ -55,15 +55,21 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
   const [loading, setLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
+  const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0) + (shipping?.valor || 0);
+
   useEffect(() => {
+    let mounted = true;
+    let cardFormInstance: any = null;
     const publicKey = (window as any).MP_PUBLIC_KEY || "TEST-8df4f535-cb0a-40a2-b9e7-4e5c4a5c4a5c";
 
     const setupMP = async () => {
       try {
         await loadMercadoPago();
+        if (!mounted) return;
+        
         const mp = new (window as any).MercadoPago(publicKey, { locale: 'pt-BR' });
 
-        const cardForm = mp.cardForm({
+        cardFormInstance = mp.cardForm({
           amount: total.toString(),
           iframe: true,
           style: {
@@ -72,7 +78,8 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
                 inputPlaceholderColor: 'rgba(255, 255, 255, 0.2)',
                 inputBackgroundColor: 'transparent',
                 inputFontSize: '14px',
-                inputFontWeight: '700',
+                inputFontWeight: '600',
+                inputHeight: '56px',
              }
           },
           appearance: {
@@ -94,7 +101,7 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
             },
             onSubmit: async (event: any) => {
               event.preventDefault();
-              const { token, installments, paymentMethodId } = cardForm.getCardFormData();
+              const { token, installments, paymentMethodId } = cardFormInstance.getCardFormData();
               
               setLoading(true);
               setErrorStatus(null);
@@ -141,11 +148,31 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
     };
 
     setupMP();
-  }, []);
+    
+    return () => {
+      mounted = false;
+      if (cardFormInstance) {
+        try { cardFormInstance.unmount(); } catch (e) {
+          console.error("Error unmounting Mercado Pago card form:", e);
+        }
+      }
+    };
+  }, [total]); // Added total to dependencies to ensure it's up-to-date if props change
 
-  const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0) + (shipping?.valor || 0);
    return (
      <div className="space-y-8 py-2">
+       <style dangerouslySetInnerHTML={{ __html: `
+         #cardholderName iframe, #cardNumber iframe, #expirationDate iframe, #securityCode iframe, #installments iframe {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 56px !important;
+            border: none !important;
+            display: block !important;
+            background: transparent !important;
+            pointer-events: auto !important;
+         }
+       `}} />
+
        {/* High-End Visual Header */}
        <header className="space-y-6">
          <div className="flex items-center justify-between">
@@ -174,31 +201,31 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
          {/* Card Holder Name (MP IFRAME) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Titular do Cartão</label>
-            <div id="cardholderName" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
+            <div id="cardholderName" className="w-full bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden relative z-10" style={{ height: '56px' }} />
          </div>
  
          {/* Card Number (MP IFRAME) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Número do Cartão</label>
-            <div id="cardNumber" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
+            <div id="cardNumber" className="w-full bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden relative z-10" style={{ height: '56px' }} />
          </div>
  
          {/* Expiry & CVV Grid */}
          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Validade</label>
-               <div id="expirationDate" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
+               <div id="expirationDate" className="w-full bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden relative z-10" style={{ height: '56px' }} />
             </div>
             <div className="space-y-2">
                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">CVV / CVC</label>
-               <div id="securityCode" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
+               <div id="securityCode" className="w-full bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden relative z-10" style={{ height: '56px' }} />
             </div>
          </div>
  
          {/* Installments Selection (MP IFRAME) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Parcelamento</label>
-            <div id="installments" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
+            <div id="installments" className="w-full bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden relative z-10" style={{ height: '56px' }} />
             <div id="issuer" className="hidden" />
             <input type="hidden" id="cardholderEmail" value={customer.email} />
          </div>
