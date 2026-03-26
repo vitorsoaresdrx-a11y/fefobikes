@@ -30,6 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatBRL } from "@/lib/format";
 import { useState, useEffect } from "react";
 import { ShippingSimulator } from "@/components/shop/ShippingSimulator";
+import { toast } from "sonner";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -154,6 +155,7 @@ function PriceSection({ product }: { product: any }) {
 export default function ProdutoPublico() {
   const { sku } = useParams<{ sku: string }>();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const { items } = useCart();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["public-product", sku],
@@ -335,28 +337,52 @@ export default function ProdutoPublico() {
 
             {/* CTA */}
             <section className="flex flex-col gap-4">
-              <Btn 
-                variant="primary" 
-                className="w-full py-6 text-[14px] gap-3"
-                onClick={() => {
-                  const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
-                  useCart.getState().addItem(product, price);
-                  import("sonner").then(({ toast }) => toast.success("Adicionado com sucesso!", {
-                    description: "Seu item já está no carrinho.",
-                    duration: 3000,
-                  }));
-                }}
-              >
-                <ShoppingBag size={22} strokeWidth={2.5} /> COMPRAR AGORA
-              </Btn>
+              {items.length === 0 ? (
+                <>
+                  <Btn 
+                    variant="primary" 
+                    className="w-full py-6 text-[14px] gap-3"
+                    onClick={() => {
+                      const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
+                      useCart.getState().addItem(product, price);
+                      toast.success("Adicionado com sucesso!", { description: "Seu item já está no carrinho." });
+                    }}
+                  >
+                    <ShoppingBag size={22} strokeWidth={2.5} /> COMPRAR AGORA
+                  </Btn>
+                  
+                  <Btn 
+                    variant="outline" 
+                    className="w-full py-5 text-[11px] border-white/10"
+                    onClick={() => {
+                      const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
+                      useCart.getState().addItem(product, price);
+                      toast.success("Item adicionado!");
+                    }}
+                  >
+                    ADICIONAR AO CARRINHO
+                  </Btn>
+                </>
+              ) : (
+                <Btn 
+                  variant="primary" 
+                  className="w-full py-6 text-[14px] gap-3"
+                  onClick={() => {
+                    const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
+                    useCart.getState().addItem(product, price);
+                    toast.success("Item adicionado!");
+                  }}
+                >
+                  <ShoppingBag size={22} strokeWidth={2.5} /> ADICIONAR AO CARRINHO
+                </Btn>
+              )}
               
-              <Btn 
-                variant="outline" 
-                className="w-full py-5 text-[11px] border-white/5 bg-transparent"
+              <button 
+                className="w-full py-5 text-[10px] font-black uppercase tracking-[0.4em] text-white/20 hover:text-white transition-all mt-2"
                 onClick={() => setIsChatOpen(true)}
               >
                 TIRAR DÚVIDAS COM IA
-              </Btn>
+              </button>
             </section>
 
             {/* Calculadora de Frete - Estilo Pro Max */}

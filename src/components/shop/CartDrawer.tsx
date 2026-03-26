@@ -196,10 +196,10 @@ export function CartDrawer() {
                 <p className="text-[10px] text-center text-white/20 font-black uppercase tracking-[0.4em]">Frete calculado na próxima etapa</p>
              </div>
           </div>
-          
-          <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
         </Drawer.Content>
       </Drawer.Portal>
+      
+      <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
     </Drawer.Root>
   );
 }
