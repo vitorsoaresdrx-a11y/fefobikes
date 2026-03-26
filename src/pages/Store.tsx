@@ -6,7 +6,7 @@ import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { StoreChat } from "@/components/shop/StoreChat";
-import { Search, Bike, Package, ArrowRight, Loader2, Filter, ShoppingBag } from "lucide-react";
+import { Search, Bike, Package, ArrowRight, Loader2, Filter, ShoppingBag, Sparkles } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -205,52 +205,62 @@ export default function Store() {
     <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black flex flex-col pb-10">
 
       {/* ── HEADER CLEAN ────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 md:px-12 h-[72px] md:h-20 flex items-center justify-between gap-6">
-        <Link
-          to="/store"
-          className="flex items-center gap-3 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00]"
-          onClick={() => window.location.reload()}
-          aria-label="Atualizar Página Fefo Bikes"
+      <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-6 md:px-12 h-[72px] md:h-24 flex items-center justify-between gap-4 md:gap-8">
+        <Link 
+          to="/store" 
+          className="flex items-center gap-3 sm:gap-4 shrink-0 rounded-2xl p-2 -ml-2 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00]" 
+          onClick={() => { if(window.location.pathname === '/store') window.location.reload() }}
+          aria-label="Fefo Bikes Home"
         >
-          <div className="w-10 h-10 rounded-lg bg-[#EFFF00] text-black flex items-center justify-center">
-            <Bike className="w-6 h-6" strokeWidth={2.5} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#EFFF00] text-black flex items-center justify-center shadow-[0_0_30px_rgba(239,255,0,0.2)]">
+            <Bike className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.5} />
           </div>
-          <span className="font-bold tracking-tight text-xl text-white hidden sm:block">Fefo Bikes</span>
+          <div className="flex flex-col leading-none hidden sm:flex">
+            <span className="font-black tracking-tighter text-2xl text-white">FEFO</span>
+            <span className="font-bold tracking-[0.2em] text-[10px] text-[#EFFF00]">BIKES</span>
+          </div>
         </Link>
 
         {/* Search Desktop */}
-        <div className="flex-1 max-w-2xl relative hidden md:block group">
-          <div className="relative flex items-center">
-            <Search className="absolute left-4 text-white/50" size={20} aria-hidden="true" />
-            <input
+        <div className="flex-1 max-w-xl hidden md:block group">
+          <div className="relative group">
+            <Search className="absolute left-5 text-white/30 group-focus-within:text-[#EFFF00] transition-colors" size={18} aria-hidden="true" />
+            <input 
               type="text"
-              placeholder="Pesquisar componentes, bikes e acessórios..."
+              placeholder="Pesquisar componentes, quadros..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
                 if (aiSkus.length > 0) setAiSkus([]);
               }}
               onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
-              className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white text-[15px] pl-12 pr-32 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors placeholder:text-white/40"
+              className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl text-white text-[15px] pl-14 pr-6 focus:outline-none focus:border-[#EFFF00]/40 focus:bg-white/[0.07] transition-all placeholder:text-white/20 shadow-inner font-medium"
               aria-label="Campo de pesquisa"
             />
-            <button
-              onClick={handleAiSearch}
-              disabled={isAiSearching || search.length < 3}
-              className="absolute right-1.5 px-4 h-9 bg-white/10 text-white rounded-lg text-xs font-semibold hover:bg-white/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              aria-label="Pesquisar usando Inteligência Artificial"
-            >
-              {isAiSearching ? <Loader2 size={14} className="animate-spin" /> : "IA Buscar"}
-            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
-          <Link
-            to="/minha-garagem"
-            className="h-11 px-5 rounded-xl bg-white/10 border border-white/5 text-sm font-semibold text-white hover:bg-white/20 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <button 
+            onClick={handleAiSearch}
+            disabled={isAiSearching || search.length < 3}
+            className={`flex h-11 sm:h-12 px-4 sm:px-6 rounded-2xl transition-all items-center justify-center gap-2 sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00] disabled:opacity-30 ${
+              aiSkus.length > 0 
+              ? "bg-[#0033FF] text-white border border-[#0033FF]/20" 
+              : "bg-[#EFFF00]/10 text-[#EFFF00] border border-[#EFFF00]/20 hover:bg-[#EFFF00] hover:text-black"
+            }`}
           >
-            Minha Garagem
+            {isAiSearching ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest hidden xs:inline">Busca IA</span>
+          </button>
+          
+          <Link 
+            to="/minha-garagem" 
+            className="flex h-11 sm:h-12 px-4 sm:px-6 rounded-2xl bg-white/[0.05] border border-white/10 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all items-center justify-center gap-2 sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00]"
+          >
+            <span className="hidden sm:inline">Minha Garagem</span>
+            <span className="sm:hidden">Garagem</span>
+            <ArrowRight size={14} className="hidden xs:inline" />
           </Link>
         </div>
       </header>
@@ -351,7 +361,6 @@ export default function Store() {
       </footer>
 
       <CartDrawer />
-      <StoreChat />
     </div>
   );
 }

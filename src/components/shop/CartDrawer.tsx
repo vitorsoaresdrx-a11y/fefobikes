@@ -81,26 +81,26 @@ export function CartDrawer() {
           animate={{ y: 0, opacity: 1 }}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-sm px-4"
         >
-          <button
-            className="w-full h-14 bg-[#EFFF00] rounded-2xl shadow-[0_20px_50px_rgba(239,255,0,0.3)] flex items-center justify-between px-6 text-black active:scale-[0.98] transition-all group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#EFFF00]/50 border border-transparent hover:border-black/10 relative overflow-hidden"
+          <button 
+            className="w-full h-16 bg-[#EFFF00] rounded-[24px] shadow-[0_20px_50px_rgba(239,255,0,0.3)] flex items-center justify-center gap-6 text-black active:scale-[0.98] transition-all group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#EFFF00]/50 border-2 border-transparent hover:border-black/5 relative overflow-hidden"
             aria-label={`Carrinho com ${totalItems} itens, Total de ${formatBRL(total)}`}
           >
-            <div className="flex items-center gap-3 relative z-10">
+            <div className="flex items-center gap-2 relative z-10 shrink-0">
               <div className="relative">
                 <ShoppingBag size={22} className="group-hover:scale-110 transition-transform duration-300" />
-                <motion.span
+                <motion.span 
                   key={totalItems}
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="absolute -top-1.5 -right-2 h-[18px] min-w-[18px] px-1 bg-black text-[#EFFF00] rounded-full flex items-center justify-center text-[10px] font-bold"
+                  className="absolute -top-1.5 -right-2 h-[18px] min-w-[18px] px-1 bg-black text-[#EFFF00] rounded-full flex items-center justify-center text-[10px] font-black"
                 >
                   {totalItems}
                 </motion.span>
               </div>
-              <span className="text-sm font-bold tracking-tight">Meu Carrinho</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] opacity-80 select-none">Meu Carrinho</span>
             </div>
-            <div className="flex items-center gap-2 relative z-10">
-              <span className="text-[16px] font-black">{formatBRL(total)}</span>
+            <div className="flex items-center gap-1.5 relative z-10 shrink-0">
+              <span className="text-[15px] font-black tracking-tighter">{formatBRL(total)}</span>
               <ChevronRight size={18} className="opacity-40 group-hover:translate-x-1 transition-transform" />
             </div>
 
