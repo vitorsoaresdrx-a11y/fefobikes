@@ -208,8 +208,7 @@ export function CartDrawer() {
             <div className="pt-2">
               <ShippingSimulator
                 invoiceValue={total}
-                productType={items.some(i => i.price > 1000) ? "bike" : "part"}
-                className="bg-white/5 border-white/10"
+                productType={items.some((i) => i.price > 1000) ? "bike" : "part"}
               />
             </div>
 
