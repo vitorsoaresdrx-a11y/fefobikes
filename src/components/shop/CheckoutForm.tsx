@@ -232,7 +232,7 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
                id="installments" 
                className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white focus:outline-none focus:border-[#EFFF00]/40 transition-all appearance-none"
             />
-            <div id="issuer" className="hidden" />
+            <select id="issuer" className="hidden" />
             <input type="hidden" id="cardholderEmail" value={customer.email} />
          </div>
  
