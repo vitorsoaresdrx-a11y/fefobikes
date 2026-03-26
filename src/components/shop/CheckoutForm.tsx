@@ -15,7 +15,10 @@ import {
   AlertCircle,
   CheckCircle2,
   Lock,
-  LockKeyhole
+  LockKeyhole,
+  User,
+  Mail,
+  Phone
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
