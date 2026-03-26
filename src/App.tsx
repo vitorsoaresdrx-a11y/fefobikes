@@ -13,6 +13,8 @@ import Login from "@/pages/Login";
 import { Loader2 } from "lucide-react";
 import { useSyncOfflineQueue } from "@/hooks/useSyncOfflineQueue";
 import { GlobalAlerts } from "@/components/GlobalAlerts";
+import { CartDrawer } from "@/components/shop/CartDrawer";
+import { CheckoutModal } from "@/components/shop/CheckoutModal";
 
 function lazyRetry(factory: () => Promise<{ default: React.ComponentType<any> }>) {
   return lazy(() =>
@@ -176,6 +178,8 @@ const App = () => (
               <Route path="/*" element={<AuthGate />} />
               <Route path="/jogar" element={<Jogar />} />
             </Routes>
+            <CartDrawer />
+            <CheckoutModal />
           </div>
         </BrowserRouter>
       </AuthProvider>

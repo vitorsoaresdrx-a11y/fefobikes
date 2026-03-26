@@ -458,7 +458,6 @@ export default function ProdutoPublico() {
         </div>
       </main>
 
-      <CartDrawer />
       <StoreChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );

@@ -1,11 +1,3 @@
-/**
- * PREMIUM CHECKOUT FLOW MODAL
- * 1. CEP Calculation
- * 2. Order Summary & Choice (MP vs WhatsApp)
- * 3. Customer Data (if MP)
- * 4. Payment (if MP)
- */
-
 import { useState } from "react";
 import * as Drawer from "vaul";
 import { 
@@ -20,13 +12,8 @@ import { CheckoutForm } from "./CheckoutForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface CheckoutModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
-  const { items, shipping, setShipping, clearCart } = useCart();
+export function CheckoutModal() {
+  const { items, shipping, setShipping, isCheckoutOpen, setCheckoutOpen } = useCart();
   const [step, setStep] = useState<"cep" | "summary" | "info" | "payment" | "success">("cep");
   const [cep, setCep] = useState("");
   const [loading, setLoading] = useState(false);
@@ -76,14 +63,16 @@ export function CheckoutModal({ isOpen, onClose }: CheckoutModalProps) {
   const handleClose = () => {
     setStep("cep");
     setShowCancelConfirm(false);
-    onClose();
+    setCheckoutOpen(false);
   };
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(o) => { if(!o) handleClose(); }}>
+    <Drawer.Root open={isCheckoutOpen} onOpenChange={setCheckoutOpen}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[80]" />
-        <Drawer.Content className="fixed bottom-0 inset-x-0 z-[100] max-h-[96vh] bg-[#050505] rounded-t-[40px] border-t border-white/5 flex flex-col focus:outline-none overflow-hidden">
+        <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[150]" />
+        <Drawer.Content className="fixed bottom-0 inset-x-0 z-[160] max-h-[96vh] bg-[#050505] rounded-t-[40px] border-t border-white/5 flex flex-col focus:outline-none overflow-hidden" aria-describedby="checkout-desc">
+          <Drawer.Title className="sr-only">Finalizar Compra</Drawer.Title>
+          <p id="checkout-desc" className="sr-only">Formulário de entrega e pagamento seguro.</p>
           
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-8 md:p-12 scrollbar-hide">
             <div className="max-w-2xl mx-auto">

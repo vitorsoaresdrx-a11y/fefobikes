@@ -20,12 +20,10 @@ import { getOptimizedImageUrl } from "@/lib/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CheckoutModal } from "./CheckoutModal";
 
 export function CartDrawer() {
-  const { items, removeItem, updateQuantity, addItem } = useCart();
+  const { items, removeItem, updateQuantity, addItem, isCartOpen, setCartOpen, setCheckoutOpen } = useCart();
   const [addedItems, setAddedItems] = useState<string[]>([]);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // Upsell Logic
   const { data: suggestions } = useQuery({
@@ -58,7 +56,7 @@ export function CartDrawer() {
   if (items.length === 0) return null;
 
   return (
-    <Drawer.Root direction="bottom">
+    <Drawer.Root open={isCartOpen} onOpenChange={setCartOpen} direction="bottom">
       <Drawer.Trigger asChild>
         <motion.div
           initial={{ y: 100, opacity: 0 }}
@@ -92,7 +90,10 @@ export function CartDrawer() {
 
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100]" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 max-h-[92vh] flex flex-col bg-[#080808] rounded-t-[32px] border-t border-white/10 shadow-[0_-20px_80px_rgba(0,0,0,0.5)] z-[101] font-['Plus_Jakarta_Sans'] text-white focus:outline-none overflow-hidden">
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 max-h-[92vh] flex flex-col bg-[#080808] rounded-t-[32px] border-t border-white/10 shadow-[0_-20px_80px_rgba(0,0,0,0.5)] z-[101] font-['Plus_Jakarta_Sans'] text-white focus:outline-none overflow-hidden" aria-describedby="cart-description">
+          <Drawer.Title className="sr-only">Seu Carrinho</Drawer.Title>
+          <p id="cart-description" className="sr-only">Visualize e gerencie os itens do seu carrinho de compras.</p>
+          
           <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-white/20 my-4" />
 
           <div className="px-6 md:px-8 pb-4 flex items-center justify-between">
@@ -190,7 +191,13 @@ export function CartDrawer() {
                </div>
              </div>
              <div className="flex flex-col gap-4">
-                <button onClick={() => setIsCheckoutOpen(true)} className="w-full h-16 bg-[#EFFF00] hover:bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all">
+                <button 
+                  onClick={() => {
+                    setCartOpen(false); // Close cart
+                    setCheckoutOpen(true); // Open checkout
+                  }} 
+                  className="w-full h-16 bg-[#EFFF00] hover:bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all"
+                >
                   Finalizar Compra <ChevronRight size={18} />
                 </button>
                 <p className="text-[10px] text-center text-white/20 font-black uppercase tracking-[0.4em]">Frete calculado na próxima etapa</p>
@@ -198,8 +205,6 @@ export function CartDrawer() {
           </div>
         </Drawer.Content>
       </Drawer.Portal>
-      
-      <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
     </Drawer.Root>
   );
 }
