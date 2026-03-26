@@ -6,7 +6,7 @@ import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { StoreChat } from "@/components/shop/StoreChat";
-import { Search, Bike, Package, ArrowRight, Loader2, Filter, ShoppingBag, Sparkles } from "lucide-react";
+import { Search, Bike, Package, ArrowRight, Loader2, Filter, ShoppingBag, Sparkles, Bot } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -146,6 +146,8 @@ export default function Store() {
   const [isAiSearching, setIsAiSearching] = useState(false);
   const [aiSkus, setAiSkus] = useState<string[]>([]);
 
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["store-products"],
     queryFn: async () => {
@@ -222,9 +224,9 @@ export default function Store() {
         </Link>
 
         {/* Search Desktop */}
-        <div className="flex-1 max-w-xl hidden md:block group">
+        <div className="flex-1 max-w-xl hidden md:block">
           <div className="relative group">
-            <Search className="absolute left-5 text-white/30 group-focus-within:text-[#EFFF00] transition-colors" size={18} aria-hidden="true" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[#EFFF00] transition-colors" size={18} aria-hidden="true" />
             <input 
               type="text"
               placeholder="Pesquisar componentes, quadros..."
@@ -242,16 +244,12 @@ export default function Store() {
 
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <button 
-            onClick={handleAiSearch}
-            disabled={isAiSearching || search.length < 3}
-            className={`flex h-11 sm:h-12 px-4 sm:px-6 rounded-2xl transition-all items-center justify-center gap-2 sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00] disabled:opacity-30 ${
-              aiSkus.length > 0 
-              ? "bg-[#0033FF] text-white border border-[#0033FF]/20" 
-              : "bg-[#EFFF00]/10 text-[#EFFF00] border border-[#EFFF00]/20 hover:bg-[#EFFF00] hover:text-black"
-            }`}
+            onClick={() => setIsChatOpen(true)}
+            className="flex h-11 sm:h-12 px-4 sm:px-6 rounded-2xl bg-[#EFFF00]/10 border border-[#EFFF00]/20 text-[#EFFF00] hover:bg-[#EFFF00] hover:text-black transition-all items-center justify-center gap-2 sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00]"
+            aria-label="Abrir Chat com IA"
           >
-            {isAiSearching ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest hidden xs:inline">Busca IA</span>
+            <Bot size={18} strokeWidth={2.5} />
+            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest hidden xs:inline">Fefo AI</span>
           </button>
           
           <Link 
@@ -266,19 +264,19 @@ export default function Store() {
       </header>
 
       {/* Search Mobile */}
-      <div className="md:hidden px-4 py-3 border-b border-white/10 bg-black">
-        <div className="relative flex items-center">
-          <Search className="absolute left-4 text-white/50" size={18} aria-hidden="true" />
+      <div className="md:hidden px-4 py-4 border-b border-white/5 bg-black">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" size={18} aria-hidden="true" />
           <input
             type="text"
-            placeholder="Pesquisar..."
+            placeholder="Pesquisar componentes, bikes..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               if (aiSkus.length > 0) setAiSkus([]);
             }}
             onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
-            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-white text-[15px] pl-12 pr-4 focus:outline-none focus:border-white/30 transition-colors placeholder:text-white/40"
+            className="w-full h-12 bg-white/[0.03] border border-white/10 rounded-xl text-white text-[15px] pl-11 pr-4 focus:outline-none focus:border-[#EFFF00]/30 transition-all"
             aria-label="Campo de pesquisa mobile"
           />
         </div>
@@ -361,6 +359,7 @@ export default function Store() {
       </footer>
 
       <CartDrawer />
+      <StoreChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 }

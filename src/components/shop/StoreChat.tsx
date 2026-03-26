@@ -2,13 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  MessageCircle, 
   X, 
   Send, 
   Bike, 
-  Sparkles,
   Bot,
-  Cpu,
   Loader2,
   ChevronDown,
   ExternalLink
@@ -20,31 +17,27 @@ interface ChatMessage {
   content: string;
 }
 
-export function StoreChat() {
-  const [isOpen, setIsOpen] = useState(false);
+interface StoreChatProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function StoreChat({ isOpen, onClose }: StoreChatProps) {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const mutation = useMutation({
     mutationFn: async ({ message, history }: { message: string, history: ChatMessage[] }) => {
-      console.log("Calling store-ai-chat...", { message, history });
       const { data, error } = await supabase.functions.invoke("store-ai-chat", {
         body: { message, history: history.slice(-5) }
       });
-      if (error) {
-        console.error("AI Invoke Error:", error);
-        throw error;
-      }
+      if (error) throw error;
       return data.response as string;
     },
     onSuccess: (response) => {
       setHistory((prev) => [...prev, { role: "assistant", content: response }]);
     },
-    onError: (err) => {
-      console.error("AI Mutation Error:", err);
-      // import("sonner").then(({ toast }) => toast.error("Serviço temporariamente indisponível."));
-    }
   });
 
   const handleSend = () => {
@@ -62,7 +55,6 @@ export function StoreChat() {
   }, [history]);
 
   const formatMessage = (content: string) => {
-    // Regex para encontrar URLs comuns e bit.ly
     const urlRegex = /((https?:\/\/[^\s]+)|(bit\.ly\/[^\s]+))/g;
     const parts = content.split(urlRegex);
     
@@ -76,9 +68,9 @@ export function StoreChat() {
             href={href} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-lg underline decoration-white/30 hover:decoration-white transition-all font-black"
+            className="inline-flex items-center gap-1 bg-[#EFFF00]/20 px-2 py-0.5 rounded-lg underline decoration-[#EFFF00]/30 hover:decoration-[#EFFF00] transition-all font-black"
           >
-            {part} <ExternalLink size={10} />
+            Link <ExternalLink size={10} />
           </a>
         );
       }
@@ -87,128 +79,109 @@ export function StoreChat() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-[60]">
-      <AnimatePresence>
-        {isOpen && (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/60 backdrop-blur-md">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="absolute bottom-20 left-0 w-80 sm:w-96 h-[500px] bg-background border border-border rounded-3xl shadow-2xl overflow-hidden flex flex-col z-[70] origin-bottom-left"
+            exit={{ opacity: 0, scale: 0.95, y: 40 }}
+            className="w-full max-w-lg h-[80vh] sm:h-[600px] bg-black border-t sm:border border-white/10 rounded-t-[40px] sm:rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-[110]"
           >
             {/* Header */}
-            <header className="bg-primary p-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
-                  <Bot size={24} />
+            <header className="bg-gradient-to-r from-black to-[#111] p-6 flex items-center justify-between border-b border-white/5">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-[#EFFF00] rounded-2xl flex items-center justify-center text-black shadow-[0_5px_20px_rgba(239,255,0,0.2)]">
+                  <Bot size={28} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-white italic uppercase tracking-tight">Fefo AI</h3>
-                  <div className="flex items-center gap-1.5 pt-0.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] font-bold text-white/70 uppercase">Online agora</span>
+                  <h3 className="text-base font-black text-white italic uppercase tracking-tighter">FEFO AI BOLADO</h3>
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <span className="h-2 w-2 rounded-full bg-[#EFFF00] animate-pulse" />
+                    <span className="text-[10px] font-black text-[#EFFF00] uppercase tracking-widest">Performance Active</span>
                   </div>
                 </div>
               </div>
               <button 
-                onClick={() => setIsOpen(false)} 
-                className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-white hover:bg-black/20"
+                onClick={onClose} 
+                className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90"
               >
-                <ChevronDown size={18} />
+                <X size={20} />
               </button>
             </header>
 
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 bg-muted/5 scrollbar-hide">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-black to-[#050505] scrollbar-hide">
               {history.length === 0 && (
-                <div className="py-10 text-center space-y-4 opacity-50">
-                  <Bike size={48} strokeWidth={1} className="mx-auto" />
-                  <div className="space-y-1">
-                    <p className="text-xs font-black uppercase tracking-widest">Dae! Sou o Fefo AI 🚲💨</p>
-                    <p className="text-[10px] font-medium max-w-[200px] mx-auto leading-relaxed">
-                      Dúvidas sobre o catálogo? Precisa de uma dica de upgrade? Pode mandar!
+                <div className="py-20 text-center space-y-6 opacity-80">
+                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/5">
+                    <Bike size={40} strokeWidth={1} className="text-[#EFFF00]" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-black uppercase tracking-widest text-[#EFFF00]">Dae! Sou o Fefo AI 🚲💨</p>
+                    <p className="text-xs font-medium max-w-[240px] mx-auto leading-relaxed text-white/40 italic">
+                      "Quer saber qual o melhor quadro ou tá na dúvida se essa buzina serve na sua bike? Chama que eu te ajudo!"
                     </p>
                   </div>
                 </div>
               )}
               
               {history.map((msg, i) => (
-                <div 
+                <motion.div 
+                  initial={{ opacity: 0, x: msg.role === "user" ? 10 : -10 }}
+                  animate={{ opacity: 1, x: 0 }}
                   key={i} 
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm font-medium leading-relaxed whitespace-pre-wrap ${
+                  <div className={`max-w-[85%] rounded-[24px] px-5 py-3.5 text-sm font-bold leading-relaxed whitespace-pre-wrap ${
                     msg.role === "user" 
-                      ? "bg-primary text-white rounded-br-none shadow-lg shadow-primary/20" 
-                      : "bg-card border border-border/50 text-foreground rounded-bl-none"
+                      ? "bg-[#EFFF00] text-black rounded-br-none shadow-[0_5px_15px_rgba(239,255,0,0.2)]" 
+                      : "bg-white/[0.03] border border-white/10 text-white rounded-bl-none shadow-xl"
                   }`}>
                     {msg.role === "assistant" ? formatMessage(msg.content) : msg.content}
                   </div>
-                </div>
+                </motion.div>
               ))}
               
               {mutation.isPending && (
                 <div className="flex justify-start">
-                  <div className="bg-card border border-border/50 rounded-2xl rounded-bl-none px-4 py-3">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl rounded-bl-none px-5 py-3.5">
+                    <Loader2 className="h-5 w-5 animate-spin text-[#EFFF00]" />
                   </div>
                 </div>
               )}
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-border bg-background">
+            <div className="p-6 border-t border-white/5 bg-black">
               <div className="relative">
                 <input 
                   type="text"
-                  placeholder="Mande sua dúvida..."
+                  placeholder="Mande sua dúvida real..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  className="w-full h-12 bg-secondary/50 border border-border/50 rounded-2xl pl-4 pr-12 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/30 focus:bg-secondary"
+                  className="w-full h-14 bg-white/[0.03] border border-white/10 rounded-2xl pl-5 pr-14 text-sm font-black focus:outline-none focus:border-[#EFFF00]/50 placeholder:text-white/20 transition-all focus:bg-white/[0.05]"
                 />
                 <button 
                   onClick={handleSend}
                   disabled={!input.trim() || mutation.isPending}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-white disabled:opacity-50 transition-all hover:scale-110 active:scale-95"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-[#EFFF00] flex items-center justify-center text-black disabled:opacity-30 transition-all hover:scale-105 active:scale-90 shadow-lg"
                 >
-                  <Send size={16} />
+                  <Send size={18} strokeWidth={2.5} />
                 </button>
               </div>
-              <p className="text-[9px] text-center text-muted-foreground/30 mt-3 font-bold uppercase tracking-widest">
-                Fefo Bikes AI • Performance Insight
-              </p>
+              <div className="flex items-center justify-center gap-4 mt-6">
+                <div className="h-px flex-1 bg-white/5" />
+                <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">
+                  FEFO BIKES AI
+                </p>
+                <div className="h-px flex-1 bg-white/5" />
+              </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Trigger Button */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="h-16 w-16 bg-white border-2 border-primary rounded-full shadow-2xl flex items-center justify-center text-black active:scale-95 transition-all group relative overflow-hidden"
-      >
-        <motion.div 
-          animate={isOpen ? { rotate: 90, scale: 0 } : { rotate: 0, scale: 1 }}
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <Bot size={28} className="text-black" />
-        </motion.div>
-        
-        <motion.div
-           animate={isOpen ? { rotate: 0, scale: 1 } : { rotate: -90, scale: 0 }}
-           className="absolute inset-0 flex items-center justify-center"
-        >
-          <X size={24} className="text-muted-foreground" />
-        </motion.div>
-
-        {!isOpen && (
-           <span className="absolute -top-1 -right-1 flex h-4 w-4">
-             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-             <span className="relative inline-flex rounded-full h-4 w-4 bg-primary" />
-           </span>
-        )}
-      </button>
-    </div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
