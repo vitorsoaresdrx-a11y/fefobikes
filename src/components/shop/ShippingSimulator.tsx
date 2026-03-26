@@ -4,18 +4,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/format";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/useCart";
 
 interface ShippingSimulatorProps {
-  invoiceValue: number;
+  invoiceValue?: number;
   productType?: "bike" | "part";
   className?: string;
 }
 
 export function ShippingSimulator({ invoiceValue, productType = "bike", className = "" }: ShippingSimulatorProps) {
+  const { setShipping, items } = useCart();
   const [cep, setCep] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [result, setResult] = useState<any>(null);
+
+  const cartTotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
+  const finalInvoiceValue = invoiceValue || cartTotal || 500;
 
   const steps = [
     { icon: <Search size={18} />, text: "Verificando Regional" },
@@ -49,12 +54,13 @@ export function ShippingSimulator({ invoiceValue, productType = "bike", classNam
 
     setLoading(true);
     setResult(null);
+    setShipping(null);
 
     try {
       const { data, error } = await supabase.functions.invoke("calcular-frete-rodonaves", {
         body: {
           destinationZip: targetCep,
-          invoiceValue: invoiceValue || 500,
+          invoiceValue: finalInvoiceValue,
           preset: productType === "bike" ? "bike_completa" : "quadro",
           quantidade: 1,
         }
@@ -66,12 +72,19 @@ export function ShippingSimulator({ invoiceValue, productType = "bike", classNam
       // Small delay to let user see "Finalizando..."
       await new Promise(r => setTimeout(r, 600));
 
-      setResult({
+      const res = {
         cidade: data.cidade,
         uf: data.uf,
         prazo: data.prazoEntrega + 2,
         valor: data.valorFrete + 30,
+      };
+      
+      setResult(res);
+      setShipping({ 
+        descricao: `Rodonaves (${data.cidade})`, 
+        valor: res.valor 
       });
+
     } catch (e: any) {
       console.error(e);
       toast.error("Falha no cálculo", {

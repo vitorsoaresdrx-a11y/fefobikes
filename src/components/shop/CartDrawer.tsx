@@ -22,10 +22,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ShippingSimulator } from "./ShippingSimulator";
+import { CheckoutModal } from "./CheckoutModal"; // Assuming CheckoutModal is in the same directory
 
 export function CartDrawer() {
-  const { items, removeItem, updateQuantity, addItem } = useCart();
+  const { items, removeItem, updateQuantity, addItem, totalItems, shipping, setShipping } = useCart();
   const [addedItems, setAddedItems] = useState<string[]>([]);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // Upsell Logic: Fetch products from complementary categories
   const { data: suggestions } = useQuery({
@@ -265,51 +267,83 @@ export function CartDrawer() {
             )}
           </div>
 
-          {/* TOTAL & FOOTER */}
-          <div className="p-8 pb-10 bg-[#0C0C0C] border-t border-white/10 space-y-6 relative">
-            {/* Background Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-[#EFFF00]/50 to-transparent" />
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-white/40">
-                <span className="text-sm font-bold uppercase tracking-widest">Subtotal</span>
-                <span className="text-sm font-bold">{totalItems} {totalItems === 1 ? 'item' : 'itens'}</span>
-              </div>
-
-              <div className="flex items-center justify-between text-white">
-                <span className="text-lg font-bold">Total Final</span>
-                <div className="text-right">
-                  <motion.span
-                    key={total}
-                    initial={{ scale: 1.1, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-3xl font-black tracking-tighter text-[#EFFF00]"
-                  >
-                    {formatBRL(total)}
-                  </motion.span>
+           {/* FRETE SECTION */}
+           <div className="px-8 py-6 border-t border-white/5 bg-white/[0.01]">
+             <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-[#EFFF00]/10 text-[#EFFF00] flex items-center justify-center">
+                   <Package size={16} />
                 </div>
-              </div>
-            </div>
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Cálculo de Entrega</h4>
+             </div>
+             <ShippingSimulator />
+           </div>
 
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={handleCheckout}
-              disabled={items.length === 0}
-              className="w-full h-16 mt-4 bg-[#EFFF00] hover:bg-white disabled:bg-white/5 disabled:text-white/20 text-black rounded-2xl font-black text-base flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(239,255,0,0.2)] transition-all active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-white relative group overflow-hidden"
-            >
-              <span className="relative z-10">Finalizar no WhatsApp</span>
-              <Send size={20} className="relative z-10 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+           {/* TOTAL & FOOTER */}
+           <div className="p-8 pb-10 bg-[#0C0C0C] border-t border-white/10 space-y-6 relative">
+             {/* Background Glow */}
+             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-[#EFFF00]/50 to-transparent" />
 
-              {/* Animated highlight */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-            </motion.button>
+             <div className="space-y-3">
+               <div className="flex items-center justify-between text-white/40">
+                 <span className="text-sm font-bold uppercase tracking-widest">Subtotal</span>
+                 <span className="text-sm font-bold">{totalItems} {totalItems === 1 ? 'item' : 'itens'}</span>
+               </div>
 
-            <p className="text-[10px] text-center text-white/30 font-bold uppercase tracking-[0.2em]">
-              Seus itens serão reservados após o contato
-            </p>
-          </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+               {shipping && (
+                 <div className="flex items-center justify-between text-white/40">
+                   <span className="text-xs font-bold uppercase tracking-widest">Entrega ({shipping.descricao})</span>
+                   <span className="text-xs font-bold text-emerald-400">+{formatBRL(shipping.valor)}</span>
+                 </div>
+               )}
+
+               <div className="flex items-center justify-between text-white border-t border-white/5 pt-4">
+                 <span className="text-lg font-bold uppercase tracking-tighter italic">Total Final</span>
+                 <div className="text-right">
+                   <motion.span
+                     key={finalTotal}
+                     initial={{ scale: 1.1, opacity: 0 }}
+                     animate={{ scale: 1, opacity: 1 }}
+                     className="text-3xl font-black tracking-tighter text-[#EFFF00]"
+                   >
+                     {formatBRL(finalTotal)}
+                   </motion.span>
+                 </div>
+               </div>
+             </div>
+
+             <div className="flex flex-col gap-3">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsCheckoutOpen(true)}
+                  disabled={items.length === 0 || !shipping}
+                  className="w-full h-16 bg-[#EFFF00] hover:bg-white disabled:bg-white/5 disabled:text-white/20 text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(239,255,0,0.15)] transition-all relative group overflow-hidden"
+                >
+                  <Lock size={18} />
+                  <span>Checkout Seguro</span>
+                  {!shipping && items.length > 0 && <span className="text-[8px] opacity-40 ml-2">(Calcule o Frete)</span>}
+                </motion.button>
+
+                <button
+                  onClick={handleCheckout}
+                  disabled={items.length === 0}
+                  className="w-full h-14 bg-white/5 border border-white/10 hover:bg-white/10 text-white/60 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all"
+                >
+                  <Send size={16} />
+                  Finalizar no WhatsApp
+                </button>
+             </div>
+
+             <p className="text-[10px] text-center text-white/20 font-bold uppercase tracking-[0.2em]">
+               Pagamento via Cartão ou PIX
+             </p>
+           </div>
+           
+           <CheckoutModal 
+             isOpen={isCheckoutOpen} 
+             onClose={() => setIsCheckoutOpen(false)} 
+           />
+         </Drawer.Content>
+       </Drawer.Portal>
+     </Drawer.Root>
   );
 }

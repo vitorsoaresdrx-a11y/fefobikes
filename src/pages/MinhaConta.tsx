@@ -363,22 +363,38 @@ export default function MinhaConta() {
 
                  <div className="grid grid-cols-1 gap-4">
                     {customerData.sales?.map((sale: any) => (
-                      <div key={sale.id} className="bg-white/[0.02] border border-white/5 rounded-[24px] p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-[#0033FF]/30 transition-all">
-                        <div className="flex-1 w-full space-y-4">
-                           <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{formatDate(sale.created_at)}</span>
-                              <span className="text-xl font-black text-white">{formatBRL(sale.total)}</span>
+                      <div key={sale.id} className="bg-white/[0.03] border border-white/10 rounded-[32px] p-6 flex flex-col gap-6 group hover:border-[#EFFF00]/30 transition-all shadow-xl">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                           <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-[#EFFF00]/10 text-[#EFFF00] flex items-center justify-center">
+                                 <Package size={22} />
+                              </div>
+                              <div>
+                                 <span className="text-[10px] font-black text-white/20 uppercase tracking-widest leading-none mb-1">Cód: #{sale.id?.slice(-4)}</span>
+                                 <h4 className="text-sm font-black text-white uppercase tracking-tight">{formatDate(sale.created_at)}</h4>
+                              </div>
                            </div>
-                           <div className="flex flex-wrap gap-2">
-                             {sale.sale_items?.map((item: any, idx: number) => (
-                               <div key={idx} className="px-4 py-2 bg-white/[0.03] border border-white/5 rounded-xl text-[10px] font-bold text-white/40">
-                                 {item.quantity}x {item.description}
-                               </div>
-                             ))}
+                           <div className="flex items-center gap-3">
+                              <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+                                 Status: Concluído
+                              </div>
+                              <span className="text-xl font-black text-[#EFFF00]">{formatBRL(sale.total)}</span>
                            </div>
                         </div>
-                        <button className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/20 hover:bg-[#0033FF] hover:text-white transition-all">
-                          <History size={18} />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {sale.sale_items?.map((item: any, idx: number) => (
+                            <div key={idx} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5 rounded-2xl">
+                               <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 text-[10px] font-black">
+                                 {item.quantity}x
+                               </div>
+                               <span className="text-[11px] font-bold text-white/70 line-clamp-1">{item.description}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <button className="w-full h-12 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2">
+                          VER COMPROVANTE <History size={14} />
                         </button>
                       </div>
                     ))}
@@ -389,11 +405,11 @@ export default function MinhaConta() {
               <footer className="pt-20 flex flex-col items-center gap-10">
                 <div className="w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
                 <div className="text-center space-y-4 px-6">
-                   <p className="text-xs text-white/30 font-medium">Alguma irregularidade nos dados? Nosso suporte VIP está online.</p>
+                   <p className="text-xs text-white/30 font-medium font-bold uppercase tracking-widest">Dúvidas sobre seu histórico?</p>
                    <a 
                     href="https://wa.me/5515996128054" 
                     target="_blank" 
-                    className="inline-flex items-center gap-4 bg-[#25D366] text-white px-10 py-5 rounded-[24px] font-black uppercase text-xs tracking-widest shadow-[0_20px_40px_rgba(37,211,102,0.15)] hover:scale-105 transition-all"
+                    className="inline-flex items-center gap-4 bg-[#EFFF00] text-black px-10 py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] shadow-[0_20px_40px_rgba(239,255,0,0.15)] hover:scale-105 transition-all"
                    >
                     <MessageCircle size={20} strokeWidth={3} /> SUPORTE TÉCNICO
                    </a>
