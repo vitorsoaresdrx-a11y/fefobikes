@@ -7,20 +7,7 @@ import { getOptimizedImageUrl } from "@/lib/image";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { StoreChat } from "@/components/shop/StoreChat";
 import { PromoBanner } from "@/components/shop/PromoBanner";
-import { 
-  Search, 
-  Bike, 
-  Package, 
-  Tag, 
-  LayoutGrid, 
-  MapPin, 
-  Filter,
-  Menu,
-  User,
-  Zap,
-  TrendingUp,
-  Loader2
-} from "lucide-react";
+import { Search, Bike, Package, Tag, Zap, ArrowRight, Loader2 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -38,7 +25,19 @@ interface PublicProduct {
   _type: 'part' | 'bike';
 }
 
-// ─── Components ───────────────────────────────────────────────────────────────
+// ─── Urban Components ────────────────────────────────────────────────────────
+
+const Marquee = () => (
+  <div className="w-full bg-[#EFFF00] text-black overflow-hidden py-2 border-b-2 border-black flex z-40 relative">
+    <div className="flex whitespace-nowrap animate-[shimmer_20s_linear_infinite]">
+      {[...Array(10)].map((_, i) => (
+        <span key={i} className="font-['Syne'] font-bold uppercase text-[10px] sm:text-xs tracking-[0.2em] px-4 flex items-center gap-4">
+          FRETE GRÁTIS ACIMA DE R$499 <Zap size={10} /> NOVOS COMPONENTES CHEGARAM <Zap size={10} /> 
+        </span>
+      ))}
+    </div>
+  </div>
+);
 
 function ProductCard({ p }: { p: PublicProduct }) {
   const price = p.price_ecommerce || p.pix_price || p.sale_price || 0;
@@ -47,53 +46,53 @@ function ProductCard({ p }: { p: PublicProduct }) {
   return (
     <Link 
       to={`/produto/${p.sku}`} 
-      className="group flex flex-col bg-card border border-border/40 rounded-3xl overflow-hidden hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5 active:scale-[0.98]"
+      className="group flex flex-col bg-black border-2 border-white/10 hover:border-[#EFFF00] transition-colors relative"
     >
-      <div className="aspect-square relative overflow-hidden bg-muted/20">
+      {/* Imagem (Area) */}
+      <div className="aspect-[4/5] sm:aspect-square relative overflow-hidden bg-white/5 p-4 flex items-center justify-center">
         {mainImage ? (
           <img 
             src={getOptimizedImageUrl(mainImage, 600, 80) || mainImage} 
             alt={p.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-contain filter grayscale-[0.2] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
           />
         ) : (
-          <div className="w-full h-full flex flex-center items-center justify-center text-muted-foreground/30">
-            {p._type === 'bike' ? <Bike size={48} strokeWidth={1} /> : <Package size={48} strokeWidth={1} />}
+          <div className="w-full h-full flex items-center justify-center text-white/10">
+            {p._type === 'bike' ? <Bike size={64} strokeWidth={1} /> : <Package size={64} strokeWidth={1} />}
           </div>
         )}
         
+        {/* Badges Urbandas */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {p._type === 'bike' && (
-             <div className="bg-primary/90 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black text-white flex items-center gap-1 uppercase tracking-widest shadow-lg">
-               <Bike size={10} />
-             </div>
-          )}
           {p.price_ecommerce && p.pix_price && p.pix_price < p.price_ecommerce && (
-             <div className="bg-yellow-400 px-2 py-1 rounded-lg text-[8px] font-black text-black flex items-center gap-1 uppercase tracking-widest shadow-lg animate-bounce">
-               <Zap size={10} fill="currentColor" /> {Math.round(((p.price_ecommerce - p.pix_price) / p.price_ecommerce) * 100)}% OFF
+             <div className="bg-[#EFFF00] text-black px-2 py-0.5 font-['Syne'] font-bold text-[10px] tracking-wider uppercase">
+               -{Math.round(((p.price_ecommerce - p.pix_price) / p.price_ecommerce) * 100)}%
              </div>
           )}
-        </div>
-
-        <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10">
-          <span className="text-sm font-black text-white">{formatBRL(price)}</span>
+          {p._type === 'bike' && (
+             <div className="bg-[#0033FF] text-white px-2 py-0.5 font-['Syne'] font-bold text-[10px] tracking-wider uppercase">
+               BIKE
+             </div>
+          )}
         </div>
       </div>
       
-      <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between">
-        <div className="space-y-1">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-            {p._type === 'bike' ? <Bike size={10} /> : <Tag size={10} />}
-            {p.category || 'Geral'}
+      {/* Detalhes Area */}
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between border-t-2 border-white/10 group-hover:border-[#EFFF00] transition-colors bg-gradient-to-t from-black via-black to-transparent">
+        <div className="space-y-1 sm:space-y-2 mb-4">
+          <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] font-['Space_Grotesk']">
+            {p.category || 'GEAR'}
           </p>
-          <h3 className="text-sm font-bold text-foreground leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="text-sm sm:text-base font-['Syne'] font-bold text-white leading-tight line-clamp-2 group-hover:text-[#EFFF00] transition-colors">
             {p.name}
           </h3>
         </div>
         
-        <div className="flex items-center gap-1.5 text-muted-foreground/50 pt-2 border-t border-border/20">
-          <MapPin size={10} />
-          <span className="text-[9px] font-bold uppercase tracking-wider">Fefo Bikes Store</span>
+        <div className="flex items-end justify-between">
+           <span className="text-lg sm:text-xl font-['Space_Grotesk'] font-bold text-white">{formatBRL(price)}</span>
+           <div className="w-8 h-8 md:w-10 md:h-10 border-2 border-white/20 group-hover:border-black group-hover:bg-[#EFFF00] group-hover:text-black text-white flex items-center justify-center transition-all bg-black">
+              <ArrowRight size={16} strokeWidth={3} className="group-hover:-rotate-45 transition-transform" />
+           </div>
         </div>
       </div>
     </Link>
@@ -104,7 +103,7 @@ function ProductCard({ p }: { p: PublicProduct }) {
 
 export default function Store() {
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string>("Tudo");
+  const [activeCategory, setActiveCategory] = useState<string>("TUDO");
   const [isAiSearching, setIsAiSearching] = useState(false);
   const [aiSkus, setAiSkus] = useState<string[]>([]);
 
@@ -132,15 +131,15 @@ export default function Store() {
   });
 
   const uniqueCategories = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
-  const categoriesList = ["Tudo", "Bikes", ...uniqueCategories.filter(c => c !== "Bikes")];
+  const categoriesList = ["TUDO", "BIKES", ...uniqueCategories.filter(c => c !== "Bikes").map(c => c.toUpperCase())];
   
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
                          p.sku.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = activeCategory === "Tudo" || 
-                           (activeCategory === "Bikes" && p._type === "bike") ||
-                           p.category === activeCategory;
-    return matchesSearch && matchesCategory;
+    const matchCat = activeCategory === "TUDO" || 
+                     (activeCategory === "BIKES" && p._type === "bike") ||
+                     p.category?.toUpperCase() === activeCategory;
+    return matchesSearch && matchCat;
   });
 
   const handleAiSearch = async () => {
@@ -152,7 +151,7 @@ export default function Store() {
       });
       if (error) throw error;
       setAiSkus(data.skus || []);
-      if (data.skus?.length > 0) setActiveCategory("Tudo");
+      if (data.skus?.length > 0) setActiveCategory("TUDO");
     } catch (e) {
       console.error(e);
     } finally {
@@ -164,60 +163,92 @@ export default function Store() {
   const displayProducts = aiSkus.length > 0 ? aiProducts : filteredProducts;
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 pb-20">
+    <div className="min-h-screen bg-black text-white font-['Space_Grotesk'] selection:bg-[#EFFF00] selection:text-black flex flex-col">
+      <Marquee />
       
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/50 px-4 md:px-8 h-16 md:h-20 flex items-center justify-between gap-4 md:gap-8">
-        <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => window.location.reload()}>
-          <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
-            <Bike className="w-5 h-5 text-white" />
+      {/* ── HEADER BOLD ────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b-2 border-white/10 px-4 md:px-8 py-4 md:h-24 flex items-center justify-between gap-4 md:gap-8">
+        <Link to="/store" className="flex items-center gap-2 md:gap-4 group shrink-0" onClick={() => window.location.reload()}>
+          <div className="w-10 h-10 md:w-14 md:h-14 bg-[#EFFF00] text-black flex items-center justify-center group-hover:rotate-12 transition-transform">
+            <Bike className="w-6 h-6 md:w-8 md:h-8" strokeWidth={2.5} />
           </div>
-          <span className="font-black text-sm text-white uppercase tracking-tighter hidden sm:block">Fefo Bikes</span>
-        </div>
+          <div className="flex flex-col">
+            <span className="font-['Syne'] font-extrabold text-xl md:text-3xl tracking-tighter uppercase leading-none text-white group-hover:text-[#EFFF00] transition-colors">FEFO BIKES</span>
+            <span className="font-['Space_Grotesk'] font-bold text-[8px] md:text-[10px] uppercase tracking-[0.3em] text-white/50">PERFORMANCE R.</span>
+          </div>
+        </Link>
 
-        <div className="flex-1 max-w-2xl relative hidden md:block">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" size={18} />
+        {/* Search Desktop */}
+        <div className="flex-1 max-w-2xl relative hidden lg:block group">
           <input 
             type="text"
-            placeholder="O que você procura hoje?"
+            placeholder="ENCONTRE SUA PERFORMANCE"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              if (aiSkus.length > 0) setAiSkus([]); // Reset AI search on type
+              if (aiSkus.length > 0) setAiSkus([]);
             }}
             onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
-            className="w-full h-10 md:h-12 bg-secondary/50 border border-border/50 rounded-full pl-12 pr-32 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/30 focus:bg-secondary"
+            className="w-full h-14 bg-transparent border-2 border-white/20 text-white font-['Space_Grotesk'] font-bold uppercase tracking-widest pl-14 pr-32 focus:outline-none focus:border-[#EFFF00] transition-colors placeholder:text-white/20"
           />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-[#EFFF00] transition-colors" size={20} />
           <button 
             onClick={handleAiSearch}
             disabled={isAiSearching || search.length < 3}
-            className="absolute right-1.5 top-1.5 h-7 md:h-9 px-3 bg-primary text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 disabled:opacity-30 transition-all flex items-center gap-2"
+            className="absolute right-2 top-2 bottom-2 px-6 bg-[#0033FF] text-white font-['Syne'] font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:border hover:border-[#0033FF] disabled:opacity-0 transition-all flex items-center justify-center"
           >
-            {isAiSearching ? <Loader2 size={12} className="animate-spin" /> : <><TrendingUp size={12} /> IA</>}
+            {isAiSearching ? <Loader2 size={14} className="animate-spin" /> : "PROCURAR"}
           </button>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Link to="/minha-garagem" className="h-10 md:h-12 px-4 md:px-6 bg-card border border-border rounded-2xl text-[10px] md:text-xs font-black text-white hover:bg-muted transition-all flex items-center gap-2 uppercase tracking-widest active:scale-95 shadow-xl">
-            <User size={14} className="text-primary lg:w-4 lg:h-4" /> <span className="hidden sm:inline">Minha Garagem</span>
+        <div className="flex items-center gap-3 md:gap-6 shrink-0">
+          <Link to="/minha-garagem" className="h-10 md:h-14 px-4 md:px-8 bg-transparent border-2 border-white text-[10px] md:text-xs font-['Syne'] font-bold text-white hover:bg-white hover:text-black transition-colors flex items-center gap-2 uppercase tracking-[0.1em]">
+            <span className="hidden sm:inline">GARAGEM</span> <ArrowRight size={14} />
           </Link>
-          <button className="md:hidden p-2 rounded-xl bg-card border border-border text-white">
-            <Menu size={20} />
-          </button>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-10 md:space-y-16">
-        <PromoBanner />
+      {/* Search Mobile */}
+      <div className="lg:hidden p-4 border-b-2 border-white/10 relative">
+        <input 
+            type="text"
+            placeholder="PROCURAR..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (aiSkus.length > 0) setAiSkus([]);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleAiSearch()}
+            className="w-full h-12 bg-white/5 border border-white/20 text-white font-['Space_Grotesk'] font-bold uppercase tracking-widest px-4 focus:outline-none focus:border-[#EFFF00] transition-colors placeholder:text-white/30"
+          />
+      </div>
+
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 py-8 md:py-16 space-y-12 md:space-y-24">
         
-        <section className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+        {/* Banner Substituido por título colossal se não tiver ai search */}
+        {!aiSkus.length && !search && (
+          <section className="space-y-6">
+            <h1 className="font-['Syne'] text-5xl md:text-8xl lg:text-[140px] font-black uppercase leading-[0.85] tracking-tighter break-words text-white">
+              PUSH <br/>
+              YOUR <br/>
+              <span className="text-transparent" style={{ WebkitTextStroke: "2px #EFFF00" }}>LIMITS.</span>
+            </h1>
+            <p className="max-w-md font-['Space_Grotesk'] text-white/50 text-sm md:text-base leading-relaxed">
+              Equipamento de alta performance para quem não aceita o segundo lugar. Engineered in Sorocaba.
+            </p>
+          </section>
+        )}
+
+        {/* Categorias */}
+        <section className="flex items-center gap-2 md:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {categoriesList.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
+              className={`h-10 md:h-12 px-6 md:px-8 font-['Syne'] text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] transition-all whitespace-nowrap border-2 ${
                 activeCategory === cat 
-                ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
-                : "bg-card text-muted-foreground border-border/50 hover:border-primary/30"
+                ? "bg-[#EFFF00] text-black border-[#EFFF00]" 
+                : "bg-transparent text-white border-white/20 hover:border-white"
               }`}
             >
               {cat}
@@ -225,42 +256,44 @@ export default function Store() {
           ))}
         </section>
 
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-white tracking-tight uppercase italic flex items-center gap-2">
-              {aiSkus.length > 0 ? <TrendingUp size={20} className="text-primary" /> : <LayoutGrid size={20} className="text-primary" />}
-              {aiSkus.length > 0 ? "Sugestões da IA" : "Resultados de hoje"}
-            </h2>
-            <div className="flex items-center gap-4">
-              {aiSkus.length > 0 && (
-                <button onClick={() => setAiSkus([])} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">
-                  Limpar Filtro IA
-                </button>
+        {/* Grade de Produtos */}
+        <section className="space-y-8 pb-32">
+          
+          <div className="flex items-end justify-between border-b-2 border-white/20 pb-4">
+            <h2 className="text-lg md:text-3xl font-['Syne'] font-black text-white uppercase tracking-tighter">
+              {aiSkus.length > 0 ? (
+                <span className="text-[#0033FF]">CURIADORIA DA IA ↓</span>
+              ) : (
+                <>SELECIONADOS <span className="text-white/30">({displayProducts.length})</span></>
               )}
-              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                {displayProducts.length} itens encontrados
-              </span>
-            </div>
+            </h2>
+            {aiSkus.length > 0 && (
+              <button onClick={() => setAiSkus([])} className="text-[10px] font-black text-[#EFFF00] uppercase tracking-[0.1em] hover:underline pb-1">
+                 [ LIMPAR FILTRO IA ]
+              </button>
+            )}
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-white/10 border-2 border-white/10">
               {[...Array(10)].map((_, i) => (
-                <div key={i} className="aspect-[3/4] rounded-3xl bg-card/50 animate-pulse border border-border/20" />
+                <div key={i} className="aspect-[4/5] bg-black animate-pulse" />
               ))}
             </div>
           ) : displayProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-white/10 border-2 border-white/10">
               {displayProducts.map(p => (
                 <ProductCard key={`${p._type}-${p.id}`} p={p} />
               ))}
             </div>
           ) : (
-            <div className="py-24 flex flex-col items-center justify-center text-center space-y-4 opacity-30">
-              <Search size={48} strokeWidth={1} />
-              <div className="space-y-1">
-                <p className="text-sm font-black uppercase tracking-widest">Nada encontrado</p>
-                <p className="text-xs font-medium">Tente ajustar sua pesquisa ou filtros.</p>
+            <div className="py-32 flex flex-col items-center justify-center text-center space-y-6">
+              <div className="w-24 h-24 border-2 border-white/20 flex items-center justify-center text-white/20 rotate-45">
+                 <Search size={40} className="-rotate-45" />
+              </div>
+              <div className="space-y-2 max-w-sm">
+                <p className="text-2xl font-['Syne'] font-black uppercase tracking-tighter">NADA AQUI.</p>
+                <p className="text-sm font-['Space_Grotesk'] text-white/50">Tente ajustar seus filtros ou use a IA para uma busca avançada.</p>
               </div>
             </div>
           )}
@@ -268,16 +301,21 @@ export default function Store() {
 
       </main>
 
-      <footer className="mt-12 py-12 border-t border-border/50 flex flex-col items-center gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-secondary rounded-xl flex items-center justify-center">
-            <Bike className="w-4 h-4 text-primary" />
+      <footer className="w-full bg-black border-t-2 border-white/20 py-16 px-8 flex flex-col md:flex-row items-start md:items-end justify-between xl:px-16 gap-12 mt-auto">
+        <div className="space-y-6">
+          <div className="font-['Syne'] font-black text-3xl md:text-5xl uppercase tracking-tighter text-white">
+            FEFO<br/>BIKES.
           </div>
-          <span className="font-black text-xs text-muted-foreground uppercase tracking-widest">Fefo Bikes Store © 2026</span>
+          <div className="flex gap-4">
+            <a href="#" className="font-['Space_Grotesk'] text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] hover:text-[#EFFF00]">Instagram</a>
+            <a href="#" className="font-['Space_Grotesk'] text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] hover:text-[#EFFF00]">Contato</a>
+            <a href="#" className="font-['Space_Grotesk'] text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] hover:text-[#EFFF00]">Devoluções</a>
+          </div>
         </div>
         
-        <div className="flex gap-4">
-          <a href="#" className="text-[10px] font-black text-muted-foreground uppercase tracking-widest hover:text-white transition-colors">Termos de Uso</a>
+        <div className="text-left md:text-right space-y-2">
+          <p className="font-['Space_Grotesk'] text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Onde Estamos</p>
+          <p className="font-['Space_Grotesk'] text-sm text-white max-w-[200px]">Av. Ipanema, 1036 — Sorocaba, SP, 18070-671</p>
         </div>
       </footer>
 

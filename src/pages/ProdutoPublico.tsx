@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicPartAttributes } from "@/hooks/usePartAttributes";
@@ -6,7 +6,6 @@ import { getOptimizedImageUrl } from "@/lib/image";
 import {
   Bike,
   Package,
-  ChevronRight,
   ShieldCheck,
   Truck,
   Zap,
@@ -29,6 +28,7 @@ import {
 } from "@/components/ui/carousel";
 
 import { formatBRL } from "@/lib/format";
+import { useState } from "react";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -41,13 +41,13 @@ const Btn = ({
   variant?: "primary" | "secondary" | "outline";
 }) => {
   const v = {
-    primary: "bg-primary text-white hover:bg-primary/80 shadow-[0_0_25px_rgba(41,82,255,0.3)]",
-    secondary: "bg-secondary text-foreground hover:bg-secondary/80 border border-border",
-    outline: "border border-border bg-transparent text-foreground/80 hover:bg-muted",
+    primary: "bg-[#EFFF00] text-black border-2 border-[#EFFF00] hover:bg-black hover:text-[#EFFF00]",
+    secondary: "bg-[#0033FF] text-white border-2 border-[#0033FF] hover:bg-black hover:text-[#0033FF]",
+    outline: "border-2 border-white/20 bg-transparent text-white hover:border-white",
   };
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-2xl px-6 py-4 font-bold transition-all active:scale-95 disabled:opacity-50 ${v[variant]} ${className}`}
+      className={`inline-flex items-center justify-center px-8 py-4 font-['Syne'] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${v[variant]} ${className}`}
       {...props}
     >
       {children}
@@ -56,7 +56,7 @@ const Btn = ({
 };
 
 const BadgeEl = ({ children }: { children: React.ReactNode }) => (
-  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
+  <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-white/10 text-white border border-white/20">
     {children}
   </span>
 );
@@ -65,15 +65,20 @@ const BadgeEl = ({ children }: { children: React.ReactNode }) => (
 
 function Header() {
   return (
-    <header className="h-20 flex items-center justify-between px-8 border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
-          <Bike className="w-5 h-5 text-white" />
+    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b-2 border-white/10 px-4 md:px-8 py-4 h-20 md:h-24 flex items-center justify-between">
+      <Link to="/store" className="flex items-center gap-3">
+        <div className="w-10 h-10 md:w-14 md:h-14 bg-[#EFFF00] text-black flex items-center justify-center hover:rotate-12 transition-transform">
+          <Bike className="w-6 h-6 md:w-8 md:h-8" strokeWidth={2.5} />
         </div>
-        <span className="font-black text-sm text-white uppercase tracking-widest">Fefo Bikes</span>
-      </div>
-      <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground">
-        <Package size={18} />
+        <div className="flex flex-col">
+          <span className="font-['Syne'] font-extrabold text-xl md:text-3xl tracking-tighter uppercase leading-none text-white">FEFO BIKES</span>
+          <span className="font-['Space_Grotesk'] font-bold text-[8px] md:text-[10px] uppercase tracking-[0.3em] text-white/50">PERFORMANCE R.</span>
+        </div>
+      </Link>
+      <div className="flex gap-4">
+        <Link to="/store" className="hidden sm:flex h-12 px-6 border-2 border-white text-[10px] font-['Syne'] font-bold text-white hover:bg-white hover:text-black transition-colors items-center uppercase tracking-widest">
+          VOLTAR À LOJA
+        </Link>
       </div>
     </header>
   );
@@ -81,13 +86,12 @@ function Header() {
 
 function Footer() {
   return (
-    <footer className="py-12 border-t border-border/50 bg-background flex flex-col items-center gap-4">
-      <div className="flex items-center gap-2 opacity-30">
-        <Bike size={20} />
-        <span className="text-[10px] font-black uppercase tracking-widest">Fefo Bikes © 2026</span>
+    <footer className="w-full bg-black border-t-2 border-white/20 py-16 px-8 flex flex-col items-center justify-center gap-6 mt-20">
+      <div className="font-['Syne'] font-black text-3xl md:text-5xl uppercase tracking-tighter text-white opacity-50">
+        FEFO BIKES.
       </div>
-      <p className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-widest">
-        Consultoria Premium de Performance
+      <p className="font-['Space_Grotesk'] text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] text-center">
+        Engineered in Sorocaba. Não aceitamos o segundo lugar.
       </p>
     </footer>
   );
@@ -95,68 +99,56 @@ function Footer() {
 
 function LoadingState() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
-          Preparando Experiência...
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="flex flex-col items-center gap-6">
+        <div className="w-16 h-16 border-4 border-white/20 border-t-[#EFFF00] rounded-full animate-spin" />
+        <span className="font-['Syne'] text-xs font-black uppercase tracking-[0.3em] animate-pulse">
+          LOADING PERFORMANCE...
         </span>
       </div>
     </div>
   );
 }
 
-// ─── Price Section ────────────────────────────────────────────────────────────
+// ─── Componentes Especiais ───────────────────────────────────────────────────
 
 function PriceSection({ product }: { product: any }) {
   const ecommercePrice = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
   const installmentsEnabledEcommerce = !!product.installments_enabled_ecommerce;
   const installmentCountEcommerce = Number(product.installment_count_ecommerce) || 0;
   const installmentValueEcommerce = Number(product.installment_value_ecommerce) || 0;
-  // Fallback to legacy fields
+  
   const installmentPrice = installmentsEnabledEcommerce ? installmentValueEcommerce : (Number(product.installment_price) || 0);
   const installmentCount = installmentsEnabledEcommerce ? installmentCountEcommerce : (Number(product.installment_count) || 1);
   const hasInstallments = installmentsEnabledEcommerce ? (installmentCountEcommerce > 1 && installmentValueEcommerce > 0) : (installmentPrice > 0 && installmentCount > 1);
-  const hasAnyPrice = ecommercePrice > 0 || hasInstallments;
-
-  if (!hasAnyPrice) return null;
+  
+  if (!ecommercePrice && !hasInstallments) return null;
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 border-l-4 border-[#0033FF] pl-6 md:pl-8 py-2">
       {ecommercePrice > 0 && (
-        <div className="relative overflow-hidden p-8 rounded-[40px] bg-gradient-to-br from-secondary to-card border border-primary/30 shadow-[0_20px_50px_rgba(41,82,255,0.15)] text-center group">
-          <div className="absolute -right-10 -top-10 opacity-[0.05] text-primary group-hover:rotate-12 transition-transform duration-700">
-            <Zap size={200} />
-          </div>
-          <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mb-2">
-            Valor à Vista
+        <div className="flex flex-col gap-1">
+          <p className="font-['Space_Grotesk'] text-[10px] font-bold text-[#EFFF00] uppercase tracking-[0.3em]">
+            PIX / Á VISTA
           </p>
-          <p className="text-3xl lg:text-5xl font-black text-white tracking-tighter mb-2">
+          <p className="font-['Syne'] text-5xl md:text-7xl font-black text-white tracking-tighter leading-none">
             {formatBRL(ecommercePrice)}
           </p>
-          <div className="flex items-center justify-center gap-2 text-muted-foreground text-xs font-bold uppercase tracking-widest">
-            <ShieldCheck size={14} className="text-emerald-500" />
-            Pagamento Seguro
-          </div>
         </div>
       )}
 
       {hasInstallments && (
-        <div className="p-6 bg-card border border-border rounded-[32px] flex items-center justify-between px-8 group hover:border-border/80 transition-colors cursor-pointer">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-muted-foreground group-hover:text-foreground/80 transition-colors">
+        <div className="pt-4 flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 border-2 border-white/20 flex items-center justify-center text-white/50">
               <CreditCard size={18} />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No Cartão</p>
-              <p className="text-sm font-bold text-foreground/90">
-                Ou {installmentCount}x de{" "}
-                <span className="text-white">{formatBRL(installmentPrice)}</span>
+              <p className="font-['Space_Grotesk'] text-[10px] font-bold text-white/50 uppercase tracking-widest">Cartão de Crédito</p>
+              <p className="font-['Space_Grotesk'] text-sm font-bold text-white">
+                {installmentCount}x de {formatBRL(installmentPrice)}
               </p>
             </div>
-          </div>
-          <div className="text-muted">
-            <ChevronRight size={20} />
           </div>
         </div>
       )}
@@ -164,29 +156,29 @@ function PriceSection({ product }: { product: any }) {
   );
 }
 
-// ─── Part Attributes Section ──────────────────────────────────────────────────
-
-function PartAttributesSection({ partId }: { partId: string }) {
-  const { data: attrs = [] } = usePublicPartAttributes(partId);
-  if (attrs.length === 0) return null;
-
+function ShippingSimulator() {
+  const [cep, setCep] = useState("");
   return (
-    <section className="space-y-4">
-      <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
-        <List size={14} className="text-primary" /> Características
-      </h2>
-      <div className="bg-card border border-border rounded-[32px] overflow-hidden divide-y divide-border/50">
-        {attrs.map((attr) => (
-          <div
-            key={attr.id}
-            className="flex justify-between items-center p-5 hover:bg-white/[0.02] transition-colors"
-          >
-            <span className="text-sm font-bold text-muted-foreground">{attr.name}</span>
-            <span className="text-sm font-black text-foreground">{attr.value}</span>
-          </div>
-        ))}
+    <div className="border-2 border-white/20 p-6 md:p-8 space-y-6 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#EFFF00]/5 -translate-y-1/2 translate-x-1/2 rounded-full blur-2xl pointer-events-none" />
+      <div className="flex items-center gap-3">
+        <Truck className="text-[#0033FF]" size={28} strokeWidth={2.5}/>
+        <h3 className="font-['Syne'] text-xl font-black uppercase tracking-tighter text-white">LOGÍSTICA / FRETE</h3>
       </div>
-    </section>
+      <p className="font-['Space_Grotesk'] text-white/50 text-sm">
+        Consulte prazos e valores de envio de alta performance para o seu CEP.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input 
+          type="text"
+          placeholder="00000-000"
+          value={cep}
+          onChange={e => setCep(e.target.value)}
+          className="flex-1 bg-white/5 border-2 border-white/20 h-14 px-6 font-['Space_Grotesk'] font-bold text-white text-lg tracking-widest outline-none focus:border-[#EFFF00] transition-colors"
+        />
+        <Btn variant="primary" className="h-14 sm:w-auto w-full px-10 text-xs">Calcular</Btn>
+      </div>
+    </div>
   );
 }
 
@@ -195,7 +187,6 @@ function PartAttributesSection({ partId }: { partId: string }) {
 export default function ProdutoPublico() {
   const { sku } = useParams<{ sku: string }>();
 
-  // Lógica real do Lovable — busca peça ou bike pelo SKU
   const { data: product, isLoading } = useQuery({
     queryKey: ["public-product", sku],
     enabled: !!sku,
@@ -218,7 +209,6 @@ export default function ProdutoPublico() {
     },
   });
 
-  // Componentes da bike — lógica real do Lovable
   const { data: bikeParts = [] } = useQuery({
     queryKey: ["public-bike-parts", product?.id],
     enabled: !!product && product._type === "bike",
@@ -232,50 +222,27 @@ export default function ProdutoPublico() {
     },
   });
 
+  const { data: attrs = [] } = usePublicPartAttributes(product?._type === "part" ? product.id : "");
+
   if (isLoading) return <LoadingState />;
 
-  // Produto não encontrado
-  if (!product) {
+  if (!product || !product.visible_on_storefront) {
     return (
-      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
+      <div className="min-h-screen bg-black text-white font-['Space_Grotesk'] flex flex-col">
         <Header />
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-          <div className="w-20 h-20 bg-background rounded-[32px] flex items-center justify-center text-muted-foreground/50">
-            <Package size={40} />
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-8">
+          <div className="w-32 h-32 border-2 border-white/10 flex items-center justify-center rotate-45">
+            <Package size={48} className="-rotate-45 opacity-50" />
           </div>
-          <div className="space-y-1">
-            <h2 className="text-xl font-black text-white">Produto não encontrado</h2>
-            <p className="text-muted-foreground text-sm max-w-xs">
-              Nenhum produto foi encontrado com este código.
+          <div className="space-y-4">
+            <h2 className="font-['Syne'] text-4xl md:text-6xl font-black uppercase tracking-tighter">OFFLINE</h2>
+            <p className="text-white/50 max-w-sm mx-auto">
+              Equipamento não localizado ou indisponível no momento.
             </p>
           </div>
-          <Btn variant="outline" onClick={() => window.history.back()}>
-            Voltar
-          </Btn>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Produto oculto
-  if (!product.visible_on_storefront) {
-    return (
-      <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
-        <Header />
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-          <div className="w-20 h-20 bg-background rounded-[32px] flex items-center justify-center text-muted-foreground/50">
-            <Package size={40} />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-xl font-black text-white">Produto Indisponível</h2>
-            <p className="text-muted-foreground text-sm max-w-xs">
-              Este item não está disponível para visualização no momento.
-            </p>
-          </div>
-          <Btn variant="outline" onClick={() => window.history.back()}>
-            Voltar para Loja
-          </Btn>
+          <Link to="/store">
+            <Btn variant="primary">VOLTAR AO CATÁLOGO</Btn>
+          </Link>
         </div>
         <Footer />
       </div>
@@ -285,196 +252,196 @@ export default function ProdutoPublico() {
   const images: string[] = (product as any).images || [];
   const category = product.category;
 
-  // Specs — lógica real do Lovable (suporte a peça e bike)
   const specs: { label: string; value: string; icon: React.ReactNode }[] = [];
   if (product._type === "bike") {
     const b = product as any;
-    if (b.brand) specs.push({ label: "Marca", value: b.brand, icon: <Info size={14} /> });
-    if (b.frame_size) specs.push({ label: "Quadro", value: b.frame_size, icon: <Settings size={14} /> });
-    if (b.rim_size) specs.push({ label: "Aro", value: b.rim_size, icon: <Settings size={14} /> });
-    if (b.color) specs.push({ label: "Cor", value: b.color, icon: <Settings size={14} /> });
-    if (b.weight_kg) specs.push({ label: "Peso", value: `${b.weight_kg} kg`, icon: <Info size={14} /> });
+    if (b.brand) specs.push({ label: "Marca", value: b.brand });
+    if (b.frame_size) specs.push({ label: "Quadro", value: b.frame_size });
+    if (b.rim_size) specs.push({ label: "Aro", value: b.rim_size });
+    if (b.color) specs.push({ label: "Cor", value: b.color });
+    if (b.weight_kg) specs.push({ label: "Peso", value: `${b.weight_kg} kg` });
   } else {
     const p = product as any;
-    if (p.material) specs.push({ label: "Material", value: p.material, icon: <Info size={14} /> });
-    if (p.weight_capacity_kg) specs.push({ label: "Capacidade", value: `${p.weight_capacity_kg} kg`, icon: <Info size={14} /> });
-    if (p.gears) specs.push({ label: "Marchas", value: p.gears, icon: <Settings size={14} /> });
-    if (p.hub_style) specs.push({ label: "Cubo", value: p.hub_style, icon: <Settings size={14} /> });
-    if (p.color) specs.push({ label: "Cor", value: p.color, icon: <Settings size={14} /> });
-    if (p.rim_size) specs.push({ label: "Aro", value: p.rim_size, icon: <Settings size={14} /> });
-    if (p.frame_size) specs.push({ label: "Quadro", value: p.frame_size, icon: <Settings size={14} /> });
+    if (p.material) specs.push({ label: "Material", value: p.material });
+    if (p.weight_capacity_kg) specs.push({ label: "Capacidade", value: `${p.weight_capacity_kg} kg` });
+    if (p.gears) specs.push({ label: "Marchas", value: p.gears });
+    if (p.hub_style) specs.push({ label: "Cubo", value: p.hub_style });
+    if (p.color) specs.push({ label: "Cor", value: p.color });
+    if (p.rim_size) specs.push({ label: "Aro", value: p.rim_size });
+    if (p.frame_size) specs.push({ label: "Quadro", value: p.frame_size });
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30 flex flex-col">
+    <div className="min-h-screen bg-black text-white font-['Space_Grotesk'] selection:bg-[#EFFF00] selection:text-black flex flex-col">
       <Header />
 
-      <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10 space-y-12">
-
-        {/* Hero */}
-        <section className="space-y-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                Catálogo Oficial
-              </span>
-              <div className="h-px flex-1 bg-muted/50" />
-            </div>
-            <h1 className="text-2xl lg:text-4xl font-black text-white tracking-tighter leading-none">
-              {product.name}
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="px-3 py-1 rounded-lg bg-background border border-border text-[10px] font-mono text-muted-foreground">
-              SKU: {sku}
-            </div>
-            {category && <BadgeEl>{category}</BadgeEl>}
-          </div>
-        </section>
-
-        {/* Galeria */}
-        <section className="relative">
-          {images.length > 0 ? (
-            <Carousel className="w-full group">
-              <CarouselContent>
-                {images.map((img, i) => (
-                  <CarouselItem key={i}>
-                    <div className="aspect-[4/3] rounded-[40px] overflow-hidden bg-card border border-border shadow-2xl">
-                      <img
-                        src={getOptimizedImageUrl(img, 800, 85) || img}
-                        alt={`${product.name} ${i + 1}`}
-                        loading={i === 0 ? "eager" : "lazy"}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {images.length > 1 && (
-                <div className="absolute inset-0 flex items-center justify-between px-4 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                  <CarouselPrevious className="pointer-events-auto h-12 w-12 bg-black/50 border-none backdrop-blur-md text-white" />
-                  <CarouselNext className="pointer-events-auto h-12 w-12 bg-black/50 border-none backdrop-blur-md text-white" />
-                </div>
-              )}
-            </Carousel>
-          ) : (
-            <div className="aspect-[4/3] rounded-[40px] bg-card border border-border flex items-center justify-center text-muted relative overflow-hidden">
-              {product._type === "bike" ? (
-                <Bike size={80} strokeWidth={1} />
-              ) : (
-                <Package size={80} strokeWidth={1} />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
-            </div>
-          )}
-        </section>
-
-        {/* Preço */}
-        <PriceSection product={product} />
-
-        {/* Descrição */}
-        {(product as any).description && (
-          <section className="bg-card border border-border rounded-[32px] p-8 space-y-4">
-            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-              <Info size={14} className="text-primary" /> Sobre o Produto
-            </h2>
-            <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{(product as any).description}</p>
-          </section>
-        )}
-
-        {/* Custom Attributes — only for parts */}
-        {product._type === "part" && <PartAttributesSection partId={product.id} />}
-
-        {/* Ficha Técnica */}
-        {specs.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-2">
-              Ficha Técnica
-            </h2>
-            <div className="bg-card border border-border rounded-[32px] overflow-hidden divide-y divide-border/50">
-              {specs.map((s, idx) => (
-                <div
-                  key={idx}
-                  className="flex justify-between items-center p-5 hover:bg-white/[0.02] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-muted-foreground/70">{s.icon}</div>
-                    <span className="text-sm font-bold text-muted-foreground">{s.label}</span>
-                  </div>
-                  <span className="text-sm font-black text-foreground">{s.value}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Componentes da Bike — lógica real: bp.parts?.name || bp.part_name_override */}
-        {product._type === "bike" && bikeParts.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-2">
-              Build & Componentes
-            </h2>
-            <div className="bg-card border border-border rounded-[32px] p-6 space-y-3">
-              {bikeParts.map((bp: any) => (
-                <div
-                  key={bp.id}
-                  className="flex items-center justify-between py-3 px-4 rounded-2xl bg-background/50 border border-border/50"
-                >
-                  <span className="text-xs font-bold text-foreground/80">
-                    {bp.parts?.name || bp.part_name_override || "Peça"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <div className="h-px w-8 bg-muted" />
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                      ×{bp.quantity}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Selos */}
-        <section className="grid grid-cols-2 gap-4">
-          <div className="p-6 bg-background/50 border border-border rounded-3xl flex flex-col items-center text-center space-y-2">
-            <ShieldCheck className="text-emerald-500" size={24} />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              Garantia Fefo
-            </span>
-          </div>
-          <div className="p-6 bg-background/50 border border-border rounded-3xl flex flex-col items-center text-center space-y-2">
-            <Truck className="text-indigo-400" size={24} />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              Retirada Local
-            </span>
-          </div>
-        </section>
-
-        {/* Call to Action Final */}
-        <section className="pt-10 space-y-4">
-          <Btn 
-            variant="primary" 
-            className="w-full h-16 uppercase tracking-[0.2em] shadow-2xl flex gap-3"
-            onClick={() => {
-              const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
-              useCart.getState().addItem(product, price);
-              import("sonner").then(({ toast }) => toast.success("Adicionado ao carrinho!"));
-            }}
-          >
-            <ShoppingBag size={20} /> Adicionar ao Carrinho
-          </Btn>
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 py-8 md:py-16">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
           
-          <button 
-            className="w-full h-14 rounded-2xl border border-border bg-transparent text-muted-foreground font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-            onClick={() => {
-              const whatsappUrl = `https://wa.me/5515996128054?text=${encodeURIComponent(`Olá, tenho interesse no produto ${product.name} (SKU: ${product.sku || ""})`)}`;
-              window.open(whatsappUrl, "_blank");
-            }}
-          >
-            Tenho Interesse <ArrowRight className="ml-2 w-4 h-4 inline" />
-          </button>
-        </section>
+          {/* LADO ESQUERDO: GALERIA E FICHA TÉCNICA */}
+          <div className="w-full lg:w-[55%] space-y-12">
+            
+            {/* Titulo Mobile */}
+            <div className="space-y-4 lg:hidden">
+               <div className="flex gap-2">
+                 <BadgeEl>{sku}</BadgeEl>
+                 {category && <BadgeEl>{category}</BadgeEl>}
+               </div>
+               <h1 className="font-['Syne'] text-4xl font-black uppercase tracking-tighter leading-none">
+                 {product.name}
+               </h1>
+            </div>
+
+            {/* Galeria */}
+            <section className="relative">
+              {images.length > 0 ? (
+                <Carousel className="w-full border-2 border-white/20 p-2 group">
+                  <CarouselContent>
+                    {images.map((img, i) => (
+                      <CarouselItem key={i}>
+                        <div className="aspect-square sm:aspect-[4/3] bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
+                          <img
+                            src={getOptimizedImageUrl(img, 1200, 85) || img}
+                            alt={`${product.name} ${i + 1}`}
+                            loading={i === 0 ? "eager" : "lazy"}
+                            className="w-full h-full object-contain filter grayscale-[0.2] transition-transform duration-700 hover:scale-105"
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {images.length > 1 && (
+                     <div className="absolute bottom-6 right-6 flex gap-2">
+                       <CarouselPrevious className="static transform-none bg-[#EFFF00] border-none text-black h-12 w-12 rounded-none hover:bg-white transition-colors" />
+                       <CarouselNext className="static transform-none bg-[#EFFF00] border-none text-black h-12 w-12 rounded-none hover:bg-white transition-colors" />
+                     </div>
+                  )}
+                </Carousel>
+              ) : (
+                <div className="aspect-square sm:aspect-[4/3] border-2 border-white/20 flex items-center justify-center text-white/10 bg-[#0A0A0A]">
+                  {product._type === "bike" ? <Bike size={120} strokeWidth={1} /> : <Package size={120} strokeWidth={1} />}
+                </div>
+              )}
+            </section>
+
+            {/* Descrição */}
+            {(product as any).description && (
+              <section className="space-y-6">
+                <h2 className="font-['Syne'] text-3xl font-black uppercase tracking-tighter">Detalhes</h2>
+                <p className="text-white/60 leading-relaxed font-['Space_Grotesk'] text-base md:text-lg whitespace-pre-line">
+                  {(product as any).description}
+                </p>
+              </section>
+            )}
+
+          </div>
+
+          {/* LADO DIREITO: INFO, PREÇO, ACTION */}
+          <div className="w-full lg:w-[45%] flex flex-col gap-12">
+            
+            {/* Título Desktop */}
+            <div className="hidden lg:block space-y-6">
+               <div className="flex gap-2">
+                 <BadgeEl>{sku}</BadgeEl>
+                 {category && <BadgeEl>{category}</BadgeEl>}
+               </div>
+               <h1 className="font-['Syne'] text-5xl xl:text-7xl font-black uppercase tracking-tighter leading-none break-words">
+                 {product.name}
+               </h1>
+            </div>
+
+            {/* Preço */}
+            <PriceSection product={product} />
+
+            {/* CTA */}
+            <section className="flex flex-col gap-4">
+              <Btn 
+                variant="primary" 
+                className="w-full h-20 text-sm md:text-base flex justify-between items-center px-8"
+                onClick={() => {
+                  const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
+                  useCart.getState().addItem(product, price);
+                  import("sonner").then(({ toast }) => toast.success("ADICIONADO AO CARRINHO", {
+                     style: { background: "#EFFF00", color: "#000", border: "2px solid #000" }
+                  }));
+                }}
+              >
+                <span>COMPRAR AGORA</span> <ArrowRight size={24} strokeWidth={3} />
+              </Btn>
+              
+              <Btn 
+                variant="outline" 
+                className="w-full h-16 text-xs md:text-sm text-white/70"
+                onClick={() => {
+                  const whatsappUrl = `https://wa.me/5515996128054?text=${encodeURIComponent(`SALVE! TENHO INTERESSE NA PERFORMANCE DA ${product.name} (SKU: ${product.sku || ""})`)}`;
+                  window.open(whatsappUrl, "_blank");
+                }}
+              >
+                FALE COM ESPECIALISTA VIA WHATSAPP
+              </Btn>
+            </section>
+
+            {/* Calculadora Frete */}
+            <ShippingSimulator />
+
+            {/* Componentes da Bike */}
+            {product._type === "bike" && bikeParts.length > 0 && (
+              <section className="space-y-6 pt-8 border-t-2 border-white/20">
+                <h2 className="font-['Syne'] text-2xl font-black uppercase tracking-tighter text-[#0033FF]">
+                  SPECS TÉCNICAS.
+                </h2>
+                <div className="flex flex-col border-2 border-white/20 divide-y-2 divide-white/10">
+                  {bikeParts.map((bp: any) => (
+                    <div key={bp.id} className="flex items-center justify-between p-4 group hover:bg-white/5 transition-colors">
+                      <span className="font-bold text-white uppercase font-['Space_Grotesk'] text-sm">
+                        {bp.parts?.name || bp.part_name_override || "PEÇA"}
+                      </span>
+                      <span className="font-['Syne'] font-black text-[#EFFF00]">
+                        ×{bp.quantity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Atributos Gerais */}
+            {(attrs.length > 0 || specs.length > 0) && (
+              <section className="space-y-6 pt-8 border-t-2 border-white/20">
+                <h2 className="font-['Syne'] text-2xl font-black uppercase tracking-tighter">
+                  INFORMAÇÕES.
+                </h2>
+                <div className="flex flex-col border-2 border-white/20 divide-y-2 divide-white/10">
+                  {[...specs, ...attrs].map((s: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                      <span className="font-bold text-white/50 uppercase font-['Space_Grotesk'] text-xs tracking-widest">{s.label || s.name}</span>
+                      <span className="font-bold text-white uppercase font-['Space_Grotesk'] text-sm tracking-widest">{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Garantia */}
+            <section className="grid grid-cols-2 gap-4 pt-8">
+              <div className="border-2 border-white/20 p-6 flex flex-col gap-4 text-white hover:border-[#EFFF00] transition-colors">
+                <ShieldCheck size={32} className="text-[#EFFF00]" />
+                <div>
+                   <p className="font-['Syne'] font-black uppercase text-sm">Garantia Fefo</p>
+                   <p className="font-['Space_Grotesk'] text-[10px] text-white/50 uppercase tracking-widest mt-1">90 DIAS ASSEGURADOS</p>
+                </div>
+              </div>
+              <div className="border-2 border-white/20 p-6 flex flex-col gap-4 text-white hover:border-[#0033FF] transition-colors">
+                <Truck size={32} className="text-[#0033FF]" />
+                <div>
+                   <p className="font-['Syne'] font-black uppercase text-sm">Logística</p>
+                   <p className="font-['Space_Grotesk'] text-[10px] text-white/50 uppercase tracking-widest mt-1">RETIRADA OU ENVIO BRASIL</p>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
       </main>
 
       <Footer />
