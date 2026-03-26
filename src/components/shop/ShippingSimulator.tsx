@@ -18,10 +18,10 @@ export function ShippingSimulator({ invoiceValue, productType = "bike", classNam
   const [result, setResult] = useState<any>(null);
 
   const steps = [
-    { icon: <Search size={18} />, text: "Consultando Rodonaves..." },
-    { icon: <MapPin size={18} />, text: "Localizando CEP..." },
-    { icon: <ShieldCheck size={18} />, text: "Calculando seguro e taxas..." },
-    { icon: <Sparkles size={18} />, text: "Finalizando cotação..." }
+    { icon: <Search size={18} />, text: "Verificando Regional" },
+    { icon: <MapPin size={18} />, text: "Localizando CEP" },
+    { icon: <ShieldCheck size={18} />, text: "Calculando Seguro" },
+    { icon: <Sparkles size={18} />, text: "Finalizando Cotação" }
   ];
 
   useEffect(() => {
@@ -173,7 +173,7 @@ export function ShippingSimulator({ invoiceValue, productType = "bike", classNam
                 </div>
 
                 {/* Steps List */}
-                <div className="space-y-3 pt-4">
+                <div className="space-y-3 pt-4 flex flex-col items-start w-full px-2">
                    {steps.map((step, idx) => (
                      <motion.div 
                       key={idx}
@@ -183,7 +183,7 @@ export function ShippingSimulator({ invoiceValue, productType = "bike", classNam
                         x: loadingStep === idx ? 5 : 0,
                         color: loadingStep === idx ? "#EFFF00" : "#ffffff44"
                       }}
-                      className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest"
+                      className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest whitespace-nowrap truncate"
                      >
                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${loadingStep === idx ? "border-[#EFFF00] bg-[#EFFF00]/10" : "border-white/5 bg-white/5"}`}>
                          {loadingStep > idx ? <ShieldCheck size={16} /> : step.icon}
