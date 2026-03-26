@@ -7,6 +7,9 @@ import { getOptimizedImageUrl } from "@/lib/image";
 import { CartDrawer } from "@/components/shop/CartDrawer";
 import { StoreChat } from "@/components/shop/StoreChat";
 import { Search, Bike, Package, ArrowRight, Loader2, Filter, ShoppingBag } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,76 +29,107 @@ interface PublicProduct {
 
 // ─── Componentes ─────────────────────────────────────────────────────────────
 
-function ProductCard({ p }: { p: PublicProduct }) {
+function ProductCard({ p, index }: { p: PublicProduct; index: number }) {
+  const { addItem } = useCart();
   const price = p.price_ecommerce || p.pix_price || p.sale_price || 0;
   const mainImage = p.images?.[0];
   const discount = p.price_ecommerce && p.pix_price && p.pix_price < p.price_ecommerce 
     ? Math.round(((p.price_ecommerce - p.pix_price) / p.price_ecommerce) * 100) 
     : 0;
 
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem(p, price);
+    toast.success(`${p.name} adicionado ao carrinho!`, {
+      description: "Confira seu carrinho para finalizar.",
+      duration: 3000,
+    });
+  };
+
   return (
-    <Link 
-      to={`/produto/${p.sku}`} 
-      className="group flex flex-col bg-[#0A0A0A] rounded-2xl border border-white/10 hover:border-white/20 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.5)] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00]"
-      aria-label={`Ver produto: ${p.name}, Preço atual: ${formatBRL(price)}`}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
+      className="w-full"
     >
-      {/* Imagem */}
-      <div className="aspect-[4/3] bg-white/5 relative flex items-center justify-center p-6 overflow-hidden">
-        {mainImage ? (
-          <img 
-            src={getOptimizedImageUrl(mainImage, 600, 80) || mainImage} 
-            alt={`Imagem do produto ${p.name}`}
-            loading="lazy"
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
-          />
-        ) : (
-          <div className="text-white/20">
-            {p._type === 'bike' ? <Bike size={48} strokeWidth={1} /> : <Package size={48} strokeWidth={1} />}
+      <Link 
+        to={`/produto/${p.sku}`} 
+        className="group flex flex-row sm:flex-col bg-[#0A0A0A] rounded-[20px] sm:rounded-[32px] border border-white/5 hover:border-[#EFFF00]/30 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EFFF00] relative items-center sm:items-stretch"
+        aria-label={`Ver produto: ${p.name}, Preço atual: ${formatBRL(price)}`}
+      >
+        {/* Imagem */}
+        <div className="w-[120px] h-[120px] sm:w-full sm:aspect-[4/3] bg-white/[0.02] relative flex items-center justify-center p-4 sm:p-8 shrink-0 overflow-hidden border-r sm:border-r-0 sm:border-b border-white/5">
+          {mainImage ? (
+            <img 
+              src={getOptimizedImageUrl(mainImage, 600, 80) || mainImage} 
+              alt={`Imagem do produto ${p.name}`}
+              loading="lazy"
+              className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            />
+          ) : (
+            <div className="text-white/5">
+              {p._type === 'bike' ? <Bike size={48} strokeWidth={1} /> : <Package size={48} strokeWidth={1} />}
+            </div>
+          )}
+          
+          {/* Badges Funcionais */}
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1 sm:gap-2">
+            {discount > 0 && (
+              <span className="bg-[#EFFF00] text-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black tracking-wider uppercase shadow-xl">
+                -{discount}%
+              </span>
+            )}
+            {p._type === 'bike' && (
+              <span className="bg-[#0033FF] text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black tracking-wider uppercase shadow-xl backdrop-blur-md">
+                Bike
+              </span>
+            )}
           </div>
-        )}
-        
-        {/* Badges Funcionais */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {discount > 0 && (
-             <span className="bg-[#EFFF00] text-black px-2.5 py-1 rounded-md text-xs font-bold tracking-wide">
-               {discount}% OFF
-             </span>
-          )}
-          {p._type === 'bike' && (
-             <span className="bg-[#0033FF] text-white px-2.5 py-1 rounded-md text-xs font-medium tracking-wide">
-               Bicicleta
-             </span>
-          )}
-        </div>
-      </div>
-      
-      {/* Informações */}
-      <div className="p-5 flex-1 flex flex-col gap-2">
-        <div className="space-y-1 mb-auto">
-          <p className="text-xs font-medium text-white/50 tracking-wide uppercase">
-            {p.category || 'Geral'}
-          </p>
-          <h3 className="text-[15px] font-medium text-white/90 leading-snug line-clamp-2 group-hover:text-white transition-colors">
-            {p.name}
-          </h3>
         </div>
         
-        <div className="mt-4 flex items-end justify-between">
-           <div className="flex flex-col">
-              {discount > 0 && <span className="text-xs text-white/50 line-through mb-0.5">{formatBRL(p.price_ecommerce || 0)}</span>}
-              <span className="text-lg font-semibold text-white">{formatBRL(price)}</span>
-           </div>
-           
-           {/* Adicionar ao Carrinho (Botão Mínimo de 44x44px em mobile) */}
-           <div 
-             className="w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-white/5 group-hover:bg-[#EFFF00] group-hover:text-black flex items-center justify-center transition-colors text-white/50 -mt-2 -mr-2 sm:mt-0 sm:mr-0"
-             aria-hidden="true"
-           >
-              <ShoppingBag size={18} />
-           </div>
+        {/* Informações */}
+        <div className="p-4 sm:p-6 flex-1 flex flex-col gap-0.5 sm:gap-1 justify-center sm:justify-start min-w-0">
+          <div className="space-y-0.5 sm:space-y-1 mb-1 sm:mb-2">
+            <span className="text-[9px] sm:text-[10px] font-black text-white/20 tracking-[0.2em] uppercase truncate block">
+              {p.category || 'Geral'}
+            </span>
+            <h3 className="text-[14px] sm:text-base font-bold text-white/90 leading-tight line-clamp-2 group-hover:text-white transition-colors">
+              {p.name}
+            </h3>
+          </div>
+          
+          <div className="mt-1 sm:mt-2 flex items-center justify-between">
+            <div className="flex flex-col">
+              {discount > 0 && (
+                <span className="text-[10px] sm:text-xs text-white/20 line-through mb-0 sm:mb-0.5 font-medium">
+                  {formatBRL(p.price_ecommerce || 0)}
+                </span>
+              )}
+              <span className="text-base sm:text-xl font-black text-[#EFFF00] tracking-tight">
+                {formatBRL(price)}
+              </span>
+            </div>
+            
+            {/* Adicionar ao Carrinho */}
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
+              onClick={handleQuickAdd}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/5 group-hover:bg-[#EFFF00] group-hover:text-black flex items-center justify-center transition-all shadow-lg active:shadow-inner border border-white/5 group-hover:border-transparent ml-2"
+              title="Adicionar ao Carrinho"
+              aria-label={`Adicionar ${p.name} ao carrinho`}
+            >
+              <ShoppingBag size={18} className="sm:size-5 group-hover:rotate-12 transition-transform" />
+            </motion.button>
+          </div>
         </div>
-      </div>
-    </Link>
+        
+        {/* Desktop-only Visual Line at Bottom */}
+        <div className="hidden sm:block absolute bottom-0 left-0 w-full h-1 bg-[#EFFF00] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+      </Link>
+    </motion.div>
   );
 }
 
@@ -285,9 +319,9 @@ export default function Store() {
               ))}
             </div>
           ) : displayProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {displayProducts.map(p => (
-                <ProductCard key={`${p._type}-${p.id}`} p={p} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+              {displayProducts.map((p, idx) => (
+                <ProductCard key={`${p._type}-${p.id}`} p={p} index={idx} />
               ))}
             </div>
           ) : (
