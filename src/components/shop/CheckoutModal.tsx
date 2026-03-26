@@ -112,115 +112,87 @@ export function CheckoutModal() {
                   </motion.div>
                 )}
 
-                {step === "summary" && !showCancelConfirm && (
-                   <motion.div key="summary" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
-                      <header className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
-                           <Package size={20} />
-                        </div>
-                        <div>
-                           <h2 className="text-xl font-black italic uppercase tracking-tighter">Resumo da Compra</h2>
-                           <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">Revise os valores para prosseguir</p>
-                        </div>
-                      </header>
- 
-                      <div className="bg-white/[0.02] border border-white/5 rounded-[24px] overflow-hidden">
-                         <div className="p-5 space-y-3 max-h-40 overflow-y-auto no-scrollbar border-b border-white/5">
-                            {items.map(item => (
-                               <div key={item.id} className="grid grid-cols-[1fr_auto] gap-4 items-start text-white/60">
-                                  <span className="text-[11px] font-bold leading-tight">{item.quantity}x {item.name}</span>
-                                  <span className="text-[11px] font-black text-white whitespace-nowrap">{formatBRL(item.price * item.quantity)}</span>
-                               </div>
-                            ))}
+                 {step === "summary" && !showCancelConfirm && (
+                    <motion.div key="summary" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
+                       <header className="flex items-center gap-3">
+                         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                            <Package size={20} />
                          </div>
-                         <div className="p-6 bg-white/[0.01] space-y-3">
-                            <div className="flex items-center justify-between text-white/30 text-[10px] font-bold uppercase tracking-widest">
-                               <span>Subtotal</span>
-                               <span>{formatBRL(cartTotal)}</span>
-                            </div>
-                            <div className="flex items-start justify-between">
-                               <div className="flex flex-col gap-0.5">
-                                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#EFFF00]">Entrega</span>
-                                  <span className="text-[9px] font-bold text-white/20 uppercase max-w-[140px] leading-tight flex items-center gap-1.5">
-                                     <Truck size={10} /> {shipping?.descricao}
-                                  </span>
-                               </div>
-                               <span className="text-sm font-black text-[#EFFF00]">{formatBRL(shipping?.valor || 0)}</span>
-                            </div>
-                            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                               <span className="text-lg font-black italic uppercase">Total</span>
-                               <span className="text-3xl font-black text-[#EFFF00] tracking-tighter shadow-sm">{formatBRL(finalTotal)}</span>
-                            </div>
+                         <div>
+                            <h2 className="text-xl font-black italic uppercase tracking-tighter">Resumo da Compra</h2>
+                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">Revise os valores para prosseguir</p>
                          </div>
-                      </div>
+                       </header>
+  
+                       <div className="bg-white/[0.02] border border-white/5 rounded-[24px] overflow-hidden">
+                          <div className="p-5 space-y-3 max-h-40 overflow-y-auto no-scrollbar border-b border-white/5">
+                             {items.map(item => (
+                                <div key={item.id} className="grid grid-cols-[1fr_auto] gap-4 items-start text-white/60">
+                                   <span className="text-[11px] font-bold leading-tight">{item.quantity}x {item.name}</span>
+                                   <span className="text-[11px] font-black text-white whitespace-nowrap">{formatBRL(item.price * item.quantity)}</span>
+                                </div>
+                             ))}
+                          </div>
+                          <div className="p-6 bg-white/[0.01] space-y-3">
+                             <div className="flex items-center justify-between text-white/30 text-[10px] font-bold uppercase tracking-widest">
+                                <span>Subtotal</span>
+                                <span>{formatBRL(cartTotal)}</span>
+                             </div>
+                             <div className="flex items-start justify-between">
+                                <div className="flex flex-col gap-0.5">
+                                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#EFFF00]">Entrega</span>
+                                   <span className="text-[9px] font-bold text-white/20 uppercase max-w-[140px] leading-tight flex items-center gap-1.5">
+                                      <Truck size={10} /> {shipping?.descricao}
+                                   </span>
+                                </div>
+                                <span className="text-sm font-black text-[#EFFF00]">{formatBRL(shipping?.valor || 0)}</span>
+                             </div>
+                             <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                <span className="text-lg font-black italic uppercase">Total</span>
+                                <span className="text-3xl font-black text-[#EFFF00] tracking-tighter shadow-sm">{formatBRL(finalTotal)}</span>
+                             </div>
+                          </div>
+                       </div>
+  
+                       <div className="flex flex-col gap-3">
+                          <button onClick={() => setStep("payment")} className="h-14 bg-[#EFFF00] text-black rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2">
+                             FINALIZAR PAGAMENTO <ArrowRight size={16} />
+                          </button>
+                          <button onClick={handleWhatsApp} className="h-14 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                             <MessageCircle size={16} /> SUPORTE
+                          </button>
+                          <button onClick={() => setShowCancelConfirm(true)} className="mt-2 text-[9px] font-black uppercase tracking-[0.4em] text-white/10 hover:text-red-500 transition-colors">
+                            CANCELAR COMPRA
+                          </button>
+                       </div>
+                    </motion.div>
+                  )}
  
-                      <div className="flex flex-col gap-3">
-                         <button onClick={() => setStep("info")} className="h-14 bg-[#EFFF00] text-black rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2">
-                            PROSSEGUIR <ArrowRight size={16} />
-                         </button>
-                         <button onClick={handleWhatsApp} className="h-14 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                            <MessageCircle size={16} /> SUPORTE
-                         </button>
-                         <button onClick={() => setShowCancelConfirm(true)} className="mt-2 text-[9px] font-black uppercase tracking-[0.4em] text-white/10 hover:text-red-500 transition-colors">
-                           CANCELAR COMPRA
-                         </button>
-                      </div>
-                   </motion.div>
+                 {showCancelConfirm && (
+                    <motion.div key="confirm" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="py-20 text-center space-y-8">
+                       <div className="w-20 h-20 bg-red-500/10 rounded-3xl mx-auto flex items-center justify-center text-red-500">
+                          <AlertTriangle size={36} />
+                       </div>
+                       <div className="space-y-4">
+                         <h2 className="text-3xl font-black uppercase tracking-tighter">Tem certeza?</h2>
+                         <p className="text-white/40 font-medium">Seu carrinho será mantido para quando você voltar.</p>
+                       </div>
+                       <div className="flex flex-col gap-4 max-w-xs mx-auto">
+                          <button onClick={handleClose} className="h-16 bg-red-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all">
+                             Sim, Cancelar
+                          </button>
+                          <button onClick={() => setShowCancelConfirm(false)} className="h-16 bg-white/5 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all">
+                             Não, Voltar ao Pedido
+                          </button>
+                       </div>
+                    </motion.div>
                  )}
-
-                {showCancelConfirm && (
-                   <motion.div key="confirm" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="py-20 text-center space-y-8">
-                      <div className="w-20 h-20 bg-red-500/10 rounded-3xl mx-auto flex items-center justify-center text-red-500">
-                         <AlertTriangle size={36} />
-                      </div>
-                      <div className="space-y-4">
-                        <h2 className="text-3xl font-black uppercase tracking-tighter">Tem certeza?</h2>
-                        <p className="text-white/40 font-medium">Seu carrinho será mantido para quando você voltar.</p>
-                      </div>
-                      <div className="flex flex-col gap-4 max-w-xs mx-auto">
-                         <button onClick={handleClose} className="h-16 bg-red-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all">
-                            Sim, Cancelar
-                         </button>
-                         <button onClick={() => setShowCancelConfirm(false)} className="h-16 bg-white/5 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all">
-                            Não, Voltar ao Pedido
-                         </button>
-                      </div>
-                   </motion.div>
-                )}
-
-                {step === "info" && (
-                   <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-10">
-                      <header className="space-y-2">
-                         <span className="text-[10px] font-black text-[#EFFF00] uppercase tracking-[0.4em]">Passo Final</span>
-                         <h2 className="text-4xl font-black italic uppercase tracking-tighter">Dados de Entrega</h2>
-                      </header>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div className="space-y-2">
-                           <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Nome</label>
-                           <input value={customer.nome} onChange={e=>setCustomer({...customer, nome: e.target.value})} className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white outline-none focus:border-[#EFFF00]" />
-                         </div>
-                         <div className="space-y-2">
-                           <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">WhatsApp</label>
-                           <input value={customer.telefone} onChange={e=>setCustomer({...customer, telefone: e.target.value})} className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white outline-none focus:border-[#EFFF00]" />
-                         </div>
-                         <div className="space-y-2">
-                           <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Email</label>
-                           <input value={customer.email} onChange={e=>setCustomer({...customer, email: e.target.value})} className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white outline-none focus:border-[#EFFF00]" />
-                         </div>
-                         <div className="space-y-2">
-                           <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">CPF</label>
-                           <input value={customer.cpf} onChange={e=>setCustomer({...customer, cpf: e.target.value})} className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white outline-none focus:border-[#EFFF00]" />
-                         </div>
-                      </div>
-                      <button onClick={()=>setStep("payment")} disabled={!customer.nome || !customer.cpf} className="w-full h-16 bg-[#EFFF00] text-black rounded-2xl font-black uppercase text-xs tracking-widest disabled:opacity-30">PAGAMENTO SEGURO</button>
-                   </motion.div>
-                )}
-
-                {step === "payment" && (
-                   <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                      <CheckoutForm items={items} shipping={shipping!} customer={customer} onSuccess={() => setStep("success")} onCancel={() => setStep("summary")} />
-                   </motion.div>
-                )}
+ 
+                 {step === "payment" && (
+                    <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                       <CheckoutForm items={items} shipping={shipping!} customer={customer} onSuccess={() => setStep("success")} onCancel={() => setStep("summary")} />
+                    </motion.div>
+                 )}
 
                 {step === "success" && (
                   <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="py-20 text-center space-y-8">

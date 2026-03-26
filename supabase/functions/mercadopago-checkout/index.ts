@@ -1,5 +1,4 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import MercadoPagoConfig, { Preference } from "https://esm.sh/mercadopago@2.0.11";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,25 +15,12 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const client = new MercadoPagoConfig({ 
-    accessToken: Deno.env.get("MP_ACCESS_TOKEN")!,
-    options: { timeout: 10000 } 
-  });
-  console.log("Token check:", Deno.env.get("MP_ACCESS_TOKEN")?.substring(0, 10));
-  const preference = new Preference(client);
+  const accessToken = Deno.env.get("MP_ACCESS_TOKEN");
 
   try {
     const url = new URL(req.url);
-    console.log(`Request received: ${req.method} ${url.pathname}`);
-
-    const accessToken = Deno.env.get("MP_ACCESS_TOKEN");
-    if (!accessToken) {
-       console.error("FATAL: MP_ACCESS_TOKEN not found in secrets!");
-       throw new Error("Configuração ausente: MP_ACCESS_TOKEN");
-    }
 
     if (req.method === "GET") {
-      // ... same GET logic ...
       const { data, error } = await supabase
         .from("store_sales")
         .select("*")
@@ -49,76 +35,100 @@ Deno.serve(async (req) => {
 
     if (req.method === "POST") {
       const body = await req.json();
-      console.log("Creating Payment Preference for:", body.cliente?.nome);
       const { itens, frete, cliente } = body;
 
-      if (!itens || !frete || !cliente) {
-        throw new Error("Dados obrigatórios ausentes: itens, frete ou cliente.");
+      if (!itens || !frete || !accessToken) {
+        throw new Error("Dados obrigatórios ausentes (itens ou frete).");
       }
 
-      try {
-        const preferenceResult = await preference.create({
-          body: {
-            items: [
-              ...itens.map((i: any) => ({
-                title: i.nome,
-                unit_price: Number(i.preco_unitario),
-                quantity: Number(i.quantidade),
-                currency_id: "BRL",
-              })),
-              {
-                title: `Frete: ${frete.descricao || "Rodonaves"}`,
-                unit_price: Number(frete.valor),
-                quantity: 1,
-                currency_id: "BRL",
-              }
-            ],
-            payer: {
-              name: cliente.nome,
-              email: cliente.email,
-              phone: { number: cliente.telefone },
-              identification: { type: "CPF", number: cliente.cpf?.replace(/\D/g, "") },
-            },
-            back_urls: {
-              success: "https://fefobikes.vercel.app/loja?status=success",
-              failure: "https://fefobikes.vercel.app/loja?status=failure",
-              pending: "https://fefobikes.vercel.app/loja?status=pending",
-            },
-            auto_return: "approved",
-            notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/mercadopago-webhook`,
-            external_reference: `${Date.now()}-${cliente.nome.substring(0, 10)}`,
-            metadata: {
-               customer_phone: cliente.telefone,
-               items: JSON.stringify(itens)
-            }
+      const freteValor = Number(frete.valor || 0);
+      if (isNaN(freteValor)) throw new Error("Valor de frete inválido.");
+
+      const payer: any = {
+        email: cliente?.email || "contato@fefobikes.com.br", // MP strictly requires an email
+      };
+
+      if (cliente?.nome) payer.name = cliente.nome;
+
+      // Conditional formatting for optional data
+      const phoneDigits = cliente?.telefone?.replace(/\D/g, "");
+      if (phoneDigits && phoneDigits.length >= 10) {
+        payer.phone = {
+          area_code: phoneDigits.slice(0, 2),
+          number: phoneDigits.slice(2, 11)
+        };
+      }
+
+      const cpfDigits = cliente?.cpf?.replace(/\D/g, "");
+      if (cpfDigits && cpfDigits.length >= 11) {
+        payer.identification = {
+          type: "CPF",
+          number: cpfDigits
+        };
+      }
+
+      const payload = {
+        items: [
+          ...itens.map((i: any) => ({
+            title: i.nome,
+            unit_price: Number(Number(i.preco_unitario).toFixed(2)),
+            quantity: Number(i.quantity),
+            currency_id: "BRL",
+          })),
+          {
+            title: `Frete: ${frete.descricao || "Entrega"}`,
+            unit_price: Number(freteValor.toFixed(2)),
+            quantity: 1,
+            currency_id: "BRL",
           }
-        });
+        ],
+        payer,
+        back_urls: {
+          success: "https://fefobikes.vercel.app/loja?status=success",
+          failure: "https://fefobikes.vercel.app/loja?status=failure",
+          pending: "https://fefobikes.vercel.app/loja?status=pending",
+        },
+        auto_return: "approved",
+        notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/mercadopago-webhook`,
+        external_reference: `${Date.now()}-checkout`,
+        metadata: {
+          shipping_description: frete.descricao
+        }
+      };
 
-        return new Response(JSON.stringify({
-          init_point: preferenceResult.init_point,
-          preference_id: preferenceResult.id,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      console.log("PAYLOAD MP DEBUG:", JSON.stringify(payload, null, 2));
 
-      } catch (mpErr: any) {
-        console.error("Mercado Pago SDK Error:", mpErr);
-        return new Response(JSON.stringify({ 
-          error: "O Mercado Pago recusou a conexão", 
-          details: mpErr.message 
-        }), {
-          status: 401, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      const mpResponse = await fetch("https://api.mercadopago.com/v1/checkout/preferences", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const mpData = await mpResponse.json();
+
+      if (!mpResponse.ok) {
+        console.error("MP API Error:", JSON.stringify(mpData));
+        const cause = mpData.cause?.map((c: any) => c.description).join(", ");
+        throw new Error(cause || mpData.message || "Falha ao gerar pagamento.");
       }
+
+      return new Response(JSON.stringify({
+        init_point: mpData.init_point,
+        preference_id: mpData.id,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: corsHeaders });
 
   } catch (err) {
-    console.error("Global Catch Error:", err);
+    console.error("Fatal Error:", err.message);
     return new Response(JSON.stringify({ 
-      error: "Falha técnica na função", 
+      error: "Falha na geração do pagamento", 
       details: err.message 
     }), {
       status: 400,
