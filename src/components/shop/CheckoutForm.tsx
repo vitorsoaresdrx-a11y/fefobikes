@@ -71,7 +71,6 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
 
         cardFormInstance = mp.cardForm({
           amount: total.toString(),
-          iframe: true,
           style: {
              customVariables: {
                 inputColor: '#ffffff',
@@ -198,10 +197,14 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
  
        {/* Card form UI */}
        <form id="cardForm" className="space-y-5">
-         {/* Card Holder Name (MP IFRAME) */}
+         {/* Card Holder Name (Standard Input) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Titular do Cartão</label>
-            <div id="cardholderName" className="w-full bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden relative z-10" style={{ height: '56px' }} />
+            <input 
+              id="cardholderName" 
+              placeholder="Nome impresso no cartão"
+              className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white focus:outline-none focus:border-[#EFFF00]/40 transition-all uppercase placeholder:text-white/10" 
+            />
          </div>
  
          {/* Card Number (MP IFRAME) */}
@@ -222,10 +225,13 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
             </div>
          </div>
  
-         {/* Installments Selection (MP IFRAME) */}
+         {/* Installments Selection (Standard Select) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Parcelamento</label>
-            <div id="installments" className="w-full bg-white/[0.04] border border-white/5 rounded-2xl overflow-hidden relative z-10" style={{ height: '56px' }} />
+            <select 
+               id="installments" 
+               className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white focus:outline-none focus:border-[#EFFF00]/40 transition-all appearance-none"
+            />
             <div id="issuer" className="hidden" />
             <input type="hidden" id="cardholderEmail" value={customer.email} />
          </div>
