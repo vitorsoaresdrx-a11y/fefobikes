@@ -25,7 +25,7 @@ import { ShippingSimulator } from "./ShippingSimulator";
 import { CheckoutModal } from "./CheckoutModal"; // Assuming CheckoutModal is in the same directory
 
 export function CartDrawer() {
-  const { items, removeItem, updateQuantity, addItem, totalItems, shipping, setShipping } = useCart();
+  const { items, removeItem, updateQuantity, addItem, shipping, setShipping } = useCart();
   const [addedItems, setAddedItems] = useState<string[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
@@ -51,6 +51,7 @@ export function CartDrawer() {
 
   const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
   const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
+  const finalTotal = total + (shipping?.valor || 0);
 
   const handleCheckout = () => {
     const itemsList = items.map(i => `- ${i.quantity}x ${i.name} (${formatBRL(i.price)})`).join('\n');
