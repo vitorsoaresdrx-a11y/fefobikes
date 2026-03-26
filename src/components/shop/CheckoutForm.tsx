@@ -81,7 +81,9 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
       }
     } catch (err: any) {
       console.error("Payment Error:", err);
-      toast.error("Erro no Checkout", { description: err.message || "Tente novamente mais tarde." });
+      toast.error("Erro no Checkout", { 
+        description: err.message || "Falha na conexão com a Supabase. Verifique sua rede." 
+      });
     } finally {
       setLoading(false);
     }
