@@ -1,5 +1,5 @@
 import { useState } from "react";
-import * as Drawer from "vaul";
+import { Drawer } from "vaul";
 import { 
   User, Mail, Phone, ShieldCheck, ArrowRight, CheckCircle2, 
   ChevronLeft, X, CreditCard, Package, MapPin, Loader2, Truck, 

@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { formatBRL } from "@/lib/format";
 import { getOptimizedImageUrl } from "@/lib/image";
-import { CartDrawer } from "@/components/shop/CartDrawer";
 import { StoreChat } from "@/components/shop/StoreChat";
 import { Search, Bike, Package, ArrowRight, Loader2, Filter, ShoppingBag, Sparkles, Bot } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
@@ -358,7 +357,6 @@ export default function Store() {
         </div>
       </footer>
 
-      <CartDrawer />
       <StoreChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );

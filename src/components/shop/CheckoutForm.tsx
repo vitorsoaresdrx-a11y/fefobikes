@@ -128,7 +128,7 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
     setupMP();
   }, []);
 
-  const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0) + shipping.valor;
+  const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0) + (shipping?.valor || 0);
 
   return (
     <motion.div 
