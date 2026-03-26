@@ -91,6 +91,7 @@ export function CheckoutModal() {
                       <div className="relative">
                          <MapPin size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20" />
                          <input 
+                           autoFocus
                            value={cep} 
                            onChange={e => {
                              const v = e.target.value.replace(/\D/g, "").slice(0, 8);

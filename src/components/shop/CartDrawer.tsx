@@ -193,8 +193,10 @@ export function CartDrawer() {
              <div className="flex flex-col gap-4">
                 <button 
                   onClick={() => {
-                    setCartOpen(false); // Close cart
-                    setCheckoutOpen(true); // Open checkout
+                    setCartOpen(false); // Close cart first
+                    setTimeout(() => {
+                      setCheckoutOpen(true); // Open checkout after a small delay to prevent aria-hidden/focus loop
+                    }, 150);
                   }} 
                   className="w-full h-16 bg-[#EFFF00] hover:bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all"
                 >

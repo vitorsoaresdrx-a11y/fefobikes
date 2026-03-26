@@ -153,34 +153,33 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
-          <div className="dark">
-            <Routes>
-              <Route path="/loja" element={
-                <Suspense fallback={<PageSkeleton />}>
-                  <Store />
-                </Suspense>
-              } />
-              <Route path="/produto/:sku" element={
-                <Suspense fallback={<PageSkeleton />}>
-                  <ProdutoPublico />
-                </Suspense>
-              } />
-              <Route path="/minha-garagem" element={
-                <Suspense fallback={<PageSkeleton />}>
-                  <MinhaConta />
-                </Suspense>
-              } />
-              <Route path="/minha-conta" element={
-                <Suspense fallback={<PageSkeleton />}>
-                  <MinhaConta />
-                </Suspense>
-              } />
-              <Route path="/*" element={<AuthGate />} />
-              <Route path="/jogar" element={<Jogar />} />
-            </Routes>
-            <CartDrawer />
-            <CheckoutModal />
-          </div>
+          <Routes>
+            <Route path="/loja" element={
+              <Suspense fallback={<PageSkeleton />}>
+                <Store />
+              </Suspense>
+            } />
+            <Route path="/produto/:sku" element={
+              <Suspense fallback={<PageSkeleton />}>
+                <ProdutoPublico />
+              </Suspense>
+            } />
+            <Route path="/minha-garagem" element={
+              <Suspense fallback={<PageSkeleton />}>
+                <MinhaConta />
+              </Suspense>
+            } />
+            <Route path="/minha-conta" element={
+              <Suspense fallback={<PageSkeleton />}>
+                <MinhaConta />
+              </Suspense>
+            } />
+            <Route path="/*" element={<AuthGate />} />
+            <Route path="/jogar" element={<Jogar />} />
+          </Routes>
+          
+          <CartDrawer />
+          <CheckoutModal />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
