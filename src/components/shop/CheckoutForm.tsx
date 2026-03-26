@@ -70,6 +70,9 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
              customVariables: {
                 inputColor: '#ffffff',
                 inputPlaceholderColor: 'rgba(255, 255, 255, 0.2)',
+                inputBackgroundColor: 'transparent',
+                inputFontSize: '14px',
+                inputFontWeight: '700',
              }
           },
           appearance: {
@@ -168,17 +171,10 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
  
        {/* Card form UI */}
        <form id="cardForm" className="space-y-5">
-         {/* Card Holder Name (Standard Input) */}
+         {/* Card Holder Name (MP IFRAME) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Titular do Cartão</label>
-            <div className="relative group">
-               <User className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[#EFFF00] transition-colors" size={18} />
-               <input 
-                 id="cardholderName" 
-                 placeholder="Nome impresso no cartão"
-                 className="w-full h-14 bg-white/[0.03] border border-white/5 rounded-2xl pl-14 pr-6 text-sm font-bold text-white focus:outline-none focus:border-[#EFFF00]/40 focus:bg-white/[0.06] transition-all placeholder:text-white/10 uppercase" 
-               />
-            </div>
+            <div id="cardholderName" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
          </div>
  
          {/* Card Number (MP IFRAME) */}
@@ -199,18 +195,12 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
             </div>
          </div>
  
-         {/* Installments Selection */}
+         {/* Installments Selection (MP IFRAME) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Parcelamento</label>
-            <div className="relative group">
-               <select 
-                  id="installments" 
-                  className="w-full h-14 bg-white/[0.03] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white appearance-none focus:outline-none focus:border-[#EFFF00]/40 focus:bg-white/[0.06] transition-all"
-               />
-               <ArrowRight className="absolute right-5 top-1/2 -translate-y-1/2 rotate-90 text-white/10 pointer-events-none" size={16} />
-               <div id="issuer" className="hidden" />
-               <input type="hidden" id="cardholderEmail" value={customer.email} />
-            </div>
+            <div id="installments" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
+            <div id="issuer" className="hidden" />
+            <input type="hidden" id="cardholderEmail" value={customer.email} />
          </div>
  
          {errorStatus && (
