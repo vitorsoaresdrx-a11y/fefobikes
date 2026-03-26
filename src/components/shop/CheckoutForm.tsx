@@ -59,8 +59,15 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
   const handlePayment = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("mercadopago-checkout", {
-        body: {
+      // Direct call to bypass SDK 401 quirks
+      const functionUrl = "https://cxyfwikrjtovvyvcyacl.supabase.co/functions/v1/mercadopago-checkout";
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': (supabase as any).supabaseKey, // Use the project anon key
+        },
+        body: JSON.stringify({
           itens: items.map(i => ({ 
             nome: i.name, 
             quantidade: i.quantity, 
@@ -68,10 +75,15 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
           })),
           frete: shipping,
           cliente: customer
-        }
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Erro ${response.status}: ${errText || "Falha na comunicação."}`);
+      }
+
+      const data = await response.json();
 
       if (data.init_point) {
         // Redirect to MP Checkout Pro
