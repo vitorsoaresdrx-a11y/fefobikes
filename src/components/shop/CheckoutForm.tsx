@@ -129,117 +129,121 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
   }, []);
 
   const total = items.reduce((acc, i) => acc + (i.price * i.quantity), 0) + (shipping?.valor || 0);
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-[#0A0A0A] border border-white/5 rounded-[40px] p-8 md:p-12 shadow-[0_50px_100px_rgba(0,0,0,0.8)] max-w-lg w-full relative overflow-hidden"
-    >
-      <div className="absolute top-0 right-0 p-8 text-white/5 pointer-events-none">
-        <LockKeyhole size={120} strokeWidth={1} />
-      </div>
-
-      <header className="space-y-6 mb-10 relative z-10">
-        <div className="flex items-center gap-4">
-           <div className="w-12 h-12 rounded-2xl bg-[#EFFF00] text-black flex items-center justify-center shadow-[0_10px_30px_rgba(239,255,0,0.2)]">
-              <CreditCard size={24} strokeWidth={2.5} />
-           </div>
-           <div>
-              <h2 className="text-2xl font-black italic uppercase tracking-tighter">Pagamento Seguro</h2>
-              <div className="flex items-center gap-2 mt-0.5">
-                 <ShieldCheck size={14} className="text-emerald-500" />
-                 <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Transação Criptografada</span>
-              </div>
-           </div>
-        </div>
-
-        <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center justify-between">
-           <div className="flex flex-col gap-1">
-             <span className="text-[10px] font-black text-white/20 uppercase tracking-widest leading-none">Total da Compra</span>
-             <span className="text-2xl font-black text-[#EFFF00]">{formatBRL(total)}</span>
-           </div>
-           <div className="text-right">
-             <span className="text-[10px] font-bold text-white/20 block mb-1">Items + Frete</span>
-             <span className="text-[11px] font-black text-white/60 uppercase bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">À vista ou Parcelado</span>
-           </div>
-        </div>
-      </header>
-
-      {/* Card Form Mercado Pago UI */}
-      <form id="cardForm" className="space-y-6 relative z-10">
-        <div className="grid grid-cols-1 gap-5">
-           <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Dados do Titular</label>
-              <input 
-                id="cardholderName" 
-                className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white focus:outline-none focus:border-[#EFFF00] transition-all placeholder:text-white/10" 
-              />
-           </div>
-
-           <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Número do Cartão</label>
-              <div id="cardNumber" className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 text-sm flex items-center transition-all" />
-           </div>
-
-           <div className="grid grid-cols-2 gap-5">
-              <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Validade</label>
-                 <div id="expirationDate" className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-4 flex items-center" />
-              </div>
-              <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">CVV</label>
-                 <div id="securityCode" className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-4 flex items-center" />
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 gap-5">
-              <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Opções de Parcelamento</label>
-                 <select 
-                    id="installments" 
-                    className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white appearance-none focus:outline-none focus:border-[#EFFF00] transition-all"
-                  />
-                  <div id="issuer" className="hidden" />
-                  <input type="hidden" id="cardholderEmail" value={customer.email} />
-              </div>
-           </div>
-        </div>
-
-        {errorStatus && (
-           <motion.div 
-             initial={{ opacity: 0, scale: 0.95 }} 
-             animate={{ opacity: 1, scale: 1 }}
-             className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-4 text-red-500"
-           >
-              <AlertCircle size={20} />
-              <p className="text-xs font-bold leading-relaxed">{ERROR_MAP[errorStatus] || "Erro ao processar. Verifique os dados."}</p>
-           </motion.div>
-        )}
-
-        <div className="pt-6 flex flex-col gap-4">
-           <button 
-             type="submit" 
-             disabled={loading}
-             className="w-full h-16 bg-[#EFFF00] text-black rounded-2xl font-black uppercase text-[13px] tracking-[0.2em] shadow-[0_20px_40px_rgba(239,255,0,0.15)] hover:bg-white transition-all flex items-center justify-center gap-4 active:scale-95 disabled:opacity-30"
-           >
-             {loading ? <Loader2 className="animate-spin" /> : <>CONFIRMAR PAGAMENTO <ArrowRight size={20} strokeWidth={3} /></>}
-           </button>
-           <button 
-             type="button" 
-             onClick={onCancel}
-             className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] hover:text-white transition-colors"
-           >
-             Cancelar Transação
-           </button>
-        </div>
-      </form>
-
-      <footer className="mt-10 flex items-center justify-center gap-4 grayscale opacity-20 pointer-events-none">
-         <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Mercado_Pago_logo.svg" className="h-4" alt="Mercado Pago" />
-         <div className="w-px h-3 bg-white/20" />
-         <span className="text-[9px] font-bold text-white uppercase tracking-widest">Checkout Transparente</span>
-      </footer>
-    </motion.div>
-  );
-}
+   return (
+     <div className="space-y-8 py-2">
+       {/* High-End Visual Header */}
+       <header className="space-y-6">
+         <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-xl bg-[#EFFF00] text-black flex items-center justify-center shadow-[0_0_20px_rgba(239,255,0,0.3)]">
+                  <CreditCard size={20} strokeWidth={2.5} />
+               </div>
+               <div>
+                  <h2 className="text-xl font-black italic uppercase tracking-tighter">Pagamento Seguro</h2>
+                  <div className="flex items-center gap-1.5 opacity-40">
+                     <ShieldCheck size={12} className="text-emerald-500" />
+                     <span className="text-[9px] font-bold uppercase tracking-widest">Criptografia RSA @ 256-bit</span>
+                  </div>
+               </div>
+            </div>
+            
+            <div className="text-right">
+               <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-0.5">Total à Pagar</span>
+               <span className="text-3xl font-black text-[#EFFF00] tracking-tighter italic">{formatBRL(total)}</span>
+            </div>
+         </div>
+       </header>
+ 
+       {/* Card form UI */}
+       <form id="cardForm" className="space-y-5">
+         {/* Card Holder Name (Standard Input) */}
+         <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Titular do Cartão</label>
+            <div className="relative group">
+               <User className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[#EFFF00] transition-colors" size={18} />
+               <input 
+                 id="cardholderName" 
+                 placeholder="Nome impresso no cartão"
+                 className="w-full h-14 bg-white/[0.03] border border-white/5 rounded-2xl pl-14 pr-6 text-sm font-bold text-white focus:outline-none focus:border-[#EFFF00]/40 focus:bg-white/[0.06] transition-all placeholder:text-white/10 uppercase" 
+               />
+            </div>
+         </div>
+ 
+         {/* Card Number (MP IFRAME) */}
+         <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Número do Cartão</label>
+            <div id="cardNumber" className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
+         </div>
+ 
+         {/* Expiry & CVV Grid */}
+         <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Validade</label>
+               <div id="expirationDate" className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
+            </div>
+            <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">CVV / CVC</label>
+               <div id="securityCode" className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
+            </div>
+         </div>
+ 
+         {/* Installments Selection */}
+         <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Parcelamento</label>
+            <div className="relative group">
+               <select 
+                  id="installments" 
+                  className="w-full h-14 bg-white/[0.03] border border-white/5 rounded-2xl px-6 text-sm font-bold text-white appearance-none focus:outline-none focus:border-[#EFFF00]/40 focus:bg-white/[0.06] transition-all"
+               />
+               <ArrowRight className="absolute right-5 top-1/2 -translate-y-1/2 rotate-90 text-white/10 pointer-events-none" size={16} />
+               <div id="issuer" className="hidden" />
+               <input type="hidden" id="cardholderEmail" value={customer.email} />
+            </div>
+         </div>
+ 
+         {errorStatus && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500"
+            >
+               <AlertCircle size={18} />
+               <p className="text-[11px] font-bold tracking-tight">{ERROR_MAP[errorStatus] || "Erro ao processar dados. Verifique e tente novamente."}</p>
+            </motion.div>
+         )}
+ 
+         <div className="pt-4 flex flex-col gap-4">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full h-16 bg-[#EFFF00] text-black rounded-2xl font-black uppercase text-[13px] tracking-[0.2em] shadow-[0_20px_40px_rgba(239,255,0,0.2)] hover:bg-white transition-all flex items-center justify-center gap-4 active:scale-95 disabled:opacity-30 disabled:pointer-events-none group"
+            >
+              {loading ? (
+                <div className="flex items-center gap-3">
+                   <Loader2 className="animate-spin" size={20} />
+                   <span className="animate-pulse">PROCESSANDO...</span>
+                </div>
+              ) : (
+                <>CONFIRMAR PAGAMENTO <div className="p-1 bg-black/10 rounded-lg group-hover:bg-black/5 transition-colors"><ArrowRight size={18} strokeWidth={3} /></div></>
+              )}
+            </button>
+            <button 
+              type="button" 
+              onClick={onCancel}
+              className="text-[9px] font-black text-white/10 uppercase tracking-[0.6em] hover:text-white transition-colors py-2"
+            >
+              Voltar ao pedido
+            </button>
+         </div>
+       </form>
+ 
+       <footer className="pt-2 flex items-center justify-center gap-5 grayscale opacity-20 pointer-events-none">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Mercado_Pago_logo.svg" className="h-4" alt="Mercado Pago" />
+          <div className="w-px h-3 bg-white/20" />
+          <div className="flex items-center gap-2">
+             <Lock size={10} />
+             <span className="text-[8px] font-black text-white uppercase tracking-widest">Transação 100% Protegida</span>
+          </div>
+       </footer>
+     </div>
+   );
+ }
