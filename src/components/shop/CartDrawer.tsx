@@ -79,10 +79,10 @@ export function CartDrawer() {
         <motion.div
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-sm px-4"
+          className="fixed bottom-6 inset-x-0 z-[60] flex justify-center px-4 pointer-events-none"
         >
           <button 
-            className="w-full h-16 bg-[#EFFF00] rounded-[24px] shadow-[0_20px_50px_rgba(239,255,0,0.3)] flex items-center justify-center gap-6 text-black active:scale-[0.98] transition-all group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#EFFF00]/50 border-2 border-transparent hover:border-black/5 relative overflow-hidden"
+            className="w-full max-w-[360px] h-16 bg-[#EFFF00] rounded-[24px] shadow-[0_25px_50px_rgba(239,255,0,0.3)] flex items-center justify-center gap-6 text-black active:scale-[0.98] transition-all group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#EFFF00]/50 border-2 border-transparent hover:border-black/5 relative overflow-hidden pointer-events-auto"
             aria-label={`Carrinho com ${totalItems} itens, Total de ${formatBRL(total)}`}
           >
             <div className="flex items-center gap-2 relative z-10 shrink-0">
