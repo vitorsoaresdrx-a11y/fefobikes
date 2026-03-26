@@ -63,6 +63,15 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
         const cardForm = mp.cardForm({
           amount: total.toString(),
           iframe: true,
+          style: {
+             customVariables: {
+                inputColor: '#ffffff',
+                inputPlaceholderColor: 'rgba(255, 255, 255, 0.2)',
+             }
+          },
+          appearance: {
+            theme: 'dark'
+          },
           form: {
             id: "cardForm",
             cardNumber: { id: "cardNumber", placeholder: "Número do Cartão" },
@@ -172,18 +181,18 @@ export function CheckoutForm({ items, shipping, customer, onSuccess, onCancel }:
          {/* Card Number (MP IFRAME) */}
          <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Número do Cartão</label>
-            <div id="cardNumber" className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
+            <div id="cardNumber" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-6 flex items-center transition-all focus-within:border-[#EFFF00]/40" />
          </div>
  
          {/* Expiry & CVV Grid */}
          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">Validade</label>
-               <div id="expirationDate" className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
+               <div id="expirationDate" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
             </div>
             <div className="space-y-2">
                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 ml-2">CVV / CVC</label>
-               <div id="securityCode" className="w-full h-14 bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
+               <div id="securityCode" className="w-full h-14 min-h-[56px] bg-white/[0.04] border border-white/5 rounded-2xl px-5 flex items-center" />
             </div>
          </div>
  
