@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   User, 
-  History, 
   Bike, 
   Package, 
   Wrench, 
@@ -14,15 +13,20 @@ import {
   Lock,
   Calendar,
   CheckCircle2,
-  Clock
+  ChevronRight,
+  ShieldCheck,
+  History,
+  Phone,
+  LayoutGrid
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatBRL } from "@/lib/format";
-import { maskPhone, maskCpfCnpj } from "@/lib/masks";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export default function MinhaConta() {
+  const [method, setMethod] = useState<"phone" | "cpf">("phone");
   const [identifier, setIdentifier] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const [searchDone, setSearchDone] = useState(false);
 
   // Search logic
@@ -31,24 +35,27 @@ export default function MinhaConta() {
     enabled: false,
     queryFn: async () => {
       const cleanId = identifier.replace(/\D/g, "");
+      if (cleanId.length < 8) throw new Error("Identificador muito curto.");
+
+      const queryIdentifier = method === "phone" 
+        ? `whatsapp.ilike.%${cleanId.slice(-8)}%` 
+        : `cpf.eq.${cleanId}`;
       
-      // 1. Find Customer
-      const { data: customer } = await supabase
+      const { data: customer, error: custError } = await supabase
         .from("customers")
         .select("*")
-        .or(`whatsapp.ilike.%${cleanId.slice(-8)}%,cpf.eq.${cleanId}`)
+        .or(queryIdentifier)
         .maybeSingle();
 
+      if (custError) throw custError;
       if (!customer) return null;
 
-      // 2. Find Service Orders
       const { data: orders } = await supabase
         .from("service_orders")
         .select("*")
         .eq("customer_id", customer.id)
         .order("created_at", { ascending: false });
 
-      // 3. Find Sales
       const { data: sales } = await supabase
         .from("sales")
         .select("*, sale_items(*)")
@@ -60,198 +67,347 @@ export default function MinhaConta() {
   });
 
   const handleSearch = () => {
-    if (identifier.length < 8) return;
-    setIsSearching(true);
-    refetch().then(() => {
-      setIsSearching(false);
-      setSearchDone(true);
+    if (identifier.length < 8) {
+      toast.error("Entrada inválida", { description: "Por favor, digite seu CPF ou WhatsApp completo." });
+      return;
+    }
+    refetch().then(({ data }) => {
+      if (!data) {
+        toast.error("Não encontrado", { description: "Nenhum cadastro vinculado a este dado foi localizado." });
+      } else {
+        setSearchDone(true);
+      }
     });
   };
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+  // Masking
+  useEffect(() => {
+    if (method === "phone") {
+      let val = identifier.replace(/\D/g, "");
+      if (val.length > 11) val = val.slice(0, 11);
+      if (val.length > 10) {
+        setIdentifier(`(${val.slice(0, 2)}) ${val.slice(2, 7)}-${val.slice(7)}`);
+      } else if (val.length > 5) {
+        setIdentifier(`(${val.slice(0, 2)}) ${val.slice(2, 6)}-${val.slice(6)}`);
+      } else if (val.length > 2) {
+        setIdentifier(`(${val.slice(0, 2)}) ${val.slice(2)}`);
+      } else if (val.length > 0) {
+        setIdentifier(`(${val}`);
+      }
+    } else {
+      let val = identifier.replace(/\D/g, "");
+      if (val.length > 11) val = val.slice(0, 11);
+      if (val.length > 9) {
+        setIdentifier(`${val.slice(0, 3)}.${val.slice(3, 6)}.${val.slice(6, 9)}-${val.slice(9)}`);
+      } else if (val.length > 6) {
+        setIdentifier(`${val.slice(0, 3)}.${val.slice(3, 6)}.${val.slice(6)}`);
+      } else if (val.length > 3) {
+        setIdentifier(`${val.slice(0, 3)}.${val.slice(3)}`);
+      }
+    }
+  }, [method]); // Run on method change to reset or similar
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (method === "phone") {
+        if (val.length > 11) val = val.slice(0, 11);
+        if (val.length > 10) {
+          setIdentifier(`(${val.slice(0, 2)}) ${val.slice(2, 7)}-${val.slice(7)}`);
+        } else if (val.length > 6) {
+          setIdentifier(`(${val.slice(0, 2)}) ${val.slice(2, 6)}-${val.slice(6)}`);
+        } else if (val.length > 2) {
+          setIdentifier(`(${val.slice(0, 2)}) ${val.slice(2)}`);
+        } else {
+          setIdentifier(val);
+        }
+    } else {
+        if (val.length > 11) val = val.slice(0, 11);
+        if (val.length > 9) {
+          setIdentifier(`${val.slice(0, 3)}.${val.slice(3, 6)}.${val.slice(6, 9)}-${val.slice(9)}`);
+        } else if (val.length > 6) {
+          setIdentifier(`${val.slice(0, 3)}.${val.slice(3, 6)}.${val.slice(6)}`);
+        } else if (val.length > 3) {
+          setIdentifier(`${val.slice(0, 3)}.${val.slice(3)}`);
+        } else {
+          setIdentifier(val);
+        }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
-      {/* Header */}
-      <header className="p-6 border-b border-border bg-card/30 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link to="/loja" className="p-2 -ml-2 rounded-xl hover:bg-muted text-muted-foreground transition-all">
-            <ArrowLeft size={20} />
+    <div className="min-h-screen bg-black text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black">
+      
+      {/* ── HEADER ────────────────────────────────────────────────────────── */}
+      <header className="fixed top-0 inset-x-0 z-[100] h-20 bg-black/80 backdrop-blur-2xl border-b border-white/5 px-6">
+        <div className="max-w-5xl mx-auto h-full flex items-center justify-between">
+          <Link to="/loja" className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90">
+            <ArrowLeft size={18} />
           </Link>
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest">Acesso do Cliente</span>
-            <h1 className="text-sm font-black text-white italic uppercase tracking-tighter">Fefo Bikes</h1>
+            <h1 className="text-xl font-black italic uppercase tracking-tighter">Minha Garagem</h1>
+            <span className="text-[10px] font-black text-[#EFFF00] uppercase tracking-[0.2em] opacity-60">Fefo Bikes Hub</span>
           </div>
-          <div className="w-9" /> {/* Spacer */}
+          <Link to="/minha-conta" className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white">
+            <User size={18} />
+          </Link>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-6 space-y-10">
-        {!searchDone ? (
-          <div className="py-12 md:py-20 space-y-8 text-center animate-in fade-in slide-in-from-bottom-5">
-            <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto text-primary">
-              <Lock size={40} className="animate-pulse" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-3xl font-black text-white italic uppercase">Minha Garagem</h2>
-              <p className="text-muted-foreground font-medium text-sm">Acesse seu histórico de manutenções e compras usando seu WhatsApp ou CPF.</p>
-            </div>
-
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="relative group">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <input 
-                  type="text"
-                  placeholder="Seu WhatsApp ou CPF"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="w-full h-16 bg-card border border-border rounded-2xl pl-12 pr-6 text-base font-bold text-white outline-none focus:border-primary transition-all placeholder:text-muted-foreground/30 shadow-2xl shadow-black/20"
-                />
-              </div>
-              <button 
-                onClick={handleSearch}
-                disabled={identifier.length < 8 || isSearching}
-                className="w-full h-16 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-              >
-                {isSearching ? <Loader2 className="animate-spin" /> : <>Entrar <Search size={20} /></>}
-              </button>
-            </div>
-            
-            <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.3em] pt-10">Sua privacidade é nossa prioridade</p>
-          </div>
-        ) : !customerData ? (
-          <div className="py-20 text-center space-y-6 animate-in zoom-in-95">
-            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto text-red-500">
-              <Lock size={32} />
-            </div>
-            <div className="space-y-2">
-              <p className="text-lg font-bold text-white">Oops! Não encontramos nada.</p>
-              <p className="text-muted-foreground text-sm">Verifique se o número ou CPF está correto ou fale conosco se for seu primeiro acesso.</p>
-            </div>
-            <button 
-              onClick={() => setSearchDone(false)}
-              className="text-primary font-black uppercase text-xs tracking-widest hover:underline"
+      <main className="max-w-5xl mx-auto px-6 pt-28 pb-32">
+        <AnimatePresence mode="wait">
+          {!searchDone ? (
+            <motion.div 
+              key="auth"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="max-w-md mx-auto py-12 flex flex-col items-center text-center gap-10"
             >
-              Tentar outro número
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-10 animate-in fade-in zoom-in-95 duration-500">
-            {/* User Greeting */}
-            <div className="bg-card border border-border rounded-[40px] p-8 md:p-10 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary/10 transition-colors" />
-              <div className="relative space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
-                    <User size={28} />
+              <div className="w-24 h-24 bg-[#EFFF00] rounded-[32px] flex items-center justify-center text-black shadow-[0_20px_40px_rgba(239,255,0,0.2)]">
+                <Lock size={44} strokeWidth={2.5} className="animate-pulse" />
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-4xl font-black italic uppercase tracking-tighter leading-none">Bem-vindo à Garagem</h2>
+                <p className="text-white/40 text-[13px] font-medium max-w-xs mx-auto leading-relaxed">Acesse seu histórico completo de manutenções, peças e garantias com total segurança.</p>
+              </div>
+
+              <div className="w-full space-y-6">
+                {/* Method Switcher */}
+                <div className="grid grid-cols-2 p-1.5 bg-white/[0.03] border border-white/5 rounded-2xl h-14">
+                  <button 
+                    onClick={() => { setMethod("phone"); setIdentifier(""); }}
+                    className={`flex items-center justify-center gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${method === "phone" ? "bg-white text-black shadow-lg" : "text-white/30 hover:text-white"}`}
+                  >
+                    <Phone size={14} /> WhatsApp
+                  </button>
+                  <button 
+                    onClick={() => { setMethod("cpf"); setIdentifier(""); }}
+                    className={`flex items-center justify-center gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${method === "cpf" ? "bg-white text-black shadow-lg" : "text-white/30 hover:text-white"}`}
+                  >
+                    <ShieldCheck size={14} /> CPF
+                  </button>
+                </div>
+
+                <div className="relative group">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[#EFFF00]/40 group-focus-within:text-[#EFFF00] transition-colors pointer-events-none">
+                    {method === "phone" ? <Phone size={20} /> : <User size={20} />}
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Eae, {customerData.customer.name.split(' ')[0]}!</h2>
-                    <p className="text-muted-foreground text-sm font-medium">Bem-vindo à sua garagem particular.</p>
+                  <input 
+                    type="text"
+                    placeholder={method === "phone" ? "(15) 00000-0000" : "000.000.000-00"}
+                    value={identifier}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    className="w-full h-16 bg-white/[0.03] border-2 border-white/5 rounded-2xl pl-16 pr-6 text-lg font-black text-white focus:outline-none focus:border-[#EFFF00] focus:bg-white/[0.05] transition-all placeholder:text-white/10"
+                  />
+                </div>
+
+                <button 
+                  onClick={handleSearch}
+                  disabled={isLoading}
+                  className="w-full h-16 bg-[#EFFF00] text-black rounded-2xl font-black uppercase text-[13px] tracking-[0.2em] shadow-[0_20px_40px_rgba(239,255,0,0.15)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-30"
+                >
+                  {isLoading ? <Loader2 size={24} className="animate-spin" /> : <>AUTENTICAR <ChevronRight size={20} strokeWidth={3} /></>}
+                </button>
+              </div>
+
+              <div className="pt-6">
+                <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">Fefo Bikes Data Security</p>
+              </div>
+            </motion.div>
+          ) : !customerData ? (
+             <motion.div 
+               key="error"
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
+               className="max-w-md mx-auto py-20 text-center space-y-8"
+             >
+               <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto text-red-500">
+                  <Lock size={40} />
+               </div>
+               <div className="space-y-4">
+                 <h2 className="text-2xl font-black uppercase italic tracking-tight">Registro não localizado</h2>
+                 <p className="text-white/40 text-sm font-medium leading-relaxed">Não encontramos dados vinculados a este {method === "phone" ? "WhatsApp" : "CPF"}. Verifique o número digitado ou fale com um consultor.</p>
+               </div>
+               <button 
+                 onClick={() => setSearchDone(false)}
+                 className="h-14 px-8 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95"
+               >
+                 Tentar outro acesso
+               </button>
+             </motion.div>
+          ) : (
+            <motion.div 
+              key="dashboard"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-12 animate-in fade-in duration-700"
+            >
+              {/* Profile Card */}
+              <div className="bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 rounded-[40px] p-8 md:p-12 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[#EFFF00]/5 rounded-full -mr-40 -mt-40 blur-[80px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#0033FF]/5 rounded-full -ml-32 -mb-32 blur-[80px] pointer-events-none" />
+                
+                <div className="relative flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-10">
+                  <div className="w-24 h-24 rounded-[32px] bg-[#EFFF00] text-black flex items-center justify-center shadow-[0_20px_40px_rgba(239,255,0,0.2)]">
+                     <User size={44} strokeWidth={2.5} />
+                  </div>
+                  <div className="flex-1 text-center md:text-left space-y-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black text-[#EFFF00] uppercase tracking-[0.3em]">Proprietário Logado</span>
+                      <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">{customerData.customer.name.split(' ')[0]}</h2>
+                    </div>
+                    <div className="flex flex-wrap justify-center md:justify-start gap-3">
+                       <div className="px-5 py-2.5 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center gap-3">
+                          <History size={14} className="text-[#EFFF00]" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Desde {formatDate(customerData.customer.created_at)}</span>
+                       </div>
+                       <div className="px-5 py-2.5 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center gap-3">
+                          <CheckCircle2 size={14} className="text-[#0033FF]" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#0033FF]">Verificado</span>
+                       </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Service History - GARAGEM */}
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-white uppercase italic tracking-widest flex items-center gap-3">
-                  <Wrench className="text-primary" /> Minha Garagem
-                </h3>
-                <span className="bg-card border border-border px-3 py-1 rounded-full text-[10px] font-black text-muted-foreground uppercase">{customerData.orders?.length || 0} Atendimentos</span>
+              {/* Stats Hub */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 {[
+                   { label: "Manutenções", val: customerData.orders?.length || 0, icon: <Wrench size={20} />, color: "text-[#EFFF00]" },
+                   { label: "Compras", val: customerData.sales?.length || 0, icon: <Package size={20} />, color: "text-[#0033FF]" },
+                   { label: "Bikes", val: new Set(customerData.orders?.map((o: any) => o.bike_name)).size || 0, icon: <Bike size={20} />, color: "text-white" },
+                   { label: "Garantias", val: "Ativas", icon: <ShieldCheck size={20} />, color: "text-emerald-400" }
+                 ].map((stat, i) => (
+                   <div key={i} className="bg-white/[0.02] border border-white/5 p-6 rounded-[28px] space-y-1 hover:bg-white/[0.04] transition-all">
+                      <div className={`p-2 w-10 h-10 rounded-xl mb-4 bg-white/5 flex items-center justify-center ${stat.color}`}>{stat.icon}</div>
+                      <p className="text-2xl font-black">{stat.val}</p>
+                      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{stat.label}</p>
+                   </div>
+                 ))}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {customerData.orders?.map((order: any) => (
-                  <div key={order.id} className="bg-card/50 border border-border rounded-[32px] p-6 hover:border-primary/30 transition-all group">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        <Calendar size={12} /> {formatDate(order.created_at)}
-                      </div>
-                      <div className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
-                        order.status === 'completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-                      }`}>
-                        {order.status === 'completed' ? 'Concluído' : 'Em Manutenção'}
-                      </div>
-                    </div>
-                    
-                    <h4 className="text-base font-black text-white uppercase mb-1">{order.bike_name || "Bicicleta"}</h4>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed italic">{order.problem}</p>
-                    
-                    <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                      <div className="text-[10px] font-bold text-muted-foreground">
-                        VALOR: <span className="text-white font-black">{formatBRL(order.price)}</span>
-                      </div>
-                      <div className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                        <User size={10} strokeWidth={3} /> {order.mechanic_name || "Fefo Gears"}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {(!customerData.orders || customerData.orders.length === 0) && (
-                  <div className="col-span-full py-10 bg-muted/5 border border-border/50 border-dashed rounded-[32px] text-center space-y-3">
-                     <Bike className="mx-auto opacity-20" size={32} />
-                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nenhuma bike na garagem ainda.</p>
-                  </div>
-                )}
-              </div>
-            </section>
+              {/* Garagem Section */}
+              <section className="space-y-8">
+                 <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 rounded-xl bg-[#EFFF00]/10 text-[#EFFF00] flex items-center justify-center">
+                      <Bike size={20} />
+                   </div>
+                   <h3 className="text-xl font-black italic uppercase tracking-tighter">Minha Garagem Particular</h3>
+                 </div>
 
-            {/* Shopping History */}
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-white uppercase italic tracking-widest flex items-center gap-3">
-                  <Package className="text-primary" /> Histórico de Compras
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                {customerData.sales?.map((sale: any) => (
-                  <div key={sale.id} className="bg-card/50 border border-border rounded-3xl p-5 hover:border-primary/20 transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                       <span className="text-[10px] font-black text-muted-foreground">{formatDate(sale.created_at)}</span>
-                       <span className="text-sm font-black text-white">{formatBRL(sale.total)}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {sale.sale_items?.map((item: any, idx: number) => (
-                        <div key={idx} className="bg-background/80 border border-border/50 px-3 py-1.5 rounded-xl text-[10px] font-bold text-muted-foreground">
-                          {item.quantity}x {item.description}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {customerData.orders?.map((order: any) => (
+                      <motion.div 
+                        whileHover={{ y: -5 }}
+                        key={order.id} 
+                        className="bg-white/[0.02] border border-white/5 rounded-[32px] p-6 lg:p-8 relative overflow-hidden group shadow-2xl"
+                      >
+                        <div className="absolute top-0 right-0 p-6 flex flex-col items-end gap-2">
+                           <div className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                             order.status === 'completed' 
+                             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]' 
+                             : 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.1)] animate-pulse'
+                           }`}>
+                             {order.status === 'completed' ? 'Finalizado' : 'Mecânica'}
+                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
 
-                {(!customerData.sales || customerData.sales.length === 0) && (
-                  <div className="py-10 bg-muted/5 border border-border/50 border-dashed rounded-[32px] text-center space-y-3">
-                     <Package className="mx-auto opacity-20" size={32} />
-                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nenhuma compra registrada.</p>
-                  </div>
-                )}
-              </div>
-            </section>
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/20">
+                            <Wrench size={24} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest leading-none mb-1">Cód: #{order.id.slice(-4)}</p>
+                            <h4 className="text-lg font-black text-white uppercase tracking-tighter">{order.bike_name || "Mountain Bike"}</h4>
+                          </div>
+                        </div>
 
-            <footer className="pt-20 pb-10 text-center space-y-6">
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
-              <p className="text-xs text-muted-foreground font-medium">Algum problema com seus dados? Fale conosco:</p>
-              <a 
-                href="https://wa.me/5515996128054" 
-                target="_blank" 
-                className="inline-flex items-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-green-500/20"
-              >
-                <MessageCircle size={18} /> Chamar Suporte
-              </a>
-              <div className="pt-10">
-                <button onClick={() => setSearchDone(false)} className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] hover:text-white transition-colors underline underline-offset-8 decoration-primary/30">
-                  Trocar Conta / Sair
+                        <div className="space-y-4">
+                           <div className="flex justify-between items-center py-4 border-y border-white/5">
+                              <span className="text-[10px] font-bold text-white/20 uppercase">Data do Serviço</span>
+                              <span className="text-sm font-black text-white">{formatDate(order.created_at)}</span>
+                           </div>
+                           <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-bold text-white/20 uppercase">Investimento</span>
+                              <span className="text-lg font-black text-[#EFFF00]">{formatBRL(order.price)}</span>
+                           </div>
+                        </div>
+
+                        <button className="w-full mt-6 h-12 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white hover:text-black transition-all">
+                           Ver Relatório Completo
+                        </button>
+                      </motion.div>
+                    ))}
+                    
+                    {(!customerData.orders || customerData.orders.length === 0) && (
+                      <div className="col-span-full py-16 bg-white/[0.01] border-2 border-dashed border-white/5 rounded-[40px] text-center flex flex-col items-center gap-4">
+                         <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center text-white/10"><Bike size={32} /></div>
+                         <p className="text-xs font-black uppercase tracking-[0.3em] text-white/20">Sua garagem está vazia.</p>
+                      </div>
+                    )}
+                 </div>
+              </section>
+
+              {/* Shopping Hub */}
+              <section className="space-y-8">
+                 <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 rounded-xl bg-[#0033FF]/10 text-[#0033FF] flex items-center justify-center">
+                      <Package size={20} />
+                   </div>
+                   <h3 className="text-xl font-black italic uppercase tracking-tighter">Histórico de Compras</h3>
+                 </div>
+
+                 <div className="grid grid-cols-1 gap-4">
+                    {customerData.sales?.map((sale: any) => (
+                      <div key={sale.id} className="bg-white/[0.02] border border-white/5 rounded-[24px] p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-[#0033FF]/30 transition-all">
+                        <div className="flex-1 w-full space-y-4">
+                           <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{formatDate(sale.created_at)}</span>
+                              <span className="text-xl font-black text-white">{formatBRL(sale.total)}</span>
+                           </div>
+                           <div className="flex flex-wrap gap-2">
+                             {sale.sale_items?.map((item: any, idx: number) => (
+                               <div key={idx} className="px-4 py-2 bg-white/[0.03] border border-white/5 rounded-xl text-[10px] font-bold text-white/40">
+                                 {item.quantity}x {item.description}
+                               </div>
+                             ))}
+                           </div>
+                        </div>
+                        <button className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/20 hover:bg-[#0033FF] hover:text-white transition-all">
+                          <History size={18} />
+                        </button>
+                      </div>
+                    ))}
+                 </div>
+              </section>
+
+              {/* Action Footer */}
+              <footer className="pt-20 flex flex-col items-center gap-10">
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                <div className="text-center space-y-4 px-6">
+                   <p className="text-xs text-white/30 font-medium">Alguma irregularidade nos dados? Nosso suporte VIP está online.</p>
+                   <a 
+                    href="https://wa.me/5515996128054" 
+                    target="_blank" 
+                    className="inline-flex items-center gap-4 bg-[#25D366] text-white px-10 py-5 rounded-[24px] font-black uppercase text-xs tracking-widest shadow-[0_20px_40px_rgba(37,211,102,0.15)] hover:scale-105 transition-all"
+                   >
+                    <MessageCircle size={20} strokeWidth={3} /> SUPORTE TÉCNICO
+                   </a>
+                </div>
+                <button 
+                  onClick={() => setSearchDone(false)} 
+                  className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] hover:text-[#EFFF00] transition-colors"
+                >
+                  Sair da Garagem
                 </button>
-              </div>
-            </footer>
-          </div>
-        )}
+              </footer>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
