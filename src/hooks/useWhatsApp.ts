@@ -102,7 +102,6 @@ export function useConversations(statusFilter?: string, instanceName?: string | 
 
       const { data, error } = await query as any;
       if (error) {
-        // Fallback: If labels tables don't exist yet, try a simple query without labels
         if (error.code === "PGRST204" || error.message?.includes("whatsapp_conversation_labels")) {
            const { data: fallback, error: fallbackError } = await supabase
             .from("whatsapp_conversations" as any)
@@ -219,8 +218,15 @@ export function useSendMessage() {
     },
     onMutate: async (newMessage) => {
       if (!newMessage.conversationId || !newMessage.message) return;
+      
+      // Cancelar queries para evitar rescrita
       await qc.cancelQueries({ queryKey: [...MESSAGES_KEY, newMessage.conversationId] });
+      await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
+
+      // Guardar estados anteriores
       const previousMessages = qc.getQueryData([...MESSAGES_KEY, newMessage.conversationId]);
+      
+      // Update Mensagens
       qc.setQueryData([...MESSAGES_KEY, newMessage.conversationId], (old: any) => {
         const optimisticMsg = {
           id: `temp-${Date.now()}`,
@@ -233,12 +239,29 @@ export function useSendMessage() {
         };
         return old ? [...old, optimisticMsg] : [optimisticMsg];
       });
+
+      // Update Conversation Preview (Last Message)
+      qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, (old: any) => {
+        if (!old) return old;
+        return old.map((conv: any) => {
+          if (conv.id === newMessage.conversationId) {
+            return {
+              ...conv,
+              last_message: newMessage.message,
+              last_message_at: new Date().toISOString(),
+            };
+          }
+          return conv;
+        });
+      });
+
       return { previousMessages };
     },
     onError: (err, newMessage, context: any) => {
       if (newMessage.conversationId && context?.previousMessages) {
         qc.setQueryData([...MESSAGES_KEY, newMessage.conversationId], context.previousMessages);
       }
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
     onSettled: (data, error, variables) => {
       if (variables.conversationId) {
@@ -323,13 +346,11 @@ export function useToggleAi() {
             let finalSummary: string;
 
             if (summaryError || !summaryData?.summary) {
-              console.error("Failed to generate AI summary, using fallback:", summaryError);
               finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${conversation}\n\n_IA desativada. Atendente humano assumiu._`;
             } else {
               finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${summaryData.summary}\n\n_IA desativada. Atendente humano assumiu._`;
             }
 
-            // Remove resumo anterior antes de inserir o novo
             await supabase
               .from("whatsapp_messages")
               .delete()
@@ -349,9 +370,52 @@ export function useToggleAi() {
         }
       }
     },
-    onSuccess: () => {
+    onMutate: async ({ id, ai_enabled }) => {
+      // 1. Cancelar queries persistentes
+      await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
+      await qc.cancelQueries({ queryKey: [...MESSAGES_KEY, id] });
+
+      const prevConvs = qc.getQueryData(CONVERSATIONS_KEY);
+      const prevMessages = qc.getQueryData([...MESSAGES_KEY, id]);
+
+      // 2. Update Conversation (Optimistic)
+      qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, (old: any) => {
+        if (!old) return old;
+        return old.map((conv: any) => {
+          if (conv.id === id) {
+            return { ...conv, ai_enabled, human_takeover: !ai_enabled };
+          }
+          return conv;
+        });
+      });
+
+      // 3. Se estiver desativando, injeta aviso de resumo
+      if (!ai_enabled) {
+        qc.setQueryData([...MESSAGES_KEY, id], (old: any) => {
+          const loadingSummary = {
+            id: `summary-loading-${Date.now()}`,
+            conversation_id: id,
+            from_me: true,
+            type: "text",
+            content: "📋 _Gerando resumo inteligente do atendimento..._",
+            status: "internal",
+            created_at: new Date().toISOString(),
+            message_id: null,
+            media_url: null,
+          };
+          return old ? [...old, loadingSummary] : [loadingSummary];
+        });
+      }
+
+      return { prevConvs, prevMessages };
+    },
+    onError: (err, variables, context: any) => {
+      if (context?.prevConvs) qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, context.prevConvs);
+      if (context?.prevMessages) qc.setQueryData([...MESSAGES_KEY, variables.id], context.prevMessages);
+    },
+    onSettled: (data, error, variables) => {
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
-      qc.invalidateQueries({ queryKey: MESSAGES_KEY });
+      qc.invalidateQueries({ queryKey: [...MESSAGES_KEY, variables.id] });
     },
   });
 }
@@ -367,6 +431,7 @@ export function useTotalUnread() {
       return (data || []).reduce((sum, c) => {
         const normalizedPhone = (c.contact_phone || "").replace(/\D/g, "");
         if (normalizedPhone.length < 8) return sum;
+        return sum + (c.unread_count || 0);
       }, 0);
     },
   });
@@ -420,20 +485,22 @@ export function useDeleteLabel() {
       await qc.cancelQueries({ queryKey: ["whatsapp_labels"] });
       await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
       const previousLabels = qc.getQueryData(["whatsapp_labels"]);
-      const previousConvs = qc.getQueryData(CONVERSATIONS_KEY);
+      
       qc.setQueryData(["whatsapp_labels"], (old: any) => old?.filter((l: any) => l.id !== id));
-      qc.setQueryData(CONVERSATIONS_KEY, (old: any) => {
+      
+      qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, (old: any) => {
         if (!old) return old;
         return old.map((conv: any) => ({
           ...conv,
-          labels: conv.labels?.filter((l: any) => l.id !== id) || []
+          labels: (conv.labels || []).filter((l: any) => l.id !== id)
         }));
       });
-      return { previousLabels, previousConvs };
+      
+      return { previousLabels };
     },
     onError: (err, id, context: any) => {
       if (context?.previousLabels) qc.setQueryData(["whatsapp_labels"], context.previousLabels);
-      if (context?.previousConvs) qc.setQueryData(CONVERSATIONS_KEY, context.previousConvs);
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["whatsapp_labels"] });
@@ -478,7 +545,7 @@ export function useAssignLabel() {
       const labelToAssign = allLabels?.find(l => l.id === labelId);
 
       if (labelToAssign) {
-        qc.setQueryData(CONVERSATIONS_KEY, (old: any) => {
+        qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, (old: any) => {
           if (!old) return old;
           return old.map((conv: any) => {
             if (conv.id === conversationId) {
@@ -493,7 +560,7 @@ export function useAssignLabel() {
       return { previousConvs };
     },
     onError: (err, variables, context: any) => {
-      if (context?.previousConvs) qc.setQueryData(CONVERSATIONS_KEY, context.previousConvs);
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
@@ -514,19 +581,21 @@ export function useUnassignLabel() {
     onMutate: async ({ conversationId, labelId }) => {
       await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
       const previousConvs = qc.getQueryData(CONVERSATIONS_KEY);
-      qc.setQueryData(CONVERSATIONS_KEY, (old: any) => {
+      
+      qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, (old: any) => {
         if (!old) return old;
         return old.map((conv: any) => {
           if (conv.id === conversationId) {
-            return { ...conv, labels: conv.labels?.filter((l: any) => l.id !== labelId) || [] };
+            return { ...conv, labels: (conv.labels || []).filter((l: any) => l.id !== labelId) };
           }
           return conv;
         });
       });
+      
       return { previousConvs };
     },
     onError: (err, variables, context: any) => {
-      if (context?.previousConvs) qc.setQueryData(CONVERSATIONS_KEY, context.previousConvs);
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });

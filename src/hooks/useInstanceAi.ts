@@ -64,7 +64,18 @@ export function useToggleInstanceAi() {
         if (error) throw error;
       }
     },
-    onSuccess: (_, variables) => {
+    onMutate: async (variables) => {
+      await qc.cancelQueries({ queryKey: [...INSTANCE_AI_KEY, variables.instanceName] });
+      const previousState = qc.getQueryData([...INSTANCE_AI_KEY, variables.instanceName]);
+      qc.setQueryData([...INSTANCE_AI_KEY, variables.instanceName], { ai_enabled: variables.ai_enabled });
+      return { previousState };
+    },
+    onError: (err, variables, context: any) => {
+      if (context?.previousState) {
+        qc.setQueryData([...INSTANCE_AI_KEY, variables.instanceName], context.previousState);
+      }
+    },
+    onSettled: (_, __, variables) => {
       qc.invalidateQueries({ queryKey: [...INSTANCE_AI_KEY, variables.instanceName] });
     },
   });

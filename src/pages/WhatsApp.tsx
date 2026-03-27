@@ -169,6 +169,7 @@ export default function WhatsApp() {
   }, [instances, selectedInstance, setSelectedInstance]);
 
   const { data: conversations = [] } = useConversations(statusFilter, selectedInstance);
+  const activeConv = conversations.find(c => c.id === selectedConv?.id) || selectedConv;
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
   const sendMessage = useSendMessage();
   const updateStatus = useUpdateConversationStatus();
@@ -432,7 +433,7 @@ export default function WhatsApp() {
 
       {/* ── CHAT AREA ── */}
       <main className={`flex-1 flex flex-col bg-[#050505] relative z-10 ${showChatMobile ? "fixed inset-0" : "hidden md:flex"}`}>
-        {!selectedConv ? (
+        {!activeConv ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
             <div className="w-24 h-24 bg-white/5 rounded-[40px] flex items-center justify-center text-white/5 mb-8 border border-white/5 shadow-inner">
                <MessageCircle size={48} strokeWidth={1} />
@@ -446,36 +447,36 @@ export default function WhatsApp() {
                <div className="flex items-center gap-5">
                   <button onClick={() => setShowChatMobile(false)} className="md:hidden p-2 -ml-2 text-white/40"><ChevronLeft size={24} /></button>
                   <div className="w-14 h-14 bg-white/5 rounded-[22px] flex items-center justify-center text-white/20 border border-white/5 font-black italic shadow-xl overflow-hidden">
-                     {selectedConv.contact_photo ? (
-                        <img src={selectedConv.contact_photo} className="w-full h-full object-cover" alt="" />
-                     ) : getInitials(getDisplayContactName(selectedConv, currentUserName), selectedConv.contact_phone)}
+                     {activeConv.contact_photo ? (
+                        <img src={activeConv.contact_photo} className="w-full h-full object-cover" alt="" />
+                     ) : getInitials(getDisplayContactName(activeConv, currentUserName), activeConv.contact_phone)}
                   </div>
                   <div>
-                    <h2 className="text-xl font-black italic uppercase tracking-tighter mb-0.5">{getDisplayContactName(selectedConv, currentUserName)}</h2>
+                    <h2 className="text-xl font-black italic uppercase tracking-tighter mb-0.5">{getDisplayContactName(activeConv, currentUserName)}</h2>
                     <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.2em] flex items-center gap-2">
-                       <Hash size={12} className="text-[#EFFF00]" /> #{getDisplayContactPhone(selectedConv.contact_phone)}
+                       <Hash size={12} className="text-[#EFFF00]" /> #{getDisplayContactPhone(activeConv.contact_phone)}
                     </p>
                   </div>
                </div>
 
                <div className="flex items-center gap-4">
                   <button 
-                    onClick={() => updateStatus.mutate({ id: selectedConv.id, status: selectedConv.status === "resolved" ? "open" : "resolved" })}
+                    onClick={() => updateStatus.mutate({ id: activeConv.id, status: activeConv.status === "resolved" ? "open" : "resolved" })}
                     className="h-12 px-6 rounded-2xl border border-white/10 hover:bg-white/5 text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95"
                   >
-                    <CircleDot size={16} className={selectedConv.status === "resolved" ? "text-white/20" : "text-emerald-500 shadow-[0_0_10px_#10b981]"} />
-                    {selectedConv.status === "resolved" ? "REABRIR" : "RESOLVER CASO"}
+                    <CircleDot size={16} className={activeConv.status === "resolved" ? "text-white/20" : "text-emerald-500 shadow-[0_0_10px_#10b981]"} />
+                    {activeConv.status === "resolved" ? "REABRIR" : "RESOLVER CASO"}
                   </button>
-                  <div className={`flex items-center gap-3 p-1.5 rounded-2xl border ${selectedConv.ai_enabled !== false ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/5"}`}>
-                     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${selectedConv.ai_enabled !== false ? "bg-emerald-500 text-black" : "bg-black/20 text-white/40"}`}>
-                        <Bot size={14} className={selectedConv.ai_enabled !== false ? "animate-bounce" : ""} />
+                  <div className={`flex items-center gap-3 p-1.5 rounded-2xl border ${activeConv.ai_enabled !== false ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/5"}`}>
+                     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${activeConv.ai_enabled !== false ? "bg-emerald-500 text-black" : "bg-black/20 text-white/40"}`}>
+                        <Bot size={14} className={activeConv.ai_enabled !== false ? "animate-bounce" : ""} />
                         <span className="text-[9px] font-black uppercase tracking-widest">IA ATIVA</span>
                      </div>
                      <button 
-                       onClick={() => toggleAi.mutate({ id: selectedConv.id, ai_enabled: !(selectedConv.ai_enabled !== false) })}
-                       className={`w-10 h-5 rounded-full relative transition-all ${selectedConv.ai_enabled !== false ? "bg-emerald-500" : "bg-white/10"}`}
+                       onClick={() => toggleAi.mutate({ id: activeConv.id, ai_enabled: !(activeConv.ai_enabled !== false) })}
+                       className={`w-10 h-5 rounded-full relative transition-all ${activeConv.ai_enabled !== false ? "bg-emerald-500" : "bg-white/10"}`}
                      >
-                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${selectedConv.ai_enabled !== false ? "right-1" : "left-1"}`} />
+                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${activeConv.ai_enabled !== false ? "right-1" : "left-1"}`} />
                      </button>
                   </div>
                </div>
@@ -497,7 +498,7 @@ export default function WhatsApp() {
                       {msg.status === "internal" ? (
                         <div className="space-y-3">
                            <div className="flex items-center gap-2 text-[10px] font-black text-amber-500 uppercase tracking-widest">
-                              <Sparkles size={12} /> RESUMO DA IA
+                               <Sparkles size={12} /> RESUMO DA IA
                            </div>
                            <p className="text-sm font-medium leading-relaxed text-amber-100/80 italic font-['Inter']" dangerouslySetInnerHTML={{ __html: formatSummary(msg.content) }} />
                         </div>
@@ -553,8 +554,50 @@ export default function WhatsApp() {
       {/* ── INFO PANEL (Right Sidebar) ── */}
       <aside className="hidden xl:flex w-80 flex-col border-l border-white/5 bg-[#0A0A0A] overflow-hidden z-10">
          <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none">
-            {selectedConv ? (
+            {activeConv ? (
               <>
+                 {/* Histórico de Resumos */}
+                 <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                       <Sparkles size={18} className="text-[#0033FF]" />
+                       <h3 className="text-sm font-black uppercase tracking-widest text-[#0033FF]">Logs de IA</h3>
+                    </div>
+                    <div className="space-y-3">
+                       {messages.filter(m => m.status === "internal").reverse().map((summary, idx) => (
+                         <div 
+                           key={summary.id}
+                           className="group p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all cursor-pointer relative overflow-hidden"
+                         >
+                            <div className="flex items-center justify-between mb-2">
+                               <div className="flex items-center gap-2">
+                                  <Clock size={10} className="text-white/20" />
+                                  <span className="text-[9px] font-black uppercase text-white/30">{format(new Date(summary.created_at), "dd/MM HH:mm")}</span>
+                               </div>
+                               <Bot size={12} className="text-[#0033FF]/40 group-hover:text-[#0033FF] transition-colors" />
+                            </div>
+                            <div className="text-[11px] text-white/50 line-clamp-2 italic font-['Inter'] leading-relaxed" dangerouslySetInnerHTML={{ __html: formatSummary(summary.content) }} />
+                            
+                            {/* Overlay Clickable */}
+                            <button 
+                              onClick={() => {
+                                toast({ 
+                                  title: "Resumo da IA", 
+                                  description: <div className="text-[12px] leading-relaxed max-h-[300px] overflow-y-auto pr-2 mt-2" dangerouslySetInnerHTML={{ __html: formatSummary(summary.content) }} /> 
+                                });
+                              }}
+                              className="absolute inset-0 z-10"
+                            />
+                         </div>
+                       ))}
+                       {messages.filter(m => m.status === "internal").length === 0 && (
+                         <div className="p-10 border border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center text-center gap-3">
+                            <BotOff size={20} className="text-white/5" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-white/10 italic">Sem logs registrados</p>
+                         </div>
+                       )}
+                    </div>
+                 </div>
+
                  <div className="space-y-6">
                     <div className="flex items-center justify-between">
                        <div className="flex items-center gap-3">
@@ -563,21 +606,21 @@ export default function WhatsApp() {
                        </div>
                        <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all text-white/40 hover:text-white">
-                               <Plus size={16} />
-                            </button>
+                             <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all text-white/40 hover:text-white">
+                                <Plus size={16} />
+                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-56 bg-[#0F0F0F] border-white/5 p-2 rounded-2xl">
                              {allLabels.map(label => {
-                               const isAssigned = selectedConv.labels?.some(l => l.id === label.id);
+                               const isAssigned = activeConv.labels?.some(l => l.id === label.id);
                                return (
                                  <DropdownMenuItem 
                                    key={label.id}
                                    onClick={() => {
                                      if (isAssigned) {
-                                       unassignLabel.mutate({ conversationId: selectedConv.id, labelId: label.id });
+                                       unassignLabel.mutate({ conversationId: activeConv.id, labelId: label.id });
                                      } else {
-                                       assignLabel.mutate({ conversationId: selectedConv.id, labelId: label.id });
+                                       assignLabel.mutate({ conversationId: activeConv.id, labelId: label.id });
                                      }
                                    }}
                                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer group"
@@ -591,7 +634,7 @@ export default function WhatsApp() {
                        </DropdownMenu>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                       {selectedConv.labels?.map(l => (
+                       {activeConv.labels?.map(l => (
                          <div 
                            key={l.id} 
                            className="group flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all animate-in fade-in zoom-in duration-200"
@@ -599,29 +642,16 @@ export default function WhatsApp() {
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
                             <span className="text-[10px] font-black uppercase tracking-widest text-white/80">{l.name}</span>
                             <button 
-                              onClick={() => unassignLabel.mutate({ conversationId: selectedConv.id, labelId: l.id })}
+                              onClick={() => unassignLabel.mutate({ conversationId: activeConv.id, labelId: l.id })}
                               className="ml-1 text-white/10 hover:text-red-500 transition-colors"
                             >
                                <X size={12} />
                             </button>
                          </div>
                        ))}
-                       {(!selectedConv.labels || selectedConv.labels.length === 0) && (
+                       {(!activeConv.labels || activeConv.labels.length === 0) && (
                          <p className="text-[11px] text-white/20 italic">Nenhuma etiqueta atribuída.</p>
                        )}
-                    </div>
-                 </div>
-
-                 <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                       <Info size={18} className="text-[#0033FF]" />
-                       <h3 className="text-sm font-black uppercase tracking-widest text-[#0033FF]">Resumo Inteligente</h3>
-                    </div>
-                    <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/10 relative overflow-hidden group">
-                       <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Bot size={16} className="text-[#0033FF] animate-pulse" />
-                       </div>
-                       <p className="text-[12px] text-white/60 leading-relaxed italic font-['Inter']">A IA ainda não processou um resumo detalhado para esta sessão.</p>
                     </div>
                  </div>
               </>
@@ -669,14 +699,13 @@ export default function WhatsApp() {
                           <div className="grid grid-cols-2 gap-4">
                              <div className="space-y-2">
                                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Cor</label>
-                                <div className="flex items-center gap-3 h-12 bg-black border border-white/5 rounded-2xl px-4">
+                                <div className="flex items-center justify-center h-12 bg-black border border-white/5 rounded-2xl group-hover:border-white/10 transition-all overflow-hidden relative">
                                    <input 
                                      type="color"
                                      value={newLabelColor}
                                      onChange={(e) => setNewLabelColor(e.target.value)}
-                                     className="w-6 h-6 bg-transparent border-none cursor-pointer"
+                                     className="w-full h-full bg-transparent border-none cursor-pointer scale-[2.5] absolute inset-0"
                                    />
-                                   <span className="text-[10px] font-mono text-white/40 uppercase">{newLabelColor}</span>
                                 </div>
                              </div>
                              <div className="space-y-2">
@@ -726,7 +755,8 @@ export default function WhatsApp() {
                           <span className="text-[11px] font-bold uppercase tracking-tight text-white/80">{l.name}</span>
                        </div>
                        <button 
-                         onClick={() => {
+                         onClick={(e) => {
+                           e.stopPropagation();
                            if (confirm(`Excluir a etiqueta "${l.name}"?`)) {
                              deleteLabel.mutate(l.id);
                            }
@@ -795,14 +825,14 @@ export default function WhatsApp() {
                            setFilterLabelId(null);
                            setShowChatMobile(true);
                          }}
-                         className="w-full p-6 rounded-[32px] bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-6 group"
+                         className="w-full p-8 rounded-[32px] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all flex items-center gap-6 group"
                        >
-                          <div className="w-16 h-16 bg-white/5 rounded-[22px] flex items-center justify-center text-white/20 border border-white/5 overflow-hidden group-hover:border-[#EFFF00]/30 transition-all shrink-0">
-                            {conv.contact_photo ? (
-                              <img src={getOptimizedImageUrl(conv.contact_photo, 100, 80)} className="w-full h-full object-cover" alt="" />
-                            ) : (
-                              <span className="text-xl font-black italic">{getInitials(getDisplayContactName(conv, currentUserName), conv.contact_phone)}</span>
-                            )}
+                          <div className="w-16 h-16 bg-white/5 rounded-[22px] flex items-center justify-center text-white/20 border border-white/5 font-black italic shadow-xl overflow-hidden">
+                             {conv.contact_photo ? (
+                                <img src={getOptimizedImageUrl(conv.contact_photo, 100, 80)} className="w-full h-full object-cover" alt="" />
+                             ) : (
+                               getInitials(getDisplayContactName(conv, currentUserName), conv.contact_phone)
+                             )}
                           </div>
                           <div className="flex-1 min-w-0 text-left">
                              <h4 className="text-[16px] font-black italic uppercase tracking-tight truncate mb-1">{getDisplayContactName(conv, currentUserName)}</h4>
