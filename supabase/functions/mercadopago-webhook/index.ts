@@ -98,6 +98,11 @@ Deno.serve(async (req) => {
 
       console.log(`[EXTERNAL_REF: ${mpPayment.external_reference}] Status: ${mpPayment.status} (${mpPayment.status_detail})`);
 
+      const payer = mpPayment.payer || {};
+      const customer_name = `${payer.first_name || ""} ${payer.last_name || ""}`.trim();
+      const customer_email = payer.email;
+      const customer_cpf = payer.identification?.number;
+
       const { error: updateError } = await supabase
         .from("store_sales")
         .update({
@@ -107,6 +112,9 @@ Deno.serve(async (req) => {
           payment_method: mpPayment.payment_method_id,
           installments: mpPayment.installments,
           transaction_amount: mpPayment.transaction_amount,
+          customer_name: customer_name || undefined,
+          customer_email: customer_email || undefined,
+          customer_cpf: customer_cpf || undefined,
           approved_at: mpPayment.status === 'approved' ? new Date().toISOString() : null,
           updated_at: new Date().toISOString()
         })
