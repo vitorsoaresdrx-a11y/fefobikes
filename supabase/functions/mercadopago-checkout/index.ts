@@ -18,17 +18,30 @@ Deno.serve(async (req) => {
   const accessToken = Deno.env.get("MP_ACCESS_TOKEN");
 
   try {
-    const url = new URL(req.url);
-
     if (req.method === "GET") {
       const { data, error } = await supabase
         .from("store_sales")
         .select("*")
-        .eq("status", "approved")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return new Response(JSON.stringify(data), {
+
+      const statusMap: Record<string, string> = {
+        accredited: "Aprovado",
+        pending_contingency: "Processando",
+        pending_review_manual: "Em revisão",
+        cc_rejected_insufficient_amount: "Saldo insuficiente",
+        cc_rejected_bad_filled_security_code: "CVV incorreto",
+        cc_rejected_bad_filled_date: "Data de validade incorreta",
+        cc_rejected_call_for_authorize: "Ligue para autorizar",
+      };
+
+      const mappedData = (data || []).map(sale => ({
+        ...sale,
+        status_label: statusMap[sale.status_detail] || (sale.status === 'approved' ? 'Aprovado' : 'Pendente')
+      }));
+
+      return new Response(JSON.stringify(mappedData), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -41,16 +54,40 @@ Deno.serve(async (req) => {
         throw new Error("Dados obrigatórios ausentes (itens ou frete).");
       }
 
-      const freteValor = Number(frete.valor || 0);
-      if (isNaN(freteValor)) throw new Error("Valor de frete inválido.");
+      // 1. Gerar external_reference único antes de qualquer chamada ao MP
+      const externalRef = `order_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+
+      const totalItems = itens.reduce((acc: number, item: any) => acc + (Number(item.preco_unitario || item.unit_price) * Number(item.quantidade || item.quantity || 1)), 0);
+      const transactionAmount = totalItems + Number(frete.valor || 0);
+
+      // Salvar rascunho no Supabase ANTES de chamar o MP
+      const { error: insertError } = await supabase
+        .from("store_sales")
+        .insert({
+          external_reference: externalRef,
+          status: "pending",
+          customer_name: cliente?.nome || "Cliente",
+          customer_email: cliente?.email || "contato@fefobikes.com.br",
+          customer_phone: cliente?.telefone || null,
+          customer_cpf: cliente?.cpf || null,
+          items: itens,
+          shipping_amount: Number(frete.valor || 0),
+          shipping_label: frete.descricao || "Entrega",
+          transaction_amount: transactionAmount,
+          created_at: new Date().toISOString()
+        });
+
+      if (insertError) {
+        console.error("DEBUG INSERT DRAFT ERROR:", insertError);
+        throw new Error(`Erro ao salvar rascunho: ${insertError.message}`);
+      }
 
       const payer: any = {
-        email: cliente?.email || "contato@fefobikes.com.br", // MP strictly requires an email
+        email: cliente?.email || "contato@fefobikes.com.br",
       };
 
       if (cliente?.nome) payer.name = cliente.nome;
 
-      // Conditional formatting for optional data
       const phoneDigits = cliente?.telefone?.replace(/\D/g, "");
       if (phoneDigits && phoneDigits.length >= 10) {
         payer.phone = {
@@ -90,13 +127,13 @@ Deno.serve(async (req) => {
         },
         auto_return: "approved",
         notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/mercadopago-webhook`,
-        external_reference: `${Date.now()}-checkout`,
+        external_reference: externalRef,
         metadata: {
           shipping_description: frete.descricao
         }
       };
 
-      console.log("PAYLOAD MP DEBUG:", JSON.stringify(payload, null, 2));
+      console.log(`[EXTERNAL_REF: ${externalRef}] Iniciando chamada MP...`);
 
       const mpResponse = await fetch("https://api.mercadopago.com/v1/checkout/preferences", {
         method: "POST",
@@ -115,9 +152,12 @@ Deno.serve(async (req) => {
         throw new Error(cause || mpData.message || "Falha ao gerar pagamento.");
       }
 
+      console.log(`[EXTERNAL_REF: ${externalRef}] Preferência criada: ${mpData.id}`);
+
       return new Response(JSON.stringify({
         init_point: mpData.init_point,
         preference_id: mpData.id,
+        external_reference: externalRef
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -136,3 +176,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+
