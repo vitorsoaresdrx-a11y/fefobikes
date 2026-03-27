@@ -219,14 +219,11 @@ export function useSendMessage() {
     onMutate: async (newMessage) => {
       if (!newMessage.conversationId || !newMessage.message) return;
       
-      // Cancelar queries para evitar rescrita
       await qc.cancelQueries({ queryKey: [...MESSAGES_KEY, newMessage.conversationId] });
       await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
 
-      // Guardar estados anteriores
       const previousMessages = qc.getQueryData([...MESSAGES_KEY, newMessage.conversationId]);
       
-      // Update Mensagens
       qc.setQueryData([...MESSAGES_KEY, newMessage.conversationId], (old: any) => {
         const optimisticMsg = {
           id: `temp-${Date.now()}`,
@@ -240,7 +237,6 @@ export function useSendMessage() {
         return old ? [...old, optimisticMsg] : [optimisticMsg];
       });
 
-      // Update Conversation Preview (Last Message)
       qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, (old: any) => {
         if (!old) return old;
         return old.map((conv: any) => {
@@ -351,11 +347,21 @@ export function useToggleAi() {
               finalSummary = `📋 *Resumo da conversa (IA → Humano):*\n\n${summaryData.summary}\n\n_IA desativada. Atendente humano assumiu._`;
             }
 
-            await supabase
+            // Remove resumos antigos (mantém limite de 6)
+            const { data: existingSummaries } = await supabase
               .from("whatsapp_messages")
-              .delete()
+              .select("id")
               .eq("conversation_id", id)
-              .eq("status", "internal");
+              .eq("status", "internal")
+              .order("created_at", { ascending: true });
+
+            if (existingSummaries && existingSummaries.length >= 6) {
+               const idsToDelete = existingSummaries.slice(0, (existingSummaries.length - 6) + 1).map(s => s.id);
+               await supabase
+                .from("whatsapp_messages")
+                .delete()
+                .in("id", idsToDelete);
+            }
 
             await supabase.from("whatsapp_messages").insert({
               conversation_id: id,
@@ -371,14 +377,12 @@ export function useToggleAi() {
       }
     },
     onMutate: async ({ id, ai_enabled }) => {
-      // 1. Cancelar queries persistentes
       await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
       await qc.cancelQueries({ queryKey: [...MESSAGES_KEY, id] });
 
       const prevConvs = qc.getQueryData(CONVERSATIONS_KEY);
       const prevMessages = qc.getQueryData([...MESSAGES_KEY, id]);
 
-      // 2. Update Conversation (Optimistic)
       qc.setQueriesData({ queryKey: CONVERSATIONS_KEY }, (old: any) => {
         if (!old) return old;
         return old.map((conv: any) => {
@@ -389,7 +393,6 @@ export function useToggleAi() {
         });
       });
 
-      // 3. Se estiver desativando, injeta aviso de resumo
       if (!ai_enabled) {
         qc.setQueryData([...MESSAGES_KEY, id], (old: any) => {
           const loadingSummary = {

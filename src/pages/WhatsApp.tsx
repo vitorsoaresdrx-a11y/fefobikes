@@ -558,12 +558,22 @@ export default function WhatsApp() {
               <>
                  {/* Histórico de Resumos */}
                  <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                       <Sparkles size={18} className="text-[#0033FF]" />
-                       <h3 className="text-sm font-black uppercase tracking-widest text-[#0033FF]">Logs de IA</h3>
+                    <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                          <Sparkles size={18} className="text-[#0033FF]" />
+                          <h3 className="text-sm font-black uppercase tracking-widest text-[#0033FF]">Logs de IA</h3>
+                       </div>
+                       {messages.filter(m => m.status === "internal").length > 3 && (
+                         <button 
+                           onClick={() => setFilterLabelId("all_summaries")}
+                           className="text-[10px] font-black uppercase tracking-widest text-[#0033FF] hover:underline"
+                         >
+                           Ver todos
+                         </button>
+                       )}
                     </div>
                     <div className="space-y-3">
-                       {messages.filter(m => m.status === "internal").reverse().map((summary, idx) => (
+                       {messages.filter(m => m.status === "internal").reverse().slice(0, 3).map((summary) => (
                          <div 
                            key={summary.id}
                            className="group p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all cursor-pointer relative overflow-hidden"
@@ -794,11 +804,13 @@ export default function WhatsApp() {
                 <div className="p-10 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
                    <div>
                       <div className="flex items-center gap-3 mb-2">
-                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: allLabels.find(l => l.id === filterLabelId)?.color }} />
-                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Filtro por Etiqueta</span>
+                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: filterLabelId === "all_summaries" ? "#0033FF" : allLabels.find(l => l.id === filterLabelId)?.color }} />
+                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">
+                           {filterLabelId === "all_summaries" ? "Registro Histórico" : "Filtro por Etiqueta"}
+                         </span>
                       </div>
                       <h2 className="text-3xl font-black italic uppercase tracking-tighter">
-                        {allLabels.find(l => l.id === filterLabelId)?.name}
+                        {filterLabelId === "all_summaries" ? "Logs de IA" : allLabels.find(l => l.id === filterLabelId)?.name}
                       </h2>
                    </div>
                    <button 
@@ -811,7 +823,22 @@ export default function WhatsApp() {
 
                 {/* Modal Content - List */}
                 <div className="flex-1 overflow-y-auto p-10 space-y-4 scrollbar-none">
-                   {filtered.filter(c => c.labels?.some(l => l.id === filterLabelId)).length === 0 ? (
+                   {filterLabelId === "all_summaries" ? (
+                     <div className="space-y-6">
+                        {messages.filter(m => m.status === "internal").reverse().map((summary) => (
+                           <div key={summary.id} className="p-8 rounded-[40px] bg-white/[0.02] border border-white/5 space-y-4">
+                              <div className="flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <Clock size={14} className="text-[#0033FF]" />
+                                    <span className="text-xs font-black uppercase text-white/40">{format(new Date(summary.created_at), "dd/MM/yyyy • HH:mm:ss")}</span>
+                                 </div>
+                                 <Bot size={18} className="text-[#0033FF]" />
+                              </div>
+                              <div className="text-[14px] leading-relaxed text-white/70 italic font-['Inter']" dangerouslySetInnerHTML={{ __html: formatSummary(summary.content) }} />
+                           </div>
+                        ))}
+                     </div>
+                   ) : filtered.filter(c => c.labels?.some(l => l.id === filterLabelId)).length === 0 ? (
                       <div className="py-20 text-center space-y-4 opacity-20">
                          <Search size={40} className="mx-auto" />
                          <p className="text-xs font-black uppercase tracking-widest">Nenhuma conversa encontrada</p>
