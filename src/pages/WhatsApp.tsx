@@ -186,6 +186,7 @@ export default function WhatsApp() {
   const [newLabelColor, setNewLabelColor] = useState("#EFFF00");
   const [newLabelPriority, setNewLabelPriority] = useState(1);
   const [isCreatingLabel, setIsCreatingLabel] = useState(false);
+  const [filterLabelId, setFilterLabelId] = useState<string | null>(null);
 
   const { session } = useAuth();
   const currentUserName = session?.user?.user_metadata?.full_name || null;
@@ -714,7 +715,8 @@ export default function WhatsApp() {
                   {allLabels.map((l) => (
                     <div 
                       key={l.id} 
-                      className="group flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+                      onClick={() => setFilterLabelId(l.id)}
+                      className="group flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/20 hover:bg-white/[0.04] transition-all cursor-pointer"
                     >
                        <div className="flex items-center gap-4">
                           <div className="w-4 h-4 rounded-lg flex items-center justify-center text-[8px] font-black bg-black border border-white/10 text-white/40">
@@ -742,6 +744,84 @@ export default function WhatsApp() {
             </div>
          </div>
       </aside>
+
+      {/* ── FILTER MODAL ── */}
+      <AnimatePresence>
+        {filterLabelId && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-10 backdrop-blur-2xl bg-black/80"
+          >
+             <motion.div 
+               initial={{ scale: 0.95, opacity: 0, y: 20 }}
+               animate={{ scale: 1, opacity: 1, y: 0 }}
+               exit={{ scale: 0.95, opacity: 0, y: 20 }}
+               className="w-full max-w-2xl bg-[#0A0A0A] border border-white/10 rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[80vh]"
+             >
+                {/* Modal Header */}
+                <div className="p-10 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                   <div>
+                      <div className="flex items-center gap-3 mb-2">
+                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: allLabels.find(l => l.id === filterLabelId)?.color }} />
+                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Filtro por Etiqueta</span>
+                      </div>
+                      <h2 className="text-3xl font-black italic uppercase tracking-tighter">
+                        {allLabels.find(l => l.id === filterLabelId)?.name}
+                      </h2>
+                   </div>
+                   <button 
+                     onClick={() => setFilterLabelId(null)}
+                     className="w-14 h-14 flex items-center justify-center rounded-2xl bg-white/5 hover:bg-white/10 transition-all text-white/40 hover:text-white"
+                   >
+                      <X size={24} />
+                   </button>
+                </div>
+
+                {/* Modal Content - List */}
+                <div className="flex-1 overflow-y-auto p-10 space-y-4 scrollbar-none">
+                   {filtered.filter(c => c.labels?.some(l => l.id === filterLabelId)).length === 0 ? (
+                      <div className="py-20 text-center space-y-4 opacity-20">
+                         <Search size={40} className="mx-auto" />
+                         <p className="text-xs font-black uppercase tracking-widest">Nenhuma conversa encontrada</p>
+                      </div>
+                   ) : (
+                     filtered.filter(c => c.labels?.some(l => l.id === filterLabelId)).map(conv => (
+                       <button 
+                         key={conv.id}
+                         onClick={() => {
+                           setSelectedConv(conv);
+                           setFilterLabelId(null);
+                           setShowChatMobile(true);
+                         }}
+                         className="w-full p-6 rounded-[32px] bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-6 group"
+                       >
+                          <div className="w-16 h-16 bg-white/5 rounded-[22px] flex items-center justify-center text-white/20 border border-white/5 overflow-hidden group-hover:border-[#EFFF00]/30 transition-all shrink-0">
+                            {conv.contact_photo ? (
+                              <img src={getOptimizedImageUrl(conv.contact_photo, 100, 80)} className="w-full h-full object-cover" alt="" />
+                            ) : (
+                              <span className="text-xl font-black italic">{getInitials(getDisplayContactName(conv, currentUserName), conv.contact_phone)}</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 text-left">
+                             <h4 className="text-[16px] font-black italic uppercase tracking-tight truncate mb-1">{getDisplayContactName(conv, currentUserName)}</h4>
+                             <p className="text-[12px] font-medium text-white/30 truncate">{conv.last_message}</p>
+                          </div>
+                          <ArrowRight size={18} className="text-white/10 group-hover:text-[#EFFF00] group-hover:translate-x-1 transition-all" />
+                       </button>
+                     ))
+                   )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-8 border-t border-white/5 bg-white/[0.01] flex justify-center">
+                   <p className="text-[10px] font-black uppercase tracking-widest text-white/10 italic">Hub Fefo Bikes • Gestão Imersiva</p>
+                </div>
+             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

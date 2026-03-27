@@ -217,9 +217,34 @@ export function useSendMessage() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onMutate: async (newMessage) => {
+      if (!newMessage.conversationId || !newMessage.message) return;
+      await qc.cancelQueries({ queryKey: [...MESSAGES_KEY, newMessage.conversationId] });
+      const previousMessages = qc.getQueryData([...MESSAGES_KEY, newMessage.conversationId]);
+      qc.setQueryData([...MESSAGES_KEY, newMessage.conversationId], (old: any) => {
+        const optimisticMsg = {
+          id: `temp-${Date.now()}`,
+          conversation_id: newMessage.conversationId,
+          content: newMessage.message,
+          from_me: true,
+          type: 'text',
+          status: 'sending',
+          created_at: new Date().toISOString(),
+        };
+        return old ? [...old, optimisticMsg] : [optimisticMsg];
+      });
+      return { previousMessages };
+    },
+    onError: (err, newMessage, context: any) => {
+      if (newMessage.conversationId && context?.previousMessages) {
+        qc.setQueryData([...MESSAGES_KEY, newMessage.conversationId], context.previousMessages);
+      }
+    },
+    onSettled: (data, error, variables) => {
+      if (variables.conversationId) {
+        qc.invalidateQueries({ queryKey: [...MESSAGES_KEY, variables.conversationId] });
+      }
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
-      qc.invalidateQueries({ queryKey: MESSAGES_KEY });
     },
   });
 }
@@ -391,7 +416,26 @@ export function useDeleteLabel() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: ["whatsapp_labels"] });
+      await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
+      const previousLabels = qc.getQueryData(["whatsapp_labels"]);
+      const previousConvs = qc.getQueryData(CONVERSATIONS_KEY);
+      qc.setQueryData(["whatsapp_labels"], (old: any) => old?.filter((l: any) => l.id !== id));
+      qc.setQueryData(CONVERSATIONS_KEY, (old: any) => {
+        if (!old) return old;
+        return old.map((conv: any) => ({
+          ...conv,
+          labels: conv.labels?.filter((l: any) => l.id !== id) || []
+        }));
+      });
+      return { previousLabels, previousConvs };
+    },
+    onError: (err, id, context: any) => {
+      if (context?.previousLabels) qc.setQueryData(["whatsapp_labels"], context.previousLabels);
+      if (context?.previousConvs) qc.setQueryData(CONVERSATIONS_KEY, context.previousConvs);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["whatsapp_labels"] });
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
@@ -427,7 +471,31 @@ export function useAssignLabel() {
         .insert({ conversation_id: conversationId, label_id: labelId });
       if (error && error.code !== "23505") throw error; // 23505 is unique violation (already assigned)
     },
-    onSuccess: () => {
+    onMutate: async ({ conversationId, labelId }) => {
+      await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
+      const previousConvs = qc.getQueryData(CONVERSATIONS_KEY);
+      const allLabels = qc.getQueryData(["whatsapp_labels"]) as any[];
+      const labelToAssign = allLabels?.find(l => l.id === labelId);
+
+      if (labelToAssign) {
+        qc.setQueryData(CONVERSATIONS_KEY, (old: any) => {
+          if (!old) return old;
+          return old.map((conv: any) => {
+            if (conv.id === conversationId) {
+              const currentLabels = conv.labels || [];
+              if (currentLabels.some((l: any) => l.id === labelId)) return conv;
+              return { ...conv, labels: [...currentLabels, labelToAssign] };
+            }
+            return conv;
+          });
+        });
+      }
+      return { previousConvs };
+    },
+    onError: (err, variables, context: any) => {
+      if (context?.previousConvs) qc.setQueryData(CONVERSATIONS_KEY, context.previousConvs);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
   });
@@ -443,7 +511,24 @@ export function useUnassignLabel() {
         .match({ conversation_id: conversationId, label_id: labelId });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onMutate: async ({ conversationId, labelId }) => {
+      await qc.cancelQueries({ queryKey: CONVERSATIONS_KEY });
+      const previousConvs = qc.getQueryData(CONVERSATIONS_KEY);
+      qc.setQueryData(CONVERSATIONS_KEY, (old: any) => {
+        if (!old) return old;
+        return old.map((conv: any) => {
+          if (conv.id === conversationId) {
+            return { ...conv, labels: conv.labels?.filter((l: any) => l.id !== labelId) || [] };
+          }
+          return conv;
+        });
+      });
+      return { previousConvs };
+    },
+    onError: (err, variables, context: any) => {
+      if (context?.previousConvs) qc.setQueryData(CONVERSATIONS_KEY, context.previousConvs);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
   });
