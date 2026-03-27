@@ -9,6 +9,8 @@ import { Search, Bike, Package, ArrowRight, Loader2, Filter, ShoppingBag, Sparkl
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { CartDrawer } from "@/components/shop/CartDrawer";
+import { CheckoutModal } from "@/components/shop/CheckoutModal";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -203,7 +205,10 @@ export default function Store() {
   const displayProducts = aiSkus.length > 0 ? aiProducts : filteredProducts;
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black flex flex-col pb-10">
+    <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black flex flex-col pb-10 relative">
+
+      {/* NOISE OVERLAY - Bolder Texture */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
 
       {/* ── HEADER CLEAN ────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-6 md:px-12 h-[72px] md:h-24 flex items-center justify-between gap-4 md:gap-8">
@@ -358,6 +363,8 @@ export default function Store() {
       </footer>
 
       <StoreChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <CartDrawer />
+      <CheckoutModal />
     </div>
   );
 }

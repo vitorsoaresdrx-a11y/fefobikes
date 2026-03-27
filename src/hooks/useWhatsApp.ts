@@ -15,6 +15,20 @@ export interface Conversation {
   human_takeover: boolean;
   instance_name: string | null;
   created_at: string;
+  labels?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    priority: number;
+  }>;
+}
+
+export interface Label {
+  id: string;
+  name: string;
+  color: string;
+  priority: number;
+  created_at: string;
 }
 
 export interface Message {
@@ -54,7 +68,28 @@ export function useConversations(statusFilter?: string, instanceName?: string | 
     queryFn: async () => {
       let query = supabase
         .from("whatsapp_conversations" as any)
-        .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, human_takeover, instance_name, created_at")
+        .select(`
+          id, 
+          contact_phone, 
+          contact_name, 
+          contact_photo, 
+          last_message, 
+          last_message_at, 
+          unread_count, 
+          status, 
+          ai_enabled, 
+          human_takeover, 
+          instance_name, 
+          created_at,
+          whatsapp_conversation_labels!left (
+            whatsapp_labels!left (
+              id,
+              name,
+              color,
+              priority
+            )
+          )
+        `)
         .order("last_message_at", { ascending: false });
 
       if (statusFilter && statusFilter !== "all") {
@@ -66,8 +101,25 @@ export function useConversations(statusFilter?: string, instanceName?: string | 
       }
 
       const { data, error } = await query as any;
-      if (error) throw error;
-      return (data as Conversation[]).filter((conversation) => {
+      if (error) {
+        // Fallback: If labels tables don't exist yet, try a simple query without labels
+        if (error.code === "PGRST204" || error.message?.includes("whatsapp_conversation_labels")) {
+           const { data: fallback, error: fallbackError } = await supabase
+            .from("whatsapp_conversations" as any)
+            .select("id, contact_phone, contact_name, contact_photo, last_message, last_message_at, unread_count, status, ai_enabled, human_takeover, instance_name, created_at")
+            .order("last_message_at", { ascending: false });
+           if (fallbackError) throw fallbackError;
+           return (fallback as Conversation[]).filter(c => (c.contact_phone || "").replace(/\D/g, "").length >= 8);
+        }
+        throw error;
+      };
+      
+      const normalizedData = (data as any[]).map(conv => ({
+        ...conv,
+        labels: conv.whatsapp_conversation_labels?.map((l: any) => l.whatsapp_labels).filter(Boolean) || []
+      }));
+
+      return (normalizedData as Conversation[]).filter((conversation) => {
         const normalizedPhone = (conversation.contact_phone || "").replace(/\D/g, "");
         return normalizedPhone.length >= 8;
       });
@@ -290,8 +342,109 @@ export function useTotalUnread() {
       return (data || []).reduce((sum, c) => {
         const normalizedPhone = (c.contact_phone || "").replace(/\D/g, "");
         if (normalizedPhone.length < 8) return sum;
-        return sum + (c.unread_count || 0);
       }, 0);
+    },
+  });
+}
+
+// ─── Labels Hooks ──────────────────────────────────────────────────────────
+
+export function useLabels() {
+  return useQuery({
+    queryKey: ["whatsapp_labels"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("whatsapp_labels")
+        .select("*")
+        .order("priority", { ascending: true });
+      if (error) throw error;
+      return data as Label[];
+    },
+  });
+}
+
+export function useCreateLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (label: Omit<Label, "id" | "created_at">) => {
+      const { data, error } = await supabase
+        .from("whatsapp_labels")
+        .insert(label)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["whatsapp_labels"] });
+    },
+  });
+}
+
+export function useDeleteLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("whatsapp_labels")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["whatsapp_labels"] });
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
+    },
+  });
+}
+
+export function useUpdateLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (label: Partial<Label> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("whatsapp_labels")
+        .update(label)
+        .eq("id", label.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["whatsapp_labels"] });
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
+    },
+  });
+}
+
+export function useAssignLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ conversationId, labelId }: { conversationId: string; labelId: string }) => {
+      const { error } = await supabase
+        .from("whatsapp_conversation_labels")
+        .insert({ conversation_id: conversationId, label_id: labelId });
+      if (error && error.code !== "23505") throw error; // 23505 is unique violation (already assigned)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
+    },
+  });
+}
+
+export function useUnassignLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ conversationId, labelId }: { conversationId: string; labelId: string }) => {
+      const { error } = await supabase
+        .from("whatsapp_conversation_labels")
+        .delete()
+        .match({ conversation_id: conversationId, label_id: labelId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     },
   });
 }

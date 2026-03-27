@@ -13,11 +13,15 @@ import {
   ShoppingBag,
   ChevronLeft,
   CheckCircle2,
-  Info
+  Info,
+  Plus,
+  Bot,
+  HelpCircle
 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
-import { CartDrawer } from "@/components/shop/CartDrawer";
+import { CartDrawer } from "@/hooks/useCart"; // Note: verify path if needed, usually from components
 import { StoreChat } from "@/components/shop/StoreChat";
+import { CheckoutModal } from "@/components/shop/CheckoutModal";
 import {
   Carousel,
   CarouselContent,
@@ -31,6 +35,9 @@ import { formatBRL } from "@/lib/format";
 import { useState, useEffect } from "react";
 import { ShippingSimulator } from "@/components/shop/ShippingSimulator";
 import { toast } from "sonner";
+
+// Re-importing CartDrawer safely
+import { CartDrawer as CartDrawerUI } from "@/components/shop/CartDrawer";
 
 // ─── Design System ────────────────────────────────────────────────────────────
 
@@ -57,18 +64,12 @@ const Btn = ({
   );
 };
 
-const BadgeEl = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <span className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest bg-white/[0.03] text-white/40 border border-white/5 rounded-lg ${className}`}>
-    {children}
-  </span>
-);
-
 // ─── Header ──────────────────────────────────────────────────────────
 
 function Header() {
   return (
-    <header className="sticky top-0 z-[60] bg-black/90 backdrop-blur-2xl border-b border-white/5 px-6 md:px-12 h-20 md:h-24 flex items-center justify-between">
-      <Link to="/store" className="flex items-center gap-4 shrink-0 group">
+    <header className="sticky top-0 z-[60] bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 md:px-12 h-20 md:h-24 flex items-center justify-between">
+      <Link to="/store" className="flex items-center gap-3 shrink-0 group">
         <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#EFFF00] text-black flex items-center justify-center shadow-[0_0_30px_rgba(239,255,0,0.15)] group-hover:scale-110 transition-transform">
           <Bike className="w-6 h-6 md:w-7 md:h-7" strokeWidth={2.5} />
         </div>
@@ -78,8 +79,8 @@ function Header() {
         </div>
       </Link>
       <div className="flex gap-4">
-        <Link to="/store" className="flex h-12 px-6 bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all items-center gap-3">
-          <ChevronLeft size={16} /> Voltar à Loja
+        <Link to="/store" className="flex h-11 px-6 bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all items-center gap-2">
+          <ChevronLeft size={14} /> Voltar à Loja
         </Link>
       </div>
     </header>
@@ -88,74 +89,64 @@ function Header() {
 
 function LoadingState() {
   return (
-    <div className="min-h-screen bg-[#000000] text-white flex items-center justify-center p-12">
-      <div className="flex flex-col items-center gap-6">
-        <div className="w-12 h-12 border-4 border-white/5 border-t-[#EFFF00] rounded-full animate-spin" />
-        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#EFFF00] animate-pulse">
-          Sincronizando Catálogo...
-        </span>
-      </div>
+    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+       <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
+       <div className="relative flex flex-col items-center gap-8 px-6 text-center">
+          <motion.div 
+            animate={{ scale: [1, 1.05, 1], opacity: [0.2, 0.6, 0.2] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="text-[32px] md:text-[50px] font-black tracking-tighter italic text-white/20 select-none uppercase"
+          >
+            SINCRONIZANDO...
+          </motion.div>
+          <div className="w-40 h-[1.5px] bg-white/5 relative overflow-hidden">
+             <motion.div 
+                animate={{ x: [-200, 200] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 w-16 bg-[#EFFF00]"
+             />
+          </div>
+       </div>
     </div>
   );
 }
 
-// ─── Componentes Especiais ───────────────────────────────────────────────────
+// ─── PriceSection ───────────────────────────────────────────────────
 
 function PriceSection({ product }: { product: any }) {
   const ecommercePrice = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
-  const installmentsEnabledEcommerce = !!product.installments_enabled_ecommerce;
-  const installmentCountEcommerce = Number(product.installment_count_ecommerce) || 0;
-  const installmentValueEcommerce = Number(product.installment_value_ecommerce) || 0;
   
-  const installmentPrice = installmentsEnabledEcommerce ? installmentValueEcommerce : (Number(product.installment_price) || 0);
-  const installmentCount = installmentsEnabledEcommerce ? installmentCountEcommerce : (Number(product.installment_count) || 1);
-  const hasInstallments = installmentsEnabledEcommerce ? (installmentCountEcommerce > 1 && installmentValueEcommerce > 0) : (installmentPrice > 0 && installmentCount > 1);
-  
-  if (!ecommercePrice && !hasInstallments) return null;
+  if (!ecommercePrice) return null;
 
   return (
-    <section className="space-y-6">
-      {ecommercePrice > 0 && (
-        <div className="flex flex-col">
-          <motion.p 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-5xl md:text-6xl font-black tracking-tighter text-white drop-shadow-2xl"
+    <div className="flex flex-col gap-4">
+       {/* DIVIDER YELLOW */}
+       <div className="w-12 h-1 bg-[#EFFF00] rounded-full" />
+       
+       <div className="space-y-0.5">
+          <p className="text-[11px] font-bold tracking-[0.05em] text-white">LABORATÓRIO DE PERFORMANCE</p>
+          <p className="text-[11px] font-bold tracking-[0.05em] text-white/40">VALOR EXCLUSIVO</p>
+       </div>
+
+       <div className="flex items-baseline gap-4 flex-wrap">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-[54px] md:text-[84px] font-[1000] italic leading-none text-[#EFFF00] tracking-tighter select-none"
           >
             {formatBRL(ecommercePrice)}
-          </motion.p>
-          <div className="flex items-center gap-2 mt-2">
-            <CheckCircle2 size={12} className="text-[#EFFF00]" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#EFFF00]">
-              Preço Especial à vista
-            </p>
-          </div>
-        </div>
-      )}
-
-      {hasInstallments && (
-        <div className="p-5 md:p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-5 group hover:bg-white/[0.04] transition-all">
-          <div className="w-12 h-12 rounded-xl bg-[#0033FF]/10 text-[#0033FF] flex items-center justify-center border border-[#0033FF]/10">
-            <CreditCard size={22} className="group-hover:scale-110 transition-transform" />
-          </div>
-          <div>
-            <p className="text-base font-black text-white tracking-tight">
-              {installmentCount}x de {formatBRL(installmentPrice)} <span className="text-[#0033FF] uppercase text-[10px] ml-1">Sem Juros</span>
-            </p>
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1">Parcelamento Facilitado</p>
-          </div>
-        </div>
-      )}
-    </section>
+          </motion.div>
+          <span className="text-[11px] font-bold text-white/40 mb-2 uppercase italic">À vista no pix</span>
+       </div>
+    </div>
   );
 }
 
-// ─── Componente Principal ─────────────────────────────────────────────────────
+// ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function ProdutoPublico() {
   const { sku } = useParams<{ sku: string }>();
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const { items } = useCart();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["public-product", sku],
@@ -179,19 +170,6 @@ export default function ProdutoPublico() {
     },
   });
 
-  const { data: bikeParts = [] } = useQuery({
-    queryKey: ["public-bike-parts", product?.id],
-    enabled: !!product && product._type === "bike",
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("bike_model_parts_public" as any)
-        .select("*, parts(name)")
-        .eq("bike_model_id", product!.id)
-        .order("sort_order") as { data: any[] | null };
-      return data || [];
-    },
-  });
-
   const { data: attrs = [] } = usePublicPartAttributes(product?._type === "part" ? product.id : "");
 
   if (isLoading) return <LoadingState />;
@@ -204,12 +182,7 @@ export default function ProdutoPublico() {
           <div className="w-20 h-20 rounded-[32px] bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/10">
             <Package size={40} />
           </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black uppercase tracking-tight">Produto Esgotado</h2>
-            <p className="text-white/40 text-sm max-w-sm mx-auto font-medium">
-              Este item não está mais disponível em nosso catálogo público.
-            </p>
-          </div>
+          <h2 className="text-2xl font-black uppercase tracking-tight">Produto Esgotado</h2>
           <Link to="/store">
             <Btn variant="primary">Voltar ao Catálogo</Btn>
           </Link>
@@ -219,7 +192,7 @@ export default function ProdutoPublico() {
   }
 
   const images: string[] = (product as any).images || [];
-  const category = product.category;
+  const ecommercePrice = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
 
   const specs: { label: string; value: string }[] = [];
   if (product._type === "bike") {
@@ -241,224 +214,159 @@ export default function ProdutoPublico() {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black flex flex-col pb-20">
+    <div className="min-h-screen bg-[#000000] text-white font-['Plus_Jakarta_Sans'] selection:bg-[#EFFF00] selection:text-black flex flex-col overflow-x-hidden relative pb-28">
+      
+      {/* NOISE OVERLAY */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
+      
       <Header />
 
-      <main className="flex-1 w-full max-w-[1440px] mx-auto px-6 md:px-12 py-10 lg:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
-          
-          {/* LADO ESQUERDO: GALERIA STICKY */}
-          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-10 lg:sticky lg:top-32 lg:self-start">
-            
-            {/* Titulo Mobile */}
-            <div className="space-y-4 lg:hidden">
-               <div className="flex gap-2">
-                 <BadgeEl className="text-[#EFFF00] border-[#EFFF00]/20 bg-[#EFFF00]/5">SKU: {sku}</BadgeEl>
-                 {category && <BadgeEl>{category}</BadgeEl>}
-               </div>
-               <h1 className="text-4xl font-black tracking-tighter leading-none italic uppercase">
-                 {product.name}
-               </h1>
-            </div>
+      <main className="flex-1 w-full max-w-[1720px] mx-auto px-4 md:px-12 py-6 md:py-10">
+        
+        {/* TITULO NO TOPO */}
+        <div className="mb-8 pl-1">
+           <motion.h1 
+             initial={{ opacity: 0, x: -20 }}
+             animate={{ opacity: 1, x: 0 }}
+             className="text-[36px] md:text-[80px] font-black tracking-[-0.05em] uppercase italic leading-none"
+           >
+             {product.name}
+           </motion.h1>
+        </div>
 
-            {/* Galeria Premium */}
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-20 items-start">
+          
+          {/* LADO ESQUERDO: GALERIA E BENEFICIOS */}
+          <div className="w-full lg:col-span-8 space-y-8">
+            
             <section className="relative group">
               {images.length > 0 ? (
                 <Carousel className="w-full">
                   <CarouselContent>
                     {images.map((img, i) => (
                       <CarouselItem key={i}>
-                        <div className="aspect-[4/5] sm:aspect-[4/3] lg:aspect-video xl:aspect-[16/10] bg-[#0A0A0A] border-2 border-white/5 rounded-[40px] flex items-center justify-center p-8 md:p-16 overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative">
-                          {/* Inner Glow */}
-                          <div className="absolute inset-0 bg-gradient-to-tr from-[#EFFF00]/[0.02] to-transparent pointer-events-none" />
-                          
-                          <motion.img
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.8 }}
-                            src={getOptimizedImageUrl(img, 1200, 90) || img}
-                            alt={`${product.name} ${i + 1}`}
-                            className="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+                        <div className="aspect-[4/3] md:aspect-[16/10] bg-[#0A0A0A] rounded-[24px] lg:rounded-[60px] flex items-center justify-center p-4 md:p-12 overflow-hidden relative border border-white/5 shadow-2xl">
+                          <img
+                            src={getOptimizedImageUrl(img, 1600, 95) || img}
+                            alt={product.name}
+                            className="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]"
                           />
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
+                  
                   {images.length > 1 && (
-                     <div className="absolute inset-y-0 left-6 right-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                       <CarouselPrevious className="relative left-0 pointer-events-auto bg-black/80 backdrop-blur-xl border-white/10 text-[#EFFF00] h-14 w-14 rounded-2xl hover:bg-[#EFFF00] hover:text-black transition-all" />
-                       <CarouselNext className="relative right-0 pointer-events-auto bg-black/80 backdrop-blur-xl border-white/10 text-[#EFFF00] h-14 w-14 rounded-2xl hover:bg-[#EFFF00] hover:text-black transition-all" />
-                     </div>
+                    <>
+                       <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                          <CarouselPrevious className="static translate-y-0 h-11 w-11 md:h-14 md:w-14 rounded-lg bg-[#EFFF00] text-black border-none hover:bg-white transition-all shadow-xl" />
+                       </div>
+                       <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
+                          <CarouselNext className="static translate-y-0 h-11 w-11 md:h-14 md:w-14 rounded-lg bg-[#EFFF00] text-black border-none hover:bg-white transition-all shadow-xl" />
+                       </div>
+                    </>
                   )}
                 </Carousel>
               ) : (
-                <div className="aspect-video bg-[#0A0A0A] border border-white/5 rounded-[40px] flex items-center justify-center text-white/[0.03]">
-                  {product._type === "bike" ? <Bike size={180} strokeWidth={0.5} /> : <Package size={180} strokeWidth={0.5} />}
+                <div className="aspect-video bg-[#0A0A0A] rounded-[40px] border border-white/5 flex items-center justify-center text-white/5">
+                  <Package size={150} strokeWidth={0.5} />
                 </div>
               )}
             </section>
 
-            {/* Benefícios Rápidos */}
-            <div className="hidden lg:grid grid-cols-3 gap-6">
-               <div className="p-6 rounded-[24px] bg-white/[0.02] border border-white/5 space-y-2">
-                 <Truck className="text-[#EFFF00]" size={24} />
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Logística VIP</p>
-                 <p className="text-[11px] text-white/30 font-medium">Entregamos em todo território nacional.</p>
-               </div>
-               <div className="p-6 rounded-[24px] bg-white/[0.02] border border-white/5 space-y-2">
-                 <ShieldCheck className="text-[#0033FF]" size={24} />
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Segurança</p>
-                 <p className="text-[11px] text-white/30 font-medium">Garantia oficial e nota fiscal eletrônica.</p>
-               </div>
-               <div className="p-6 rounded-[24px] bg-white/[0.02] border border-white/5 space-y-2">
-                 <Info className="text-white/60" size={24} />
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Suporte</p>
-                 <p className="text-[11px] text-white/30 font-medium">Especialistas prontos para te atender.</p>
-               </div>
-            </div>
+            {/* BENEFÍCIOS 2x2 */}
+            <section className="grid grid-cols-2 gap-3 md:gap-6 px-1">
+               {[
+                 { icon: Truck, label: "ENTREGA", desc: "TODO BRASIL" },
+                 { icon: ShieldCheck, label: "GARANTIA LAB", desc: "90 DIAS" },
+                 { icon: Info, label: "SUPORTE", desc: "ESPECIALISTA" },
+                 { icon: CreditCard, label: "PAGAMENTO", desc: "SEGURO" }
+               ].map((item, idx) => (
+                 <div key={idx} className="p-5 md:p-8 bg-[#0A0A0A] border border-white/[0.03] rounded-[16px] md:rounded-[24px] flex items-center gap-4 group hover:border-[#EFFF00]/20 transition-all">
+                   <item.icon className="text-[#EFFF00] shrink-0" size={28} strokeWidth={2.5} />
+                   <div className="flex flex-col leading-tight">
+                     <span className="text-[10px] md:text-[12px] font-bold text-white/50">{item.label}</span>
+                     <span className="text-[12px] md:text-[16px] font-black text-[#EFFF00] italic">{item.desc}</span>
+                   </div>
+                 </div>
+               ))}
+            </section>
           </div>
 
-          {/* LADO DIREITO: CONTEÚDO SCROLLABLE */}
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-12">
+          {/* LADO DIREITO: PREÇO E CTAs */}
+          <aside className="w-full lg:col-span-4 flex flex-col gap-10 lg:sticky lg:top-32 px-1">
             
-            {/* Título Desktop */}
-            <div className="hidden lg:block space-y-5">
-               <div className="flex gap-3">
-                 <BadgeEl className="text-[#EFFF00] border-[#EFFF00]/20 bg-[#EFFF00]/5">SKU: {sku}</BadgeEl>
-                 {category && <BadgeEl>{category}</BadgeEl>}
-               </div>
-               <h1 className="text-5xl xl:text-6xl font-black tracking-tighter leading-none italic uppercase drop-shadow-lg">
-                 {product.name}
-               </h1>
-            </div>
-
-            {/* Preço */}
             <PriceSection product={product} />
 
-            {/* CTA */}
-            <section className="flex flex-col gap-4">
-              {items.length === 0 ? (
-                <>
-                  <Btn 
-                    variant="primary" 
-                    className="w-full py-6 text-[14px] gap-3"
-                    onClick={() => {
-                      const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
-                      useCart.getState().addItem(product, price);
-                      toast.success("Adicionado com sucesso!", { description: "Seu item já está no carrinho." });
-                    }}
-                  >
-                    <ShoppingBag size={22} strokeWidth={2.5} /> COMPRAR AGORA
-                  </Btn>
-                  
-                  <Btn 
-                    variant="outline" 
-                    className="w-full py-5 text-[11px] border-white/10"
-                    onClick={() => {
-                      const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
-                      useCart.getState().addItem(product, price);
-                      toast.success("Item adicionado!");
-                    }}
-                  >
-                    ADICIONAR AO CARRINHO
-                  </Btn>
-                </>
-              ) : (
-                <Btn 
-                  variant="primary" 
-                  className="w-full py-6 text-[14px] gap-3"
-                  onClick={() => {
-                    const price = Number(product.price_ecommerce) || Number(product.pix_price) || 0;
-                    useCart.getState().addItem(product, price);
-                    toast.success("Item adicionado!");
-                  }}
-                >
-                  <ShoppingBag size={22} strokeWidth={2.5} /> ADICIONAR AO CARRINHO
-                </Btn>
-              )}
-              
-              <button 
-                className="w-full py-5 text-[10px] font-black uppercase tracking-[0.4em] text-white/20 hover:text-white transition-all mt-2"
-                onClick={() => setIsChatOpen(true)}
-              >
-                TIRAR DÚVIDAS COM IA
-              </button>
-            </section>
-
-            {/* Calculadora de Frete - Estilo Pro Max */}
-            <ShippingSimulator 
-              invoiceValue={Number(product.price_ecommerce) || Number(product.pix_price) || 0} 
-              productType={product._type}
-              className="mt-4"
-            />
-
-            {/* Detalhes Técnicos e Gerais */}
-            <div className="flex flex-col gap-12 pt-10 border-t border-white/10">
-              
-              {/* Descrição */}
-              {(product as any).description && (
-                <div className="space-y-4">
-                  <h3 className="text-xs font-black uppercase tracking-[0.4em] text-white/20">Apresentação</h3>
-                  <div className="text-white/60 leading-relaxed text-[15px] whitespace-pre-line antialiased font-medium">
-                    {(product as any).description}
-                  </div>
-                </div>
-              )}
-
-              {/* Especificações */}
-              {((product._type === "bike" && bikeParts.length > 0) || attrs.length > 0 || specs.length > 0) && (
-                <div className="space-y-6">
-                  <h3 className="text-xs font-black uppercase tracking-[0.4em] text-white/20">Especificações Técnicas</h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    
-                    {/* Lista de Specs e Atributos */}
-                    {[...specs, ...attrs].map((s: any, idx: number) => (
-                      <div key={`spec-${idx}`} className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-2xl group/spec hover:bg-white/[0.05] transition-all">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/50 group-hover/spec:text-white transition-colors">{s.label || s.name}</span>
-                        <span className="text-sm font-black text-white">{s.value}</span>
-                      </div>
-                    ))}
-
-                    {/* Lista de Componentes da Bike */}
-                    {product._type === "bike" && bikeParts.map((bp: any) => (
-                      <div key={`bp-${bp.id}`} className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-2xl group/spec hover:bg-white/[0.05] transition-all">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/50 truncate max-w-[200px]">{bp.parts?.name || bp.part_name_override || "Componente"}</span>
-                        <span className="text-[10px] font-black text-[#EFFF00] bg-[#EFFF00]/10 px-3 py-1.5 rounded-lg border border-[#EFFF00]/10">x{bp.quantity}</span>
-                      </div>
-                    ))}
-                    
-                  </div>
-                </div>
-              )}
-
-              {/* Garantia e Envio */}
-              <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-3 p-6 rounded-[28px] bg-gradient-to-br from-white/[0.03] to-transparent border border-[#EFFF00]/20 shadow-lg group/card hover:border-[#EFFF00]/50 transition-all">
-                  <div className="w-12 h-12 rounded-2xl bg-[#EFFF00] text-black flex items-center justify-center shadow-[0_10px_20px_rgba(239,255,0,0.2)]">
-                    <ShieldCheck size={24} strokeWidth={2.5} />
-                  </div>
-                  <div className="flex flex-col pt-2">
-                    <span className="text-sm font-black text-white italic tracking-tight uppercase">Garantia Fefo</span>
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-1">90 Dias de Segurança</span>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col gap-3 p-6 rounded-[28px] bg-gradient-to-br from-white/[0.03] to-transparent border border-[#0033FF]/20 shadow-lg group/card hover:border-[#0033FF]/50 transition-all">
-                  <div className="w-12 h-12 rounded-2xl bg-[#0033FF] text-white flex items-center justify-center shadow-[0_10px_20px_rgba(0,51,255,0.2)]">
-                    <Truck size={24} strokeWidth={2.5} />
-                  </div>
-                  <div className="flex flex-col pt-2">
-                    <span className="text-sm font-black text-white italic tracking-tight uppercase">Envio VIP</span>
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-1">Sua Bike Intacta</span>
-                  </div>
-                </div>
-              </section>
+            {/* BOTÕES */}
+            <div className="flex flex-col gap-3">
+               <button 
+                 onClick={() => {
+                   useCart.getState().addItem(product, ecommercePrice);
+                   toast.success("Adicionado!");
+                 }}
+                 className="h-16 md:h-20 bg-[#EFFF00] text-black hover:bg-white rounded-[16px] font-black text-[14px] md:text-[16px] uppercase tracking-wider transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl shadow-[#EFFF00]/5"
+               >
+                 EU QUERO ESTA BIKE <ArrowRight size={20} strokeWidth={3.5} />
+               </button>
+               
+               <button 
+                 onClick={() => setIsChatOpen(true)}
+                 className="h-16 border-2 border-[#EFFF00] bg-transparent text-white hover:bg-[#EFFF00]/5 rounded-[16px] font-black text-[14px] md:text-[16px] uppercase tracking-wider transition-all flex items-center justify-center gap-3 group"
+               >
+                 DÚVIDA TÉCNICA <HelpCircle size={20} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
+               </button>
             </div>
-          </div>
+
+            {/* SIMULADOR FRETE */}
+            <div className="pt-6 border-t border-white/5">
+                <ShippingSimulator 
+                  productType={product._type}
+                  invoiceValue={ecommercePrice} 
+                  className="bg-transparent border-none p-0"
+                />
+            </div>
+          </aside>
+        </div>
+
+        {/* DNA TÉCNICO */}
+        <div className="mt-20 space-y-8 pt-8 border-t border-white/5">
+           <h3 className="text-[12px] font-black uppercase tracking-[0.4em] text-white/20 italic">ESPECIFICAÇÕES TÉCNICAS</h3>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-4">
+              {[...specs, ...attrs].slice(0, 10).map((s: any, idx) => (
+                <div key={idx} className="flex items-end justify-between border-b border-white/5 pb-3 group/row transition-colors hover:border-[#EFFF00]/20">
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 group-hover/row:text-[#EFFF00]/50 transition-colors">{s.label || s.name}</span>
+                   <span className="text-lg font-black text-white italic tracking-tighter">{s.value}</span>
+                </div>
+              ))}
+           </div>
         </div>
       </main>
 
+      {/* BOTTOM NAV SIMULATOR (AS PER IMAGE) */}
+      <footer className="fixed bottom-0 inset-x-0 h-20 bg-black/90 backdrop-blur-xl border-t border-white/10 flex items-center justify-around px-6 z-50 lg:hidden">
+         <div className="flex flex-col items-center gap-1 text-white/40">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span className="text-[10px] font-black">Início</span>
+         </div>
+         <div className="flex flex-col items-center gap-1 text-[#EFFF00] relative">
+            <Bike className="w-6 h-6" />
+            <span className="text-[10px] font-black">Loja</span>
+            <div className="absolute -top-4 w-12 h-1 bg-[#EFFF00] rounded-full shadow-[0_0_10px_#EFFF00]" />
+         </div>
+         <div className="flex flex-col items-center gap-1 text-white/40">
+            <ShoppingBag className="w-6 h-6" />
+            <span className="text-[10px] font-black">Carrinho</span>
+         </div>
+         <div className="flex flex-col items-center gap-1 text-white/40">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span className="text-[10px] font-black">Perfil</span>
+         </div>
+      </footer>
+
       <StoreChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <CartDrawerUI />
+      <CheckoutModal />
     </div>
   );
 }

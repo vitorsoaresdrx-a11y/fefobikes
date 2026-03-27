@@ -129,7 +129,6 @@ function AuthGate() {
           <Route path="/orcamentos" element={<GuardedRoute module="orcamentos"><PageTransition><Orcamentos /></PageTransition></GuardedRoute>} />
           <Route path="/clientes" element={<GuardedRoute module="clientes"><PageTransition><Clientes /></PageTransition></GuardedRoute>} />
           <Route path="/clientes/:id" element={<GuardedRoute module="clientes"><PageTransition><ClienteDetalhe /></PageTransition></GuardedRoute>} />
-          <Route path="/whatsapp" element={<GuardedRoute module="whatsapp"><PageTransition><WhatsAppPage /></PageTransition></GuardedRoute>} />
           <Route path="/chamadas" element={<GuardedRoute module="chamadas"><PageTransition><Chamadas /></PageTransition></GuardedRoute>} />
           <Route path="/permissoes" element={<GuardedRoute module="permissoes"><PageTransition><Permissoes /></PageTransition></GuardedRoute>} />
           <Route path="/configuracoes" element={<GuardedRoute module="configuracoes"><PageTransition><Configuracoes /></PageTransition></GuardedRoute>} />
@@ -140,6 +139,11 @@ function AuthGate() {
           <Route path="/simulador-frete-tabela" element={<GuardedRoute module="dashboard"><PageTransition><SimuladorFreteTabela /></PageTransition></GuardedRoute>} />
           <Route path="/agenda" element={<GuardedRoute module="agenda"><PageTransition><Agenda /></PageTransition></GuardedRoute>} />
         </Route>
+        <Route path="/whatsapp" element={
+          <Suspense fallback={<PageSkeleton />}>
+            <WhatsAppPage />
+          </Suspense>
+        } />
         <Route path="*" element={<Suspense fallback={<PageSkeleton />}><NotFound /></Suspense>} />
       </Routes>
     </>
@@ -177,9 +181,6 @@ const App = () => (
             <Route path="/*" element={<AuthGate />} />
             <Route path="/jogar" element={<Jogar />} />
           </Routes>
-          
-          <CartDrawer />
-          <CheckoutModal />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

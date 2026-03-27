@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   useConversations,
@@ -7,7 +8,14 @@ import {
   useUpdateConversationStatus,
   useMarkAsRead,
   useToggleAi,
+  useLabels,
+  useCreateLabel,
+  useDeleteLabel,
+  useUpdateLabel,
+  useAssignLabel,
+  useUnassignLabel,
   type Conversation,
+  type Label
 } from "@/hooks/useWhatsApp";
 import {
   useEvolutionInstances,
@@ -41,6 +49,18 @@ import {
   Radio,
   Server,
   User,
+  Mic,
+  Tag,
+  Plus,
+  Info,
+  ArrowRight,
+  Trash2,
+  X,
+  PlusCircle,
+  Palette,
+  ChevronUp,
+  ChevronDown,
+  Sparkles
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -53,6 +73,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -64,31 +85,17 @@ function getInitials(name?: string | null, phone?: string) {
 function getDisplayContactPhone(phone?: string | null) {
   const rawPhone = (phone || "").trim();
   if (!rawPhone || rawPhone.includes("status@broadcast") || rawPhone.includes("@lid")) {
-    return "Telefone desconhecido";
+    return "Desconhecido";
   }
-
-  const digits = rawPhone.replace(/\D/g, "");
-  if (digits.length < 10 || digits.length > 13) {
-    return "Telefone desconhecido";
-  }
-
-  return digits;
+  return rawPhone.replace(/\D/g, "");
 }
 
-function getDisplayContactName(
-  conversation: Conversation,
-  currentUserName?: string | null
-) {
+function getDisplayContactName(conversation: Conversation, currentUserName?: string | null) {
   const candidate = (conversation.contact_name || "").trim();
   const normalizedCurrentUserName = (currentUserName || "").trim().toLowerCase();
-
-  if (
-    candidate &&
-    (!normalizedCurrentUserName || candidate.toLowerCase() !== normalizedCurrentUserName)
-  ) {
+  if (candidate && (!normalizedCurrentUserName || candidate.toLowerCase() !== normalizedCurrentUserName)) {
     return candidate;
   }
-
   return getDisplayContactPhone(conversation.contact_phone);
 }
 
@@ -100,59 +107,43 @@ function formatSummary(text: string) {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .join("<br/><br/>");
+    .join("<br/>");
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Status Configs ───────────────────────────────────────────────────────────
 
 const STATUS_FILTERS = [
   { label: "Todos", value: "all" },
   { label: "Abertas", value: "open" },
   { label: "Aguardando", value: "waiting" },
-  { label: "Resolvidas", value: "resolved" },
+  { label: "Finalizadas", value: "resolved" },
 ];
 
 const statusBadgeConfig: Record<string, string> = {
-  open: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  open: "bg-[#EFFF00]/10 text-[#EFFF00] border-[#EFFF00]/20",
   waiting: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  resolved: "bg-muted text-muted-foreground border-border/80",
-};
-
-const statusDotConfig: Record<string, string> = {
-  open: "bg-emerald-500",
-  waiting: "bg-amber-500",
-  resolved: "bg-muted-foreground",
+  resolved: "bg-white/5 text-white/40 border-white/5",
 };
 
 const statusLabel: Record<string, string> = {
-  open: "Aberto",
-  waiting: "Aguardando",
-  resolved: "Finalizado",
+  open: "ABERTO",
+  waiting: "AGUARDANDO",
+  resolved: "FINALIZADO",
 };
 
-function ConversationBadge({ status }: { status: string }) {
-  return (
-    <span
-      className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${statusBadgeConfig[status] || statusBadgeConfig.resolved}`}
-    >
-      {statusLabel[status] || status}
-    </span>
-  );
-}
+// ─── UI Components ───────────────────────────────────────────────────────────
 
 function MessageStatus({ status }: { status: string }) {
-  if (status === "read")
-    return <CheckCheck className="h-3 w-3 text-white/70" />;
-  if (status === "delivered")
-    return <CheckCheck className="h-3 w-3 text-white/40" />;
-  if (status === "sent")
-    return <Check className="h-3 w-3 text-white/40" />;
-  return <Clock className="h-3 w-3 text-white/40" />;
+  if (status === "read") return <CheckCheck className="h-3 w-3 text-blue-400" />;
+  if (status === "delivered") return <CheckCheck className="h-3 w-3 text-white/40" />;
+  if (status === "sent") return <Check className="h-3 w-3 text-white/40" />;
+  return <Clock className="h-3 w-3 text-white/20" />;
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function WhatsApp() {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
@@ -161,18 +152,15 @@ export default function WhatsApp() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Evolution instances
   const { data: instances = [], isLoading: instancesLoading } = useEvolutionInstances();
   const { selected: selectedInstance, setSelected: setSelectedInstance } = useSelectedInstance();
   const { data: instanceStatus } = useInstanceStatus(selectedInstance);
   const isConnected = instanceStatus?.connected === true;
 
-  // Instance AI control
   const { data: instanceAiData } = useInstanceAi(selectedInstance);
   const toggleInstanceAi = useToggleInstanceAi();
   const isInstanceAiEnabled = instanceAiData?.ai_enabled !== false;
 
-  // Auto-select first connected instance if none selected
   useEffect(() => {
     if (!selectedInstance && instances.length > 0) {
       const connected = instances.find((i) => i.connected);
@@ -186,11 +174,21 @@ export default function WhatsApp() {
   const updateStatus = useUpdateConversationStatus();
   const markAsRead = useMarkAsRead();
   const toggleAi = useToggleAi();
+  
+  const { data: allLabels = [] } = useLabels();
+  const createLabel = useCreateLabel();
+  const deleteLabel = useDeleteLabel();
+  const updateLabel = useUpdateLabel();
+  const assignLabel = useAssignLabel();
+  const unassignLabel = useUnassignLabel();
+
+  const [newLabelName, setNewLabelName] = useState("");
+  const [newLabelColor, setNewLabelColor] = useState("#EFFF00");
+  const [newLabelPriority, setNewLabelPriority] = useState(1);
+  const [isCreatingLabel, setIsCreatingLabel] = useState(false);
+
   const { session } = useAuth();
-  const currentUserName =
-    session?.user?.user_metadata?.full_name ||
-    session?.user?.user_metadata?.name ||
-    null;
+  const currentUserName = session?.user?.user_metadata?.full_name || null;
 
   const debouncedSearch = useDebounce(search, 300);
   const filtered = useMemo(() => {
@@ -224,523 +222,291 @@ export default function WhatsApp() {
       },
       {
         onSuccess: () => setMessageText(""),
-        onError: () =>
-          toast({ title: "Erro ao enviar mensagem", variant: "destructive" }),
+        onError: () => toast({ title: "Falha ao enviar", variant: "destructive" }),
       }
     );
   };
 
-  // Mobile: show chat full screen when conversation selected
   const [showChatMobile, setShowChatMobile] = useState(false);
-
-  const handleSelectConv = (conv: Conversation) => {
-    setSelectedConv(conv);
-    setShowChatMobile(true);
-  };
-
-  const handleBackToList = () => {
-    setShowChatMobile(false);
-  };
-
-  // ─── Render ────────────────────────────────────────────────────────────────
 
   if (instancesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh] pb-24 lg:pb-0">
-        <Loader2 size={32} className="text-primary animate-spin" />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black gap-6">
+        <Loader2 size={40} className="text-[#EFFF00] animate-spin" />
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Carregando...</p>
       </div>
     );
   }
 
   if (!selectedInstance || instances.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-background text-foreground px-4 pb-24 lg:pb-0">
-        <div className="flex flex-col items-center gap-6 max-w-md w-full">
-          <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-3xl flex items-center justify-center">
-            <Server size={32} className="text-primary" />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#050505] text-white p-8 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-[99] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
+        <div className="flex flex-col items-center gap-10 max-w-md w-full relative z-10">
+          <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-[40px] flex items-center justify-center text-white/20 shadow-2xl">
+            <Server size={44} strokeWidth={1.5} />
           </div>
-          <div className="text-center space-y-2">
-            <h1 className="text-xl font-black uppercase tracking-tight text-foreground">
-              Selecionar Instância
-            </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {instances.length === 0
-                ? "Nenhuma instância encontrada na Evolution API. Crie uma instância no painel da Evolution primeiro."
-                : "Selecione uma instância do WhatsApp para começar a atender."}
-            </p>
+          <div className="text-center space-y-4">
+             <h1 className="text-3xl font-black italic uppercase tracking-tighter">Hub WhatsApp</h1>
+             <p className="text-[13px] text-white/40 leading-relaxed text-center">Selecione uma instância para começar a gerenciar suas conversas.</p>
           </div>
-
-          {instances.length > 0 && (
-            <div className="w-full space-y-3">
-              {instances.map((inst) => (
-                <button
-                  key={inst.instanceName}
-                  onClick={() => setSelectedInstance(inst.instanceName)}
-                  className="w-full p-4 rounded-2xl border border-border bg-card hover:border-primary/50 transition-all flex items-center gap-4 group"
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${inst.connected ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
-                    {inst.connected ? (
-                      <Wifi size={18} className="text-emerald-400" />
-                    ) : (
-                      <WifiOff size={18} className="text-destructive" />
-                    )}
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-bold text-foreground">{inst.instanceName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {inst.connected ? "Conectado" : inst.state === "connecting" ? "Conectando..." : "Desconectado"}
-                    </p>
-                  </div>
-                  <Radio size={16} className={`shrink-0 ${inst.connected ? "text-emerald-400" : "text-muted-foreground/40"}`} />
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="w-full space-y-3">
+             {instances.map(inst => (
+               <button 
+                 key={inst.instanceName}
+                 onClick={() => setSelectedInstance(inst.instanceName)}
+                 className="w-full p-6 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.07] hover:border-white/10 transition-all flex items-center justify-between group"
+               >
+                 <div className="flex items-center gap-5">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${inst.connected ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
+                       {inst.connected ? <Wifi size={24} /> : <WifiOff size={24} />}
+                    </div>
+                    <div className="text-left">
+                       <p className="text-[15px] font-black italic text-white uppercase tracking-tight">{inst.instanceName}</p>
+                       <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${inst.connected ? "text-emerald-400" : "text-red-400"}`}>
+                         {inst.connected ? "CONECTADO" : "DESCONECTADO"}
+                       </p>
+                    </div>
+                 </div>
+                 <ArrowRight size={20} className="text-white/10 group-hover:text-white transition-all transform group-hover:translate-x-1" />
+               </button>
+             ))}
+          </div>
+          <button 
+            onClick={() => navigate('/')}
+            className="mt-6 px-10 h-14 border border-white/5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all"
+          >
+            VOLTAR AO SISTEMA
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background text-foreground overflow-hidden rounded-2xl md:rounded-[40px] border border-border/50 shadow-2xl pb-24 lg:pb-0">
+    <div className="flex h-[calc(100vh-2rem)] bg-[#050505] text-white font-['Plus_Jakarta_Sans'] overflow-hidden relative selection:bg-[#EFFF00] selection:text-black">
+      
+      {/* NOISE OVERLAY */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-[99] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
 
-      {/* ── Sidebar: Conversas ─────────────────────────────────────────────── */}
-      <aside className={`w-full md:w-96 flex flex-col border-r border-border/50 bg-card/50 md:shrink-0 ${showChatMobile ? "hidden md:flex" : "flex"}`}>
-
-        {/* Header */}
-        <div className="p-4 md:p-8 space-y-4 md:space-y-6">
+      {/* ── SIDEBAR: CONTACTS ── */}
+      <aside className={`w-full md:w-[400px] flex flex-col border-r border-white/5 bg-[#0A0A0A] z-10 ${showChatMobile ? "hidden md:flex" : "flex"}`}>
+        
+        {/* Header com Botão Voltar */}
+        <div className="p-8 space-y-6">
           <div className="flex items-center justify-between">
+            <button 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/5 hover:bg-white/10 rounded-xl transition-all group"
+            >
+              <ChevronLeft size={16} className="text-white/40 group-hover:text-white transition-colors" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/60">VOLTAR</span>
+            </button>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-primary/30">
-                <MessageCircle size={20} className="text-white" />
-              </div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black italic uppercase tracking-tighter">
-                  Mensagens
-                </h1>
-                {isConnected ? (
-                  <Wifi size={14} className="text-emerald-400" />
-                ) : (
-                  <WifiOff size={14} className="text-red-400" />
-                )}
-              </div>
+              <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-emerald-500 shadow-[0_0_10px_#10b981]" : "bg-red-500"}`} />
+              <Radio size={16} className="text-white/20" />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-10 h-10 flex items-center justify-center rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 transition-all">
-                  <MoreVertical size={18} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-background border-border">
-                <DropdownMenuItem
-                  onClick={() => setSelectedInstance(null)}
-                  className="gap-2"
+          </div>
+
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-black tracking-tighter uppercase italic leading-none">MENSAGENS</h1>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl group">
+             <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${isConnected ? "bg-emerald-500 shadow-[0_0_8px_#10b981]" : "bg-red-500"} animate-pulse`} />
+                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-white/60">Instância Conectada</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-white/40 uppercase">IA ATIVA</span>
+                <button 
+                  onClick={() => {
+                    if (selectedInstance) {
+                      toggleInstanceAi.mutate({ instanceName: selectedInstance, ai_enabled: !isInstanceAiEnabled });
+                    }
+                  }}
+                  className={`w-10 h-5 rounded-full relative transition-all ${isInstanceAiEnabled ? "bg-emerald-500" : "bg-white/10"}`}
                 >
-                  <Server size={14} />
-                  Trocar instância
-                </DropdownMenuItem>
-                {instances.map((inst) => (
-                  <DropdownMenuItem
-                    key={inst.instanceName}
-                    onClick={() => setSelectedInstance(inst.instanceName)}
-                    className={`gap-2 ${selectedInstance === inst.instanceName ? "text-primary" : ""}`}
-                  >
-                    {inst.connected ? <Wifi size={14} className="text-emerald-400" /> : <WifiOff size={14} className="text-red-400" />}
-                    {inst.instanceName}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isInstanceAiEnabled ? "right-1" : "left-1"}`} />
+                </button>
+             </div>
           </div>
-
-          {/* Instance info bar */}
-          <div className={`flex items-center gap-3 p-3 rounded-2xl border ${isConnected ? "bg-emerald-500/5 border-emerald-500/20" : "bg-destructive/10 border-destructive/30"}`}>
-            {isConnected ? <Wifi size={16} className="text-emerald-400 shrink-0" /> : <WifiOff size={16} className="text-destructive shrink-0" />}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate">{selectedInstance}</p>
-              <p className={`text-[10px] ${isConnected ? "text-emerald-400/70" : "text-destructive/70"}`}>
-                {isConnected ? "Conectado" : "Desconectado — conecte pelo painel da Evolution"}
-              </p>
-            </div>
-          </div>
-
-          {/* Botão de IA Global da Instância */}
-          <button
-            onClick={() => {
-              if (selectedInstance) {
-                const newVal = !isInstanceAiEnabled;
-                toggleInstanceAi.mutate(
-                  { instanceName: selectedInstance, ai_enabled: newVal },
-                  {
-                    onSuccess: () => {
-                      toast({
-                        title: newVal ? "IA Global Ativada" : "IA Global Pausada",
-                        description: newVal
-                          ? "A IA voltará a responder todos os chats desta instância."
-                          : "A IA não responderá nenhum chat desta instância até ser reativada.",
-                      });
-                    },
-                  }
-                );
-              }
-            }}
-            className={`w-full p-4 rounded-2xl border font-bold text-sm transition-all flex items-center justify-between group ${
-              isInstanceAiEnabled
-                ? "bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20"
-                : "bg-orange-500/10 border-orange-500/30 hover:bg-orange-500/20"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              {isInstanceAiEnabled ? (
-                <Bot size={20} className="text-emerald-400" />
-              ) : (
-                <BotOff size={20} className="text-orange-400" />
-              )}
-              <div className="text-left">
-                <p className={`text-xs font-black uppercase tracking-wider ${
-                  isInstanceAiEnabled ? "text-emerald-400" : "text-orange-400"
-                }`}>
-                  IA da Instância
-                </p>
-                <p className="text-[10px] text-muted-foreground/70">
-                  {isInstanceAiEnabled ? "Respondendo todos os chats" : "Pausada para todos os chats"}
-                </p>
-              </div>
-            </div>
-            <div className={`w-12 h-6 rounded-full transition-all relative ${
-              isInstanceAiEnabled ? "bg-emerald-500" : "bg-orange-500/50"
-            }`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${
-                isInstanceAiEnabled ? "right-1" : "left-1"
-              }`} />
-            </div>
-          </button>
 
           {/* Search */}
-          <div className="space-y-4">
-            <div className="relative group">
-              <Search
-                size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/70 group-focus-within:text-primary transition-colors"
-              />
-              <input
-                placeholder="Buscar contato..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-12 bg-card border border-border rounded-2xl pl-12 pr-4 text-sm outline-none focus:border-primary transition-all text-foreground placeholder:text-muted-foreground/70"
-              />
-            </div>
+          <div className="relative group">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#EFFF00] transition-colors" />
+            <input 
+              placeholder="Buscar contato..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl pl-12 pr-4 text-[14px] font-medium outline-none focus:border-[#EFFF00]/30 transition-all placeholder:text-white/10"
+            />
+          </div>
 
-            {/* Filters */}
-            <div className="relative flex items-center">
-              <button
-                onClick={() => {
-                  const container = document.getElementById('status-filters');
-                  container?.scrollBy({ left: -100, behavior: 'smooth' });
-                }}
-                className="shrink-0 w-6 h-6 flex items-center justify-center text-muted-foreground/70 hover:text-white transition-colors"
+          {/* Filters */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+            {STATUS_FILTERS.map(f => (
+              <button 
+                key={f.value}
+                onClick={() => setStatusFilter(f.value)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${statusFilter === f.value ? "bg-[#0033FF] border-[#0033FF] text-white shadow-lg" : "bg-white/5 border-white/5 text-white/30 hover:text-white"}`}
               >
-                <ChevronLeft size={14} />
+                {f.label}
               </button>
-              <div id="status-filters" className="flex gap-2 overflow-x-auto scrollbar-none px-1">
-                {STATUS_FILTERS.map((f) => (
-                  <button
-                    key={f.value}
-                    onClick={() => setStatusFilter(f.value)}
-                    className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border whitespace-nowrap ${
-                      statusFilter === f.value
-                        ? "bg-primary border-primary text-white shadow-lg"
-                        : "bg-background border-border text-muted-foreground hover:border-border/70"
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => {
-                  const container = document.getElementById('status-filters');
-                  container?.scrollBy({ left: 100, behavior: 'smooth' });
-                }}
-                className="shrink-0 w-6 h-6 flex items-center justify-center text-muted-foreground/70 hover:text-white transition-colors"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Conversation list */}
-        <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-4 scrollbar-none">
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/70 space-y-3">
-              <MessageCircle size={40} strokeWidth={1} />
-              <p className="text-xs font-bold uppercase tracking-widest">
-                Nenhuma conversa
-              </p>
-            </div>
-          ) : (
-            filtered.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => handleSelectConv(conv)}
-                className={`w-full p-4 md:p-5 rounded-2xl md:rounded-[28px] border transition-all flex items-center gap-3 md:gap-4 group ${
-                  selectedConv?.id === conv.id
-                    ? "bg-secondary border-primary/30 shadow-xl"
-                    : "bg-transparent border-transparent hover:bg-white/[0.03]"
-                }`}
-              >
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  <div className="w-14 h-14 bg-muted rounded-2xl flex items-center justify-center text-muted-foreground border border-border/80/50 group-hover:border-primary/50 transition-colors font-bold text-lg uppercase">
-                    {conv.contact_photo ? (
-                      <img
-                        src={getOptimizedImageUrl(conv.contact_photo, 80, 70) || conv.contact_photo}
-                        className="w-full h-full object-cover rounded-2xl"
-                        loading="lazy"
-                        alt=""
-                      />
-                    ) : (
-                      getInitials(
-                        getDisplayContactName(conv, currentUserName),
-                        getDisplayContactPhone(conv.contact_phone)
-                      )
-                    )}
-                  </div>
-                  <span
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${statusDotConfig[conv.status] || "bg-muted-foreground"}`}
-                  />
-                  {conv.unread_count > 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-black border-4 border-background">
-                      {conv.unread_count}
-                    </div>
+        {/* Contact List */}
+        <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-10 scrollbar-none">
+          {filtered.map(conv => (
+            <button 
+              key={conv.id}
+              onClick={() => { setSelectedConv(conv); setShowChatMobile(true); }}
+              className={`w-full p-6 lg:p-7 rounded-[32px] border transition-all flex items-center gap-5 group ${selectedConv?.id === conv.id ? "bg-white/5 border-white/10 shadow-2xl" : "bg-transparent border-transparent hover:bg-white/[0.02]"}`}
+            >
+              <div className="relative shrink-0">
+                <div className="w-16 h-16 bg-white/5 rounded-[22px] flex items-center justify-center text-white/20 border border-white/5 overflow-hidden group-hover:border-[#EFFF00]/30 transition-all">
+                  {conv.contact_photo ? (
+                    <img src={getOptimizedImageUrl(conv.contact_photo, 100, 80)} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    <span className="text-xl font-black italic">{getInitials(getDisplayContactName(conv, currentUserName), conv.contact_phone)}</span>
                   )}
                 </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0 text-left space-y-1">
-                  <div className="flex items-center justify-between">
-                    <h4
-                      className={`text-sm font-bold truncate ${
-                        selectedConv?.id === conv.id
-                          ? "text-white"
-                          : "text-foreground/80"
-                      }`}
-                    >
-                      {getDisplayContactName(conv, currentUserName)}
-                    </h4>
-                    <span className="text-[9px] font-bold text-muted-foreground/70 uppercase shrink-0 ml-1">
-                      {format(new Date(conv.last_message_at), "HH:mm")}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate font-medium">
-                    {conv.last_message}
-                  </p>
-                  <div className="pt-1 flex items-center gap-2">
-                    <ConversationBadge status={conv.status} />
-                    {conv.human_takeover === true && (
-                      <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-blue-500/10 text-blue-400 border-blue-500/20 flex items-center gap-1">
-                        <User size={8} /> Humano
-                      </span>
-                    )}
-                    {conv.ai_enabled === false && conv.human_takeover !== true && (
-                      <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
-                        IA pausada
-                      </span>
-                    )}
+                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-[#0A0A0A] ${conv.status === 'open' ? 'bg-emerald-500' : conv.status === 'waiting' ? 'bg-amber-500' : 'bg-white/20'}`} />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-[15px] font-black italic uppercase tracking-tighter truncate leading-none">{getDisplayContactName(conv, currentUserName)}</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-white/20 uppercase">{format(new Date(conv.last_message_at), "HH:mm")}</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <button className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/20 hover:text-white">
+                          <MoreVertical size={14} />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 bg-[#0F0F0F] border-white/5 p-2 rounded-2xl">
+                         <p className="text-[9px] font-black text-white/40 uppercase tracking-widest p-2 mb-1">Etiquetar Contato</p>
+                         {allLabels.length === 0 && <p className="text-[10px] text-white/20 p-2 italic">Nenhuma etiqueta criada.</p>}
+                         {allLabels.map(label => {
+                           const isAssigned = conv.labels?.some(l => l.id === label.id);
+                           return (
+                             <DropdownMenuItem 
+                               key={label.id}
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 if (isAssigned) {
+                                   unassignLabel.mutate({ conversationId: conv.id, labelId: label.id });
+                                 } else {
+                                   assignLabel.mutate({ conversationId: conv.id, labelId: label.id });
+                                 }
+                               }}
+                               className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer group"
+                             >
+                                <div className={`w-3 h-3 rounded-full border-2 ${isAssigned ? "bg-white border-white scale-110" : "border-white/10"}`} style={{ backgroundColor: isAssigned ? label.color : 'transparent', borderColor: isAssigned ? 'transparent' : 'rgba(255,255,255,0.1)' }} />
+                                <span className={cn("text-[11px] font-bold uppercase tracking-tight", isAssigned ? "text-white" : "text-white/40")}>{label.name}</span>
+                             </DropdownMenuItem>
+                           );
+                         })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
-              </button>
-            ))
-          )}
+                <p className="text-[12px] font-medium text-white/30 truncate leading-none mb-2">{conv.last_message}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 overflow-hidden max-w-[180px]">
+                     <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border shrink-0 ${statusBadgeConfig[conv.status] || "bg-white/5 text-white/40"}`}>{statusLabel[conv.status]}</span>
+                     {conv.labels?.map(l => (
+                       <span key={l.id} className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: l.color }} title={l.name} />
+                     ))}
+                  </div>
+                  {conv.unread_count > 0 && <span className="bg-[#EFFF00] text-black text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">NOVAS</span>}
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
-
       </aside>
 
-      {/* ── Chat Area ──────────────────────────────────────────────────────── */}
-      <main className={`flex-1 flex flex-col bg-background min-w-0 ${showChatMobile ? "flex" : "hidden md:flex"}`}>
+      {/* ── CHAT AREA ── */}
+      <main className={`flex-1 flex flex-col bg-[#050505] relative z-10 ${showChatMobile ? "fixed inset-0" : "hidden md:flex"}`}>
         {!selectedConv ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center space-y-6">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-background rounded-2xl md:rounded-[40px] flex items-center justify-center text-muted border border-border/50 shadow-inner">
-              <MessageCircle size={40} strokeWidth={1} />
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+            <div className="w-24 h-24 bg-white/5 rounded-[40px] flex items-center justify-center text-white/5 mb-8 border border-white/5 shadow-inner">
+               <MessageCircle size={48} strokeWidth={1} />
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl md:text-2xl font-black text-foreground/80 uppercase italic tracking-tighter">
-                Hub de Conversas
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-                Selecione um contato na lateral para iniciar o atendimento.
-              </p>
-            </div>
+            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white/20">Selecione uma conversa</h3>
           </div>
         ) : (
           <>
             {/* Chat header */}
-            <header className="px-4 md:px-10 py-4 md:py-6 border-b border-border/50 flex items-center justify-between bg-card/30 backdrop-blur-md shrink-0">
-              <div className="flex items-center gap-3 md:gap-5">
-                {/* Mobile back button */}
-                <button
-                  onClick={handleBackToList}
-                  className="md:hidden p-2 -ml-2 text-muted-foreground hover:text-white transition-colors"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-muted rounded-xl flex items-center justify-center text-muted-foreground border border-border/80 font-bold uppercase shrink-0">
-                  {selectedConv.contact_photo ? (
-                    <img
-                      src={getOptimizedImageUrl(selectedConv.contact_photo, 80, 70) || selectedConv.contact_photo}
-                      className="w-full h-full object-cover rounded-xl"
-                      alt=""
-                    />
-                  ) : (
-                    getInitials(
-                      getDisplayContactName(selectedConv, currentUserName),
-                      getDisplayContactPhone(selectedConv.contact_phone)
-                    )
-                  )}
-                </div>
-                <div>
-                  <h2 className="text-lg font-black text-white italic uppercase tracking-tight leading-none mb-1">
-                    {getDisplayContactName(selectedConv, currentUserName)}
-                  </h2>
-                   <div className="flex items-center gap-2">
-                     <p className="text-xs text-muted-foreground font-bold tracking-widest flex items-center gap-2">
-                       <Hash size={10} className="text-primary" />
-                       {getDisplayContactPhone(selectedConv.contact_phone)}
-                     </p>
-                      {selectedConv.human_takeover === true && (
-                        <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-blue-500/10 text-blue-400 border-blue-500/20 flex items-center gap-1">
-                          <User size={8} /> Atendimento humano ativo
-                        </span>
-                      )}
-                      {selectedConv.ai_enabled === false && selectedConv.human_takeover !== true && (
-                        <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border bg-orange-500/10 text-orange-400 border-orange-500/20">
-                          IA pausada
-                        </span>
-                      )}
-                    </div>
-                 </div>
-              </div>
+            <header className="px-10 py-8 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-3xl shrink-0">
+               <div className="flex items-center gap-5">
+                  <button onClick={() => setShowChatMobile(false)} className="md:hidden p-2 -ml-2 text-white/40"><ChevronLeft size={24} /></button>
+                  <div className="w-14 h-14 bg-white/5 rounded-[22px] flex items-center justify-center text-white/20 border border-white/5 font-black italic shadow-xl overflow-hidden">
+                     {selectedConv.contact_photo ? (
+                        <img src={selectedConv.contact_photo} className="w-full h-full object-cover" alt="" />
+                     ) : getInitials(getDisplayContactName(selectedConv, currentUserName), selectedConv.contact_phone)}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black italic uppercase tracking-tighter mb-0.5">{getDisplayContactName(selectedConv, currentUserName)}</h2>
+                    <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.2em] flex items-center gap-2">
+                       <Hash size={12} className="text-[#EFFF00]" /> #{getDisplayContactPhone(selectedConv.contact_phone)}
+                    </p>
+                  </div>
+               </div>
 
-              <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                {selectedConv.status !== "resolved" ? (
-                  <button
-                    onClick={() =>
-                      updateStatus.mutate(
-                        { id: selectedConv.id, status: "resolved" },
-                        {
-                          onSuccess: () =>
-                            setSelectedConv({ ...selectedConv, status: "resolved" }),
-                        }
-                      )
-                    }
-                    className="h-9 px-3 md:px-4 rounded-xl border border-border text-xs font-bold text-foreground/80 hover:bg-muted flex items-center gap-1.5 md:gap-2 transition-all"
+               <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => updateStatus.mutate({ id: selectedConv.id, status: selectedConv.status === "resolved" ? "open" : "resolved" })}
+                    className="h-12 px-6 rounded-2xl border border-white/10 hover:bg-white/5 text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95"
                   >
-                    <CircleDot size={14} className="text-emerald-400" />
-                    <span className="hidden sm:inline">Resolver Caso</span>
+                    <CircleDot size={16} className={selectedConv.status === "resolved" ? "text-white/20" : "text-emerald-500 shadow-[0_0_10px_#10b981]"} />
+                    {selectedConv.status === "resolved" ? "REABRIR" : "RESOLVER CASO"}
                   </button>
-                ) : (
-                  <button
-                    onClick={() =>
-                      updateStatus.mutate(
-                        { id: selectedConv.id, status: "open" },
-                        {
-                          onSuccess: () =>
-                            setSelectedConv({ ...selectedConv, status: "open" }),
-                        }
-                      )
-                    }
-                    className="h-9 px-4 rounded-xl border border-border text-xs font-bold text-foreground/80 hover:bg-muted flex items-center gap-2 transition-all"
-                  >
-                    Reabrir
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    const newVal = !(selectedConv.ai_enabled !== false);
-                    toggleAi.mutate(
-                      { id: selectedConv.id, ai_enabled: newVal },
-                      {
-                        onSuccess: () =>
-                          setSelectedConv({ ...selectedConv, ai_enabled: newVal, human_takeover: !newVal }),
-                      }
-                    );
-                  }}
-                  className={`h-9 px-3 md:px-4 rounded-xl border font-bold text-xs flex items-center gap-2 transition-all ${
-                    selectedConv.human_takeover
-                      ? "bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
-                      : selectedConv.ai_enabled !== false
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-                      : "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
-                  }`}
-                >
-                  {selectedConv.human_takeover ? (
-                    <User size={14} />
-                  ) : selectedConv.ai_enabled !== false ? (
-                    <Bot size={14} />
-                  ) : (
-                    <BotOff size={14} />
-                  )}
-                  <span className="hidden lg:inline">
-                    {selectedConv.human_takeover
-                      ? "Atendimento Humano"
-                      : selectedConv.ai_enabled !== false
-                      ? "IA Ativa"
-                      : "IA Pausada"}
-                  </span>
-                </button>
-                <button className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl border border-border text-muted-foreground hover:text-white hover:bg-muted transition-all hidden sm:flex">
-                  <MoreVertical size={18} />
-                </button>
-              </div>
+                  <div className={`flex items-center gap-3 p-1.5 rounded-2xl border ${selectedConv.ai_enabled !== false ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/5"}`}>
+                     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${selectedConv.ai_enabled !== false ? "bg-emerald-500 text-black" : "bg-black/20 text-white/40"}`}>
+                        <Bot size={14} className={selectedConv.ai_enabled !== false ? "animate-bounce" : ""} />
+                        <span className="text-[9px] font-black uppercase tracking-widest">IA ATIVA</span>
+                     </div>
+                     <button 
+                       onClick={() => toggleAi.mutate({ id: selectedConv.id, ai_enabled: !(selectedConv.ai_enabled !== false) })}
+                       className={`w-10 h-5 rounded-full relative transition-all ${selectedConv.ai_enabled !== false ? "bg-emerald-500" : "bg-white/10"}`}
+                     >
+                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${selectedConv.ai_enabled !== false ? "right-1" : "left-1"}`} />
+                     </button>
+                  </div>
+               </div>
             </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-4 md:space-y-6 scrollbar-none">
+            <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-none bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px]">
               {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.from_me ? "justify-end" : "justify-start"}`}
-                >
-                  <div className="max-w-[65%] space-y-1">
-                    {msg.type === "image" && msg.media_url && (
-                      <img
-                        src={msg.media_url}
-                        alt="media"
-                        className="max-w-full rounded-[24px] mb-2"
-                      />
-                    )}
-                    {msg.status === "internal" ? (
-                      <div className="p-5 shadow-lg bg-amber-500/10 border border-amber-500/20 rounded-[32px] rounded-tr-lg">
-                        <p
-                          className="text-sm font-medium leading-relaxed text-amber-100"
-                          dangerouslySetInnerHTML={{ __html: formatSummary(msg.content) }}
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className={`p-5 shadow-lg ${
-                          msg.from_me
-                            ? "bg-primary text-white rounded-[32px] rounded-tr-lg"
-                            : "bg-card text-foreground/90 border border-border rounded-[32px] rounded-tl-lg"
-                        }`}
-                      >
-                        <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                          {msg.content}
-                        </p>
-                      </div>
-                    )}
-                    <div
-                      className={`flex items-center gap-1.5 px-2 ${
-                        msg.from_me ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <span className="text-[9px] font-bold text-muted-foreground/70 uppercase tracking-widest">
-                        {format(new Date(msg.created_at), "HH:mm")}
-                      </span>
-                      {msg.from_me && msg.status !== "internal" && (
-                        <MessageStatus status={msg.status} />
+                <div key={msg.id} className={`flex ${msg.from_me ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[70%] space-y-2 group`}>
+                    <div className={`p-6 rounded-[32px] shadow-2xl transition-all relative ${
+                      msg.from_me 
+                        ? "bg-[#0033FF] text-white rounded-tr-lg" 
+                        : "bg-white/[0.04] text-white border border-white/5 rounded-tl-lg backdrop-blur-xl"
+                    }`}>
+                      {msg.type === "image" && msg.media_url && (
+                        <img src={msg.media_url} className="rounded-2xl mb-4 max-h-[400px] object-contain shadow-inner" alt="" />
                       )}
+                      {msg.status === "internal" ? (
+                        <div className="space-y-3">
+                           <div className="flex items-center gap-2 text-[10px] font-black text-amber-500 uppercase tracking-widest">
+                              <Sparkles size={12} /> RESUMO DA IA
+                           </div>
+                           <p className="text-sm font-medium leading-relaxed text-amber-100/80 italic font-['Inter']" dangerouslySetInnerHTML={{ __html: formatSummary(msg.content) }} />
+                        </div>
+                      ) : (
+                        <p className="text-[15px] font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      )}
+                    </div>
+                    <div className={`flex items-center gap-3 px-3 ${msg.from_me ? "justify-end" : "justify-start"}`}>
+                       <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">{format(new Date(msg.created_at), "HH:mm")}</span>
+                       {msg.from_me && <MessageStatus status={msg.status} />}
                     </div>
                   </div>
                 </div>
@@ -749,55 +515,234 @@ export default function WhatsApp() {
             </div>
 
             {/* Input */}
-            <div className="p-3 md:p-8 pt-2 md:pt-4 shrink-0 pb-[env(safe-area-inset-bottom)]">
-              <div className="bg-card border border-border rounded-2xl md:rounded-[32px] p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2 shadow-2xl focus-within:border-primary/50 transition-all">
-                <div className="flex items-center px-2">
-                  <button className="p-3 text-muted-foreground/70 hover:text-primary transition-colors">
-                    <Paperclip size={20} />
-                  </button>
-                  <button className="p-3 text-muted-foreground/70 hover:text-primary transition-colors">
-                    <Smile size={20} />
-                  </button>
-                  <button
-                    onClick={() => setSendAsAudio(!sendAsAudio)}
-                    title={sendAsAudio ? "Enviar como texto" : "Enviar como áudio (ElevenLabs)"}
-                    className={`p-3 transition-colors ${
-                      sendAsAudio
-                        ? "text-primary"
-                        : "text-muted-foreground/70 hover:text-primary"
-                    }`}
-                  >
-                    <Volume2 size={20} />
-                  </button>
-                </div>
-                <input
-                  placeholder={sendAsAudio ? "Digite o texto para enviar como áudio..." : "Escreva sua mensagem..."}
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && !e.shiftKey && handleSend()
-                  }
-                  className="flex-1 bg-transparent border-none outline-none text-sm text-foreground py-4 placeholder:text-muted-foreground/70"
-                />
-                {sendAsAudio && (
-                  <span className="text-[9px] font-bold text-primary uppercase tracking-widest shrink-0 mr-1">🔊 Áudio</span>
-                )}
-                <button
-                  onClick={handleSend}
-                  disabled={!messageText.trim() || sendMessage.isPending}
-                  className="w-14 h-14 rounded-[24px] bg-primary hover:bg-primary/80 flex items-center justify-center text-primary-foreground shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
-                >
-                  {sendMessage.isPending && sendAsAudio ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <Send size={20} />
-                  )}
-                </button>
-              </div>
+            <div className="p-10 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent">
+               <div className="bg-[#0A0A0A] border border-white/5 rounded-[40px] p-3 flex items-center gap-5 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] focus-within:border-[#0033FF]/50 focus-within:ring-4 focus-within:ring-[#0033FF]/10 transition-all outline-none">
+                  <div className="flex items-center gap-2 pl-4">
+                     <button className="w-12 h-12 flex items-center justify-center text-white/20 hover:text-white transition-all hover:bg-white/5 rounded-full"><Paperclip size={22} /></button>
+                     <button className="w-12 h-12 flex items-center justify-center text-white/20 hover:text-white transition-all hover:bg-white/5 rounded-full"><Smile size={22} /></button>
+                  </div>
+                  <input 
+                    placeholder="Escreva sua mensagem..."
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                    className="flex-1 bg-transparent border-none outline-none text-[16px] text-white py-6 px-4 placeholder:text-white/10"
+                  />
+                  <div className="flex items-center gap-2 pr-2">
+                     <button 
+                       onClick={() => setSendAsAudio(!sendAsAudio)}
+                       className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all ${sendAsAudio ? "bg-[#0033FF] text-white" : "text-white/20 hover:text-white"}`}
+                     >
+                       <Mic size={20} />
+                     </button>
+                     <button 
+                       onClick={handleSend}
+                       disabled={!messageText.trim() || sendMessage.isPending}
+                       className="h-14 px-8 bg-[#0033FF] border border-[#0033FF] hover:border-white/20 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-[0_10px_30px_rgba(0,51,255,0.3)] disabled:opacity-20"
+                     >
+                       {sendMessage.isPending ? <Loader2 size={18} className="animate-spin" /> : "SEND"}
+                     </button>
+                  </div>
+               </div>
             </div>
           </>
         )}
       </main>
+
+      {/* ── INFO PANEL (Right Sidebar) ── */}
+      <aside className="hidden xl:flex w-80 flex-col border-l border-white/5 bg-[#0A0A0A] overflow-hidden z-10">
+         <div className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-none">
+            {selectedConv ? (
+              <>
+                 <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                          <Tag size={18} className="text-[#EFFF00]" />
+                          <h3 className="text-sm font-black uppercase tracking-widest text-[#EFFF00]">Etiquetas do Caso</h3>
+                       </div>
+                       <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all text-white/40 hover:text-white">
+                               <Plus size={16} />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56 bg-[#0F0F0F] border-white/5 p-2 rounded-2xl">
+                             {allLabels.map(label => {
+                               const isAssigned = selectedConv.labels?.some(l => l.id === label.id);
+                               return (
+                                 <DropdownMenuItem 
+                                   key={label.id}
+                                   onClick={() => {
+                                     if (isAssigned) {
+                                       unassignLabel.mutate({ conversationId: selectedConv.id, labelId: label.id });
+                                     } else {
+                                       assignLabel.mutate({ conversationId: selectedConv.id, labelId: label.id });
+                                     }
+                                   }}
+                                   className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer group"
+                                 >
+                                    <div className={`w-3 h-3 rounded-full border-2 ${isAssigned ? "bg-white border-white scale-110" : "border-white/10"}`} style={{ backgroundColor: isAssigned ? label.color : 'transparent' }} />
+                                    <span className={cn("text-[11px] font-bold uppercase tracking-tight", isAssigned ? "text-white" : "text-white/40")}>{label.name}</span>
+                                 </DropdownMenuItem>
+                               );
+                             })}
+                          </DropdownMenuContent>
+                       </DropdownMenu>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                       {selectedConv.labels?.map(l => (
+                         <div 
+                           key={l.id} 
+                           className="group flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all animate-in fade-in zoom-in duration-200"
+                         >
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/80">{l.name}</span>
+                            <button 
+                              onClick={() => unassignLabel.mutate({ conversationId: selectedConv.id, labelId: l.id })}
+                              className="ml-1 text-white/10 hover:text-red-500 transition-colors"
+                            >
+                               <X size={12} />
+                            </button>
+                         </div>
+                       ))}
+                       {(!selectedConv.labels || selectedConv.labels.length === 0) && (
+                         <p className="text-[11px] text-white/20 italic">Nenhuma etiqueta atribuída.</p>
+                       )}
+                    </div>
+                 </div>
+
+                 <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                       <Info size={18} className="text-[#0033FF]" />
+                       <h3 className="text-sm font-black uppercase tracking-widest text-[#0033FF]">Resumo Inteligente</h3>
+                    </div>
+                    <div className="p-6 rounded-[32px] bg-white/[0.02] border border-white/10 relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Bot size={16} className="text-[#0033FF] animate-pulse" />
+                       </div>
+                       <p className="text-[12px] text-white/60 leading-relaxed italic font-['Inter']">A IA ainda não processou um resumo detalhado para esta sessão.</p>
+                    </div>
+                 </div>
+              </>
+            ) : (
+              <div className="h-[200px] flex flex-col items-center justify-center p-8 text-center bg-white/[0.02] rounded-[40px] border border-white/5">
+                 <User size={32} className="text-white/5 mb-4" />
+                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/10 italic">Aguardando Seleção</p>
+              </div>
+            )}
+
+            {/* Gerenciador de Etiquetas Global */}
+            <div className="border-t border-white/5 pt-10 space-y-8">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-white/60">
+                     <Palette size={18} />
+                     <h3 className="text-sm font-black uppercase tracking-widest">Gerenciar Hub</h3>
+                  </div>
+                  <button 
+                    onClick={() => setIsCreatingLabel(!isCreatingLabel)}
+                    className="text-[10px] font-black uppercase tracking-widest text-[#EFFF00] hover:scale-105 transition-all flex items-center gap-2"
+                  >
+                    {isCreatingLabel ? <X size={16} /> : <PlusCircle size={16} />}
+                  </button>
+               </div>
+
+               <AnimatePresence>
+                  {isCreatingLabel && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                       <div className="bg-white/[0.03] border border-white/10 rounded-[32px] p-6 space-y-6 mb-8">
+                          <div className="space-y-2">
+                             <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Nome</label>
+                             <input 
+                               value={newLabelName}
+                               onChange={(e) => setNewLabelName(e.target.value)}
+                               placeholder="Ex: Urgente"
+                               className="w-full h-12 bg-black border border-white/5 rounded-2xl px-4 text-xs font-bold outline-none focus:border-[#EFFF00]/50 transition-all uppercase tracking-widest"
+                             />
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                             <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Cor</label>
+                                <div className="flex items-center gap-3 h-12 bg-black border border-white/5 rounded-2xl px-4">
+                                   <input 
+                                     type="color"
+                                     value={newLabelColor}
+                                     onChange={(e) => setNewLabelColor(e.target.value)}
+                                     className="w-6 h-6 bg-transparent border-none cursor-pointer"
+                                   />
+                                   <span className="text-[10px] font-mono text-white/40 uppercase">{newLabelColor}</span>
+                                </div>
+                             </div>
+                             <div className="space-y-2">
+                                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30 ml-2">Ordem</label>
+                                <div className="flex items-center justify-between h-12 bg-black border border-white/5 rounded-2xl px-4">
+                                   <span className="text-xs font-black text-[#EFFF00]">{newLabelPriority}</span>
+                                   <div className="flex flex-col">
+                                      <button onClick={() => setNewLabelPriority(p => Math.max(1, p - 1))} className="hover:text-white text-white/20"><ChevronUp size={14} /></button>
+                                      <button onClick={() => setNewLabelPriority(p => p + 1)} className="hover:text-white text-white/20"><ChevronDown size={14} /></button>
+                                   </div>
+                                </div>
+                             </div>
+                          </div>
+
+                          <button 
+                            disabled={!newLabelName || createLabel.isPending}
+                            onClick={() => {
+                              createLabel.mutate({ name: newLabelName, color: newLabelColor, priority: newLabelPriority }, {
+                                onSuccess: () => {
+                                  setNewLabelName("");
+                                  setIsCreatingLabel(false);
+                                  toast({ title: "Etiqueta Criada", description: "Design salvo com sucesso." });
+                                }
+                              });
+                            }}
+                            className="w-full h-12 bg-[#EFFF00] text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20"
+                          >
+                            {createLabel.isPending ? "SALVANDO..." : "CRIAR ETIQUETA"}
+                          </button>
+                       </div>
+                    </motion.div>
+                  )}
+               </AnimatePresence>
+
+               <div className="space-y-3">
+                  {allLabels.map((l) => (
+                    <div 
+                      key={l.id} 
+                      className="group flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all"
+                    >
+                       <div className="flex items-center gap-4">
+                          <div className="w-4 h-4 rounded-lg flex items-center justify-center text-[8px] font-black bg-black border border-white/10 text-white/40">
+                             {l.priority}
+                          </div>
+                          <div className="w-3 h-3 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.1)]" style={{ backgroundColor: l.color }} />
+                          <span className="text-[11px] font-bold uppercase tracking-tight text-white/80">{l.name}</span>
+                       </div>
+                       <button 
+                         onClick={() => {
+                           if (confirm(`Excluir a etiqueta "${l.name}"?`)) {
+                             deleteLabel.mutate(l.id);
+                           }
+                         }}
+                         className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-all text-white/10"
+                       >
+                          <Trash2 size={14} />
+                       </button>
+                    </div>
+                  ))}
+                  {allLabels.length === 0 && (
+                    <p className="text-[11px] text-white/10 italic text-center py-10">Nenhuma etiqueta no hub.</p>
+                  )}
+               </div>
+            </div>
+         </div>
+      </aside>
+
     </div>
   );
 }
