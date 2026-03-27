@@ -155,8 +155,8 @@ export function CheckoutModal() {
                        </div>
   
                        <div className="flex flex-col gap-3">
-                          <button onClick={() => setStep("payment")} className="h-14 bg-[#EFFF00] text-black rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2">
-                             FINALIZAR PAGAMENTO <ArrowRight size={16} />
+                          <button onClick={() => setStep("info")} className="h-14 bg-[#EFFF00] text-black rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2">
+                             PROSSEGUIR PARA PAGAMENTO <ArrowRight size={16} />
                           </button>
                           <button onClick={handleWhatsApp} className="h-14 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase text-[11px] tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
                              <MessageCircle size={16} /> SUPORTE
@@ -168,21 +168,70 @@ export function CheckoutModal() {
                     </motion.div>
                   )}
  
-                 {showCancelConfirm && (
-                    <motion.div key="confirm" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="py-20 text-center space-y-8">
-                       <div className="w-20 h-20 bg-red-500/10 rounded-3xl mx-auto flex items-center justify-center text-red-500">
-                          <AlertTriangle size={36} />
-                       </div>
+                 {step === "info" && (
+                    <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 pb-8">
+                       <header className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                             <User size={20} />
+                          </div>
+                          <div>
+                             <h2 className="text-xl font-black italic uppercase tracking-tighter">Dados de Entrega</h2>
+                             <p className="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">Precisamos para identificar seu envio</p>
+                          </div>
+                       </header>
+
                        <div className="space-y-4">
-                         <h2 className="text-3xl font-black uppercase tracking-tighter">Tem certeza?</h2>
-                         <p className="text-white/40 font-medium">Seu carrinho será mantido para quando você voltar.</p>
+                          <div className="space-y-1.5">
+                             <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">Nome Completo</label>
+                             <input 
+                               value={customer.nome}
+                               onChange={e => setCustomer({...customer, nome: e.target.value})}
+                               className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-4 text-white font-bold outline-none focus:border-[#EFFF00] transition-all"
+                               placeholder="Como quer ser chamado?"
+                             />
+                          </div>
+                          <div className="space-y-1.5">
+                             <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">E-mail</label>
+                             <input 
+                               value={customer.email}
+                               onChange={e => setCustomer({...customer, email: e.target.value})}
+                               className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-4 text-white font-bold outline-none focus:border-[#EFFF00] transition-all"
+                               placeholder="Seu melhor e-mail"
+                               type="email"
+                             />
+                          </div>
+                          <div className="grid grid-cols-[1fr_1.1fr] gap-3">
+                            <div className="space-y-1.5">
+                               <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1 text-nowrap">WhatsApp</label>
+                               <input 
+                                 value={customer.telefone}
+                                 onChange={e => setCustomer({...customer, telefone: e.target.value})}
+                                 className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-4 text-white font-bold outline-none focus:border-[#EFFF00] transition-all"
+                                 placeholder="(00) 00000-0000"
+                               />
+                            </div>
+                            <div className="space-y-1.5">
+                               <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1">CPF</label>
+                               <input 
+                                 value={customer.cpf}
+                                 onChange={e => setCustomer({...customer, cpf: e.target.value})}
+                                 className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-4 text-white font-bold outline-none focus:border-[#EFFF00] transition-all"
+                                 placeholder="Para nota fiscal"
+                               />
+                            </div>
+                          </div>
                        </div>
-                       <div className="flex flex-col gap-4 max-w-xs mx-auto">
-                          <button onClick={handleClose} className="h-16 bg-red-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-all">
-                             Sim, Cancelar
+
+                       <div className="flex flex-col gap-3 pt-4 border-t border-white/5 mt-6">
+                          <button 
+                            disabled={!customer.nome || !customer.email || !customer.cpf}
+                            onClick={() => setStep("payment")} 
+                            className="h-16 bg-[#EFFF00] text-black rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-2 disabled:opacity-20"
+                          >
+                             PAGAR AGORA <ArrowRight size={18} strokeWidth={3} />
                           </button>
-                          <button onClick={() => setShowCancelConfirm(false)} className="h-16 bg-white/5 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-white/10 transition-all">
-                             Não, Voltar ao Pedido
+                          <button onClick={() => setStep("summary")} className="mt-2 text-[9px] font-black uppercase tracking-[0.4em] text-white/10 hover:text-white transition-colors">
+                             Voltar ao Resumo
                           </button>
                        </div>
                     </motion.div>
