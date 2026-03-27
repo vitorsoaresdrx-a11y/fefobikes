@@ -79,7 +79,8 @@ async function getCityId(zipCode: string, supabase: any) {
     throw new Error(`CEP ${cleanZip} não localizado na Rodonaves. Verifique se eles atendem essa região.`);
   }
 
-  const cityData = await dneResponse.json();
+  const cityDataArray = await dneResponse.json();
+  const cityData = Array.isArray(cityDataArray) ? cityDataArray[0] : cityDataArray;
   const cityId = cityData?.Id || cityData?.CityId || cityData?.cityId;
   const cityName = cityData?.Description || cityData?.Name || "";
   const stateUf = cityData?.StateDescription || cityData?.State || "";
