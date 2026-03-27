@@ -212,7 +212,6 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
   const handleSendStatus = async () => {
      let message = "";
      switch(job.status) {
-       case 'in_approval': message = "Sua bike está em análise de orçamento na oficina."; break;
        case 'in_repair': message = "Sua bike está na fila para manutenção."; break;
        case 'in_maintenance': message = "Sua bike está em manutenção com nossos mecânicos 🔧"; break;
        case 'in_analysis': message = "Sua bike foi finalizada e está em análise final."; break;
@@ -248,7 +247,7 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
         }
       }
 
-      if (job.customer_whatsapp) {
+      if (job.customer_whatsapp && job.status !== 'in_approval') {
         const phone = job.customer_whatsapp.replace(/\D/g, '');
         const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
         await sendMessage.mutateAsync({ phone: formattedPhone, message: "Ótima notícia! O serviço adicional foi aprovado pela nossa equipe e já estamos dando continuidade. Qualquer dúvida é só chamar! 🔧" });
@@ -1842,7 +1841,8 @@ export default function Mecanica() {
           // 2. Zera o valor base da O.S. para que o total reflita apenas o que for aprovado
           await updateDetails.mutateAsync({ id: newJob.id, price: 0 } as any);
 
-          // 3. Dispara formatador IA e envia mensagem inicial de orçamento
+          // 3. (Silenced per requirement) Dispara formatador IA e envia mensagem inicial de orçamento
+          /*
           await supabase.functions.invoke("formatar-adicional", {
             body: {
               osId: newJob.id,
@@ -1851,16 +1851,18 @@ export default function Mecanica() {
               maoDeObra: Number(form.labor_cost || 0) + Number(form.other_cost || 0)
             }
           });
+          */
 
-          // 4. Upload de Foto e Envio de Mídia via WhatsApp
+          // 4. (Silenced per requirement) Upload de Foto e Envio de Mídia via WhatsApp
           if (form.arrivalPhoto) {
             try {
-              const photoUrl = await uploadPhoto.mutateAsync({ 
+              await uploadPhoto.mutateAsync({ 
                 osId: newJob.id, 
                 file: form.arrivalPhoto, 
                 tipo: "problema" 
               });
               
+              /*
               const phone = form.customer_whatsapp?.replace(/\D/g, "");
               if (phone) {
                 const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
@@ -1870,6 +1872,7 @@ export default function Mecanica() {
                   mediatype: 'image'
                 });
               }
+              */
             } catch (err) {
               console.error("Erro ao processar foto inicial:", err);
             }
@@ -2052,7 +2055,6 @@ export default function Mecanica() {
         const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
 
         const statusMessages: Record<string, string> = {
-          in_approval: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}está em avaliação técnica. Se houver algum orçamento extra, te avisaremos por aqui.`,
           in_repair: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}já está na mecânica. Quando algum mecânico começar o serviço, te avisaremos por aqui.`,
           in_maintenance: `Boas notícias, ${editForm.customer_name || "cliente"}! A manutenção da sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}acabou de começar! 🛠️`,
           ready: `Olá, ${editForm.customer_name || "cliente"}! Sua bicicleta ${editForm.bike_name ? `(${editForm.bike_name}) ` : ""}está prontinha para retirada! 🚲✨`,
@@ -2239,36 +2241,38 @@ export default function Mecanica() {
       if (adErr) throw new Error("Falha ao criar o registro adicional.");
       savedRowId = (adData as any).id;
 
-      // 2. Fetch formatted message
-      const { data: edgeData, error: edgeErr } = await supabase.functions.invoke("formatar-adicional", {
-        body: {
-          osId: addJob.id,
-          pecas: addForm.parts,
-          observacoes: addForm.problem,
-          maoDeObra: addForm.labor_cost
-        }
-      });
-      
-      console.log("Edge Function Response:", { edgeData, edgeErr });
-      if (edgeErr || edgeData?.error) throw new Error(edgeErr?.message || edgeData?.error || "Insucesso na Edge Function");
+      // 2. Fetch formatted message (Silenced for in_approval jobs per requirement)
+      if (addJob.status !== 'in_approval') {
+        const { data: edgeData, error: edgeErr } = await supabase.functions.invoke("formatar-adicional", {
+          body: {
+            osId: addJob.id,
+            pecas: addForm.parts,
+            observacoes: addForm.problem,
+            maoDeObra: addForm.labor_cost
+          }
+        });
+        
+        console.log("Edge Function Response:", { edgeData, edgeErr });
+        if (edgeErr || edgeData?.error) throw new Error(edgeErr?.message || edgeData?.error || "Insucesso na Edge Function");
 
-      // 3. Send media if there are "problema" photos
-      const problemPhotos = jobPhotos.filter(p => p.tipo === "problema");
-      const phone = addJob.customer_whatsapp?.replace(/\D/g, "");
-      const formattedPhone = phone ? ((phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone) : null;
+        // 3. Send media if there are "problema" photos
+        const problemPhotos = jobPhotos.filter(p => p.tipo === "problema");
+        const phone = addJob.customer_whatsapp?.replace(/\D/g, "");
+        const formattedPhone = phone ? ((phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone) : null;
 
-      if (formattedPhone) {
-        for (const photo of problemPhotos) {
-          await sendMessage.mutateAsync({
-            phone: formattedPhone,
-            media: photo.url,
-            mediatype: 'image'
-          });
+        if (formattedPhone) {
+          for (const photo of problemPhotos) {
+            await sendMessage.mutateAsync({
+              phone: formattedPhone,
+              media: photo.url,
+              mediatype: 'image'
+            });
+          }
         }
+        toast.success("Enviado para o cliente com sucesso!");
+      } else {
+        toast.success("Reparo extra adicionado (notificação silenciada)");
       }
-
-
-      toast.success("Enviado para o cliente com sucesso!");
       setAddOpen(false);
       setAddJob(null);
     } catch (err: any) {
