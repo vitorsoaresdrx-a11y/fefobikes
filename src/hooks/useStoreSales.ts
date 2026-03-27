@@ -13,7 +13,8 @@ export interface StoreSale {
   customer_cpf: string | null;
   customer_phone: string | null;
   items: any[];
-  total_amount: number;
+  total_amount: number; // Keep as total_amount for components but map from transaction_amount
+  transaction_amount: number;
   shipping_amount: number;
   payment_method: string | null;
   installments: number | null;
@@ -84,6 +85,7 @@ export function useStoreSales() {
 
       return (data || []).map(sale => ({
         ...sale,
+        total_amount: sale.transaction_amount || 0,
         status_label: statusMap[sale.status_detail || ''] || statusMap[sale.status] || (sale.status === 'approved' ? 'Aprovado' : 'Pendente')
       })) as StoreSale[];
     },

@@ -80,14 +80,17 @@ export default function Pagamentos() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <p className="text-base font-black text-white uppercase tracking-tight">
-                  {sale.customer_name}
+                  {sale.customer_name || "Cliente sem nome"}
                 </p>
                 <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border shrink-0 ${colorClass}`}>
-                  {sale.status_label}
+                  {sale.status_label || "No Status"}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground/60 font-bold uppercase tracking-widest">
-                <span className="flex items-center gap-1.5"><Calendar size={12} /> {format(new Date(sale.created_at), "dd MMM, HH:mm", { locale: ptBR })}</span>
+                <span className="flex items-center gap-1.5">
+                  <Calendar size={12} /> 
+                  {sale.created_at ? format(new Date(sale.created_at), "dd MMM, HH:mm", { locale: ptBR }) : "Sem data"}
+                </span>
                 {sale.payment_id && <span className="flex items-center gap-1.5"><ShoppingBag size={12} /> ID: {sale.payment_id}</span>}
                 <span className="flex items-center gap-1.5 text-primary/60"><CreditCard size={12} /> {sale.payment_method?.toUpperCase() || "PENDENTE"} {sale.installments ? `(${sale.installments}x)` : ""}</span>
               </div>
