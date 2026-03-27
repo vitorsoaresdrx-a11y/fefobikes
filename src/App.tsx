@@ -59,6 +59,7 @@ const PontoRegistro = lazyRetry(() => import("@/pages/PontoRegistro"));
 const PontoRelatorio = lazyRetry(() => import("@/pages/PontoRelatorio"));
 const Metas = lazyRetry(() => import("@/pages/Metas"));
 const DeveloperTasks = lazyRetry(() => import("@/pages/DeveloperTasks"));
+const Pagamentos = lazyRetry(() => import("@/pages/Pagamentos"));
 const SimuladorFreteInterno = lazyRetry(() => import("@/pages/SimuladorFreteInterno"));
 const Agenda = lazyRetry(() => import("@/pages/Agenda"));
 const SimuladorFreteTabela = lazyRetry(() => import("@/pages/SimuladorFreteTabela"));
@@ -118,6 +119,7 @@ function AuthGate() {
           <Route path="/promocoes" element={<GuardedRoute module="pdv"><PageTransition><Promocoes /></PageTransition></GuardedRoute>} />
           <Route path="/caixa" element={<GuardedRoute module="caixa"><PageTransition><CashRegister /></PageTransition></GuardedRoute>} />
           <Route path="/historico" element={<GuardedRoute module="historico"><PageTransition><Historico /></PageTransition></GuardedRoute>} />
+          <Route path="/pagamentos" element={<GuardedRoute module="pagamentos"><PageTransition><Pagamentos /></PageTransition></GuardedRoute>} />
           <Route path="/dre" element={<GuardedRoute module="dre"><PageTransition><DRE /></PageTransition></GuardedRoute>} />
           <Route path="/metas" element={<GuardedRoute module="metas"><PageTransition><Metas /></PageTransition></GuardedRoute>} />
           <Route path="/developer" element={<GuardedRoute module="dashboard"><PageTransition><DeveloperTasks /></PageTransition></GuardedRoute>} />

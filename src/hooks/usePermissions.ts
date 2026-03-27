@@ -24,7 +24,8 @@ export type AppModule =
   | "chamadas"
   | "permissoes"
   | "ponto"
-  | "agenda";
+  | "agenda"
+  | "pagamentos";
 
 export const ALL_MODULES: { key: AppModule; label: string }[] = [
   { key: "dashboard", label: "Ações Rápidas" },
@@ -49,6 +50,7 @@ export const ALL_MODULES: { key: AppModule; label: string }[] = [
   { key: "permissoes", label: "Permissões" },
   { key: "configuracoes", label: "Configurações" },
   { key: "agenda", label: "Agenda" },
+  { key: "pagamentos", label: "Pagamentos Loja" },
 ];
 
 export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
@@ -77,6 +79,7 @@ export const ROUTE_MODULE_MAP: Record<string, AppModule> = {
   "/ponto/relatorio": "ponto",
   "/ponto/cadastro": "ponto",
   "/agenda": "agenda",
+  "/pagamentos": "pagamentos",
 };
 
 export const NAV_MODULE_MAP: Record<string, AppModule> = {
@@ -109,6 +112,7 @@ export const NAV_MODULE_MAP: Record<string, AppModule> = {
   "/loja": "dashboard",
   "/developer": "configuracoes",
   "/simulador-frete": "configuracoes",
+  "/pagamentos": "pagamentos",
 };
 
 export interface TenantMember {

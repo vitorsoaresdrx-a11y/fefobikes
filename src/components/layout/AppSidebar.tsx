@@ -6,6 +6,7 @@ import {
   Package,
   ShoppingCart,
   ClipboardList,
+  CreditCard,
   Users,
   Settings,
   BarChart3,
@@ -74,6 +75,7 @@ const navGroups = [
       { title: "Promoções", url: "/promocoes", icon: Receipt },
       { title: "Caixa", url: "/caixa", icon: Landmark },
       { title: "Histórico", url: "/historico", icon: ClipboardList },
+      { title: "Pagamentos", url: "/pagamentos", icon: CreditCard },
     ],
   },
   {
