@@ -1269,20 +1269,28 @@ export default function Mecanica() {
   const createServiceOrder = useCreateServiceOrder();
   const sendMessage = useSendMessage();
 
+  const notifiedIdsRef = useRef<Set<string>>(new Set());
+
   const handleServiceOrderDone = useCallback(async (order: ServiceOrder) => {
-    playNotifySound();
+    if (notifiedIdsRef.current.has(`${order.id}-done`)) return;
+    
     // Only update if we have a matching job and it's not already correct
     const job = jobs.find(j => j.id === order.id);
     if (job && job.status !== "in_analysis") {
+      playNotifySound();
+      notifiedIdsRef.current.add(`${order.id}-done`);
       await updateDetails.mutateAsync({ id: order.id, status: "in_analysis" } as any);
       toast.success(`🔧 ${order.bike_name || "Bike"} pronta pra entrega! (Em Análise)`, { duration: 8000 });
     }
   }, [jobs, updateDetails]);
 
   const handleServiceOrderAccepted = useCallback(async (order: ServiceOrder) => {
-    playAcceptSound();
+    if (notifiedIdsRef.current.has(`${order.id}-accepted`)) return;
+
     const job = jobs.find(j => j.id === order.id);
     if (job && job.status !== "in_maintenance") {
+      playAcceptSound();
+      notifiedIdsRef.current.add(`${order.id}-accepted`);
       await updateDetails.mutateAsync({ id: order.id, status: "in_maintenance" } as any);
       toast.info(`⚙️ ${order.bike_name || "OS"} aceita por ${order.mechanic_name || "mecânico"}`, { duration: 5000 });
     }
