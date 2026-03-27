@@ -37,37 +37,43 @@ export function useOSPhotos(osId?: string) {
  */
 async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 800;
-        let width = img.width;
-        let height = img.height;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.src = url;
+    
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement("canvas");
+      const MAX_WIDTH = 1200; // Aumentado um pouco para melhor detalhamento técnico
+      let width = img.width;
+      let height = img.height;
 
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
+      if (width > MAX_WIDTH) {
+        height *= MAX_WIDTH / width;
+        width = MAX_WIDTH;
+      }
 
-        canvas.width = width;
-        canvas.height = height;
+      canvas.width = width;
+      canvas.height = height;
 
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob(
-          (blob) => (blob ? resolve(blob) : reject(new Error("Canvas to Blob failed"))),
-          "image/jpeg",
-          0.7
-        );
-      };
-      img.onerror = reject;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Não foi possível obter o contexto do canvas"));
+        return;
+      }
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Falha ao converter Canvas para Blob"))),
+        "image/jpeg",
+        0.8 // 80% de qualidade para garantir nitidez técnica
+      );
     };
-    reader.onerror = reject;
+    img.onerror = (err) => {
+      URL.revokeObjectURL(url);
+      reject(err);
+    };
   });
 }
 

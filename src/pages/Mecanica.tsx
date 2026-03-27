@@ -852,7 +852,11 @@ function OSPhotosSection({ osId }: { osId: string }) {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>, tipo: OSPhoto["tipo"]) => {
     const file = e.target.files?.[0];
     if (file) {
-      upload.mutate({ osId, file, tipo });
+      upload.mutate({ osId, file, tipo }, {
+        onSuccess: () => {
+          e.target.value = ""; // Limpa o input para permitir selecionar o mesmo arquivo se deletado
+        }
+      });
     }
   };
 
@@ -883,15 +887,15 @@ function OSPhotosSection({ osId }: { osId: string }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 pb-2">
-        <label className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer">
-          <Camera size={20} className="text-muted-foreground" />
-          <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Tirar Foto</span>
-          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFileChange(e, activeTab)} />
+        <label className={`flex flex-col items-center justify-center gap-2 h-24 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${upload.isPending ? "bg-primary/5 border-primary/40 animate-pulse pointer-events-none" : "border-border/40 hover:border-primary/40 hover:bg-primary/5"}`}>
+          {upload.isPending ? <Loader2 size={24} className="text-primary animate-spin" /> : <Camera size={20} className="text-muted-foreground" />}
+          <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{upload.isPending ? "Enviando..." : "Tirar Foto"}</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="hidden" onChange={(e) => onFileChange(e, activeTab)} disabled={upload.isPending} />
         </label>
-        <label className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer">
-          <ImageIcon size={20} className="text-muted-foreground" />
-          <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Galeria</span>
-          <input type="file" accept="image/*" className="hidden" onChange={(e) => onFileChange(e, activeTab)} />
+        <label className={`flex flex-col items-center justify-center gap-2 h-24 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${upload.isPending ? "bg-primary/5 border-primary/40 animate-pulse pointer-events-none" : "border-border/40 hover:border-primary/40 hover:bg-primary/5"}`}>
+          {upload.isPending ? <Loader2 size={24} className="text-primary animate-spin" /> : <ImageIcon size={20} className="text-muted-foreground" />}
+          <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">{upload.isPending ? "Subindo..." : "Galeria"}</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => onFileChange(e, activeTab)} disabled={upload.isPending} />
         </label>
       </div>
 
