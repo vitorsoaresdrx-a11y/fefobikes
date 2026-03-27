@@ -820,9 +820,13 @@ export function useCreateAddition() {
 export function useUpdateAdditionApproval() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, approval, is_v2 }: { id: string; approval: "accepted" | "refused", is_v2?: boolean }) => {
+    mutationFn: async ({ id, approval, is_v2 }: { id: string; approval: "accepted" | "refused" | "pending" | "none", is_v2?: boolean }) => {
       if (is_v2) {
-        const status = approval === "accepted" ? "aprovado" : "negado";
+        let status = "negado";
+        if (approval === "accepted") status = "aprovado";
+        else if (approval === "pending") status = "pendente";
+        else if (approval === "none") status = "pendente";
+        
         const { error } = await supabase
           .from("os_adicionais" as any)
           .update({ status })

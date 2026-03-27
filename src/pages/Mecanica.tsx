@@ -156,7 +156,7 @@ const columns = [
   },
 ];
 
-function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; onOpenChange: (v: boolean) => void; job: MechanicJob | null; onEdit: (j: MechanicJob) => void }) {
+function OSControlModal({ open, onOpenChange, job, onEdit, onAdvance }: { open: boolean; onOpenChange: (v: boolean) => void; job: MechanicJob | null; onEdit: (j: MechanicJob) => void; onAdvance?: (j: MechanicJob) => void }) {
   const sendMessage = useSendMessage();
   const updateApproval = useUpdateAdditionApproval();
   
@@ -252,6 +252,12 @@ function OSControlModal({ open, onOpenChange, job, onEdit }: { open: boolean; on
         const formattedPhone = (phone.length >= 10 && phone.length <= 11 && !phone.startsWith("55")) ? `55${phone}` : phone;
         await sendMessage.mutateAsync({ phone: formattedPhone, message: "Ótima notícia! O serviço adicional foi aprovado pela nossa equipe e já estamos dando continuidade. Qualquer dúvida é só chamar! 🔧" });
       }
+
+      // Avançar automaticamente se estiver na coluna de orçamento
+      if (job.status === "in_approval" && onAdvance) {
+        onAdvance(job);
+      }
+
       toast.success("Aprovado manualmente!");
       onOpenChange(false);
     }
@@ -480,15 +486,38 @@ const PaymentBadge = ({ job }: { job: MechanicJob }) => {
   );
 };
 
-function AdditionBadge({ addition, showActions, isMechanicView }: { addition: MechanicJobAddition; showActions: boolean; isMechanicView?: boolean }) {
+function AdditionBadge({ addition, job, showActions, isMechanicView, onAdvance, columnKey }: { addition: MechanicJobAddition; job: MechanicJob; showActions: boolean; isMechanicView?: boolean; onAdvance?: (j: MechanicJob) => void; columnKey: string }) {
   const updateApproval = useUpdateAdditionApproval();
   const total = getAdditionTotal(addition);
 
-  const handleApproval = (status: "accepted" | "refused") => {
-    // For V2 (aprovado/recusado/pendente) or V1 (accepted/refused/pending)
+  const handleApproval = async (status: "accepted" | "refused") => {
     const isV2 = (addition as any).is_v2;
-    const finalStatus = isV2 ? (status === "accepted" ? "aprovado" : "recusado") : status;
-    updateApproval.mutate({ id: addition.id, approval: finalStatus as any, is_v2: isV2 });
+    // Corrigido: Não converter para 'aprovado' aqui, a mutação no useMechanicJobs já faz isso se is_v2 for true
+    await updateApproval.mutateAsync({ id: addition.id, approval: status, is_v2: isV2 });
+
+    // Atualiza o financeiro (os_pagamentos) para refletir o novo valor aprovado
+    if (status === "accepted") {
+      const adicionalTotal = total;
+      if (adicionalTotal > 0) {
+        const { data: pgData } = await supabase
+          .from('os_pagamentos')
+          .select('*')
+          .eq('os_id', job.id)
+          .maybeSingle();
+
+        if (pgData) {
+          await supabase.from('os_pagamentos').update({
+            valor_total: Number(pgData.valor_total) + adicionalTotal,
+            valor_restante: Number(pgData.valor_restante) + adicionalTotal
+          }).eq('os_id', job.id);
+        }
+      }
+
+      // Avançar automaticamente se estiver na coluna de orçamento
+      if (columnKey === "in_approval" && onAdvance) {
+        onAdvance(job);
+      }
+    }
   };
 
   const isAccepted = (addition.approval as string) === "accepted" || (addition.approval as string) === "aprovado";
@@ -670,8 +699,11 @@ function JobCard({ job, isLast, columnKey, onAddRepair, onEdit, onRetreat, onAdv
                 <AdditionBadge 
                   key={a.id} 
                   addition={a} 
+                  job={job}
                   showActions={showApprovalActions} 
-                  isMechanicView={isMechanicView} 
+                  isMechanicView={isMechanicView}
+                  onAdvance={onAdvance}
+                  columnKey={columnKey}
                 />
               ))}
             </div>
@@ -1390,64 +1422,6 @@ export default function Mecanica() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifData, setNotifData] = useState<{ job: any, status: string, problem: string } | null>(null);
   const reminderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Check for pending alert on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('pendingAlert');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setNotifData(data);
-        setNotifOpen(true);
-      } catch (e) {
-        localStorage.removeItem('pendingAlert');
-      }
-    }
-  }, []);
-
-  // Realtime listener for extra services
-  useEffect(() => {
-    const channel = supabase
-      .channel('os_adicionais_status_changes')
-      .on('postgres_changes' as any, 
-        { event: 'UPDATE', schema: 'public', table: 'os_adicionais' },
-        async (payload: any) => {
-          const newStatus = payload.new?.status;
-          const oldStatus = payload.old?.status;
-
-          const isApprovalEvent = 
-            (newStatus === 'aprovado' || newStatus === 'negado' || newStatus === 'recusado') &&
-            newStatus !== oldStatus;
-
-            if (isApprovalEvent) {
-              const osId = payload.new?.os_id;
-              const { data: job } = await supabase
-                .from('mechanic_jobs')
-                .select('*')
-                .eq('id', osId)
-                .single();
-              
-              // Evita disparar "Negado!" se o serviço todo foi cancelado (o outro listener cuida disso)
-              if (job && job.status === 'cancelado') return;
-
-              const payloadToSave = { 
-                job: job || { customer_name: 'Cliente', bike_name: 'Bike' }, 
-                status: newStatus, 
-                problem: payload.new?.problem || '',
-                timestamp: Date.now()
-              };
-            
-            localStorage.setItem('pendingAlert', JSON.stringify(payloadToSave));
-            setNotifData(payloadToSave);
-            setNotifOpen(true);
-            new Audio("https://cdn.pixabay.com/audio/2021/08/04/audio_bbdec30d20.mp3").play().catch(() => {});
-          }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
 
   useEffect(() => {
     const channel = supabase
@@ -2462,6 +2436,7 @@ export default function Mecanica() {
         onOpenChange={setControlOpen} 
         job={selectedControlJob} 
         onEdit={handleEditJob} 
+        onAdvance={handleAdvanceJob}
       />
 
       <Dialog open={open} onOpenChange={(v) => { 
