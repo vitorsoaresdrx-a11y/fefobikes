@@ -17,6 +17,7 @@ import {
   Loader2,
   Search,
   Filter,
+  History as HistoryIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -158,7 +159,7 @@ export default function Pagamentos() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card/30 p-4 rounded-[32px] border border-border/50">
           <div className="flex items-center overflow-x-auto gap-2 p-1 scrollbar-hide">
             {[
-              { id: "all", label: "Todos", icon: History },
+              { id: "all", label: "Todos", icon: HistoryIcon },
               { id: "approved", label: "Aprovados", icon: CheckCircle2 },
               { id: "pending", label: "Pendentes", icon: Clock },
               { id: "rejected", label: "Recusados", icon: XCircle },
