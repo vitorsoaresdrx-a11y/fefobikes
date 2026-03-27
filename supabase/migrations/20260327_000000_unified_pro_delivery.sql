@@ -99,7 +99,7 @@ BEGIN
       ELSE status
     END,
     updated_at = NOW()
-  WHERE id = NEW.id AND status NOT IN ('delivered', 'cancelado');
+  WHERE id = NEW.id AND status NOT IN ('ready', 'delivered', 'cancelado');
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
